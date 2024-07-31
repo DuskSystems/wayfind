@@ -1,0 +1,25 @@
+# MacOS
+.DS_Store
+
+# IntelliJ
+.idea
+*.iml
+*.ipr
+
+# Rust
+target
+*.rs.bk
+
+# Insta
+*.pending-snap
+
+# Nix
+result
+result-dev
+result-man
+result-info
+result-lib
+result-bin
+
+# Dir Env
+.direnv

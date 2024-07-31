@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    // General
+    "editorconfig.editorconfig",
+
+    // GitHub
+    "GitHub.vscode-github-actions",
+
+    // Rust
+    "rust-lang.rust-analyzer",
+    "serayuzgur.crates",
+    "tamasfe.even-better-toml",
+    "mitsuhiko.insta",
+
+    // Nix
+    "mkhl.direnv",
+    "jnoortheen.nix-ide",
+    "kamadorueda.alejandra",
+  ]
+}

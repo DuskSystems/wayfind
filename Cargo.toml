@@ -1,0 +1,13 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind"
+description = "A speedy, flexible router."
+version = "0.0.0"
+authors = ["Cathal Mullan <contact@cathal.dev>"]
+edition = "2021"
+rust-version = "1.66"
+repository = "https://github.com/DuskSystems/wayfind"
+license = "MIT OR Apache-2.0"
+keywords = ["router"]
+categories = ["network-programming", "web-programming"]
+include = ["/src", "LICENSE-APACHE", "LICENSE-MIT", "README.md"]

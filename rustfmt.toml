@@ -1,0 +1,8 @@
+# https://rust-lang.github.io/rustfmt
+edition = "2021"
+
+chain_width = 40
+max_width = 120
+reorder_imports = true
+use_field_init_shorthand = true
+use_try_shorthand = true

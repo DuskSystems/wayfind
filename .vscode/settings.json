@@ -1,0 +1,64 @@
+{
+  "files.eol": "\n",
+
+  "files.exclude": {
+    ".direnv": true,
+    ".idea": true
+  },
+
+  "files.readonlyInclude": {
+    ".direnv": true,
+    "target/**": true,
+    "LICENSE*": true,
+    "flake.lock": true,
+    "Cargo.lock": true
+  },
+
+  "search.exclude": {
+    ".direnv": true,
+    ".idea": true,
+    "LICENSE*": true,
+    "flake.lock": true,
+    "Cargo.lock": true
+  },
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "flake.nix": "flake.lock",
+    "Cargo.toml": "Cargo.lock"
+  },
+
+  "[json]": {
+    "editor.formatOnSave": false
+  },
+
+  "[jsonc]": {
+    "editor.formatOnSave": false
+  },
+
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+
+  // rust-lang.rust-analyzer
+  "rust-analyzer.server.path": "rust-analyzer",
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.checkOnSave": true,
+  "rust-analyzer.check.command": "clippy",
+
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+
+  // kamadorueda.alejandra
+  "alejandra.program": "alejandra",
+
+  "[nix]": {
+    "editor.defaultFormatter": "kamadorueda.alejandra"
+  },
+
+  // jnoortheen.nix-ide
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil"
+}
