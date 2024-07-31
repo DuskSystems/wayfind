@@ -1,3 +1,5 @@
+[![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
+
 # `wayfind`
 
 A speedy, flexible router for Rust.
@@ -33,7 +35,7 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 All benchmarks ran on an MacOS M1 Pro laptop and a Linux Ryzen 5 3600 desktop.
 
-In time, I'd like to invest into actual benchmarking hardware, or use a service like [codspeed](https://codspeed.io).
+Also check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind).
 
 ### [`matchit 0.8.3` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
