@@ -54,14 +54,20 @@ codspeed-criterion-compat = "2.6.0"
 divan = "0.1"
 
 # Routers
-matchit = "0.8.3"
 actix-router = "0.2.7"
+gonzales = "0.0.3-beta"
+matchit = "0.8.3"
+ntex-router = "0.5"
+path-table = "1.0"
+path-tree = "0.2.2"
 regex = "1.5.4"
 route-recognizer = "0.3.0"
-gonzales = "0.0.3-beta"
-path-tree = "0.2.2"
 routefinder = "0.5.2"
 
 [[bench]]
 name = "matchit"
+harness = false
+
+[[bench]]
+name = "path_tree"
 harness = false

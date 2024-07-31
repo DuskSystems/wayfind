@@ -35,42 +35,59 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ## Benchmarks
 
-All benchmarks ran on an MacOS M1 Pro laptop and a Linux Ryzen 5 3600 desktop.
+All benchmarks ran on an MacOS M1 Pro laptop.
 
-Also check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind).
+Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a more accurate set of results.
 
 ### [`matchit 0.8.3` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
 ```
-Compare Routers/wayfind
-  M1 Pro: [187.68 ns 188.07 ns 188.46 ns]
-  Ryzen 5 3600: [270.74 ns 272.34 ns 273.75 ns]
+wayfind
+  time: [226.56 ns 226.73 ns 226.98 ns]
 
-Compare Routers/matchit
-  M1 Pro: [190.81 ns 191.18 ns 191.62 ns]
-  Ryzen 5 3600: [206.70 ns 207.30 ns 207.91 ns]
+matchit
+  time: [228.98 ns 229.30 ns 229.72 ns]
 
-Compare Routers/path-tree
-  M1 Pro: [421.71 ns 423.61 ns 425.52 ns]
-  Ryzen 5 3600: [519.64 ns 521.46 ns 523.43 ns]
+path-tree
+  time: [480.98 ns 481.66 ns 482.58 ns]
 
-Compare Routers/gonzales
-  M1 Pro: [155.13 ns 155.48 ns 155.91 ns]
-  Ryzen 5 3600: [248.21 ns 249.09 ns 250.18 ns]
+gonzales
+  time: [185.65 ns 185.69 ns 185.74 ns]
 
-Compare Routers/actix
-  M1 Pro: [19.228 µs 19.284 µs 19.349 µs]
-  Ryzen 5 3600: [23.029 µs 23.101 µs 23.185 µs]
+actix
+  time: [22.807 µs 22.843 µs 22.887 µs]
 
-Compare Routers/regex
-  M1 Pro: [1.1476 µs 1.1509 µs 1.1544 µs]
-  Ryzen 5 3600: [1.7391 µs 1.7435 µs 1.7479 µs]
+regex
+  time: [1.3549 µs 1.3577 µs 1.3607 µs]
 
-Compare Routers/route-recognizer
-  M1 Pro: [4.2903 µs 4.3001 µs 4.3108 µs]
-  Ryzen 5 3600: [4.4614 µs 4.4778 µs 4.4960 µs]
+route-recognizer
+  time: [5.1537 µs 5.1601 µs 5.1671 µs]
 
-Compare Routers/routefinder
-  M1 Pro: [6.0529 µs 6.0683 µs 6.0884 µs]
-  Ryzen 5 3600: [7.7193 µs 7.7311 µs 7.7449 µs]
+routefinder
+  time: [7.2353 µs 7.2430 µs 7.2531 µs]
+```
+
+### [`path-tree 0.8.1` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
+
+```
+wayfind
+  time: [22.821 µs 23.010 µs 23.392 µs]
+
+actix_router
+  time: [4.7060 ms 4.7150 ms 4.7248 ms]
+
+ntex_router
+  time: [223.00 µs 224.13 µs 225.97 µs]
+
+path_table
+  time: [62.474 µs 62.565 µs 62.671 µs]
+
+path_tree
+  time: [50.806 µs 50.859 µs 50.921 µs]
+
+matchit
+  time: [29.469 µs 29.502 µs 29.538 µs]
+
+route_recognizer
+  time: [533.00 µs 533.58 µs 534.36 µs]
 ```
