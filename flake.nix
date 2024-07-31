@@ -47,9 +47,13 @@
         default = pkgs.mkShell {
           name = "wayfind-shell";
 
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
           buildInputs = with pkgs; [
             # Rust
             rust-toolchain
+            sccache
             cargo-codspeed
             cargo-insta
 
