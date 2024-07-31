@@ -6,6 +6,14 @@ on:
   push:
     branches: [main]
 
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    shell: nix develop --command bash {0}
+
 jobs:
   benchmarks:
     runs-on: ubuntu-22.04
@@ -13,21 +21,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust nightly
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          toolchain: "1.66.0"
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v13
 
-      - name: Install cargo-codspeed
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-codspeed@2.6.0
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Initialize Nix shell
+        run: nix develop
 
       - name: Build benchmarks
         run: cargo codspeed build
 
       - name: Run the benchmarks
-        uses: CodSpeedHQ/action@v3
+        uses: CathalMullan/action@main
         with:
+          shell: nix develop --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
