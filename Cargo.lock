@@ -135,6 +135,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 
 [[package]]
+name = "codspeed"
+version = "2.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a104ac948e0188b921eb3fcbdd55dcf62e542df4c7ab7e660623f6288302089"
+dependencies = [
+ "colored",
+ "libc",
+ "serde_json",
+]
+
+[[package]]
+name = "codspeed-criterion-compat"
+version = "2.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "722c36bdc62d9436d027256ce2627af81ac7a596dfc7d13d849d0d212448d7fe"
+dependencies = [
+ "codspeed",
+ "colored",
+ "criterion",
+]
+
+[[package]]
+name = "colored"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbf2150cce219b664a8a70df7a1f933836724b503f8a413af9365b4dcc4d90b8"
+dependencies = [
+ "lazy_static",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
 name = "condtype"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -751,6 +783,7 @@ name = "wayfind"
 version = "0.0.0"
 dependencies = [
  "actix-router",
+ "codspeed-criterion-compat",
  "criterion",
  "divan",
  "gonzales",

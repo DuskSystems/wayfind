@@ -12,6 +12,26 @@ keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 include = ["/src", "LICENSE-APACHE", "LICENSE-MIT", "README.md"]
 
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+cargo = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+# Personal Preferences
+module_name_repetitions = "allow"
+
 [dependencies]
 smallvec = "1.13"
 
@@ -22,6 +42,8 @@ insta = "1.39.0"
 
 # Benchmarking
 criterion = { version = "0.5", features = ["html_reports"] }
+# NOTE: Keep in sync with `cargo-codspeed` Nix package.
+codspeed-criterion-compat = "2.6.0"
 divan = "0.1"
 
 # Routers

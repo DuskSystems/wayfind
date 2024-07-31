@@ -82,14 +82,17 @@ impl<'a> Segments<'a> {
         let end = *index;
         *index += 1;
 
-        if let Some(colon) = colon {
-            let name = &path[start..colon];
-            let value = &path[colon + 1..end];
-            (name, Some(value))
-        } else {
-            let name = &path[start..end];
-            (name, None)
-        }
+        colon.map_or_else(
+            || {
+                let name = &path[start..end];
+                (name, None)
+            },
+            |colon| {
+                let name = &path[start..colon];
+                let value = &path[colon + 1..end];
+                (name, Some(value))
+            },
+        )
     }
 }
 

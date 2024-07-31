@@ -34,6 +34,7 @@
           (import rust-overlay)
 
           (self: super: {
+            cargo-codspeed = pkgs.callPackage nix/pkgs/cargo-codspeed {};
             cargo-insta = pkgs.callPackage nix/pkgs/cargo-insta {};
           })
         ];
@@ -49,6 +50,7 @@
           buildInputs = with pkgs; [
             # Rust
             rust-toolchain
+            cargo-codspeed
             cargo-insta
 
             # Benchmarking

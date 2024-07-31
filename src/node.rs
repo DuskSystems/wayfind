@@ -32,6 +32,7 @@ pub struct Node<'a, T> {
 }
 
 impl<'a, T> Node<'a, T> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn insert(&mut self, mut segments: Segments<'a>, data: NodeData<'a, T>) {
         if let Some(segment) = segments.pop() {
             match segment {
