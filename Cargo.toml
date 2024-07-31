@@ -19,3 +19,20 @@ smallvec = "1.13"
 # Snapshots
 # NOTE: Keep in sync with `cargo-insta` Nix package.
 insta = "1.39.0"
+
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+divan = "0.1"
+
+# Routers
+matchit = "0.8.3"
+actix-router = "0.2.7"
+regex = "1.5.4"
+route-recognizer = "0.3.0"
+gonzales = "0.0.3-beta"
+path-tree = "0.2.2"
+routefinder = "0.5.2"
+
+[[bench]]
+name = "matchit"
+harness = false

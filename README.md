@@ -26,4 +26,30 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ## Benchmarks
 
-TODO
+### [`matchit 0.8.3` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
+
+```
+Compare Routers/wayfind
+  time: [187.68 ns 188.07 ns 188.46 ns]
+
+Compare Routers/matchit
+  time: [190.81 ns 191.18 ns 191.62 ns]
+
+Compare Routers/path-tree
+  time: [421.71 ns 423.61 ns 425.52 ns]
+
+Compare Routers/gonzales
+  time: [155.13 ns 155.48 ns 155.91 ns]
+
+Compare Routers/actix
+  time: [19.228 µs 19.284 µs 19.349 µs]
+
+Compare Routers/regex
+  time: [1.1476 µs 1.1509 µs 1.1544 µs]
+
+Compare Routers/route-recognizer
+  time: [4.2903 µs 4.3001 µs 4.3108 µs]
+
+Compare Routers/routefinder
+  time: [6.0529 µs 6.0683 µs 6.0884 µs]
+```

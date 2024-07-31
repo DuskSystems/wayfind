@@ -51,6 +51,9 @@
             rust-toolchain
             cargo-insta
 
+            # Benchmarking
+            gnuplot
+
             # Nix
             alejandra
             statix
