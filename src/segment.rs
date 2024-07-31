@@ -35,7 +35,13 @@ impl<'a> Segments<'a> {
             }
         }
 
+        // Reverse here to allow for easy 'popping'
+        segments.reverse();
         Self(segments)
+    }
+
+    pub fn pop(&mut self) -> Option<Segment<'a>> {
+        self.0.pop()
     }
 
     fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
@@ -94,8 +100,8 @@ mod tests {
     #[test]
     fn test_segments_static() {
         assert_eq!(
+            Segments(vec![Segment::Static { prefix: b"/abcd" }]),
             Segments::new(b"/abcd"),
-            Segments(vec![Segment::Static { prefix: b"/abcd" }])
         );
     }
 
@@ -104,8 +110,8 @@ mod tests {
         assert_eq!(
             Segments::new(b"/{name}"),
             Segments(vec![
+                Segment::Dynamic { name: b"name" },
                 Segment::Static { prefix: b"/" },
-                Segment::Dynamic { name: b"name" }
             ])
         );
     }
@@ -115,8 +121,8 @@ mod tests {
         assert_eq!(
             Segments::new(b"/{path:*}"),
             Segments(vec![
+                Segment::Wildcard { name: b"path" },
                 Segment::Static { prefix: b"/" },
-                Segment::Wildcard { name: b"path" }
             ])
         );
     }
@@ -126,11 +132,11 @@ mod tests {
         assert_eq!(
             Segments::new(b"/{id:[0-9]+}"),
             Segments(vec![
-                Segment::Static { prefix: b"/" },
                 Segment::Regex {
                     name: b"id",
                     pattern: b"[0-9]+"
-                }
+                },
+                Segment::Static { prefix: b"/" },
             ])
         );
     }
@@ -140,15 +146,15 @@ mod tests {
         assert_eq!(
             Segments::new(b"/users/{id:[0-9]+}/posts/{file}.{extension}"),
             Segments(vec![
-                Segment::Static { prefix: b"/users/" },
+                Segment::Dynamic { name: b"extension" },
+                Segment::Static { prefix: b"." },
+                Segment::Dynamic { name: b"file" },
+                Segment::Static { prefix: b"/posts/" },
                 Segment::Regex {
                     name: b"id",
                     pattern: b"[0-9]+"
                 },
-                Segment::Static { prefix: b"/posts/" },
-                Segment::Dynamic { name: b"file" },
-                Segment::Static { prefix: b"." },
-                Segment::Dynamic { name: b"extension" }
+                Segment::Static { prefix: b"/users/" },
             ])
         );
     }
