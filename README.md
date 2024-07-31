@@ -1,3 +1,5 @@
+[![Crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
+[![Documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
 
 # `wayfind`

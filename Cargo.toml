@@ -10,7 +10,14 @@ repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
-include = ["/src", "LICENSE-APACHE", "LICENSE-MIT", "README.md"]
+include = [
+  "/benches",
+  "/src",
+  "/tests",
+  "LICENSE-APACHE",
+  "LICENSE-MIT",
+  "README.md",
+]
 
 [profile.dev.package]
 insta.opt-level = 3
