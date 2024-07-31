@@ -11,3 +11,8 @@ license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 include = ["/src", "LICENSE-APACHE", "LICENSE-MIT", "README.md"]
+
+[dev-dependencies]
+# Snapshots
+# NOTE: Keep in sync with `cargo-insta` Nix package.
+insta = "1.39.0"
