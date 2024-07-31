@@ -1,7 +1,7 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs>
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 
 fn call() -> impl IntoIterator<Item = &'static str> {
     [
