@@ -24,6 +24,11 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 - Wildcard (end): `/{catch_all:*}`
 - Regex: `/ids/{id:[0-9]+}`
 
+## Potential parameters types
+
+- Optional: `/photos/{id:?}`
+- Optional Groups: `/images/{name}(.{type})`
+
 ## Benchmarks
 
 ### [`matchit 0.8.3` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
