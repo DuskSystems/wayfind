@@ -12,6 +12,9 @@ keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 include = ["/src", "LICENSE-APACHE", "LICENSE-MIT", "README.md"]
 
+[dependencies]
+smallvec = "1.13"
+
 [dev-dependencies]
 # Snapshots
 # NOTE: Keep in sync with `cargo-insta` Nix package.

@@ -1,7 +1,9 @@
 use crate::{
+    matches::Match,
     node::{Node, NodeData, NodeKind},
     segment::Segments,
 };
+use smallvec::smallvec;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Router<'a, T> {
@@ -20,6 +22,8 @@ impl<'a, T> Router<'a, T> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
+
+                quick_dynamic: false,
             },
         }
     }
@@ -27,6 +31,16 @@ impl<'a, T> Router<'a, T> {
     pub fn insert(&mut self, path: &'a str, value: T) {
         self.root
             .insert(Segments::new(path.as_bytes()), NodeData { path, value });
+    }
+
+    #[must_use]
+    pub fn matches(&'a self, path: &'a str) -> Option<Match<'a, T>> {
+        let mut parameters = smallvec![];
+        let data = self
+            .root
+            .matches(path.as_bytes(), &mut parameters)?;
+
+        Some(Match { data, parameters })
     }
 }
 
