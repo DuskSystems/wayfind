@@ -35,59 +35,60 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ## Benchmarks
 
-All benchmarks ran on an MacOS M1 Pro laptop.
+All benchmarks ran on a MacOS M1 Pro laptop.
 
-Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a more accurate set of results.
+Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a more accurate set of timings.
 
 ### [`matchit 0.8.3` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
 ```
 wayfind
-  time: [226.56 ns 226.73 ns 226.98 ns]
+  time: [197.91 ns 198.24 ns 198.64 ns]
 
 matchit
-  time: [228.98 ns 229.30 ns 229.72 ns]
+  time: [188.43 ns 188.70 ns 189.03 ns]
 
 path-tree
-  time: [480.98 ns 481.66 ns 482.58 ns]
+  time: [403.57 ns 404.67 ns 405.92 ns]
 
 gonzales
-  time: [185.65 ns 185.69 ns 185.74 ns]
+  time: [155.42 ns 155.65 ns 155.92 ns]
 
 actix
-  time: [22.807 µs 22.843 µs 22.887 µs]
+  time: [19.227 µs 19.286 µs 19.344 µs]
 
 regex
-  time: [1.3549 µs 1.3577 µs 1.3607 µs]
+  time: [1.1352 µs 1.1373 µs 1.1395 µs]
 
 route-recognizer
-  time: [5.1537 µs 5.1601 µs 5.1671 µs]
+  time: [4.2923 µs 4.3013 µs 4.3121 µs]
 
 routefinder
-  time: [7.2353 µs 7.2430 µs 7.2531 µs]
+  time: [6.0263 µs 6.0336 µs 6.0428 µs]
 ```
 
 ### [`path-tree 0.8.1` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
 
 ```
 wayfind
-  time: [22.821 µs 23.010 µs 23.392 µs]
+  time: [18.670 µs 18.693 µs 18.724 µs]
 
 actix_router
-  time: [4.7060 ms 4.7150 ms 4.7248 ms]
+  time: [3.9160 ms 3.9373 ms 3.9709 ms]
 
 ntex_router
-  time: [223.00 µs 224.13 µs 225.97 µs]
+  time: [185.86 µs 188.18 µs 192.94 µs]
 
 path_table
-  time: [62.474 µs 62.565 µs 62.671 µs]
+  time: [51.964 µs 52.107 µs 52.263 µs]
 
 path_tree
-  time: [50.806 µs 50.859 µs 50.921 µs]
+  time: [42.204 µs 42.424 µs 42.741 µs]
 
 matchit
-  time: [29.469 µs 29.502 µs 29.538 µs]
+  time: [24.756 µs 24.817 µs 24.880 µs]
 
 route_recognizer
-  time: [533.00 µs 533.58 µs 534.36 µs]
+  time: [443.35 µs 444.00 µs 444.79 µs]
 ```
+g

@@ -44,6 +44,11 @@ impl<'a> Segments<'a> {
         self.0.pop()
     }
 
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
         let start = *index;
 

@@ -9,6 +9,7 @@ pub enum NodeKind {
     Root,
     Static,
     Dynamic,
+    EndWildcard,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -26,6 +27,7 @@ pub struct Node<'a, T> {
 
     pub static_children: Vec<Node<'a, T>>,
     pub dynamic_children: Vec<Node<'a, T>>,
+    pub end_wildcard: Option<Box<Node<'a, T>>>,
 
     // TODO: Come up with a better name.
     pub quick_dynamic: bool,
@@ -38,6 +40,7 @@ impl<'a, T> Node<'a, T> {
             match segment {
                 Segment::Static { prefix } => self.insert_static(segments, data, prefix),
                 Segment::Dynamic { name } => self.insert_dynamic(segments, data, name),
+                Segment::Wildcard { name } if segments.is_empty() => self.insert_end_wildcard(data, name),
                 _ => unimplemented!(),
             }
         } else {
@@ -63,6 +66,7 @@ impl<'a, T> Node<'a, T> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
+                    end_wildcard: None,
 
                     quick_dynamic: false,
                 };
@@ -98,6 +102,7 @@ impl<'a, T> Node<'a, T> {
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
+            end_wildcard: std::mem::take(&mut child.end_wildcard),
 
             quick_dynamic: false,
         };
@@ -110,6 +115,7 @@ impl<'a, T> Node<'a, T> {
 
             static_children: vec![],
             dynamic_children: vec![],
+            end_wildcard: None,
 
             quick_dynamic: false,
         };
@@ -142,6 +148,7 @@ impl<'a, T> Node<'a, T> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
+                    end_wildcard: None,
 
                     quick_dynamic: false,
                 };
@@ -150,6 +157,22 @@ impl<'a, T> Node<'a, T> {
                 new_child
             });
         }
+    }
+
+    fn insert_end_wildcard(&mut self, data: NodeData<'a, T>, name: &'a [u8]) {
+        // FIXME: We probably need splitting capabilities here, to change a end wildcard into a normal wildcard?
+        self.end_wildcard = Some(Box::new(Self {
+            kind: NodeKind::EndWildcard,
+
+            prefix: name,
+            data: Some(data),
+
+            static_children: vec![],
+            dynamic_children: vec![],
+            end_wildcard: None,
+
+            quick_dynamic: false,
+        }));
     }
 
     fn update_quick_dynamic(&mut self) {
@@ -162,7 +185,9 @@ impl<'a, T> Node<'a, T> {
                     return true;
                 }
 
-                if child.static_children.is_empty() && child.dynamic_children.is_empty() {
+                // No children?
+                if child.static_children.is_empty() && child.dynamic_children.is_empty() && child.end_wildcard.is_none()
+                {
                     return true;
                 }
 
@@ -185,6 +210,10 @@ impl<'a, T> Node<'a, T> {
         for child in &mut self.dynamic_children {
             child.update_quick_dynamic();
         }
+
+        if let Some(child) = self.end_wildcard.as_mut() {
+            child.update_quick_dynamic();
+        }
     }
 
     pub fn matches(
@@ -201,6 +230,10 @@ impl<'a, T> Node<'a, T> {
         }
 
         if let Some(matches) = self.matches_dynamic(path, parameters) {
+            return Some(matches);
+        }
+
+        if let Some(matches) = self.matches_end_wildcard(path, parameters) {
             return Some(matches);
         }
 
@@ -310,6 +343,23 @@ impl<'a, T> Node<'a, T> {
             }
 
             parameters.pop();
+        }
+
+        None
+    }
+
+    fn matches_end_wildcard(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
+    ) -> Option<&'a NodeData<'a, T>> {
+        if let Some(end_wildcard) = &self.end_wildcard {
+            parameters.push(Parameter {
+                key: end_wildcard.prefix,
+                value: path,
+            });
+
+            return end_wildcard.data.as_ref();
         }
 
         None

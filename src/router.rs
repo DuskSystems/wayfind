@@ -22,6 +22,7 @@ impl<'a, T> Router<'a, T> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
+                end_wildcard: None,
 
                 quick_dynamic: false,
             },

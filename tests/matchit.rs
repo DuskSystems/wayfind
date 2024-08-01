@@ -27,7 +27,6 @@ fn partial_overlap() {
 
 // https://github.com/ibraheemdev/matchit/issues/31
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn wildcard_overlap() {
     let mut router = Router::new();
     router.insert("/path/foo", "foo");
@@ -119,7 +118,6 @@ fn overlapping_param_backtracking() {
 
 // https://github.com/ibraheemdev/matchit/issues/42
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn bare_catchall() {
     let mut router = Router::new();
     router.insert("{foo:*}", 1);
@@ -279,7 +277,6 @@ fn normalized() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn blog() {
     let mut router = Router::new();
     router.insert("/{page}", 1);
@@ -395,7 +392,6 @@ fn double_overlap() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn catchall_off_by_one() {
     let mut router = Router::new();
     router.insert("/foo/{catchall:*}", 1);
@@ -432,7 +428,6 @@ fn catchall_off_by_one() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn overlap() {
     let mut router = Router::new();
     router.insert("/foo", 1);
@@ -540,7 +535,6 @@ fn extra_trailing_slash_param() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn missing_trailing_slash_catch_all() {
     let mut router = Router::new();
     router.insert("/foo/{bar:*}", 1);
@@ -563,7 +557,6 @@ fn missing_trailing_slash_catch_all() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn extra_trailing_slash_catch_all() {
     let mut router = Router::new();
     router.insert("/foo/{bar:*}", 1);
@@ -653,7 +646,6 @@ fn trailing_slash_overlap() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn trailing_slash() {
     let mut router = Router::new();
     router.insert("/hi", 1);
@@ -751,7 +743,6 @@ fn root_trailing_slash() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn catchall_overlap() {
     let mut router = Router::new();
     router.insert("/yyy/{x:*}", 1);
@@ -1005,7 +996,6 @@ fn basic() {
 }
 
 #[test]
-#[ignore = "wildcards not yet implemented"]
 fn wildcard() {
     let mut router = Router::new();
     router.insert("/", 1);
