@@ -62,7 +62,19 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     if let Some(expected) = expected {
         assert_eq!(data.path, expected.path, "Path mismatch for input: {input}");
         assert_eq!(data.value, expected.value, "Value mismatch for input: {input}");
-        assert_eq!(parameters, expected.params, "Parameters mismatch for input: {input}");
+
+        let parameters = parameters
+            .iter()
+            .map(|param| (String::from_utf8_lossy(param.key), String::from_utf8_lossy(param.value)))
+            .collect::<Vec<(_, _)>>();
+
+        let expected = expected
+            .params
+            .iter()
+            .map(|param| (String::from_utf8_lossy(param.key), String::from_utf8_lossy(param.value)))
+            .collect::<Vec<(_, _)>>();
+
+        assert_eq!(parameters, expected, "Parameters mismatch for input: {input}");
     } else {
         panic!("Unexpected match for input: {input}");
     }
