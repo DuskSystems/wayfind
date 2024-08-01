@@ -35,6 +35,12 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ### Under consideration
 
+- Wildcard (inline): `/files/{file:*}.{extension}`
+
+Currently, inline dynamic variables are greedy in nature, but maybe we'd be better off using inline wildcards to allow choosing between greedy and lazy matching.
+
+### Unlikely
+
 Could be convinced to add these, but likely not in scope for `v1`.
 
 - Optional: `/photos/{id:?}`

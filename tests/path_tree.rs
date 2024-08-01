@@ -1047,6 +1047,8 @@ fn match_params() {
     "###);
 
     // FIXME: This is a bug in our matcher! We're 'too greedy' in our matching.
+    // TODO: Consider if we want to allow multiple parameters side-by-side?
+    // Output below seems ambigous.
     assert_router_matches!(router, {
         // "/test-abc" => {
         //     path: "/test{sign}{param}",
