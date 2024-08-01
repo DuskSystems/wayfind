@@ -98,4 +98,9 @@ matchit
 route_recognizer
   time: [443.35 µs 444.00 µs 444.79 µs]
 ```
-g
+
+## Inspirations
+
+- [matchit](https://github.com/ibraheemdev/matchit)
+- [path-tree](https://github.com/viz-rs/path-tree)
+- [poem](https://github.com/poem-web/poem)
