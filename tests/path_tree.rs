@@ -1001,30 +1001,29 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/shop/product/{filter}/color{color}/size{size}", 1);
+    router.insert("/shop/product/:{filter}/color:{color}/size:{size}", 1);
 
     insta::assert_snapshot!(router, @r###"
     $
-    ╰─ /shop/product/
-                    ╰─ {filter}
-                              ╰─ /color
-                                      ╰─ {color}
-                                               ╰─ /size
-                                                      ╰─ {size} [1]
+    ╰─ /shop/product/:
+                     ╰─ {filter}
+                               ╰─ /color:
+                                        ╰─ {color}
+                                                 ╰─ /size:
+                                                         ╰─ {size} [1]
     "###);
 
     assert_router_matches!(router, {
         "/shop/product/:test/color:blue/size:xs" => {
-            path: "/shop/product/{filter}/color{color}/size{size}",
+            path: "/shop/product/:{filter}/color:{color}/size:{size}",
             value: 1,
             params: {
-                "filter" => ":test",
-                "color" => ":blue",
-                "size" => ":xs"
+                "filter" => "test",
+                "color" => "blue",
+                "size" => "xs"
             }
         }
-        // FIXME: This is a bug in our parser! Oops.
-        // "/shop/product/test/color:blue/size:xs" => None
+        "/shop/product/test/color:blue/size:xs" => None
     });
 
     // NOTE: We don't support 'optional' logic.
@@ -1383,8 +1382,7 @@ fn basic() {
     router.insert("/public/{any:*}", 7);
     router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 8);
     router.insert("/{org}/{repo}/tags/{day}-{month}-{year}", 9);
-    // FIXME: Bug in our matcher?
-    // router.insert("/{org}/{repo}/actions/{name}\\:{verb}", 10);
+    router.insert("/{org}/{repo}/actions/{name}:{verb}", 10);
     router.insert("/{org}/{repo}/{page}", 11);
     router.insert("/{org}/{repo}/{path:*}", 12);
     // NOTE: We don't support 'one or more' logic
@@ -1420,6 +1418,10 @@ fn basic() {
                             │                ╰─ {month}
                             │                         ╰─ -
                             │                            ╰─ {year} [9]
+                            ├─ actions/
+                            │         ╰─ {name}
+                            │                 ╰─ :
+                            │                    ╰─ {verb} [10]
                             ├─ {page} [11]
                             ╰─ {path:*} [12]
     "###);
@@ -1477,17 +1479,16 @@ fn basic() {
                 "year" => "12"
             }
         }
-        // FIXME: See above comment on route "/{org}/{repo}/actions/{name}\\:{verb}"
-        // "/rust-lang/rust-analyzer/actions/ci:bench" => {
-        //     path: "/{org}/{repo}/actions/{name}\\:{verb}",
-        //     value: 10,
-        //     params: {
-        //         "org" => "rust-lang",
-        //         "repo" => "rust-analyzer",
-        //         "name" => "ci",
-        //         "verb" => "bench"
-        //     }
-        // }
+        "/rust-lang/rust-analyzer/actions/ci:bench" => {
+            path: "/{org}/{repo}/actions/{name}:{verb}",
+            value: 10,
+            params: {
+                "org" => "rust-lang",
+                "repo" => "rust-analyzer",
+                "name" => "ci",
+                "verb" => "bench"
+            }
+        }
         "/rust-lang/rust-analyzer/stargazers" => {
             path: "/{org}/{repo}/{page}",
             value: 11,
@@ -1825,15 +1826,14 @@ fn github_tree() {
     "###);
 
     assert_router_matches!(router, {
-        // FIXME: Bug in our matcher?
-        // "/rust-lang/rust" => {
-        //     path: "/{org}/{repo}",
-        //     value: 2400,
-        //     params: {
-        //         "org" => "rust-lang",
-        //         "repo" => "rust"
-        //     }
-        // }
+        "/rust-lang/rust" => {
+            path: "/{org}/{repo}",
+            value: 2400,
+            params: {
+                "org" => "rust-lang",
+                "repo" => "rust"
+            }
+        }
         "/settings" => {
             path: "/settings",
             value: 20
@@ -1858,7 +1858,7 @@ fn github_tree() {
                 "path" => "any"
             }
         }
-        // FIXME: Different behaviour: path-tree would match "/{org}/{repo}/{path:*}"
+        // NOTE: Different behaviour: path-tree would match "/{org}/{repo}/{path:*}"
         "/rust-lang/rust/releases/" => {
             path: "/{org}/{repo}/{path:*}",
             value: 3000,
