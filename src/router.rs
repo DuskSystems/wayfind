@@ -1,7 +1,7 @@
 use crate::{
     matches::Match,
     node::{Node, NodeData, NodeKind},
-    segment::Segments,
+    parts::Parts,
 };
 use smallvec::smallvec;
 use std::fmt::Display;
@@ -32,7 +32,7 @@ impl<'a, T> Router<'a, T> {
 
     pub fn insert(&mut self, path: &'a str, value: T) {
         self.root
-            .insert(Segments::new(path.as_bytes()), NodeData { path, value });
+            .insert(Parts::new(path.as_bytes()), NodeData { path, value });
     }
 
     #[must_use]

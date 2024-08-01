@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Segment<'a> {
+pub enum Part<'a> {
     Static { prefix: &'a [u8] },
     Dynamic { name: &'a [u8] },
     Wildcard { name: &'a [u8] },
@@ -9,12 +9,12 @@ pub enum Segment<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Segments<'a>(Vec<Segment<'a>>);
+pub struct Parts<'a>(Vec<Part<'a>>);
 
-impl<'a> Segments<'a> {
+impl<'a> Parts<'a> {
     #[must_use]
     pub fn new(path: &'a [u8]) -> Self {
-        let mut segments = vec![];
+        let mut parts = vec![];
         let mut index = 0;
 
         while index < path.len() {
@@ -22,25 +22,25 @@ impl<'a> Segments<'a> {
                 let (name, value) = Self::parse_parameter(path, &mut index);
                 if let Some(value) = value {
                     if value.starts_with(b"*") {
-                        segments.push(Segment::Wildcard { name });
+                        parts.push(Part::Wildcard { name });
                     } else {
-                        segments.push(Segment::Regex { name, pattern: value });
+                        parts.push(Part::Regex { name, pattern: value });
                     }
                 } else {
-                    segments.push(Segment::Dynamic { name });
+                    parts.push(Part::Dynamic { name });
                 }
             } else {
                 let prefix = Self::parse_static(path, &mut index);
-                segments.push(Segment::Static { prefix });
+                parts.push(Part::Static { prefix });
             }
         }
 
         // Reverse here to allow for easy 'popping'
-        segments.reverse();
-        Self(segments)
+        parts.reverse();
+        Self(parts)
     }
 
-    pub fn pop(&mut self) -> Option<Segment<'a>> {
+    pub fn pop(&mut self) -> Option<Part<'a>> {
         self.0.pop()
     }
 
@@ -106,63 +106,54 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_segments_static() {
+    fn test_parts_static() {
+        assert_eq!(Parts(vec![Part::Static { prefix: b"/abcd" }]), Parts::new(b"/abcd"),);
+    }
+
+    #[test]
+    fn test_parts_dynamic() {
         assert_eq!(
-            Segments(vec![Segment::Static { prefix: b"/abcd" }]),
-            Segments::new(b"/abcd"),
+            Parts::new(b"/{name}"),
+            Parts(vec![Part::Dynamic { name: b"name" }, Part::Static { prefix: b"/" },])
         );
     }
 
     #[test]
-    fn test_segments_dynamic() {
+    fn test_parts_wildcard() {
         assert_eq!(
-            Segments::new(b"/{name}"),
-            Segments(vec![
-                Segment::Dynamic { name: b"name" },
-                Segment::Static { prefix: b"/" },
-            ])
+            Parts::new(b"/{path:*}"),
+            Parts(vec![Part::Wildcard { name: b"path" }, Part::Static { prefix: b"/" },])
         );
     }
 
     #[test]
-    fn test_segments_wildcard() {
+    fn test_parts_regex() {
         assert_eq!(
-            Segments::new(b"/{path:*}"),
-            Segments(vec![
-                Segment::Wildcard { name: b"path" },
-                Segment::Static { prefix: b"/" },
-            ])
-        );
-    }
-
-    #[test]
-    fn test_segments_regex() {
-        assert_eq!(
-            Segments::new(b"/{id:[0-9]+}"),
-            Segments(vec![
-                Segment::Regex {
+            Parts::new(b"/{id:[0-9]+}"),
+            Parts(vec![
+                Part::Regex {
                     name: b"id",
                     pattern: b"[0-9]+"
                 },
-                Segment::Static { prefix: b"/" },
+                Part::Static { prefix: b"/" },
             ])
         );
     }
 
     #[test]
-    fn test_segments_mixed() {
+    fn test_parts_mixed() {
         assert_eq!(
-            Segments::new(b"/users/{id:[0-9]+}/posts/{file}.{extension}"),
-            Segments(vec![
-                Segment::Dynamic { name: b"extension" },
-                Segment::Static { prefix: b"." },
-                Segment::Dynamic { name: b"file" },
-                Segment::Static { prefix: b"/posts/" },
-                Segment::Regex {
+            Parts::new(b"/users/{id:[0-9]+}/posts/{file}.{extension}"),
+            Parts(vec![
+                Part::Dynamic { name: b"extension" },
+                Part::Static { prefix: b"." },
+                Part::Dynamic { name: b"file" },
+                Part::Static { prefix: b"/posts/" },
+                Part::Regex {
                     name: b"id",
                     pattern: b"[0-9]+"
                 },
-                Segment::Static { prefix: b"/users/" },
+                Part::Static { prefix: b"/users/" },
             ])
         );
     }

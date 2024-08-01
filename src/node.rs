@@ -1,6 +1,6 @@
 use crate::{
     matches::Parameter,
-    segment::{Segment, Segments},
+    parts::{Part, Parts},
 };
 use smallvec::{smallvec, SmallVec};
 use std::fmt::Display;
@@ -36,12 +36,12 @@ pub struct Node<'a, T> {
 
 impl<'a, T> Node<'a, T> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn insert(&mut self, mut segments: Segments<'a>, data: NodeData<'a, T>) {
+    pub fn insert(&mut self, mut segments: Parts<'a>, data: NodeData<'a, T>) {
         if let Some(segment) = segments.pop() {
             match segment {
-                Segment::Static { prefix } => self.insert_static(segments, data, prefix),
-                Segment::Dynamic { name } => self.insert_dynamic(segments, data, name),
-                Segment::Wildcard { name } if segments.is_empty() => self.insert_end_wildcard(data, name),
+                Part::Static { prefix } => self.insert_static(segments, data, prefix),
+                Part::Dynamic { name } => self.insert_dynamic(segments, data, name),
+                Part::Wildcard { name } if segments.is_empty() => self.insert_end_wildcard(data, name),
                 _ => unimplemented!(),
             }
         } else {
@@ -52,7 +52,7 @@ impl<'a, T> Node<'a, T> {
         self.update_quick_dynamic();
     }
 
-    fn insert_static(&mut self, segments: Segments<'a>, data: NodeData<'a, T>, prefix: &'a [u8]) {
+    fn insert_static(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, prefix: &'a [u8]) {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -132,7 +132,7 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    fn insert_dynamic(&mut self, segments: Segments<'a>, data: NodeData<'a, T>, name: &'a [u8]) {
+    fn insert_dynamic(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, name: &'a [u8]) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()

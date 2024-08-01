@@ -24,18 +24,19 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 ### Implemented
 
 - Static: `/index.html`
-- Dynamic: `/users/{id}`
-- Dynamic (inline): `/files/{file}.{extension}/delete`
-- Wildcard (end): `/{catch_all:*}`
+- Dynamic Segment: `/users/{id}`
+- Dynamic Inline: `/calender/{year}-{month}-{day}`
+- Wildcard End: `/{catch_all:*}`
 
 ### Planned
 
-- Wildcard: `/v1/{namespace:*}/tags/list`
-- Regex: `/ids/{id:[0-9]+}`
+- Wildcard Segment(s): `/v1/{namespace:*}/tags/list`
+- Regex Segment: `/ids/{id:[0-9]+}`
+- Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
 
 ### Under consideration
 
-- Wildcard (inline): `/files/{file:*}.{extension}`
+- Wildcard Inline: `/files/{file:*}.{extension}`
 
 Currently, inline dynamic variables are greedy in nature, but maybe we'd be better off using inline wildcards to allow choosing between greedy and lazy matching.
 
@@ -45,6 +46,13 @@ Could be convinced to add these, but likely not in scope for `v1`.
 
 - Optional: `/photos/{id:?}`
 - Optional Groups: `/images/{name}(.{type})`
+
+## Potential additional features
+
+- Case insensitive matches
+- URL encoding/decoding
+- OpenAPI compatibility
+- Routing via query parameters, host, methods, ...
 
 ## Benchmarks
 
@@ -107,6 +115,6 @@ route_recognizer
 
 ## Inspirations
 
-- [matchit](https://github.com/ibraheemdev/matchit)
-- [path-tree](https://github.com/viz-rs/path-tree)
-- [poem](https://github.com/poem-web/poem)
+- [poem](https://github.com/poem-web/poem): Initial experimentations started out as a Poem router fork
+- [matchit](https://github.com/ibraheemdev/matchit): Performance leader among pre-existing routers
+- [path-tree](https://github.com/viz-rs/path-tree): Extensive testing and router display feature
