@@ -4,6 +4,7 @@ use crate::{
     segment::Segments,
 };
 use smallvec::smallvec;
+use std::fmt::Display;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Router<'a, T> {
@@ -48,5 +49,11 @@ impl<'a, T> Router<'a, T> {
 impl<'a, T> Default for Router<'a, T> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<'a, T: Display> Display for Router<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.root)
     }
 }

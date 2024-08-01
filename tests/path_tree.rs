@@ -23,6 +23,24 @@ fn statics() {
     router.insert("/α", 10);
     router.insert("/β", 11);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ hi [1]
+       ├─ c [4]
+       │  ╰─ o [3]
+       │     ╰─ ntact [2]
+       ├─ a [5]
+       │  ╰─ b [6]
+       ├─ doc/ [7]
+       │     ╰─ go
+       │         ├─ _faq.html [8]
+       │         ╰─ 1.html [9]
+       ╰─ �
+            ├─ � [10]
+            ╰─ � [11]
+    "###);
+
     assert_router_matches!(router, {
         "/" => {
             path: "/",
@@ -99,6 +117,43 @@ fn wildcards() {
     router.insert("/doc/rust1.html", 17);
     router.insert("/info/{user}/public", 18);
     router.insert("/info/{user}/project/{project}", 19);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ cmd/
+       │     ├─ vet [3]
+       │     ╰─ {tool}
+       │             ╰─ / [2]
+       │                ╰─ {sub} [1]
+       ├─ s
+       │  ├─ rc
+       │  │   ├─ /
+       │  │   │  ╰─ {filepath:*} [4]
+       │  │   ╰─ 1/ [5]
+       │  │       ╰─ {filepath:*} [6]
+       │  ╰─ earch/ [8]
+       │          ├─ invalid [10]
+       │          ╰─ {query} [9]
+       ├─ user_
+       │      ├─ x [13]
+       │      ╰─ {name} [11]
+       │              ╰─ /about [12]
+       ├─ files/
+       │       ╰─ {dir}
+       │              ╰─ /
+       │                 ╰─ {filepath:*} [14]
+       ├─ doc/ [15]
+       │     ╰─ rust
+       │           ├─ _faq.html [16]
+       │           ╰─ 1.html [17]
+       ╰─ info/
+              ╰─ {user}
+                      ╰─ /p
+                          ├─ ublic [18]
+                          ╰─ roject/
+                                   ╰─ {project} [19]
+    "###);
 
     assert_router_matches!(router, {
         "/" => {
@@ -181,6 +236,12 @@ fn single_named_parameter() {
     let mut router = Router::new();
     router.insert("/users/{id}", 0);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /users/
+             ╰─ {id} [0]
+    "###);
+
     assert_router_matches!(router, {
         "/" => None
         "/users/gordon" => {
@@ -210,9 +271,10 @@ fn repeated_single_named_param() {
     router.insert("/users/{id}", 0);
     router.insert("/users/{user_id}", 1);
 
+    insta::assert_snapshot!(router, @"");
+
     // FIXME: Currently we match the first route, since it was inserted first.
     // Possibly we'd be better off erroring here, since it's ambiguous.
-
     assert_router_matches!(router, {
         "/users/gordon" => {
             path: "/users/{user_id}",
@@ -231,6 +293,18 @@ fn static_and_named_parameter() {
     router.insert("/a/c/d", "/a/c/d");
     router.insert("/a/c/a", "/a/c/a");
     router.insert("/{id}/c/e", "/{id}/c/e");
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ a/
+       │   ├─ b/c [/a/b/c]
+       │   ╰─ c/
+       │       ├─ d [/a/c/d]
+       │       ╰─ a [/a/c/a]
+       ╰─ {id}
+             ╰─ /c/e [/{id}/c/e]
+    "###);
 
     assert_router_matches!(router, {
         "/" => None
@@ -262,6 +336,15 @@ fn multi_named_parameters() {
     router.insert("/{lang}/{keyword}", true);
     router.insert("/{id}", true);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ {lang}
+       │       ╰─ /
+       │          ╰─ {keyword} [true]
+       ╰─ {id} [true]
+    "###);
+
     assert_router_matches!(router, {
         "/" => None
         "/rust/" => None
@@ -290,6 +373,12 @@ fn catch_all_parameter() {
     let mut router = Router::new();
     router.insert("/src/{filepath:*}", "* files");
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /src/
+           ╰─ {filepath:*} [* files]
+    "###);
+
     assert_router_matches!(router, {
         "/src" => None
         // NOTE: Different behaviour: path-tree would match "/src/{filepath:*}"
@@ -314,6 +403,12 @@ fn catch_all_parameter() {
 
     router.insert("/src/", "dir");
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /src/ [dir]
+           ╰─ {filepath:*} [* files]
+    "###);
+
     assert_router_matches!(router, {
         "/src/" => {
             path: "/src/",
@@ -330,6 +425,8 @@ fn catch_all_parameter_with_prefix() {
     router.insert("/commit/{sha}", "hex");
     router.insert("/commit/{sha0}/compare/{sha1}", "compare");
     router.insert("/src/", "dir");
+
+    insta::assert_snapshot!(router, @"");
 
     assert_router_matches!(router, {
         "/src/" => {
@@ -406,6 +503,16 @@ fn static_and_catch_all_parameter() {
     router.insert("/a/c/a", "/a/c/a");
     router.insert("/a/{c:*}", "/a/*c");
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /a/
+         ├─ b/c [/a/b/c]
+         ├─ c/
+         │   ├─ d [/a/c/d]
+         │   ╰─ a [/a/c/a]
+         ╰─ {c:*} [/a/*c]
+    "###);
+
     assert_router_matches!(router, {
         "/" => None
         "/a/b/c" => {
@@ -437,6 +544,14 @@ fn root_catch_all_parameter() {
     router.insert("/{wildcard:*}", 2);
     router.insert("/users/{wildcard:*}", 3);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [1]
+       ├─ users/
+       │       ╰─ {wildcard:*} [3]
+       ╰─ {wildcard:*} [2]
+    "###);
+
     assert_router_matches!(router, {
         "/" => {
             path: "/",
@@ -464,6 +579,12 @@ fn root_catch_all_parameter_1() {
     let mut router = Router::new();
     router.insert("/{wildcard:*}", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ╰─ {wildcard:*} [1]
+    "###);
+
     assert_router_matches!(router, {
         // NOTE: Different behaviour: path-tree would match "/wildcard:*"
         "/" => None
@@ -485,6 +606,12 @@ fn root_catch_all_parameter_1() {
 
     router.insert("/", 0);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ╰─ {wildcard:*} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/" => {
             path: "/",
@@ -499,6 +626,15 @@ fn test_named_routes_with_non_ascii_paths() {
     router.insert("/", 0);
     router.insert("/{wildcard:*}", 1);
     router.insert("/matchme/{slug}/", 2);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ matchme/
+       │         ╰─ {slug}
+       │                 ╰─ / [2]
+       ╰─ {wildcard:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/matchme/abc-s-def/" => {
@@ -538,6 +674,15 @@ fn test_named_wildcard_collide() {
     router.insert("/git/{org}/{repo}", 1);
     router.insert("/git/{wildcard:*}", 2);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /git/
+           ├─ {org}
+           │      ╰─ /
+           │         ╰─ {repo} [1]
+           ╰─ {wildcard:*} [2]
+    "###);
+
     assert_router_matches!(router, {
         "/git/rust-lang/rust" => {
             path: "/git/{org}/{repo}",
@@ -561,6 +706,14 @@ fn test_named_wildcard_collide() {
 fn match_params() {
     let mut router = Router::new();
     router.insert("/api/v1/{param}/{wildcard:*}", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/
+              ╰─ {param}
+                       ╰─ /
+                          ╰─ {wildcard:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/api/v1/entity" => None
@@ -616,6 +769,11 @@ fn match_params() {
     let mut router = Router::new();
     router.insert("/v1/some/resource/name:customVerb", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /v1/some/resource/name:customVerb [1]
+    "###);
+
     assert_router_matches!(router, {
         "/v1/some/resource/name:customVerb" => {
             path: "/v1/some/resource/name:customVerb",
@@ -626,6 +784,13 @@ fn match_params() {
 
     let mut router = Router::new();
     router.insert("/v1/some/resource/{name}:customVerb", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /v1/some/resource/
+                        ╰─ {name}
+                                ╰─ :customVerb [1]
+    "###);
 
     assert_router_matches!(router, {
         "/v1/some/resource/test:customVerb" => {
@@ -650,6 +815,12 @@ fn match_params() {
 
     let mut router = Router::new();
     router.insert("/api/v1/{wildcard:*}", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/
+              ╰─ {wildcard:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/api/v1" => None
@@ -681,6 +852,12 @@ fn match_params() {
     let mut router = Router::new();
     router.insert("/api/v1/{param}", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/
+              ╰─ {param} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/api/v1" => None
         "/api/v1/" => None
@@ -702,6 +879,24 @@ fn match_params() {
     router.insert("/api/v1/{param}.{param2}", 4);
     router.insert("/api/v1/{param}_{param2}", 5);
     router.insert("/api/v1/{param}:{param2}", 6);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/
+              ╰─ {param}
+                       ├─ /
+                       │  ╰─ {param2} [3]
+                       ├─ -
+                       │  ╰─ {param2} [1]
+                       ├─ ~
+                       │  ╰─ {param2} [2]
+                       ├─ .
+                       │  ╰─ {param2} [4]
+                       ├─ _
+                       │  ╰─ {param2} [5]
+                       ╰─ :
+                          ╰─ {param2} [6]
+    "###);
 
     assert_router_matches!(router, {
         "/api/v1/entity-entity2" => {
@@ -767,6 +962,11 @@ fn match_params() {
     let mut router = Router::new();
     router.insert("/api/v1/const", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/const [1]
+    "###);
+
     assert_router_matches!(router, {
         "/api/v1/const" => {
             path: "/api/v1/const",
@@ -782,6 +982,13 @@ fn match_params() {
     let mut router = Router::new();
     router.insert("/api/{param}/fixedEnd", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/
+           ╰─ {param}
+                    ╰─ /fixedEnd [1]
+    "###);
+
     assert_router_matches!(router, {
         "/api/abc/fixedEnd" => {
             path: "/api/{param}/fixedEnd",
@@ -795,6 +1002,16 @@ fn match_params() {
 
     let mut router = Router::new();
     router.insert("/shop/product/{filter}/color{color}/size{size}", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /shop/product/
+                    ╰─ {filter}
+                              ╰─ /color
+                                      ╰─ {color}
+                                               ╰─ /size
+                                                      ╰─ {size} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/shop/product/:test/color:blue/size:xs" => {
@@ -822,6 +1039,13 @@ fn match_params() {
 
     let mut router = Router::new();
     router.insert("/test{sign}{param}", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /test
+           ╰─ {sign}
+                   ╰─ {param} [1]
+    "###);
 
     // FIXME: This is a bug in our matcher! We're 'too greedy' in our matching.
     assert_router_matches!(router, {
@@ -948,6 +1172,24 @@ fn match_params() {
     router.insert("/_{name}", 6);
     router.insert("/{name}", 7);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ name
+       │     ╰─ {name} [1]
+       ├─ @
+       │  ╰─ {name} [2]
+       ├─ -
+       │  ╰─ {name} [3]
+       ├─ .
+       │  ╰─ {name} [4]
+       ├─ ~
+       │  ╰─ {name} [5]
+       ├─ _
+       │  ╰─ {name} [6]
+       ╰─ {name} [7]
+    "###);
+
     assert_router_matches!(router, {
         "/name:john" => {
             path: "/name{name}",
@@ -1002,6 +1244,14 @@ fn match_params() {
 
     let mut router = Router::new();
     router.insert("/api/v1/{param}/abc/{wildcard:*}", 1);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /api/v1/
+              ╰─ {param}
+                       ╰─ /abc/
+                              ╰─ {wildcard:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/api/v1/well/abc/wildcard" => {
@@ -1140,7 +1390,39 @@ fn basic() {
     // NOTE: We don't support 'one or more' logic
     // router.insert("/api/{plus:+}", 13);
 
-    // TODO: Add test for router display
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ login [1]
+       ├─ s
+       │  ├─ ignup [2]
+       │  ╰─ ettings [3]
+       │           ╰─ /
+       │              ╰─ {page} [4]
+       ├─ public/
+       │        ╰─ {any:*} [7]
+       ├─ {user} [5]
+       │       ╰─ /
+       │          ╰─ {repo} [6]
+       ╰─ {org}
+              ╰─ /
+                 ╰─ {repo}
+                         ╰─ /
+                            ├─ releases/download/
+                            │                   ╰─ {tag}
+                            │                          ╰─ /
+                            │                             ╰─ {filename}
+                            │                                         ╰─ .
+                            │                                            ╰─ {ext} [8]
+                            ├─ tags/
+                            │      ╰─ {day}
+                            │             ╰─ -
+                            │                ╰─ {month}
+                            │                         ╰─ -
+                            │                            ╰─ {year} [9]
+                            ├─ {page} [11]
+                            ╰─ {path:*} [12]
+    "###);
 
     assert_router_matches!(router, {
         "/" => {
@@ -1372,7 +1654,175 @@ fn github_tree() {
     router.insert("/{org}/{repo}/releases/{path:*}", 3001);
     router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 3002);
 
-    // TODO: Add test for router display
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ a
+       │  ├─ pi [1]
+       │  ╰─ bout [2]
+       │        ╰─ /
+       │           ├─ careers [200]
+       │           ├─ press [201]
+       │           ╰─ diversity [202]
+       ├─ login [3]
+       ├─ s
+       │  ├─ ignup [4]
+       │  ├─ ponsors [10]
+       │  │        ╰─ /
+       │  │           ├─ explore [100]
+       │  │           ├─ accounts [101]
+       │  │           ╰─ {repo} [102]
+       │  │                   ╰─ /
+       │  │                      ├─ issues/
+       │  │                      │        ╰─ {path:*} [106]
+       │  │                      ╰─ {user} [103]
+       │  ╰─ e
+       │     ├─ arch [15]
+       │     ╰─ ttings [20]
+       │             ╰─ /
+       │                ├─ a
+       │                │  ├─ dmin [2000]
+       │                │  ├─ pp
+       │                │  │   ├─ earance [2001]
+       │                │  │   ╰─ s [2023]
+       │                │  ╰─ ccessibility [2002]
+       │                ├─ notifications [2003]
+       │                ├─ b
+       │                │  ├─ illing [2004]
+       │                │  │       ╰─ /plans [2005]
+       │                │  ╰─ locked_users [2009]
+       │                ├─ s
+       │                │  ├─ ecurity [2006]
+       │                │  │        ├─ _analysis [2018]
+       │                │  │        ╰─ -log [2021]
+       │                │  ╰─ ponsors-log [2022]
+       │                ├─ keys [2007]
+       │                ├─ organizations [2008]
+       │                ├─ in
+       │                │   ├─ teraction_limits [2010]
+       │                │   ╰─ stallations [2019]
+       │                ├─ co
+       │                │   ├─ de
+       │                │   │   ├─ _review_limits [2011]
+       │                │   │   ╰─ spaces [2013]
+       │                │   ╰─ pilot [2015]
+       │                ├─ re
+       │                │   ├─ p
+       │                │   │  ├─ ositories [2012]
+       │                │   │  ╰─ lies [2017]
+       │                │   ╰─ minders [2020]
+       │                ├─ de
+       │                │   ├─ leted_packages [2014]
+       │                │   ╰─ velopers [2024]
+       │                ├─ pages [2016]
+       │                ╰─ tokens [2025]
+       ├─ p
+       │  ├─ ricing [5]
+       │  ╰─ ulls [16]
+       ├─ features [6]
+       │         ╰─ /
+       │            ├─ actions [600]
+       │            ├─ packages [601]
+       │            ├─ security [602]
+       │            ├─ co
+       │            │   ├─ de
+       │            │   │   ├─ spaces [603]
+       │            │   │   ╰─ -review [605]
+       │            │   ╰─ pilot [604]
+       │            ├─ issues [606]
+       │            ╰─ discussions [607]
+       ├─ e
+       │  ├─ nterprise [7]
+       │  ╰─ xplore [19]
+       ├─ t
+       │  ├─ eam [8]
+       │  ├─ opics [12]
+       │  ╰─ rending [13]
+       ├─ c
+       │  ├─ ustomer-stories [9]
+       │  ╰─ ollections [14]
+       ├─ readme [11]
+       ├─ issues [17]
+       ├─ marketplace [18]
+       ├─ 404 [21]
+       ├─ 50
+       │   ├─ 0 [22]
+       │   ╰─ 3 [23]
+       ├─ new [2504]
+       │    ╰─ /import [2505]
+       ├─ organizations/
+       │               ├─ new [2506]
+       │               ╰─ plan [2507]
+       ╰─ {org} [24]
+              ╰─ /
+                 ╰─ {repo} [2400]
+                         ╰─ /
+                            ├─ issues [2410]
+                            │       ╰─ /
+                            │          ├─ new [2412]
+                            │          ╰─ {id} [2411]
+                            ├─ pul
+                            │    ├─ l
+                            │    │  ├─ s [2420]
+                            │    │  ╰─ /
+                            │    │     ╰─ {id} [2421]
+                            │    ╰─ se [2470]
+                            ├─ com
+                            │    ├─ pare [2422]
+                            │    ╰─ m
+                            │       ├─ unity [2490]
+                            │       ╰─ it/
+                            │            ╰─ {id} [2503]
+                            ├─ discussions [2430]
+                            │            ╰─ /
+                            │               ╰─ {id} [2431]
+                            ├─ actions [2440]
+                            │        ╰─ /
+                            │           ├─ workflows/
+                            │           │           ╰─ {id} [2441]
+                            │           ╰─ runs/
+                            │                  ╰─ {id} [2442]
+                            ├─ w
+                            │  ├─ iki [2450]
+                            │  │    ╰─ /
+                            │  │       ╰─ {id} [2451]
+                            │  ╰─ atchers [2497]
+                            ├─ s
+                            │  ├─ ecurity [2460]
+                            │  │        ╰─ /
+                            │  │           ├─ policy [2461]
+                            │  │           ╰─ advisories [2462]
+                            │  ╰─ targazers [2495]
+                            │             ╰─ /yoou_know [2496]
+                            ├─ graphs/co
+                            │          ├─ ntributors [2480]
+                            │          ├─ mmit-activity [2481]
+                            │          ╰─ de-frequency [2482]
+                            ├─ network [2491]
+                            │        ╰─ /
+                            │           ├─ dependen
+                            │           │         ├─ cies [2492]
+                            │           │         ╰─ ts [2493]
+                            │           ╰─ members [2494]
+                            ├─ releases [2498]
+                            │         ╰─ /
+                            │            ├─ tag/
+                            │            │     ╰─ {id} [2499]
+                            │            ├─ download/
+                            │            │          ╰─ {tag}
+                            │            │                 ╰─ /
+                            │            │                    ╰─ {filename}
+                            │            │                                ╰─ .
+                            │            │                                   ╰─ {ext} [3002]
+                            │            ╰─ {path:*} [3001]
+                            ├─ t
+                            │  ├─ ags [2500]
+                            │  │    ╰─ /
+                            │  │       ╰─ {id} [2501]
+                            │  ╰─ ree/
+                            │        ╰─ {id} [2502]
+                            ╰─ {path:*} [3000]
+    "###);
 
     assert_router_matches!(router, {
         // FIXME: Bug in our matcher?
@@ -1447,6 +1897,12 @@ fn test_dots_no_ext() {
     let mut router = Router::new();
     router.insert("/{name}", 1);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ╰─ {name} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
             path: "/{name}",
@@ -1464,6 +1920,8 @@ fn test_dots_ext() {
     let mut router = Router::new();
     router.insert("/{name:+}.123", 2);
     router.insert("/{name:*}.123.456", 1);
+
+    insta::assert_snapshot!(router, @"");
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
@@ -1489,7 +1947,13 @@ fn test_dots_ext_no_qualifier() {
     router.insert("/{name}.js", 2);
     router.insert("/{name}.js.gz", 1);
 
-    // TODO: Add test for router display
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ╰─ {name}
+               ╰─ .js [2]
+                    ╰─ .gz [1]
+    "###);
 
     assert_router_matches!(router, {
         "/node.js" => {

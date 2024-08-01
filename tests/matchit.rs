@@ -12,6 +12,13 @@ fn partial_overlap() {
     router.insert("/foo_bar", "Welcome!");
     router.insert("/foo/bar", "Welcome!");
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo
+          ├─ _bar [Welcome!]
+          ╰─ /bar [Welcome!]
+    "###);
+
     assert_router_matches!(router, {
         "/foo/" => None
     });
@@ -19,6 +26,12 @@ fn partial_overlap() {
     let mut router = Router::new();
     router.insert("/foo", "Welcome!");
     router.insert("/foo/bar", "Welcome!");
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo [Welcome!]
+          ╰─ /bar [Welcome!]
+    "###);
 
     assert_router_matches!(router, {
         "/foo/" => None
@@ -31,6 +44,13 @@ fn wildcard_overlap() {
     let mut router = Router::new();
     router.insert("/path/foo", "foo");
     router.insert("/path/{rest:*}", "wildcard");
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /path/
+            ├─ foo [foo]
+            ╰─ {rest:*} [wildcard]
+    "###);
 
     assert_router_matches!(router, {
         "/path/foo" => {
@@ -56,6 +76,14 @@ fn wildcard_overlap() {
     let mut router = Router::new();
     router.insert("/path/foo/{arg}", "foo");
     router.insert("/path/{rest:*}", "wildcard");
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /path/
+            ├─ foo/
+            │     ╰─ {arg} [foo]
+            ╰─ {rest:*} [wildcard]
+    "###);
 
     assert_router_matches!(router, {
         "/path/foo/myarg" => {
@@ -88,6 +116,17 @@ fn overlapping_param_backtracking() {
     let mut router = Router::new();
     router.insert("/{object}/{id}", "object with id");
     router.insert("/secret/{id}/path", "secret with id and path");
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ secret/
+       │        ╰─ {id}
+       │              ╰─ /path [secret with id and path]
+       ╰─ {object}
+                 ╰─ /
+                    ╰─ {id} [object with id]
+    "###);
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
@@ -122,6 +161,13 @@ fn bare_catchall() {
     let mut router = Router::new();
     router.insert("{foo:*}", 1);
     router.insert("foo/{bar:*}", 2);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ├─ foo/
+    │     ╰─ {bar:*} [2]
+    ╰─ {foo:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "x/y" => {
@@ -172,6 +218,43 @@ fn normalized() {
     router.insert("/s/s/s/s", 12);
     router.insert("/s/s/{s}/x", 13);
     router.insert("/s/s/{y}/d", 14);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ x/
+       │   ├─ {foo}
+       │   │      ╰─ /bar [1]
+       │   ╰─ {bar}
+       │          ╰─ /baz [2]
+       ├─ s [9]
+       │  ╰─ /s [10]
+       │      ╰─ /
+       │         ├─ s [11]
+       │         │  ╰─ /s [12]
+       │         ├─ {s}
+       │         │    ╰─ /x [13]
+       │         ╰─ {y}
+       │              ╰─ /d [14]
+       ├─ {foo}
+       │      ╰─ /
+       │         ├─ baz/bax [7]
+       │         ├─ {baz}
+       │         │      ╰─ /bax [3]
+       │         ╰─ {bar}
+       │                ╰─ /baz [4]
+       ├─ {fod}
+       │      ╰─ /
+       │         ├─ baz/bax/foo [6]
+       │         ╰─ {baz}
+       │                ╰─ /
+       │                   ╰─ {bax}
+       │                          ╰─ /foo [5]
+       ╰─ {bar}
+              ╰─ /
+                 ╰─ {bay}
+                        ╰─ /bay [8]
+    "###);
 
     assert_router_matches!(router, {
         "/x/foo/bar" => {
@@ -286,6 +369,23 @@ fn blog() {
     router.insert("/static/{path:*}", 5);
     router.insert("/favicon.ico", 6);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ posts/
+       │       ╰─ {year}
+       │               ╰─ /
+       │                  ├─ top [4]
+       │                  ╰─ {month}
+       │                           ╰─ /
+       │                              ├─ index [3]
+       │                              ╰─ {post} [2]
+       ├─ static/
+       │        ╰─ {path:*} [5]
+       ├─ favicon.ico [6]
+       ╰─ {page} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/about" => {
             path: "/{page}",
@@ -343,6 +443,27 @@ fn double_overlap() {
     router.insert("/other/static/path", 6);
     router.insert("/other/long/static/path/", 7);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ secret/
+       │        ├─ 978 [3]
+       │        ╰─ {id}
+       │              ╰─ /path [2]
+       ├─ other/
+       │       ├─ an_object/
+       │       │           ╰─ {id} [5]
+       │       ├─ static/path [6]
+       │       ├─ long/static/path/ [7]
+       │       ╰─ {object}
+       │                 ╰─ /
+       │                    ╰─ {id}
+       │                          ╰─ / [4]
+       ╰─ {object}
+                 ╰─ /
+                    ╰─ {id} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/secret/978/path" => {
             path: "/secret/{id}/path",
@@ -399,6 +520,16 @@ fn catchall_off_by_one() {
     router.insert("/bar/", 3);
     router.insert("/bar/{catchall:*}", 4);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ foo/
+       │     ╰─ {catchall:*} [1]
+       ╰─ bar [2]
+            ╰─ / [3]
+               ╰─ {catchall:*} [4]
+    "###);
+
     assert_router_matches!(router, {
         "/foo" => None
         "/foo/" => None
@@ -440,6 +571,21 @@ fn overlap() {
     router.insert("/", 8);
     router.insert("/xxx/{x:*}", 9);
     router.insert("/xxx/", 10);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [8]
+       ├─ foo [1]
+       ├─ ba
+       │   ├─ r [2]
+       │   ╰─ z [4]
+       │      ╰─ / [5]
+       │         ├─ x [6]
+       │         ╰─ {xxx} [7]
+       ├─ xxx/ [10]
+       │     ╰─ {x:*} [9]
+       ╰─ {bar:*} [3]
+    "###);
 
     assert_router_matches!(router, {
         "/foo" => {
@@ -502,6 +648,16 @@ fn missing_trailing_slash_param() {
     router.insert("/foo/bar/baz", 2);
     router.insert("/foo/secret/978/", 3);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo/
+           ├─ bar/baz [2]
+           ├─ secret/978/ [3]
+           ╰─ {object}
+                     ╰─ /
+                        ╰─ {id} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
             path: "/foo/secret/978/",
@@ -525,6 +681,16 @@ fn extra_trailing_slash_param() {
     router.insert("/foo/bar/baz", 2);
     router.insert("/foo/secret/978", 3);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo/
+           ├─ bar/baz [2]
+           ├─ secret/978 [3]
+           ╰─ {object}
+                     ╰─ /
+                        ╰─ {id} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/foo/secret/978/" => None
         "/foo/secret/978" => {
@@ -540,6 +706,14 @@ fn missing_trailing_slash_catch_all() {
     router.insert("/foo/{bar:*}", 1);
     router.insert("/foo/bar/baz", 2);
     router.insert("/foo/secret/978/", 3);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo/
+           ├─ bar/baz [2]
+           ├─ secret/978/ [3]
+           ╰─ {bar:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978" => {
@@ -562,6 +736,14 @@ fn extra_trailing_slash_catch_all() {
     router.insert("/foo/{bar:*}", 1);
     router.insert("/foo/bar/baz", 2);
     router.insert("/foo/secret/978", 3);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo/
+           ├─ bar/baz [2]
+           ├─ secret/978 [3]
+           ╰─ {bar:*} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
@@ -588,6 +770,27 @@ fn double_overlap_trailing_slash() {
     router.insert("/other/an_object/{id}", 5);
     router.insert("/other/static/path", 6);
     router.insert("/other/long/static/path/", 7);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ secret/
+       │        ├─ 978/ [3]
+       │        ╰─ {id}
+       │              ╰─ /path [2]
+       ├─ other/
+       │       ├─ an_object/
+       │       │           ╰─ {id} [5]
+       │       ├─ static/path [6]
+       │       ├─ long/static/path/ [7]
+       │       ╰─ {object}
+       │                 ╰─ /
+       │                    ╰─ {id}
+       │                          ╰─ / [4]
+       ╰─ {object}
+                 ╰─ /
+                    ╰─ {id} [1]
+    "###);
 
     assert_router_matches!(router, {
         "/secret/978/path/" => None
@@ -622,6 +825,15 @@ fn trailing_slash_overlap() {
     router.insert("/foo/{x}/baz/", 1);
     router.insert("/foo/{x}/baz", 2);
     router.insert("/foo/bar/bar", 3);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /foo/
+           ├─ bar/bar [3]
+           ╰─ {x}
+                ╰─ /baz [2]
+                      ╰─ / [1]
+    "###);
 
     assert_router_matches!(router, {
         "/foo/x/baz/" => {
@@ -680,6 +892,64 @@ fn trailing_slash() {
     router.insert("/api/baz/foo/bar", 30);
     router.insert("/foo/{p}", 31);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ hi [1]
+       ├─ b/ [2]
+       ├─ s
+       │  ├─ earch/
+       │  │       ╰─ {query} [3]
+       │  ╰─ rc/
+       │       ╰─ {filepath:*} [5]
+       ├─ cmd/
+       │     ╰─ {tool}
+       │             ╰─ / [4]
+       ├─ x [6]
+       │  ╰─ /y [7]
+       ├─ y/ [8]
+       │   ╰─ z [9]
+       ├─ 0/
+       │   ╰─ {id} [10]
+       │         ╰─ /1 [11]
+       ├─ 1/
+       │   ╰─ {id}
+       │         ╰─ / [12]
+       │            ╰─ 2 [13]
+       ├─ a
+       │  ├─ a [14]
+       │  ├─ / [15]
+       │  ├─ dmin [16]
+       │  │     ╰─ /
+       │  │        ├─ static [17]
+       │  │        ╰─ {category} [18]
+       │  │                    ╰─ /
+       │  │                       ╰─ {page} [19]
+       │  ╰─ pi/
+       │       ├─ hello/
+       │       │       ╰─ {name}
+       │       │               ╰─ /bar/ [27]
+       │       ├─ ba
+       │       │   ├─ r/
+       │       │   │   ╰─ {name} [28]
+       │       │   ╰─ z/foo [29]
+       │       │          ╰─ /bar [30]
+       │       ╰─ {page}
+       │               ╰─ /
+       │                  ╰─ {name} [26]
+       ├─ doc [20]
+       │    ╰─ /rust
+       │           ├─ _faq.html [21]
+       │           ╰─ 1.26.html [22]
+       ├─ no/
+       │    ├─ a [23]
+       │    │  ╰─ /b/
+       │    │       ╰─ {other:*} [25]
+       │    ╰─ b [24]
+       ╰─ foo/
+             ╰─ {p} [31]
+    "###);
+
     assert_router_matches!(router, {
         "/hi/" => None
         "/b" => None
@@ -725,6 +995,17 @@ fn backtracking_trailing_slash() {
     router.insert("/a/{b}/{c}", 1);
     router.insert("/a/b/{c}/d/", 2);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /a/
+         ├─ b/
+         │   ╰─ {c}
+         │        ╰─ /d/ [2]
+         ╰─ {b}
+              ╰─ /
+                 ╰─ {c} [1]
+    "###);
+
     assert_router_matches!(router, {
         "/a/b/c/d" => None
     });
@@ -737,6 +1018,14 @@ fn root_trailing_slash() {
     router.insert("/bar", 2);
     router.insert("/{baz}", 3);
 
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ foo [1]
+       ├─ bar [2]
+       ╰─ {baz} [3]
+    "###);
+
     assert_router_matches!(router, {
         "/" => None
     });
@@ -747,6 +1036,14 @@ fn catchall_overlap() {
     let mut router = Router::new();
     router.insert("/yyy/{x:*}", 1);
     router.insert("/yyy{x:*}", 2);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /yyy
+          ├─ /
+          │  ╰─ {x:*} [1]
+          ╰─ {x:*} [2]
+    "###);
 
     assert_router_matches!(router, {
         "/yyy/y" => {
@@ -786,6 +1083,8 @@ fn escaped() {
     router.insert("/{{/{x}", 14);
     router.insert("/xxx/", 15);
     router.insert("/xxx/{x}}{{}}}}{{}}{{{{}}y}", 16);
+
+    insta::assert_snapshot!(router, @"");
 
     assert_router_matches!(router, {
         "/" => {
@@ -918,6 +1217,34 @@ fn basic() {
     router.insert("/sd,here", 19);
     router.insert("/sd;here", 20);
     router.insert("/sd=here", 21);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ├─ /
+    │  ├─ hi [1]
+    │  ├─ c [4]
+    │  │  ╰─ o [3]
+    │  │     ╰─ ntact [2]
+    │  ├─ a [5]
+    │  │  ╰─ b [6]
+    │  ├─ doc/ [7]
+    │  │     ╰─ rust
+    │  │           ├─ _faq.html [8]
+    │  │           ╰─ 1.26.html [9]
+    │  ╰─ sd
+    │      ├─ !here [12]
+    │      ├─ $here [13]
+    │      ├─ &here [14]
+    │      ├─ 'here [15]
+    │      ├─ (here [16]
+    │      ├─ )here [17]
+    │      ├─ +here [18]
+    │      ├─ ,here [19]
+    │      ├─ ;here [20]
+    │      ╰─ =here [21]
+    ├─ ʯ [10]
+    ╰─ β [11]
+    "###);
 
     assert_router_matches!(router, {
         "/a" => {
@@ -1054,6 +1381,113 @@ fn wildcard() {
     router.insert("/get/abc/123abg/{param}", 54);
     router.insert("/get/abc/123abf/{param}", 55);
     router.insert("/get/abc/123abfff/{param}", 56);
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [1]
+       ├─ c
+       │  ├─ md/
+       │  │    ├─ whoami [4]
+       │  │    │       ╰─ /root [5]
+       │  │    │              ╰─ / [6]
+       │  │    ├─ {tool}
+       │  │    │       ╰─ / [2]
+       │  │    ╰─ {tool2}
+       │  │             ╰─ /
+       │  │                ╰─ {sub} [3]
+       │  ╰─ 1/
+       │      ╰─ {dd}
+       │            ╰─ /e [27]
+       │                ╰─ 1 [28]
+       ├─ s
+       │  ├─ rc [7]
+       │  │   ╰─ / [8]
+       │  │      ╰─ {filepath:*} [9]
+       │  ├─ earch/ [10]
+       │  │       ├─ actix-we [12]
+       │  │       ├─ google [13]
+       │  │       ╰─ {query} [11]
+       │  ╰─ omething/
+       │             ├─ secondthing/test [37]
+       │             ╰─ {paramname}
+       │                          ╰─ /thirdthing [36]
+       ├─ user_
+       │      ╰─ {name} [14]
+       │              ╰─ /about [15]
+       ├─ files/
+       │       ╰─ {dir}
+       │              ╰─ /
+       │                 ╰─ {filepath:*} [16]
+       ├─ doc/ [17]
+       │     ╰─ rust
+       │           ├─ _faq.html [18]
+       │           ╰─ 1.26.html [19]
+       ├─ info/
+       │      ╰─ {user}
+       │              ╰─ /p
+       │                  ├─ ublic [20]
+       │                  ╰─ roject/
+       │                           ├─ rustlang [22]
+       │                           ╰─ {project} [21]
+       ├─ a
+       │  ├─ a/
+       │  │   ╰─ {xx:*} [23]
+       │  ╰─ b/
+       │      ├─ hello
+       │      │      ╰─ {xx:*} [25]
+       │      ╰─ {xx:*} [24]
+       ├─ get/
+       │     ├─ test/abc/ [34]
+       │     ├─ abc [38]
+       │     │    ╰─ /
+       │     │       ├─ 123
+       │     │       │    ├─ ab
+       │     │       │    │   ├─ c [40]
+       │     │       │    │   │  ╰─ /
+       │     │       │    │   │     ├─ xxx8 [42]
+       │     │       │    │   │     │     ╰─ /
+       │     │       │    │   │     │        ├─ 1234 [44]
+       │     │       │    │   │     │        │     ╰─ /
+       │     │       │    │   │     │        │        ├─ ffas [46]
+       │     │       │    │   │     │        │        ├─ kkdd/
+       │     │       │    │   │     │        │        │      ├─ 12c [48]
+       │     │       │    │   │     │        │        │      ╰─ {param} [49]
+       │     │       │    │   │     │        │        ╰─ {param} [47]
+       │     │       │    │   │     │        ╰─ {param} [45]
+       │     │       │    │   │     ╰─ {param} [43]
+       │     │       │    │   ├─ d
+       │     │       │    │   │  ├─ /
+       │     │       │    │   │  │  ╰─ {param} [51]
+       │     │       │    │   │  ╰─ dd/
+       │     │       │    │   │       ╰─ {param} [52]
+       │     │       │    │   ├─ g/
+       │     │       │    │   │   ╰─ {param} [54]
+       │     │       │    │   ╰─ f
+       │     │       │    │      ├─ /
+       │     │       │    │      │  ╰─ {param} [55]
+       │     │       │    │      ╰─ ff/
+       │     │       │    │           ╰─ {param} [56]
+       │     │       │    ╰─ /
+       │     │       │       ╰─ {param} [53]
+       │     │       ╰─ {param} [41]
+       │     │                ╰─ /test [50]
+       │     ╰─ {param} [39]
+       │              ╰─ /abc/ [35]
+       ╰─ {cc} [26]
+             ╰─ /
+                ├─ cc [29]
+                ╰─ {dd}
+                      ╰─ /
+                         ├─ ee [30]
+                         ╰─ {ee}
+                               ╰─ /
+                                  ├─ ff [31]
+                                  ╰─ {ff}
+                                        ╰─ /
+                                           ├─ gg [32]
+                                           ╰─ {gg}
+                                                 ╰─ /hh [33]
+    "###);
 
     assert_router_matches!(router, {
         "/" => {
