@@ -19,16 +19,23 @@ Real-world projects often need fancy routing capabilities, such as projects port
 
 The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
 
-## Planned parameters types
+## Parameters types
+
+### Implemented
 
 - Static: `/index.html`
 - Dynamic: `/users/{id}`
 - Dynamic (inline): `/files/{file}.{extension}/delete`
-- Wildcard: `/v1/{namespace:*}/tags/list`
 - Wildcard (end): `/{catch_all:*}`
+
+### Planned
+
+- Wildcard: `/v1/{namespace:*}/tags/list`
 - Regex: `/ids/{id:[0-9]+}`
 
-## Potential parameters types
+### Under consideration
+
+Could be convinced to add these, but likely not in scope for `v1`.
 
 - Optional: `/photos/{id:?}`
 - Optional Groups: `/images/{name}(.{type})`
