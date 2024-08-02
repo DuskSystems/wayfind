@@ -1,5 +1,5 @@
 #[must_use]
-pub fn call() -> impl IntoIterator<Item = &'static str> {
+pub fn paths() -> impl IntoIterator<Item = &'static str> {
     [
         "/user/repos",
         "/repos/rust-lang/rust/stargazers",
@@ -9,16 +9,19 @@ pub fn call() -> impl IntoIterator<Item = &'static str> {
 }
 
 #[macro_export]
-macro_rules! register {
+macro_rules! routes {
     (colon) => {{
-        register!(finish => ":p1", ":p2", ":p3", ":p4")
+        routes!(finish => ":p1", ":p2", ":p3", ":p4")
     }};
+
     (brackets) => {{
-        register!(finish => "{p1}", "{p2}", "{p3}", "{p4}")
+        routes!(finish => "{p1}", "{p2}", "{p3}", "{p4}")
     }};
+
     (regex) => {{
-        register!(finish => "(.*)", "(.*)", "(.*)", "(.*)")
+        routes!(finish => "(.*)", "(.*)", "(.*)", "(.*)")
     }};
+
     (finish => $p1:literal, $p2:literal, $p3:literal, $p4:literal) => {{
         [
             concat!("/authorizations"),
