@@ -1,7 +1,9 @@
-# https://doc.rust-lang.org/cargo/reference/manifest.html
-[package]
-name = "wayfind"
-description = "A speedy, flexible router."
+# https://doc.rust-lang.org/cargo/reference/workspaces.html
+[workspace]
+resolver = "2"
+members = [".", "examples/*"]
+
+[workspace.package]
 version = "0.0.0"
 authors = ["Cathal Mullan <contact@cathal.dev>"]
 edition = "2021"
@@ -10,23 +12,11 @@ repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
-include = [
-  "/benches",
-  "/src",
-  "/tests",
-  "LICENSE-APACHE",
-  "LICENSE-MIT",
-  "README.md",
-]
 
-[profile.dev.package]
-insta.opt-level = 3
-similar.opt-level = 3
-
-[lints.rust]
+[workspace.lints.rust]
 unsafe_code = "forbid"
 
-[lints.clippy]
+[workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
 correctness = { level = "deny", priority = -1 }
@@ -38,6 +28,35 @@ suspicious = { level = "deny", priority = -1 }
 
 # Personal Preferences
 module_name_repetitions = "allow"
+
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
+
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind"
+description = "A speedy, flexible router."
+include = [
+  "/benches",
+  "/src",
+  "/tests",
+  "LICENSE-APACHE",
+  "LICENSE-MIT",
+  "README.md",
+]
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
 
 [dependencies]
 smallvec = "1.13"

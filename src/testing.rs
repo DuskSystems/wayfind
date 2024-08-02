@@ -2,7 +2,6 @@ use crate::{
     matches::{Match, Parameter},
     router::Router,
 };
-use smallvec::SmallVec;
 use std::fmt::Debug;
 
 #[macro_export]
@@ -26,7 +25,7 @@ macro_rules! assert_router_matches {
         Some($crate::testing::ExpectedMatch {
             path: $path,
             value: $value,
-            params: smallvec::smallvec![
+            params: vec![
                 $(
                     $( $crate::matches::Parameter {
                         key: $param_key.as_bytes(),
@@ -45,7 +44,7 @@ macro_rules! assert_router_matches {
 pub struct ExpectedMatch<'a, T> {
     pub path: &'a str,
     pub value: T,
-    pub params: SmallVec<[Parameter<'a>; 4]>,
+    pub params: Vec<Parameter<'a>>,
 }
 
 #[allow(clippy::missing_panics_doc)]
@@ -62,19 +61,11 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     if let Some(expected) = expected {
         assert_eq!(data.path, expected.path, "Path mismatch for input: {input}");
         assert_eq!(data.value, expected.value, "Value mismatch for input: {input}");
-
-        let parameters = parameters
-            .iter()
-            .map(|param| (String::from_utf8_lossy(param.key), String::from_utf8_lossy(param.value)))
-            .collect::<Vec<(_, _)>>();
-
-        let expected = expected
-            .params
-            .iter()
-            .map(|param| (String::from_utf8_lossy(param.key), String::from_utf8_lossy(param.value)))
-            .collect::<Vec<(_, _)>>();
-
-        assert_eq!(parameters, expected, "Parameters mismatch for input: {input}");
+        assert_eq!(
+            parameters.to_vec(),
+            expected.params,
+            "Parameters mismatch for input: {input}"
+        );
     } else {
         panic!("Unexpected match for input: {input}");
     }

@@ -12,6 +12,10 @@ permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
 env:
   SCCACHE_GHA_ENABLED: "true"
 
@@ -49,7 +53,6 @@ jobs:
           cargo fmt --check
           cargo clippy
           cargo insta test
-          cargo bench
 
       - name: Show SCCache stats
         if: always()
