@@ -1316,6 +1316,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "wayfind",
 ]
 
 [[package]]

@@ -31,12 +31,17 @@ impl<'a, T> Router<'a, T> {
     }
 
     pub fn insert(&mut self, path: &'a str, value: T) {
-        self.root
-            .insert(Parts::new(path.as_bytes()), NodeData { path, value });
+        self.root.insert(
+            Parts::new(path.as_bytes()),
+            NodeData {
+                path: path.into(),
+                value,
+            },
+        );
     }
 
     #[must_use]
-    pub fn matches(&'a self, path: &'a str) -> Option<Match<'a, T>> {
+    pub fn matches(&'a self, path: &'a str) -> Option<Match<T>> {
         let mut parameters = smallvec![];
         let data = self
             .root
