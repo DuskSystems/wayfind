@@ -25,7 +25,7 @@ defaults:
 
 jobs:
   ci:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,6 +53,14 @@ jobs:
           cargo fmt --check
           cargo clippy
           cargo insta test
+          cargo codspeed build
+
+      - name: Run the benchmarks
+        uses: CathalMullan/action@main
+        with:
+          shell: nix develop --command bash {0}
+          run: cargo codspeed run
+          token: "${{ secrets.CODSPEED_TOKEN }}"
 
       - name: Show SCCache stats
         if: always()
