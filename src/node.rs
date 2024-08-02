@@ -3,7 +3,7 @@ use crate::{
     parts::{Part, Parts},
 };
 use smallvec::{smallvec, SmallVec};
-use std::{fmt::Display, sync::Arc};
+use std::fmt::Display;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum NodeKind {
@@ -14,8 +14,8 @@ pub enum NodeKind {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct NodeData<T> {
-    pub path: Arc<str>,
+pub struct NodeData<'a, T> {
+    pub path: &'a str,
     pub value: T,
 }
 
@@ -24,7 +24,7 @@ pub struct Node<'a, T> {
     pub kind: NodeKind,
 
     pub prefix: &'a [u8],
-    pub data: Option<NodeData<T>>,
+    pub data: Option<NodeData<'a, T>>,
 
     pub static_children: Vec<Node<'a, T>>,
     pub dynamic_children: Vec<Node<'a, T>>,
@@ -36,7 +36,7 @@ pub struct Node<'a, T> {
 
 impl<'a, T> Node<'a, T> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn insert(&mut self, mut segments: Parts<'a>, data: NodeData<T>) {
+    pub fn insert(&mut self, mut segments: Parts<'a>, data: NodeData<'a, T>) {
         if let Some(segment) = segments.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(segments, data, prefix),
@@ -52,7 +52,7 @@ impl<'a, T> Node<'a, T> {
         self.update_quick_dynamic();
     }
 
-    fn insert_static(&mut self, segments: Parts<'a>, data: NodeData<T>, prefix: &'a [u8]) {
+    fn insert_static(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, prefix: &'a [u8]) {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -132,7 +132,7 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    fn insert_dynamic(&mut self, segments: Parts<'a>, data: NodeData<T>, name: &'a [u8]) {
+    fn insert_dynamic(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, name: &'a [u8]) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -160,7 +160,7 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: &'a [u8]) {
+    fn insert_end_wildcard(&mut self, data: NodeData<'a, T>, name: &'a [u8]) {
         // FIXME: We probably need splitting capabilities here, to change a end wildcard into a normal wildcard?
         self.end_wildcard = Some(Box::new(Self {
             kind: NodeKind::EndWildcard,
@@ -217,7 +217,11 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    pub fn matches(&'a self, path: &'a [u8], parameters: &mut SmallVec<[Parameter<'a>; 4]>) -> Option<&'a NodeData<T>> {
+    pub fn matches(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
+    ) -> Option<&'a NodeData<'a, T>> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -241,7 +245,7 @@ impl<'a, T> Node<'a, T> {
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    ) -> Option<&'a NodeData<'a, T>> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -265,7 +269,7 @@ impl<'a, T> Node<'a, T> {
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    ) -> Option<&'a NodeData<'a, T>> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -283,7 +287,7 @@ impl<'a, T> Node<'a, T> {
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    ) -> Option<&'a NodeData<'a, T>> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -299,8 +303,8 @@ impl<'a, T> Node<'a, T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix) },
-                    value: unsafe { std::str::from_utf8_unchecked(&path[..consumed]) },
+                    key: dynamic_child.prefix,
+                    value: &path[..consumed],
                 });
 
                 if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
@@ -323,7 +327,7 @@ impl<'a, T> Node<'a, T> {
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    ) -> Option<&'a NodeData<'a, T>> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -331,8 +335,8 @@ impl<'a, T> Node<'a, T> {
                 .unwrap_or(path.len());
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(&path[..segment_end]) },
+                key: dynamic_child.prefix,
+                value: &path[..segment_end],
             });
 
             if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters) {
@@ -349,11 +353,11 @@ impl<'a, T> Node<'a, T> {
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    ) -> Option<&'a NodeData<'a, T>> {
         if let Some(end_wildcard) = &self.end_wildcard {
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(end_wildcard.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(path) },
+                key: end_wildcard.prefix,
+                value: path,
             });
 
             return end_wildcard.data.as_ref();
