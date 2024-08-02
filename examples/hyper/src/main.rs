@@ -74,9 +74,9 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 }
 
-async fn index_route<'a>(
-    _: &'a str,
-    _: &'a [Parameter<'a>],
+async fn index_route(
+    _: &'_ str,
+    _: &'_ [Parameter<'_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "hello": "world"
@@ -90,9 +90,9 @@ async fn index_route<'a>(
     Ok(response)
 }
 
-async fn hello_route<'a>(
-    _: &'a str,
-    parameters: &'a [Parameter<'a>],
+async fn hello_route(
+    _: &'_ str,
+    parameters: &'_ [Parameter<'_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let name = String::from_utf8_lossy(parameters[0].value);
     let json = serde_json::json!({
@@ -107,9 +107,9 @@ async fn hello_route<'a>(
     Ok(response)
 }
 
-async fn not_found<'a>(
-    path: &'a str,
-    _: &'a [Parameter<'a>],
+async fn not_found(
+    path: &'_ str,
+    _: &'_ [Parameter<'_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "error": "route_not_found",
