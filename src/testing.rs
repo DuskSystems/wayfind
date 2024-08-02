@@ -44,7 +44,7 @@ macro_rules! assert_router_matches {
 pub struct ExpectedMatch<'a, T> {
     pub path: &'a str,
     pub value: T,
-    pub params: Vec<Parameter>,
+    pub params: Vec<Parameter<'a>>,
 }
 
 #[allow(clippy::missing_panics_doc)]

@@ -217,7 +217,7 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    pub fn matches(&'a self, path: &'a [u8], parameters: &mut SmallVec<[Parameter; 4]>) -> Option<&'a NodeData<T>> {
+    pub fn matches(&'a self, path: &'a [u8], parameters: &mut SmallVec<[Parameter<'a>; 4]>) -> Option<&'a NodeData<T>> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -237,7 +237,11 @@ impl<'a, T> Node<'a, T> {
         None
     }
 
-    fn matches_static(&'a self, path: &'a [u8], parameters: &mut SmallVec<[Parameter; 4]>) -> Option<&'a NodeData<T>> {
+    fn matches_static(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
+    ) -> Option<&'a NodeData<T>> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -257,7 +261,11 @@ impl<'a, T> Node<'a, T> {
         None
     }
 
-    fn matches_dynamic(&'a self, path: &'a [u8], parameters: &mut SmallVec<[Parameter; 4]>) -> Option<&'a NodeData<T>> {
+    fn matches_dynamic(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
+    ) -> Option<&'a NodeData<T>> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -274,7 +282,7 @@ impl<'a, T> Node<'a, T> {
     fn matches_dynamic_inline(
         &'a self,
         path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter; 4]>,
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
     ) -> Option<&'a NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
@@ -291,8 +299,8 @@ impl<'a, T> Node<'a, T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix).into() },
-                    value: unsafe { std::str::from_utf8_unchecked(&path[..consumed]).into() },
+                    key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix) },
+                    value: unsafe { std::str::from_utf8_unchecked(&path[..consumed]) },
                 });
 
                 if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
@@ -314,7 +322,7 @@ impl<'a, T> Node<'a, T> {
     fn matches_dynamic_segment(
         &'a self,
         path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter; 4]>,
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
     ) -> Option<&'a NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
@@ -323,8 +331,8 @@ impl<'a, T> Node<'a, T> {
                 .unwrap_or(path.len());
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix).into() },
-                value: unsafe { std::str::from_utf8_unchecked(&path[..segment_end]).into() },
+                key: unsafe { std::str::from_utf8_unchecked(dynamic_child.prefix) },
+                value: unsafe { std::str::from_utf8_unchecked(&path[..segment_end]) },
             });
 
             if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters) {
@@ -340,12 +348,12 @@ impl<'a, T> Node<'a, T> {
     fn matches_end_wildcard(
         &'a self,
         path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter; 4]>,
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
     ) -> Option<&'a NodeData<T>> {
         if let Some(end_wildcard) = &self.end_wildcard {
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(end_wildcard.prefix).into() },
-                value: unsafe { std::str::from_utf8_unchecked(path).into() },
+                key: unsafe { std::str::from_utf8_unchecked(end_wildcard.prefix) },
+                value: unsafe { std::str::from_utf8_unchecked(path) },
             });
 
             return end_wildcard.data.as_ref();

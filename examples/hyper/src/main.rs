@@ -17,10 +17,10 @@ use std::{
 use tokio::{net::TcpListener, task::JoinSet};
 use wayfind::{matches::Parameter, router::Router};
 
-type BoxFuture =
-    Pin<Box<dyn Future<Output = Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error>> + Send + 'static>>;
+type BoxFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error>> + Send + 'a>>;
 
-type HandlerFn = Arc<dyn Fn(String, Vec<Parameter>) -> BoxFuture + Send + Sync>;
+type HandlerFn = Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'a>]) -> BoxFuture<'a> + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -58,14 +58,14 @@ async fn main() -> Result<(), anyhow::Error> {
                     service_fn(move |request: Request<Incoming>| {
                         let router = Arc::clone(&router);
                         async move {
-                            let path = request.uri().path().to_string();
+                            let path = request.uri().path();
                             let matches = router
-                                .matches(&path)
+                                .matches(path)
                                 .expect("Failed to match!");
 
-                            let value = matches.data.value.clone();
-                            let parameters = matches.parameters.to_vec();
-                            value(path, parameters).await
+                            let handler = &matches.data.value;
+                            let parameters = &matches.parameters;
+                            handler(path, parameters).await
                         }
                     }),
                 )
@@ -74,7 +74,10 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 }
 
-async fn index_route(_: String, _: Vec<Parameter>) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
+async fn index_route<'a>(
+    _: &'a str,
+    _: &'a [Parameter<'a>],
+) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "hello": "world"
     });
@@ -87,11 +90,11 @@ async fn index_route(_: String, _: Vec<Parameter>) -> Result<Response<BoxBody<By
     Ok(response)
 }
 
-async fn hello_route(
-    _: String,
-    parameters: Vec<Parameter>,
+async fn hello_route<'a>(
+    _: &'a str,
+    parameters: &'a [Parameter<'a>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
-    let name = parameters[0].value.as_ref();
+    let name: &str = parameters[0].value;
     let json = serde_json::json!({
         "hello": name,
     });
@@ -104,7 +107,10 @@ async fn hello_route(
     Ok(response)
 }
 
-async fn not_found(path: String, _: Vec<Parameter>) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
+async fn not_found<'a>(
+    path: &'a str,
+    _: &'a [Parameter<'a>],
+) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "error": "route_not_found",
         "route": path,
