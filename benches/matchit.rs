@@ -1,8 +1,10 @@
+#![allow(clippy::too_many_lines)]
+
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs>
 
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
-use matchit_routes::call;
+use matchit_routes::paths;
 
 pub mod matchit_routes;
 
@@ -11,73 +13,101 @@ fn benchmark(criterion: &mut Criterion) {
 
     group.bench_function("wayfind", |bencher| {
         let mut wayfind = wayfind::router::Router::new();
-        for route in register!(brackets) {
+        for route in routes!(brackets) {
             wayfind.insert(route, true);
         }
 
         bencher.iter(|| {
-            for route in black_box(call()) {
+            for route in black_box(paths()) {
                 black_box(wayfind.matches(route).unwrap());
-            }
-        });
-    });
-
-    group.bench_function("matchit", |bencher| {
-        let mut matchit = matchit::Router::new();
-        for route in register!(brackets) {
-            matchit.insert(route, true).unwrap();
-        }
-
-        bencher.iter(|| {
-            for route in black_box(call()) {
-                black_box(matchit.at(route).unwrap());
-            }
-        });
-    });
-
-    group.bench_function("path-tree", |bencher| {
-        let mut path_tree = path_tree::PathTree::new();
-        for route in register!(colon) {
-            let _ = path_tree.insert(route, true);
-        }
-
-        bencher.iter(|| {
-            for route in black_box(call()) {
-                black_box(path_tree.find(route).unwrap());
-            }
-        });
-    });
-
-    group.bench_function("gonzales", |bencher| {
-        let gonzales = gonzales::RouterBuilder::new().build(register!(brackets));
-
-        bencher.iter(|| {
-            for route in black_box(call()) {
-                black_box(gonzales.route(route).unwrap());
             }
         });
     });
 
     group.bench_function("actix-router", |bencher| {
         let mut actix = actix_router::Router::<bool>::build();
-        for route in register!(brackets) {
+        for route in routes!(brackets) {
             actix.path(route, true);
         }
         let actix = actix.finish();
 
         bencher.iter(|| {
-            for route in black_box(call()) {
+            for route in black_box(paths()) {
                 let mut path = actix_router::Path::new(route);
                 black_box(actix.recognize(&mut path).unwrap());
             }
         });
     });
 
-    group.bench_function("regex", |bencher| {
-        let regex_set = regex::RegexSet::new(register!(regex)).unwrap();
+    group.bench_function("gonzales", |bencher| {
+        let gonzales = gonzales::RouterBuilder::new().build(routes!(brackets));
 
         bencher.iter(|| {
-            for route in black_box(call()) {
+            for route in black_box(paths()) {
+                black_box(gonzales.route(route).unwrap());
+            }
+        });
+    });
+
+    group.bench_function("matchit", |bencher| {
+        let mut matchit = matchit::Router::new();
+        for route in routes!(brackets) {
+            matchit.insert(route, true).unwrap();
+        }
+
+        bencher.iter(|| {
+            for route in black_box(paths()) {
+                black_box(matchit.at(route).unwrap());
+            }
+        });
+    });
+
+    group.bench_function("ntex-router", |bencher| {
+        let mut ntex = ntex_router::Router::<bool>::build();
+        for route in routes!(brackets) {
+            ntex.path(route, true);
+        }
+        let ntex = ntex.finish();
+
+        bencher.iter(|| {
+            for route in black_box(paths()) {
+                let mut path = ntex_router::Path::new(route);
+                black_box(ntex.recognize(&mut path).unwrap());
+            }
+        });
+    });
+
+    group.bench_function("path-table", |bencher| {
+        let mut table = path_table::PathTable::new();
+        for route in routes!(brackets) {
+            *table.setup(route) = true;
+        }
+
+        bencher.iter(|| {
+            for route in black_box(paths()) {
+                black_box(table.route(route).unwrap());
+            }
+        });
+    });
+
+    group.bench_function("path-tree", |bencher| {
+        let mut path_tree = path_tree::PathTree::new();
+        for route in routes!(colon) {
+            let _ = path_tree.insert(route, true);
+        }
+
+        bencher.iter(|| {
+            for route in black_box(paths()) {
+                black_box(path_tree.find(route).unwrap());
+            }
+        });
+    });
+
+    group.bench_function("regex", |bencher| {
+        let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
+
+        bencher.iter(|| {
+            for route in black_box(paths()) {
                 black_box(regex_set.matches(route));
             }
         });
@@ -85,12 +115,12 @@ fn benchmark(criterion: &mut Criterion) {
 
     group.bench_function("route-recognizer", |bencher| {
         let mut route_recognizer = route_recognizer::Router::new();
-        for route in register!(colon) {
+        for route in routes!(colon) {
             route_recognizer.add(route, true);
         }
 
         bencher.iter(|| {
-            for route in black_box(call()) {
+            for route in black_box(paths()) {
                 black_box(
                     route_recognizer
                         .recognize(route)
@@ -102,12 +132,12 @@ fn benchmark(criterion: &mut Criterion) {
 
     group.bench_function("routefinder", |bencher| {
         let mut routefinder = routefinder::Router::new();
-        for route in register!(colon) {
+        for route in routes!(colon) {
             routefinder.add(route, true).unwrap();
         }
 
         bencher.iter(|| {
-            for route in black_box(call()) {
+            for route in black_box(paths()) {
                 black_box(routefinder.best_match(route).unwrap());
             }
         });
