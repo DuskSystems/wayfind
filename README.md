@@ -6,7 +6,8 @@
 
 A speedy, flexible router for Rust.
 
-Currently in a pre-alpha state.
+> [!WARNING]
+> Currently in a pre-alpha state.
 
 ## Why another router?
 
