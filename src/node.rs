@@ -3,7 +3,7 @@ use crate::{
     parts::{Part, Parts},
 };
 use smallvec::{smallvec, SmallVec};
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum NodeKind {
@@ -14,29 +14,29 @@ pub enum NodeKind {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct NodeData<'a, T> {
-    pub path: &'a str,
+pub struct NodeData<T> {
+    pub path: Arc<str>,
     pub value: T,
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Node<'a, T> {
+pub struct Node<T> {
     pub kind: NodeKind,
 
-    pub prefix: &'a [u8],
-    pub data: Option<NodeData<'a, T>>,
+    pub prefix: Vec<u8>,
+    pub data: Option<NodeData<T>>,
 
-    pub static_children: Vec<Node<'a, T>>,
-    pub dynamic_children: Vec<Node<'a, T>>,
-    pub end_wildcard: Option<Box<Node<'a, T>>>,
+    pub static_children: Vec<Node<T>>,
+    pub dynamic_children: Vec<Node<T>>,
+    pub end_wildcard: Option<Box<Node<T>>>,
 
     // TODO: Come up with a better name.
     pub quick_dynamic: bool,
 }
 
-impl<'a, T> Node<'a, T> {
+impl<T> Node<T> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn insert(&mut self, mut segments: Parts<'a>, data: NodeData<'a, T>) {
+    pub fn insert(&mut self, mut segments: Parts<'_>, data: NodeData<T>) {
         if let Some(segment) = segments.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(segments, data, prefix),
@@ -52,7 +52,7 @@ impl<'a, T> Node<'a, T> {
         self.update_quick_dynamic();
     }
 
-    fn insert_static(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, prefix: &'a [u8]) {
+    fn insert_static(&mut self, segments: Parts, data: NodeData<T>, prefix: &[u8]) {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -62,7 +62,7 @@ impl<'a, T> Node<'a, T> {
                 let mut new_child = Self {
                     kind: NodeKind::Static,
 
-                    prefix,
+                    prefix: prefix.to_vec(),
                     data: None,
 
                     static_children: vec![],
@@ -81,7 +81,7 @@ impl<'a, T> Node<'a, T> {
 
         let common_prefix = prefix
             .iter()
-            .zip(child.prefix)
+            .zip(&child.prefix)
             .take_while(|&(x, y)| x == y)
             .count();
 
@@ -98,7 +98,7 @@ impl<'a, T> Node<'a, T> {
         let new_child_a = Self {
             kind: NodeKind::Static,
 
-            prefix: &child.prefix[common_prefix..],
+            prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
 
             static_children: std::mem::take(&mut child.static_children),
@@ -111,7 +111,7 @@ impl<'a, T> Node<'a, T> {
         let new_child_b = Self {
             kind: NodeKind::Static,
 
-            prefix: &prefix[common_prefix..],
+            prefix: prefix[common_prefix..].to_vec(),
             data: None,
 
             static_children: vec![],
@@ -121,7 +121,7 @@ impl<'a, T> Node<'a, T> {
             quick_dynamic: false,
         };
 
-        child.prefix = &child.prefix[..common_prefix];
+        child.prefix = child.prefix[..common_prefix].to_vec();
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
@@ -132,7 +132,7 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    fn insert_dynamic(&mut self, segments: Parts<'a>, data: NodeData<'a, T>, name: &'a [u8]) {
+    fn insert_dynamic(&mut self, segments: Parts, data: NodeData<T>, name: &[u8]) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -144,7 +144,7 @@ impl<'a, T> Node<'a, T> {
                 let mut new_child = Self {
                     kind: NodeKind::Dynamic,
 
-                    prefix: name,
+                    prefix: name.to_vec(),
                     data: None,
 
                     static_children: vec![],
@@ -160,12 +160,12 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData<'a, T>, name: &'a [u8]) {
+    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: &[u8]) {
         // FIXME: We probably need splitting capabilities here, to change a end wildcard into a normal wildcard?
         self.end_wildcard = Some(Box::new(Self {
             kind: NodeKind::EndWildcard,
 
-            prefix: name,
+            prefix: name.to_vec(),
             data: Some(data),
 
             static_children: vec![],
@@ -217,11 +217,11 @@ impl<'a, T> Node<'a, T> {
         }
     }
 
-    pub fn matches(
+    pub fn matches<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -241,11 +241,11 @@ impl<'a, T> Node<'a, T> {
         None
     }
 
-    fn matches_static(
+    fn matches_static<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -265,11 +265,11 @@ impl<'a, T> Node<'a, T> {
         None
     }
 
-    fn matches_dynamic(
+    fn matches_dynamic<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -283,11 +283,11 @@ impl<'a, T> Node<'a, T> {
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
-    fn matches_dynamic_inline(
+    fn matches_dynamic_inline<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -303,7 +303,7 @@ impl<'a, T> Node<'a, T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: dynamic_child.prefix,
+                    key: &dynamic_child.prefix,
                     value: &path[..consumed],
                 });
 
@@ -323,11 +323,11 @@ impl<'a, T> Node<'a, T> {
     }
 
     // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
-    fn matches_dynamic_segment(
+    fn matches_dynamic_segment<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -335,7 +335,7 @@ impl<'a, T> Node<'a, T> {
                 .unwrap_or(path.len());
 
             parameters.push(Parameter {
-                key: dynamic_child.prefix,
+                key: &dynamic_child.prefix,
                 value: &path[..segment_end],
             });
 
@@ -349,14 +349,14 @@ impl<'a, T> Node<'a, T> {
         None
     }
 
-    fn matches_end_wildcard(
+    fn matches_end_wildcard<'a>(
         &'a self,
         path: &'a [u8],
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<'a, T>> {
+    ) -> Option<&'a NodeData<T>> {
         if let Some(end_wildcard) = &self.end_wildcard {
             parameters.push(Parameter {
-                key: end_wildcard.prefix,
+                key: &end_wildcard.prefix,
                 value: path,
             });
 
@@ -369,7 +369,7 @@ impl<'a, T> Node<'a, T> {
 
 // FIXME: Messy, but it works.
 // FIXME: Doesn't handle split multi-byte characters.
-impl<'a, T: Display> Display for Node<'a, T> {
+impl<T: Display> Display for Node<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T: Display>(
             f: &mut std::fmt::Formatter,
@@ -380,13 +380,13 @@ impl<'a, T: Display> Display for Node<'a, T> {
         ) -> std::fmt::Result {
             let key = match node.kind {
                 NodeKind::Root => "$",
-                NodeKind::Static => &String::from_utf8_lossy(node.prefix),
+                NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
                 NodeKind::Dynamic => {
-                    let prefix = String::from_utf8_lossy(node.prefix);
+                    let prefix = String::from_utf8_lossy(&node.prefix);
                     &format!("{{{prefix}}}")
                 }
                 NodeKind::EndWildcard => {
-                    let prefix = String::from_utf8_lossy(node.prefix);
+                    let prefix = String::from_utf8_lossy(&node.prefix);
                     &format!("{{{prefix}:*}}")
                 }
             };

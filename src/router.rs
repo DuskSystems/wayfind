@@ -4,21 +4,21 @@ use crate::{
     parts::Parts,
 };
 use smallvec::smallvec;
-use std::fmt::Display;
+use std::{fmt::Display, sync::Arc};
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Router<'a, T> {
-    root: Node<'a, T>,
+pub struct Router<T> {
+    root: Node<T>,
 }
 
-impl<'a, T> Router<'a, T> {
+impl<T> Router<T> {
     #[must_use]
     pub fn new() -> Self {
         Self {
             root: Node {
                 kind: NodeKind::Root,
 
-                prefix: b"",
+                prefix: vec![],
                 data: None,
 
                 static_children: vec![],
@@ -30,13 +30,18 @@ impl<'a, T> Router<'a, T> {
         }
     }
 
-    pub fn insert(&mut self, path: &'a str, value: T) {
-        self.root
-            .insert(Parts::new(path.as_bytes()), NodeData { path, value });
+    pub fn insert(&mut self, path: &str, value: T) {
+        self.root.insert(
+            Parts::new(path.as_bytes()),
+            NodeData {
+                path: Arc::from(path),
+                value,
+            },
+        );
     }
 
     #[must_use]
-    pub fn matches(&'a self, path: &'a str) -> Option<Match<'a, T>> {
+    pub fn matches<'a>(&'a self, path: &'a str) -> Option<Match<'a, T>> {
         let mut parameters = smallvec![];
         let data = self
             .root
@@ -46,13 +51,13 @@ impl<'a, T> Router<'a, T> {
     }
 }
 
-impl<'a, T> Default for Router<'a, T> {
+impl<T> Default for Router<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, T: Display> Display for Router<'a, T> {
+impl<T: Display> Display for Router<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }
