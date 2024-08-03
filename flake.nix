@@ -41,6 +41,7 @@
       };
 
       rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".default;
     in {
       devShells = {
         # nix develop
@@ -64,6 +65,19 @@
             alejandra
             statix
             nil
+          ];
+        };
+
+        # nix develop .#fuzz
+        fuzz = pkgs.mkShell {
+          name = "wayfind-fuzz-shell";
+
+          buildInputs = with pkgs; [
+            # Rust
+            rust-toolchain-nightly
+
+            # Fuzzing
+            cargo-fuzz
           ];
         };
       };

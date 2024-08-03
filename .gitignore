@@ -13,6 +13,11 @@ target
 # Insta
 *.pending-snap
 
+# Fuzz
+corpus
+artifacts
+coverage
+
 # Nix
 result
 result-dev
