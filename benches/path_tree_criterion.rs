@@ -3,7 +3,7 @@
 //! Benches sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
-use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
+use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
 
 pub mod path_tree_routes;
@@ -18,7 +18,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = wayfind.matches(path).unwrap();
                 assert_eq!(n.data.value, index);
             }
@@ -33,7 +33,7 @@ fn benchmark(criterion: &mut Criterion) {
         let router = router.finish();
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let mut path = actix_router::Path::new(path);
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
@@ -45,7 +45,7 @@ fn benchmark(criterion: &mut Criterion) {
         let gonzales = gonzales::RouterBuilder::new().build(routes!(brackets));
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = gonzales.route(path).unwrap();
                 assert_eq!(n.get_index(), index);
             }
@@ -59,7 +59,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = matcher.at(path).unwrap();
                 assert_eq!(*n.value, index);
             }
@@ -74,7 +74,7 @@ fn benchmark(criterion: &mut Criterion) {
         let router = router.finish();
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let mut path = ntex_router::Path::new(path);
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
@@ -89,7 +89,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = table.route(path).unwrap();
                 assert_eq!(*n.0, index);
             }
@@ -103,7 +103,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = tree.find(path).unwrap();
                 assert_eq!(*n.0, index);
             }
@@ -114,7 +114,7 @@ fn benchmark(criterion: &mut Criterion) {
         let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = regex_set.matches(path);
                 assert!(n.matched(index));
             }
@@ -128,7 +128,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = router.recognize(path).unwrap();
                 assert_eq!(**n.handler(), index);
             }
@@ -142,7 +142,7 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for (index, path) in black_box(paths()) {
+            for (index, path) in paths() {
                 let n = router.best_match(path).unwrap();
                 assert_eq!(*n, index);
             }
