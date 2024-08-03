@@ -26,11 +26,11 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 - Static: `/index.html`
 - Dynamic Segment: `/users/{id}`
 - Dynamic Inline: `/calender/{year}-{month}-{day}`
+- Wildcard Segment(s): `/v1/{namespace:*}/tags/list`
 - Wildcard End: `/{catch_all:*}`
 
 ### Planned
 
-- Wildcard Segment(s): `/v1/{namespace:*}/tags/list`
 - Regex Segment: `/ids/{id:[0-9]+}`
 - Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
 

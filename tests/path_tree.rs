@@ -1,7 +1,5 @@
 //! Tests sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/tests/tree.rs>
-//!
-//! NOTE: We may be able to replace the 'one or more' logic with wildcards?
 
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
@@ -740,19 +738,32 @@ fn match_params() {
         }
     });
 
-    // NOTE: We don't support 'one or more' logic.
-    // let mut router = Router::new();
-    // router.insert("/api/v1/{param}/{plus:+}", 1);
-    //
-    // assert_router_matches!(router, {
-    //     "/api/v1/entity" => None
-    //     "/api/v1/entity/" => None
-    //     "/api/v1/entity/1" => None
-    //     "/api/v" => None
-    //     "/api/v2" => None
-    //     "/api/v1/" => None
-    //     "/api/v1/entity/1/foo/bar" => None
-    // });
+    let mut router = Router::new();
+    router.insert("/api/v1/{param}/{plus:*}", 1);
+
+    assert_router_matches!(router, {
+        "/api/v1/entity" => None
+        "/api/v1/entity/" => None
+        "/api/v1/entity/1" => {
+            path: "/api/v1/{param}/{plus:*}",
+            value: 1,
+            params: {
+                "param" => "entity",
+                "plus" => "1"
+            }
+        }
+        "/api/v" => None
+        "/api/v2" => None
+        "/api/v1/" => None
+        "/api/v1/entity/1/foo/bar" => {
+            path: "/api/v1/{param}/{plus:*}",
+            value: 1,
+            params: {
+                "param" => "entity",
+                "plus" => "1/foo/bar"
+            }
+        }
+    });
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
@@ -1284,7 +1295,7 @@ fn match_params() {
     //     "/api/1/2/3" => None
     // });
 
-    // NOTE: We don't support 'one or more' logic.
+    // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
     // router.insert("/api/{day}.{month?}.{year?}", 1);
     // router.insert("/api/{day}-{month?}-{year?}", 2);
@@ -1330,45 +1341,94 @@ fn match_params() {
     //     "/api/joker/batman/robin/1" => None
     // });
 
-    // FIXME: We don't support 'wildcard' logic.
-    // let mut router = Router::new();
-    // router.insert("/api/{wildcard:*}/{param}", 1);
-    //
-    // assert_router_matches!(router, {
-    //     "/api/test/abc" => None
-    //     "/api/joker/batman/robin/1" => None
-    //     "/api//joker" => None
-    //     "/api/joker" => None
-    //     "/api/" => None
-    // });
+    let mut router = Router::new();
+    router.insert("/api/{wildcard:*}/{param}", 1);
 
-    // NOTE: We don't support 'one or more' logic.
-    // let mut router = Router::new();
-    // router.insert("/api/{plus:+}/{param}", 1);
-    //
-    // assert_router_matches!(router, {
-    //     "/api/test/abc" => None
-    //     "/api/joker/batman/robin/1" => None
-    //     "/api/joker" => None
-    //     "/api/" => None
-    // });
+    assert_router_matches!(router, {
+        "/api/test/abc" => {
+            path: "/api/{wildcard:*}/{param}",
+            value: 1,
+            params: {
+                "wildcard" => "test",
+                "param" => "abc"
+            }
+        }
+        "/api/joker/batman/robin/1" => {
+            path: "/api/{wildcard:*}/{param}",
+            value: 1,
+            params: {
+                "wildcard" => "joker/batman/robin",
+                "param" => "1"
+            }
+        }
+        // FIXME: This feels wrong. Maybe we should add a check for empty parts?
+        "/api//joker" => {
+            path: "/api/{wildcard:*}/{param}",
+            value: 1,
+            params: {
+                "wildcard" => "",
+                "param" => "joker"
+            }
+        }
+        "/api/joker" => None
+        "/api/" => None
+    });
 
-    // FIXME: We don't support 'wildcard' logic.
-    // let mut router = Router::new();
-    // router.insert("/api/{wildcard:*}/{param}/{param2}", 1);
-    //
-    // assert_router_matches!(router, {
-    //     "/api/test/abc/1" => None
-    //     "/api/joker/batman" => None
-    //     "/api/joker/batman-robin/1" => None
-    //     "/api/joker-batman-robin-1" => None
-    //     "/api/test/abc" => None
-    //     "/api/joker/batman/robin" => None
-    //     "/api/joker/batman/robin/1" => None
-    //     "/api/joker/batman/robin/1/2" => None
-    //     "/api" => None
-    //     "/api/:test" => None
-    // });
+    let mut router = Router::new();
+    router.insert("/api/{wildcard:*}/{param}/{param2}", 1);
+
+    assert_router_matches!(router, {
+        "/api/test/abc/1" => {
+            path: "/api/{wildcard:*}/{param}/{param2}",
+            value: 1,
+            params: {
+                "wildcard" => "test",
+                "param" => "abc",
+                "param2" => "1"
+            }
+        }
+        "/api/joker/batman" => None
+        "/api/joker/batman-robin/1" => {
+            path: "/api/{wildcard:*}/{param}/{param2}",
+            value: 1,
+            params: {
+                "wildcard" => "joker",
+                "param" => "batman-robin",
+                "param2" => "1"
+            }
+        }
+        "/api/joker-batman-robin-1" => None
+        "/api/test/abc" => None
+        "/api/joker/batman/robin" => {
+            path: "/api/{wildcard:*}/{param}/{param2}",
+            value: 1,
+            params: {
+                "wildcard" => "joker",
+                "param" => "batman",
+                "param2" => "robin"
+            }
+        }
+        "/api/joker/batman/robin/1" => {
+            path: "/api/{wildcard:*}/{param}/{param2}",
+            value: 1,
+            params: {
+                "wildcard" => "joker/batman",
+                "param" => "robin",
+                "param2" => "1"
+            }
+        }
+        "/api/joker/batman/robin/1/2" => {
+            path: "/api/{wildcard:*}/{param}/{param2}",
+            value: 1,
+            params: {
+                "wildcard" => "joker/batman/robin",
+                "param" => "1",
+                "param2" => "2"
+            }
+        }
+        "/api" => None
+        "/api/:test" => None
+    });
 }
 
 #[test]
@@ -1387,8 +1447,7 @@ fn basic() {
     router.insert("/{org}/{repo}/actions/{name}:{verb}", 10);
     router.insert("/{org}/{repo}/{page}", 11);
     router.insert("/{org}/{repo}/{path:*}", 12);
-    // NOTE: We don't support 'one or more' logic
-    // router.insert("/api/{plus:+}", 13);
+    router.insert("/api/{plus:*}", 13);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1401,6 +1460,8 @@ fn basic() {
        │              ╰─ {page} [4]
        ├─ public/
        │        ╰─ {any:*} [7]
+       ├─ api/
+       │     ╰─ {plus:*} [13]
        ├─ {user} [5]
        │       ╰─ /
        │          ╰─ {repo} [6]
@@ -1516,8 +1577,13 @@ fn basic() {
                 "any" => "js/main.js"
             }
         }
-        // NOTE: See "/api/{plus:+}" route
-        // "/api/v1" => None
+        "/api/v1" => {
+            path: "/api/{plus:*}",
+            value: 13,
+            params: {
+                "plus" => "v1"
+            }
+        }
     });
 }
 
@@ -1560,13 +1626,10 @@ fn github_tree() {
     router.insert("/sponsors/accounts", 101);
     router.insert("/sponsors/{repo}", 102);
     router.insert("/sponsors/{repo}/{user}", 103);
-    // NOTE: We don't support 'one or more' logic
-    // router.insert("/sponsors/{repo}/{plus:+}", 104);
+    router.insert("/sponsors/{repo}/{plus:*}", 104);
     router.insert("/sponsors/{repo}/issues/{path:*}", 106);
-    // NOTE: We don't support 'one or more' logic
-    // router.insert("/sponsors/{repo}/{plus:+}/{file}", 107);
-    // NOTE: We don't support 'one or more' logic
-    // router.insert("/sponsors/{repo}/{plus:+}/{filename}.{ext}", 108);
+    router.insert("/sponsors/{repo}/{plus:*}/{file}", 107);
+    router.insert("/sponsors/{repo}/{plus:*}/{filename}.{ext}", 108);
 
     router.insert("/about/careers", 200);
     router.insert("/about/press", 201);
@@ -1678,7 +1741,14 @@ fn github_tree() {
        │  │                   ╰─ /
        │  │                      ├─ issues/
        │  │                      │        ╰─ {path:*} [106]
-       │  │                      ╰─ {user} [103]
+       │  │                      ├─ {user} [103]
+       │  │                      ├─ {plus:*}
+       │  │                      │         ╰─ /
+       │  │                      │            ├─ {file} [107]
+       │  │                      │            ╰─ {filename}
+       │  │                      │                        ╰─ .
+       │  │                      │                           ╰─ {ext} [108]
+       │  │                      ╰─ {plus:*} [104]
        │  ╰─ e
        │     ├─ arch [15]
        │     ╰─ ttings [20]
@@ -1884,15 +1954,14 @@ fn github_tree() {
     });
 }
 
-// #[test]
-// #[ignore = "do we want our router to be clonable?"]
-// fn cloneable() {
-//     let router = Router::new();
-//     assert_eq!(
-//         <dyn std::any::Any>::type_id(&router),
-//         <dyn std::any::Any>::type_id(&router.clone())
-//     );
-// }
+#[test]
+fn cloneable() {
+    let router = Router::<usize>::new();
+    assert_eq!(
+        <dyn std::any::Any>::type_id(&router),
+        <dyn std::any::Any>::type_id(&router.clone())
+    );
+}
 
 #[test]
 fn test_dots_no_ext() {

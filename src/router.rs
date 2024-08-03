@@ -6,7 +6,7 @@ use crate::{
 use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
     root: Node<T>,
 }
@@ -23,6 +23,7 @@ impl<T> Router<T> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
+                wildcard_children: vec![],
                 end_wildcard: None,
 
                 quick_dynamic: false,
