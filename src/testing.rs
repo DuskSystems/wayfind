@@ -2,7 +2,7 @@ use crate::{
     matches::{Match, Parameter},
     router::Router,
 };
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 #[macro_export]
 macro_rules! assert_router_matches {
@@ -23,7 +23,7 @@ macro_rules! assert_router_matches {
         })?
     }) => {
         Some($crate::testing::ExpectedMatch {
-            path: $path,
+            path: std::sync::Arc::from($path),
             value: $value,
             params: vec![
                 $(
@@ -42,14 +42,14 @@ macro_rules! assert_router_matches {
 }
 
 pub struct ExpectedMatch<'a, T> {
-    pub path: &'a str,
+    pub path: Arc<str>,
     pub value: T,
     pub params: Vec<Parameter<'a>>,
 }
 
 #[allow(clippy::missing_panics_doc)]
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
-    router: &'a Router<'a, T>,
+    router: &'a Router<T>,
     input: &'a str,
     expected: Option<ExpectedMatch<'a, T>>,
 ) {

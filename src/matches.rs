@@ -4,7 +4,7 @@ use std::fmt::Debug;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'a, T> {
-    pub data: &'a NodeData<'a, T>,
+    pub data: &'a NodeData<T>,
     pub parameters: SmallVec<[Parameter<'a>; 4]>,
 }
 
