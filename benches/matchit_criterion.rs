@@ -3,7 +3,7 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs>
 
-use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
+use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
 
 pub mod matchit_routes;
@@ -18,8 +18,8 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(wayfind.matches(route).unwrap());
+            for route in paths() {
+                wayfind.matches(route).unwrap();
             }
         });
     });
@@ -32,9 +32,9 @@ fn benchmark(criterion: &mut Criterion) {
         let actix = actix.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
+            for route in paths() {
                 let mut path = actix_router::Path::new(route);
-                black_box(actix.recognize(&mut path).unwrap());
+                actix.recognize(&mut path).unwrap();
             }
         });
     });
@@ -43,8 +43,8 @@ fn benchmark(criterion: &mut Criterion) {
         let gonzales = gonzales::RouterBuilder::new().build(routes!(brackets));
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(gonzales.route(route).unwrap());
+            for route in paths() {
+                gonzales.route(route).unwrap();
             }
         });
     });
@@ -56,8 +56,8 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(matchit.at(route).unwrap());
+            for route in paths() {
+                matchit.at(route).unwrap();
             }
         });
     });
@@ -70,9 +70,9 @@ fn benchmark(criterion: &mut Criterion) {
         let ntex = ntex.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
+            for route in paths() {
                 let mut path = ntex_router::Path::new(route);
-                black_box(ntex.recognize(&mut path).unwrap());
+                ntex.recognize(&mut path).unwrap();
             }
         });
     });
@@ -84,8 +84,8 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(table.route(route).unwrap());
+            for route in paths() {
+                table.route(route).unwrap();
             }
         });
     });
@@ -97,8 +97,8 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(path_tree.find(route).unwrap());
+            for route in paths() {
+                path_tree.find(route).unwrap();
             }
         });
     });
@@ -107,8 +107,8 @@ fn benchmark(criterion: &mut Criterion) {
         let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(regex_set.matches(route));
+            for route in paths() {
+                regex_set.matches(route);
             }
         });
     });
@@ -120,12 +120,10 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(
-                    route_recognizer
-                        .recognize(route)
-                        .unwrap(),
-                );
+            for route in paths() {
+                route_recognizer
+                    .recognize(route)
+                    .unwrap();
             }
         });
     });
@@ -137,8 +135,8 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                black_box(routefinder.best_match(route).unwrap());
+            for route in paths() {
+                routefinder.best_match(route).unwrap();
             }
         });
     });

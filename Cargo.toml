@@ -84,9 +84,17 @@ route-recognizer = "0.3.1"
 routefinder = "0.5.4"
 
 [[bench]]
-name = "matchit"
+name = "matchit_criterion"
 harness = false
 
 [[bench]]
-name = "path_tree"
+name = "matchit_divan"
+harness = false
+
+[[bench]]
+name = "path_tree_criterion"
+harness = false
+
+[[bench]]
+name = "path_tree_divan"
 harness = false
