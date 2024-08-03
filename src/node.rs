@@ -5,21 +5,22 @@ use crate::{
 use smallvec::{smallvec, SmallVec};
 use std::{fmt::Display, sync::Arc};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NodeKind {
     Root,
     Static,
     Dynamic,
+    Wildcard,
     EndWildcard,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {
     pub path: Arc<str>,
     pub value: T,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Node<T> {
     pub kind: NodeKind,
 
@@ -28,6 +29,7 @@ pub struct Node<T> {
 
     pub static_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,
+    pub wildcard_children: Vec<Node<T>>,
     pub end_wildcard: Option<Box<Node<T>>>,
 
     // TODO: Come up with a better name.
@@ -36,13 +38,14 @@ pub struct Node<T> {
 
 impl<T> Node<T> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn insert(&mut self, mut segments: Parts<'_>, data: NodeData<T>) {
-        if let Some(segment) = segments.pop() {
+    pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) {
+        if let Some(segment) = parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(segments, data, prefix),
-                Part::Dynamic { name } => self.insert_dynamic(segments, data, name),
-                Part::Wildcard { name } if segments.is_empty() => self.insert_end_wildcard(data, name),
-                _ => unimplemented!(),
+                Part::Static { prefix } => self.insert_static(parts, data, prefix),
+                Part::Dynamic { name } => self.insert_dynamic(parts, data, name),
+                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name),
+                Part::Wildcard { name } => self.insert_wildcard(parts, data, name),
+                Part::Regex { .. } => unimplemented!(),
             }
         } else {
             assert!(self.data.is_none(), "Duplicate path");
@@ -52,7 +55,7 @@ impl<T> Node<T> {
         self.update_quick_dynamic();
     }
 
-    fn insert_static(&mut self, segments: Parts, data: NodeData<T>, prefix: &[u8]) {
+    fn insert_static(&mut self, parts: Parts, data: NodeData<T>, prefix: &[u8]) {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -67,12 +70,13 @@ impl<T> Node<T> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
+                    wildcard_children: vec![],
                     end_wildcard: None,
 
                     quick_dynamic: false,
                 };
 
-                new_child.insert(segments, data);
+                new_child.insert(parts, data);
                 new_child
             });
 
@@ -87,9 +91,9 @@ impl<T> Node<T> {
 
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(segments, data);
+                child.insert(parts, data);
             } else {
-                child.insert_static(segments, data, &prefix[common_prefix..]);
+                child.insert_static(parts, data, &prefix[common_prefix..]);
             }
 
             return;
@@ -103,6 +107,7 @@ impl<T> Node<T> {
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
+            wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard: std::mem::take(&mut child.end_wildcard),
 
             quick_dynamic: false,
@@ -116,6 +121,7 @@ impl<T> Node<T> {
 
             static_children: vec![],
             dynamic_children: vec![],
+            wildcard_children: vec![],
             end_wildcard: None,
 
             quick_dynamic: false,
@@ -125,20 +131,20 @@ impl<T> Node<T> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
-            child.insert(segments, data);
+            child.insert(parts, data);
         } else {
             child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(segments, data);
+            child.static_children[1].insert(parts, data);
         }
     }
 
-    fn insert_dynamic(&mut self, segments: Parts, data: NodeData<T>, name: &[u8]) {
+    fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
             .find(|child| child.prefix == name)
         {
-            child.insert(segments, data);
+            child.insert(parts, data);
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
@@ -149,12 +155,42 @@ impl<T> Node<T> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
+                    wildcard_children: vec![],
                     end_wildcard: None,
 
                     quick_dynamic: false,
                 };
 
-                new_child.insert(segments, data);
+                new_child.insert(parts, data);
+                new_child
+            });
+        }
+    }
+
+    fn insert_wildcard(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) {
+        if let Some(child) = self
+            .wildcard_children
+            .iter_mut()
+            .find(|child| child.prefix == name)
+        {
+            child.insert(parts, data);
+        } else {
+            self.wildcard_children.push({
+                let mut new_child = Self {
+                    kind: NodeKind::Wildcard,
+
+                    prefix: name.to_vec(),
+                    data: None,
+
+                    static_children: vec![],
+                    dynamic_children: vec![],
+                    wildcard_children: vec![],
+                    end_wildcard: None,
+
+                    quick_dynamic: false,
+                };
+
+                new_child.insert(parts, data);
                 new_child
             });
         }
@@ -170,6 +206,7 @@ impl<T> Node<T> {
 
             static_children: vec![],
             dynamic_children: vec![],
+            wildcard_children: vec![],
             end_wildcard: None,
 
             quick_dynamic: false,
@@ -231,6 +268,10 @@ impl<T> Node<T> {
         }
 
         if let Some(matches) = self.matches_dynamic(path, parameters) {
+            return Some(matches);
+        }
+
+        if let Some(matches) = self.matches_wildcard(path, parameters) {
             return Some(matches);
         }
 
@@ -349,6 +390,60 @@ impl<T> Node<T> {
         None
     }
 
+    fn matches_wildcard<'a>(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
+    ) -> Option<&'a NodeData<T>> {
+        for wildcard_child in &self.wildcard_children {
+            let mut consumed = 0;
+            let mut remaining_path = path;
+            let mut section_end = false;
+
+            while !remaining_path.is_empty() {
+                if section_end {
+                    consumed += 1;
+                }
+
+                let segment_end = remaining_path
+                    .iter()
+                    .position(|&b| b == b'/')
+                    .unwrap_or(remaining_path.len());
+
+                if segment_end == 0 {
+                    consumed += 1;
+                    section_end = false;
+                } else {
+                    consumed += segment_end;
+                    section_end = true;
+                }
+
+                parameters.push(Parameter {
+                    key: &wildcard_child.prefix,
+                    value: if path[..consumed].ends_with(b"/") {
+                        &path[..consumed - 1]
+                    } else {
+                        &path[..consumed]
+                    },
+                });
+
+                if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters) {
+                    return Some(node_data);
+                }
+
+                parameters.pop();
+
+                if segment_end == remaining_path.len() {
+                    break;
+                }
+
+                remaining_path = &remaining_path[segment_end + 1..];
+            }
+        }
+
+        None
+    }
+
     fn matches_end_wildcard<'a>(
         &'a self,
         path: &'a [u8],
@@ -385,7 +480,7 @@ impl<T: Display> Display for Node<T> {
                     let prefix = String::from_utf8_lossy(&node.prefix);
                     &format!("{{{prefix}}}")
                 }
-                NodeKind::EndWildcard => {
+                NodeKind::Wildcard | NodeKind::EndWildcard => {
                     let prefix = String::from_utf8_lossy(&node.prefix);
                     &format!("{{{prefix}:*}}")
                 }
@@ -421,12 +516,13 @@ impl<T: Display> Display for Node<T> {
             };
 
             let has_dynamic_children = !node.dynamic_children.is_empty();
+            let has_wildcard_children = !node.wildcard_children.is_empty();
             let has_end_wildcard = node.end_wildcard.is_some();
 
             // Recursively print the static children
             let static_count = node.static_children.len();
             for (index, child) in node.static_children.iter().enumerate() {
-                let is_last = if has_dynamic_children || has_end_wildcard {
+                let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
                     false
                 } else {
                     index == (static_count - 1)
@@ -438,10 +534,26 @@ impl<T: Display> Display for Node<T> {
             // Recursively print dynamic children
             let dynamic_count = node.dynamic_children.len();
             for (index, child) in node.dynamic_children.iter().enumerate() {
-                let is_last = if has_end_wildcard {
+                let is_last = if has_wildcard_children || has_end_wildcard {
                     false
                 } else {
                     index == (dynamic_count - 1)
+                };
+
+                debug_node(f, child, &new_prefix, false, is_last)?;
+            }
+
+            // Recursively print wildcard children
+            let wildcard_count = node.wildcard_children.len();
+            for (index, child) in node
+                .wildcard_children
+                .iter()
+                .enumerate()
+            {
+                let is_last = if has_end_wildcard {
+                    false
+                } else {
+                    index == (wildcard_count - 1)
                 };
 
                 debug_node(f, child, &new_prefix, false, is_last)?;
