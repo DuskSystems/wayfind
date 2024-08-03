@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/workspaces.html
 [workspace]
 resolver = "2"
-members = [".", "examples/*"]
+members = [".", "examples/*", "fuzz"]
 
 [workspace.package]
 version = "0.0.0"
