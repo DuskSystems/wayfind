@@ -17,7 +17,7 @@ fn main() {
 fn wayfind() {
     let mut wayfind = wayfind::router::Router::new();
     for route in routes!(brackets) {
-        wayfind.insert(route, true);
+        wayfind.insert(route, true).unwrap();
     }
 
     for route in paths() {

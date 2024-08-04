@@ -1,56 +1,57 @@
 #![allow(clippy::too_many_lines)]
 
+use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};
 
 #[test]
-fn uncommon() {
+fn uncommon() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     // Japanese (Konnichiwa)
-    router.insert("/こんにちは", 0);
+    router.insert("/こんにちは", 0)?;
 
     // Russian (Privet)
-    router.insert("/привет", 1);
+    router.insert("/привет", 1)?;
 
     // Chinese (Nǐ Hǎo)
-    router.insert("/你好", 2);
+    router.insert("/你好", 2)?;
 
     // Arabic Numerals (full-width)
-    router.insert("/１２３", 3);
+    router.insert("/１２３", 3)?;
 
     // Null Byte
-    router.insert("/null\0byte", 4);
+    router.insert("/null\0byte", 4)?;
 
     // Emoji
-    router.insert("/⚽️🏀🏈", 5);
+    router.insert("/⚽️🏀🏈", 5)?;
 
     // Unicode
-    router.insert("/♔♕♖♗♘♙", 6);
+    router.insert("/♔♕♖♗♘♙", 6)?;
 
     // Unicode Normalization
-    router.insert("/cafe\u{0301}", 7);
-    router.insert("/café", 8);
+    router.insert("/cafe\u{0301}", 7)?;
+    router.insert("/café", 8)?;
 
     // Unicode Zero Width
-    router.insert("/abc\u{200B}123", 9);
+    router.insert("/abc\u{200B}123", 9)?;
 
     // Unicode Right to Left
-    router.insert("/hello\u{202E}dlrow", 10);
+    router.insert("/hello\u{202E}dlrow", 10)?;
 
     // Unicode Whitespace
-    router.insert("/\u{2000}\u{2001}\u{2002}", 11);
+    router.insert("/\u{2000}\u{2001}\u{2002}", 11)?;
 
     // Unicode Control
-    router.insert("/\u{0001}\u{0002}\u{0003}", 12);
+    router.insert("/\u{0001}\u{0002}\u{0003}", 12)?;
 
     // Punycode (müller.de)
-    router.insert("/xn--mller-kva.de", 13);
+    router.insert("/xn--mller-kva.de", 13)?;
 
     // URL Encoded (😊)
-    router.insert("/%F0%9F%98%8A", 14);
+    router.insert("/%F0%9F%98%8A", 14)?;
 
     // Double URL Encoded (💀)
-    router.insert("/%25F0%259F%2592%2580", 15);
+    router.insert("/%25F0%259F%2592%2580", 15)?;
 
     assert_router_matches!(router, {
         // Japanese (Konnichiwa)
@@ -163,4 +164,6 @@ fn uncommon() {
         "/%F0%9F%92%80" => None
         "/💀" => None
     });
+
+    Ok(())
 }

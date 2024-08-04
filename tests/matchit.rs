@@ -3,14 +3,15 @@
 
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
+use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};
 
 // https://github.com/ibraheemdev/matchit/issues/22
 #[test]
-fn partial_overlap() {
+fn partial_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo_bar", "Welcome!");
-    router.insert("/foo/bar", "Welcome!");
+    router.insert("/foo_bar", "Welcome!")?;
+    router.insert("/foo/bar", "Welcome!")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -24,8 +25,8 @@ fn partial_overlap() {
     });
 
     let mut router = Router::new();
-    router.insert("/foo", "Welcome!");
-    router.insert("/foo/bar", "Welcome!");
+    router.insert("/foo", "Welcome!")?;
+    router.insert("/foo/bar", "Welcome!")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -36,14 +37,16 @@ fn partial_overlap() {
     assert_router_matches!(router, {
         "/foo/" => None
     });
+
+    Ok(())
 }
 
 // https://github.com/ibraheemdev/matchit/issues/31
 #[test]
-fn wildcard_overlap() {
+fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/path/foo", "foo");
-    router.insert("/path/{rest:*}", "wildcard");
+    router.insert("/path/foo", "foo")?;
+    router.insert("/path/{rest:*}", "wildcard")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -74,8 +77,8 @@ fn wildcard_overlap() {
     });
 
     let mut router = Router::new();
-    router.insert("/path/foo/{arg}", "foo");
-    router.insert("/path/{rest:*}", "wildcard");
+    router.insert("/path/foo/{arg}", "foo")?;
+    router.insert("/path/{rest:*}", "wildcard")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -108,14 +111,16 @@ fn wildcard_overlap() {
             }
         }
     });
+
+    Ok(())
 }
 
 // https://github.com/ibraheemdev/matchit/issues/12
 #[test]
-fn overlapping_param_backtracking() {
+fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{object}/{id}", "object with id");
-    router.insert("/secret/{id}/path", "secret with id and path");
+    router.insert("/{object}/{id}", "object with id")?;
+    router.insert("/secret/{id}/path", "secret with id and path")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -153,14 +158,16 @@ fn overlapping_param_backtracking() {
             }
         }
     });
+
+    Ok(())
 }
 
 // https://github.com/ibraheemdev/matchit/issues/42
 #[test]
-fn bare_catchall() {
+fn bare_catchall() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("{foo:*}", 1);
-    router.insert("foo/{bar:*}", 2);
+    router.insert("{foo:*}", 1)?;
+    router.insert("foo/{bar:*}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -199,25 +206,27 @@ fn bare_catchall() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn normalized() {
+fn normalized() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/x/{foo}/bar", 1);
-    router.insert("/x/{bar}/baz", 2);
-    router.insert("/{foo}/{baz}/bax", 3);
-    router.insert("/{foo}/{bar}/baz", 4);
-    router.insert("/{fod}/{baz}/{bax}/foo", 5);
-    router.insert("/{fod}/baz/bax/foo", 6);
-    router.insert("/{foo}/baz/bax", 7);
-    router.insert("/{bar}/{bay}/bay", 8);
-    router.insert("/s", 9);
-    router.insert("/s/s", 10);
-    router.insert("/s/s/s", 11);
-    router.insert("/s/s/s/s", 12);
-    router.insert("/s/s/{s}/x", 13);
-    router.insert("/s/s/{y}/d", 14);
+    router.insert("/x/{foo}/bar", 1)?;
+    router.insert("/x/{bar}/baz", 2)?;
+    router.insert("/{foo}/{baz}/bax", 3)?;
+    router.insert("/{foo}/{bar}/baz", 4)?;
+    router.insert("/{fod}/{baz}/{bax}/foo", 5)?;
+    router.insert("/{fod}/baz/bax/foo", 6)?;
+    router.insert("/{foo}/baz/bax", 7)?;
+    router.insert("/{bar}/{bay}/bay", 8)?;
+    router.insert("/s", 9)?;
+    router.insert("/s/s", 10)?;
+    router.insert("/s/s/s", 11)?;
+    router.insert("/s/s/s/s", 12)?;
+    router.insert("/s/s/{s}/x", 13)?;
+    router.insert("/s/s/{y}/d", 14)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -357,17 +366,19 @@ fn normalized() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn blog() {
+fn blog() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{page}", 1);
-    router.insert("/posts/{year}/{month}/{post}", 2);
-    router.insert("/posts/{year}/{month}/index", 3);
-    router.insert("/posts/{year}/top", 4);
-    router.insert("/static/{path:*}", 5);
-    router.insert("/favicon.ico", 6);
+    router.insert("/{page}", 1)?;
+    router.insert("/posts/{year}/{month}/{post}", 2)?;
+    router.insert("/posts/{year}/{month}/index", 3)?;
+    router.insert("/posts/{year}/top", 4)?;
+    router.insert("/static/{path:*}", 5)?;
+    router.insert("/favicon.ico", 6)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -430,18 +441,20 @@ fn blog() {
             value: 6
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn double_overlap() {
+fn double_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{object}/{id}", 1);
-    router.insert("/secret/{id}/path", 2);
-    router.insert("/secret/978", 3);
-    router.insert("/other/{object}/{id}/", 4);
-    router.insert("/other/an_object/{id}", 5);
-    router.insert("/other/static/path", 6);
-    router.insert("/other/long/static/path/", 7);
+    router.insert("/{object}/{id}", 1)?;
+    router.insert("/secret/{id}/path", 2)?;
+    router.insert("/secret/978", 3)?;
+    router.insert("/other/{object}/{id}/", 4)?;
+    router.insert("/other/an_object/{id}", 5)?;
+    router.insert("/other/static/path", 6)?;
+    router.insert("/other/long/static/path/", 7)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -510,15 +523,17 @@ fn double_overlap() {
             value: 7
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn catchall_off_by_one() {
+fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{catchall:*}", 1);
-    router.insert("/bar", 2);
-    router.insert("/bar/", 3);
-    router.insert("/bar/{catchall:*}", 4);
+    router.insert("/foo/{catchall:*}", 1)?;
+    router.insert("/bar", 2)?;
+    router.insert("/bar/", 3)?;
+    router.insert("/bar/{catchall:*}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -556,21 +571,23 @@ fn catchall_off_by_one() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn overlap() {
+fn overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo", 1);
-    router.insert("/bar", 2);
-    router.insert("/{bar:*}", 3);
-    router.insert("/baz", 4);
-    router.insert("/baz/", 5);
-    router.insert("/baz/x", 6);
-    router.insert("/baz/{xxx}", 7);
-    router.insert("/", 8);
-    router.insert("/xxx/{x:*}", 9);
-    router.insert("/xxx/", 10);
+    router.insert("/foo", 1)?;
+    router.insert("/bar", 2)?;
+    router.insert("/{bar:*}", 3)?;
+    router.insert("/baz", 4)?;
+    router.insert("/baz/", 5)?;
+    router.insert("/baz/x", 6)?;
+    router.insert("/baz/{xxx}", 7)?;
+    router.insert("/", 8)?;
+    router.insert("/xxx/{x:*}", 9)?;
+    router.insert("/xxx/", 10)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -639,14 +656,16 @@ fn overlap() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn missing_trailing_slash_param() {
+fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{object}/{id}", 1);
-    router.insert("/foo/bar/baz", 2);
-    router.insert("/foo/secret/978/", 3);
+    router.insert("/foo/{object}/{id}", 1)?;
+    router.insert("/foo/bar/baz", 2)?;
+    router.insert("/foo/secret/978/", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -672,14 +691,16 @@ fn missing_trailing_slash_param() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn extra_trailing_slash_param() {
+fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{object}/{id}", 1);
-    router.insert("/foo/bar/baz", 2);
-    router.insert("/foo/secret/978", 3);
+    router.insert("/foo/{object}/{id}", 1)?;
+    router.insert("/foo/bar/baz", 2)?;
+    router.insert("/foo/secret/978", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -698,14 +719,16 @@ fn extra_trailing_slash_param() {
             value: 3
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn missing_trailing_slash_catch_all() {
+fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{bar:*}", 1);
-    router.insert("/foo/bar/baz", 2);
-    router.insert("/foo/secret/978/", 3);
+    router.insert("/foo/{bar:*}", 1)?;
+    router.insert("/foo/bar/baz", 2)?;
+    router.insert("/foo/secret/978/", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -728,14 +751,16 @@ fn missing_trailing_slash_catch_all() {
             value: 3
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn extra_trailing_slash_catch_all() {
+fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{bar:*}", 1);
-    router.insert("/foo/bar/baz", 2);
-    router.insert("/foo/secret/978", 3);
+    router.insert("/foo/{bar:*}", 1)?;
+    router.insert("/foo/bar/baz", 2)?;
+    router.insert("/foo/secret/978", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -758,18 +783,20 @@ fn extra_trailing_slash_catch_all() {
             value: 3
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn double_overlap_trailing_slash() {
+fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{object}/{id}", 1);
-    router.insert("/secret/{id}/path", 2);
-    router.insert("/secret/978/", 3);
-    router.insert("/other/{object}/{id}/", 4);
-    router.insert("/other/an_object/{id}", 5);
-    router.insert("/other/static/path", 6);
-    router.insert("/other/long/static/path/", 7);
+    router.insert("/{object}/{id}", 1)?;
+    router.insert("/secret/{id}/path", 2)?;
+    router.insert("/secret/978/", 3)?;
+    router.insert("/other/{object}/{id}/", 4)?;
+    router.insert("/other/an_object/{id}", 5)?;
+    router.insert("/other/static/path", 6)?;
+    router.insert("/other/long/static/path/", 7)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -817,14 +844,16 @@ fn double_overlap_trailing_slash() {
         "/other/long/static/path" => None
         "/other/object/static/path" => None
     });
+
+    Ok(())
 }
 
 #[test]
-fn trailing_slash_overlap() {
+fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{x}/baz/", 1);
-    router.insert("/foo/{x}/baz", 2);
-    router.insert("/foo/bar/bar", 3);
+    router.insert("/foo/{x}/baz/", 1)?;
+    router.insert("/foo/{x}/baz", 2)?;
+    router.insert("/foo/bar/bar", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -855,42 +884,44 @@ fn trailing_slash_overlap() {
             value: 3
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn trailing_slash() {
+fn trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/hi", 1);
-    router.insert("/b/", 2);
-    router.insert("/search/{query}", 3);
-    router.insert("/cmd/{tool}/", 4);
-    router.insert("/src/{filepath:*}", 5);
-    router.insert("/x", 6);
-    router.insert("/x/y", 7);
-    router.insert("/y/", 8);
-    router.insert("/y/z", 9);
-    router.insert("/0/{id}", 10);
-    router.insert("/0/{id}/1", 11);
-    router.insert("/1/{id}/", 12);
-    router.insert("/1/{id}/2", 13);
-    router.insert("/aa", 14);
-    router.insert("/a/", 15);
-    router.insert("/admin", 16);
-    router.insert("/admin/static", 17);
-    router.insert("/admin/{category}", 18);
-    router.insert("/admin/{category}/{page}", 19);
-    router.insert("/doc", 20);
-    router.insert("/doc/rust_faq.html", 21);
-    router.insert("/doc/rust1.26.html", 22);
-    router.insert("/no/a", 23);
-    router.insert("/no/b", 24);
-    router.insert("/no/a/b/{other:*}", 25);
-    router.insert("/api/{page}/{name}", 26);
-    router.insert("/api/hello/{name}/bar/", 27);
-    router.insert("/api/bar/{name}", 28);
-    router.insert("/api/baz/foo", 29);
-    router.insert("/api/baz/foo/bar", 30);
-    router.insert("/foo/{p}", 31);
+    router.insert("/hi", 1)?;
+    router.insert("/b/", 2)?;
+    router.insert("/search/{query}", 3)?;
+    router.insert("/cmd/{tool}/", 4)?;
+    router.insert("/src/{filepath:*}", 5)?;
+    router.insert("/x", 6)?;
+    router.insert("/x/y", 7)?;
+    router.insert("/y/", 8)?;
+    router.insert("/y/z", 9)?;
+    router.insert("/0/{id}", 10)?;
+    router.insert("/0/{id}/1", 11)?;
+    router.insert("/1/{id}/", 12)?;
+    router.insert("/1/{id}/2", 13)?;
+    router.insert("/aa", 14)?;
+    router.insert("/a/", 15)?;
+    router.insert("/admin", 16)?;
+    router.insert("/admin/static", 17)?;
+    router.insert("/admin/{category}", 18)?;
+    router.insert("/admin/{category}/{page}", 19)?;
+    router.insert("/doc", 20)?;
+    router.insert("/doc/rust_faq.html", 21)?;
+    router.insert("/doc/rust1.26.html", 22)?;
+    router.insert("/no/a", 23)?;
+    router.insert("/no/b", 24)?;
+    router.insert("/no/a/b/{other:*}", 25)?;
+    router.insert("/api/{page}/{name}", 26)?;
+    router.insert("/api/hello/{name}/bar/", 27)?;
+    router.insert("/api/bar/{name}", 28)?;
+    router.insert("/api/baz/foo", 29)?;
+    router.insert("/api/baz/foo/bar", 30)?;
+    router.insert("/foo/{p}", 31)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -987,13 +1018,15 @@ fn trailing_slash() {
         "/api/baz/foo/bad" => None
         "/foo/p/p" => None
     });
+
+    Ok(())
 }
 
 #[test]
-fn backtracking_trailing_slash() {
+fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/a/{b}/{c}", 1);
-    router.insert("/a/b/{c}/d/", 2);
+    router.insert("/a/{b}/{c}", 1)?;
+    router.insert("/a/b/{c}/d/", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1009,14 +1042,16 @@ fn backtracking_trailing_slash() {
     assert_router_matches!(router, {
         "/a/b/c/d" => None
     });
+
+    Ok(())
 }
 
 #[test]
-fn root_trailing_slash() {
+fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo", 1);
-    router.insert("/bar", 2);
-    router.insert("/{baz}", 3);
+    router.insert("/foo", 1)?;
+    router.insert("/bar", 2)?;
+    router.insert("/{baz}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1029,13 +1064,15 @@ fn root_trailing_slash() {
     assert_router_matches!(router, {
         "/" => None
     });
+
+    Ok(())
 }
 
 #[test]
-fn catchall_overlap() {
+fn catchall_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/yyy/{x:*}", 1);
-    router.insert("/yyy{x:*}", 2);
+    router.insert("/yyy/{x:*}", 1)?;
+    router.insert("/yyy{x:*}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1061,28 +1098,30 @@ fn catchall_overlap() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
 #[ignore = "escaping not yet implemented"]
-fn escaped() {
+fn escaped() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 1);
-    router.insert("/{{", 2);
-    router.insert("/}}", 3);
-    router.insert("/{{x", 4);
-    router.insert("/}}y{{", 5);
-    router.insert("/xy{{", 6);
-    router.insert("/{{/xyz", 7);
-    router.insert("/{ba{{r}", 8);
-    router.insert("/{ba{{r}/", 9);
-    router.insert("/{ba{{r}/x", 10);
-    router.insert("/baz/{xxx}", 11);
-    router.insert("/baz/{xxx}/xy{{", 12);
-    router.insert("/baz/{xxx}/}}xy{{{{", 13);
-    router.insert("/{{/{x}", 14);
-    router.insert("/xxx/", 15);
-    router.insert("/xxx/{x}}{{}}}}{{}}{{{{}}y}", 16);
+    router.insert("/", 1)?;
+    router.insert("/{{", 2)?;
+    router.insert("/}}", 3)?;
+    router.insert("/{{x", 4)?;
+    router.insert("/}}y{{", 5)?;
+    router.insert("/xy{{", 6)?;
+    router.insert("/{{/xyz", 7)?;
+    router.insert("/{ba{{r}", 8)?;
+    router.insert("/{ba{{r}/", 9)?;
+    router.insert("/{ba{{r}/x", 10)?;
+    router.insert("/baz/{xxx}", 11)?;
+    router.insert("/baz/{xxx}/xy{{", 12)?;
+    router.insert("/baz/{xxx}/}}xy{{{{", 13)?;
+    router.insert("/{{/{x}", 14)?;
+    router.insert("/xxx/", 15)?;
+    router.insert("/xxx/{x}}{{}}}}{{}}{{{{}}y}", 16)?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -1191,32 +1230,34 @@ fn escaped() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn basic() {
+fn basic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/hi", 1);
-    router.insert("/contact", 2);
-    router.insert("/co", 3);
-    router.insert("/c", 4);
-    router.insert("/a", 5);
-    router.insert("/ab", 6);
-    router.insert("/doc/", 7);
-    router.insert("/doc/rust_faq.html", 8);
-    router.insert("/doc/rust1.26.html", 9);
-    router.insert("ʯ", 10);
-    router.insert("β", 11);
-    router.insert("/sd!here", 12);
-    router.insert("/sd$here", 13);
-    router.insert("/sd&here", 14);
-    router.insert("/sd'here", 15);
-    router.insert("/sd(here", 16);
-    router.insert("/sd)here", 17);
-    router.insert("/sd+here", 18);
-    router.insert("/sd,here", 19);
-    router.insert("/sd;here", 20);
-    router.insert("/sd=here", 21);
+    router.insert("/hi", 1)?;
+    router.insert("/contact", 2)?;
+    router.insert("/co", 3)?;
+    router.insert("/c", 4)?;
+    router.insert("/a", 5)?;
+    router.insert("/ab", 6)?;
+    router.insert("/doc/", 7)?;
+    router.insert("/doc/rust_faq.html", 8)?;
+    router.insert("/doc/rust1.26.html", 9)?;
+    router.insert("ʯ", 10)?;
+    router.insert("β", 11)?;
+    router.insert("/sd!here", 12)?;
+    router.insert("/sd$here", 13)?;
+    router.insert("/sd&here", 14)?;
+    router.insert("/sd'here", 15)?;
+    router.insert("/sd(here", 16)?;
+    router.insert("/sd)here", 17)?;
+    router.insert("/sd+here", 18)?;
+    router.insert("/sd,here", 19)?;
+    router.insert("/sd;here", 20)?;
+    router.insert("/sd=here", 21)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1320,67 +1361,69 @@ fn basic() {
             value: 21
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn wildcard() {
+fn wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 1);
-    router.insert("/cmd/{tool}/", 2);
-    router.insert("/cmd/{tool2}/{sub}", 3);
-    router.insert("/cmd/whoami", 4);
-    router.insert("/cmd/whoami/root", 5);
-    router.insert("/cmd/whoami/root/", 6);
-    router.insert("/src", 7);
-    router.insert("/src/", 8);
-    router.insert("/src/{filepath:*}", 9);
-    router.insert("/search/", 10);
-    router.insert("/search/{query}", 11);
-    router.insert("/search/actix-we", 12);
-    router.insert("/search/google", 13);
-    router.insert("/user_{name}", 14);
-    router.insert("/user_{name}/about", 15);
-    router.insert("/files/{dir}/{filepath:*}", 16);
-    router.insert("/doc/", 17);
-    router.insert("/doc/rust_faq.html", 18);
-    router.insert("/doc/rust1.26.html", 19);
-    router.insert("/info/{user}/public", 20);
-    router.insert("/info/{user}/project/{project}", 21);
-    router.insert("/info/{user}/project/rustlang", 22);
-    router.insert("/aa/{xx:*}", 23);
-    router.insert("/ab/{xx:*}", 24);
-    router.insert("/ab/hello{xx:*}", 25);
-    router.insert("/{cc}", 26);
-    router.insert("/c1/{dd}/e", 27);
-    router.insert("/c1/{dd}/e1", 28);
-    router.insert("/{cc}/cc", 29);
-    router.insert("/{cc}/{dd}/ee", 30);
-    router.insert("/{cc}/{dd}/{ee}/ff", 31);
-    router.insert("/{cc}/{dd}/{ee}/{ff}/gg", 32);
-    router.insert("/{cc}/{dd}/{ee}/{ff}/{gg}/hh", 33);
-    router.insert("/get/test/abc/", 34);
-    router.insert("/get/{param}/abc/", 35);
-    router.insert("/something/{paramname}/thirdthing", 36);
-    router.insert("/something/secondthing/test", 37);
-    router.insert("/get/abc", 38);
-    router.insert("/get/{param}", 39);
-    router.insert("/get/abc/123abc", 40);
-    router.insert("/get/abc/{param}", 41);
-    router.insert("/get/abc/123abc/xxx8", 42);
-    router.insert("/get/abc/123abc/{param}", 43);
-    router.insert("/get/abc/123abc/xxx8/1234", 44);
-    router.insert("/get/abc/123abc/xxx8/{param}", 45);
-    router.insert("/get/abc/123abc/xxx8/1234/ffas", 46);
-    router.insert("/get/abc/123abc/xxx8/1234/{param}", 47);
-    router.insert("/get/abc/123abc/xxx8/1234/kkdd/12c", 48);
-    router.insert("/get/abc/123abc/xxx8/1234/kkdd/{param}", 49);
-    router.insert("/get/abc/{param}/test", 50);
-    router.insert("/get/abc/123abd/{param}", 51);
-    router.insert("/get/abc/123abddd/{param}", 52);
-    router.insert("/get/abc/123/{param}", 53);
-    router.insert("/get/abc/123abg/{param}", 54);
-    router.insert("/get/abc/123abf/{param}", 55);
-    router.insert("/get/abc/123abfff/{param}", 56);
+    router.insert("/", 1)?;
+    router.insert("/cmd/{tool}/", 2)?;
+    router.insert("/cmd/{tool2}/{sub}", 3)?;
+    router.insert("/cmd/whoami", 4)?;
+    router.insert("/cmd/whoami/root", 5)?;
+    router.insert("/cmd/whoami/root/", 6)?;
+    router.insert("/src", 7)?;
+    router.insert("/src/", 8)?;
+    router.insert("/src/{filepath:*}", 9)?;
+    router.insert("/search/", 10)?;
+    router.insert("/search/{query}", 11)?;
+    router.insert("/search/actix-we", 12)?;
+    router.insert("/search/google", 13)?;
+    router.insert("/user_{name}", 14)?;
+    router.insert("/user_{name}/about", 15)?;
+    router.insert("/files/{dir}/{filepath:*}", 16)?;
+    router.insert("/doc/", 17)?;
+    router.insert("/doc/rust_faq.html", 18)?;
+    router.insert("/doc/rust1.26.html", 19)?;
+    router.insert("/info/{user}/public", 20)?;
+    router.insert("/info/{user}/project/{project}", 21)?;
+    router.insert("/info/{user}/project/rustlang", 22)?;
+    router.insert("/aa/{xx:*}", 23)?;
+    router.insert("/ab/{xx:*}", 24)?;
+    router.insert("/ab/hello{xx:*}", 25)?;
+    router.insert("/{cc}", 26)?;
+    router.insert("/c1/{dd}/e", 27)?;
+    router.insert("/c1/{dd}/e1", 28)?;
+    router.insert("/{cc}/cc", 29)?;
+    router.insert("/{cc}/{dd}/ee", 30)?;
+    router.insert("/{cc}/{dd}/{ee}/ff", 31)?;
+    router.insert("/{cc}/{dd}/{ee}/{ff}/gg", 32)?;
+    router.insert("/{cc}/{dd}/{ee}/{ff}/{gg}/hh", 33)?;
+    router.insert("/get/test/abc/", 34)?;
+    router.insert("/get/{param}/abc/", 35)?;
+    router.insert("/something/{paramname}/thirdthing", 36)?;
+    router.insert("/something/secondthing/test", 37)?;
+    router.insert("/get/abc", 38)?;
+    router.insert("/get/{param}", 39)?;
+    router.insert("/get/abc/123abc", 40)?;
+    router.insert("/get/abc/{param}", 41)?;
+    router.insert("/get/abc/123abc/xxx8", 42)?;
+    router.insert("/get/abc/123abc/{param}", 43)?;
+    router.insert("/get/abc/123abc/xxx8/1234", 44)?;
+    router.insert("/get/abc/123abc/xxx8/{param}", 45)?;
+    router.insert("/get/abc/123abc/xxx8/1234/ffas", 46)?;
+    router.insert("/get/abc/123abc/xxx8/1234/{param}", 47)?;
+    router.insert("/get/abc/123abc/xxx8/1234/kkdd/12c", 48)?;
+    router.insert("/get/abc/123abc/xxx8/1234/kkdd/{param}", 49)?;
+    router.insert("/get/abc/{param}/test", 50)?;
+    router.insert("/get/abc/123abd/{param}", 51)?;
+    router.insert("/get/abc/123abddd/{param}", 52)?;
+    router.insert("/get/abc/123/{param}", 53)?;
+    router.insert("/get/abc/123abg/{param}", 54)?;
+    router.insert("/get/abc/123abf/{param}", 55)?;
+    router.insert("/get/abc/123abfff/{param}", 56)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -2244,4 +2287,6 @@ fn wildcard() {
             }
         }
     });
+
+    Ok(())
 }

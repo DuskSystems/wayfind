@@ -5,6 +5,6 @@ use libfuzzer_sys::fuzz_target;
 fuzz_target!(|data: &[u8]| {
     let mut router = wayfind::router::Router::new();
     if let Ok(route) = std::str::from_utf8(data) {
-        router.insert(route, true);
+        let _ = router.insert(route, true);
     }
 });

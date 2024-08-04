@@ -3,23 +3,24 @@
 
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
+use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};
 
 #[test]
-fn statics() {
+fn statics() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 0);
-    router.insert("/hi", 1);
-    router.insert("/contact", 2);
-    router.insert("/co", 3);
-    router.insert("/c", 4);
-    router.insert("/a", 5);
-    router.insert("/ab", 6);
-    router.insert("/doc/", 7);
-    router.insert("/doc/go_faq.html", 8);
-    router.insert("/doc/go1.html", 9);
-    router.insert("/α", 10);
-    router.insert("/β", 11);
+    router.insert("/", 0)?;
+    router.insert("/hi", 1)?;
+    router.insert("/contact", 2)?;
+    router.insert("/co", 3)?;
+    router.insert("/c", 4)?;
+    router.insert("/a", 5)?;
+    router.insert("/ab", 6)?;
+    router.insert("/doc/", 7)?;
+    router.insert("/doc/go_faq.html", 8)?;
+    router.insert("/doc/go1.html", 9)?;
+    router.insert("/α", 10)?;
+    router.insert("/β", 11)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -89,32 +90,34 @@ fn statics() {
             value: 11
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn wildcards() {
+fn wildcards() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 0);
-    router.insert("/cmd/{tool}/{sub}", 1);
-    router.insert("/cmd/{tool}/", 2);
-    router.insert("/cmd/vet", 3);
-    router.insert("/src/{filepath:*}", 4);
-    router.insert("/src1/", 5);
-    router.insert("/src1/{filepath:*}", 6);
+    router.insert("/", 0)?;
+    router.insert("/cmd/{tool}/{sub}", 1)?;
+    router.insert("/cmd/{tool}/", 2)?;
+    router.insert("/cmd/vet", 3)?;
+    router.insert("/src/{filepath:*}", 4)?;
+    router.insert("/src1/", 5)?;
+    router.insert("/src1/{filepath:*}", 6)?;
     // NOTE: We don't support 'inline wildcard' logic.
-    // router.insert("/src2{filepath:*}", 7);
-    router.insert("/search/", 8);
-    router.insert("/search/{query}", 9);
-    router.insert("/search/invalid", 10);
-    router.insert("/user_{name}", 11);
-    router.insert("/user_{name}/about", 12);
-    router.insert("/user_x", 13);
-    router.insert("/files/{dir}/{filepath:*}", 14);
-    router.insert("/doc/", 15);
-    router.insert("/doc/rust_faq.html", 16);
-    router.insert("/doc/rust1.html", 17);
-    router.insert("/info/{user}/public", 18);
-    router.insert("/info/{user}/project/{project}", 19);
+    // router.insert("/src2{filepath:*}", 7)?;
+    router.insert("/search/", 8)?;
+    router.insert("/search/{query}", 9)?;
+    router.insert("/search/invalid", 10)?;
+    router.insert("/user_{name}", 11)?;
+    router.insert("/user_{name}/about", 12)?;
+    router.insert("/user_x", 13)?;
+    router.insert("/files/{dir}/{filepath:*}", 14)?;
+    router.insert("/doc/", 15)?;
+    router.insert("/doc/rust_faq.html", 16)?;
+    router.insert("/doc/rust1.html", 17)?;
+    router.insert("/info/{user}/public", 18)?;
+    router.insert("/info/{user}/project/{project}", 19)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -227,12 +230,14 @@ fn wildcards() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn single_named_parameter() {
+fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 0);
+    router.insert("/users/{id}", 0)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -260,14 +265,16 @@ fn single_named_parameter() {
         "/users/" => None
         "/users" => None
     });
+
+    Ok(())
 }
 
 #[test]
 #[ignore = "undecided on behaviour"]
-fn repeated_single_named_param() {
+fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 0);
-    router.insert("/users/{user_id}", 1);
+    router.insert("/users/{id}", 0)?;
+    router.insert("/users/{user_id}", 1)?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -282,15 +289,17 @@ fn repeated_single_named_param() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn static_and_named_parameter() {
+fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/a/b/c", "/a/b/c");
-    router.insert("/a/c/d", "/a/c/d");
-    router.insert("/a/c/a", "/a/c/a");
-    router.insert("/{id}/c/e", "/{id}/c/e");
+    router.insert("/a/b/c", "/a/b/c")?;
+    router.insert("/a/c/d", "/a/c/d")?;
+    router.insert("/a/c/a", "/a/c/a")?;
+    router.insert("/{id}/c/e", "/{id}/c/e")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -326,13 +335,15 @@ fn static_and_named_parameter() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn multi_named_parameters() {
+fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{lang}/{keyword}", true);
-    router.insert("/{id}", true);
+    router.insert("/{lang}/{keyword}", true)?;
+    router.insert("/{id}", true)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -364,12 +375,14 @@ fn multi_named_parameters() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn catch_all_parameter() {
+fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/src/{filepath:*}", "* files");
+    router.insert("/src/{filepath:*}", "* files")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -399,7 +412,7 @@ fn catch_all_parameter() {
         "/rust" => None
     });
 
-    router.insert("/src/", "dir");
+    router.insert("/src/", "dir")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -413,16 +426,18 @@ fn catch_all_parameter() {
             value: "dir"
         }
     });
+
+    Ok(())
 }
 
 #[test]
 #[ignore = "wildcards not yet implemented"]
-fn catch_all_parameter_with_prefix() {
+fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/commit_{sha:*}", "* sha");
-    router.insert("/commit/{sha}", "hex");
-    router.insert("/commit/{sha0}/compare/{sha1}", "compare");
-    router.insert("/src/", "dir");
+    router.insert("/commit_{sha:*}", "* sha")?;
+    router.insert("/commit/{sha}", "hex")?;
+    router.insert("/commit/{sha0}/compare/{sha1}", "compare")?;
+    router.insert("/src/", "dir")?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -491,15 +506,17 @@ fn catch_all_parameter_with_prefix() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn static_and_catch_all_parameter() {
+fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/a/b/c", "/a/b/c");
-    router.insert("/a/c/d", "/a/c/d");
-    router.insert("/a/c/a", "/a/c/a");
-    router.insert("/a/{c:*}", "/a/*c");
+    router.insert("/a/b/c", "/a/b/c")?;
+    router.insert("/a/c/d", "/a/c/d")?;
+    router.insert("/a/c/a", "/a/c/a")?;
+    router.insert("/a/{c:*}", "/a/*c")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -533,14 +550,16 @@ fn static_and_catch_all_parameter() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn root_catch_all_parameter() {
+fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 1);
-    router.insert("/{wildcard:*}", 2);
-    router.insert("/users/{wildcard:*}", 3);
+    router.insert("/", 1)?;
+    router.insert("/{wildcard:*}", 2)?;
+    router.insert("/users/{wildcard:*}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -570,12 +589,14 @@ fn root_catch_all_parameter() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn root_catch_all_parameter_1() {
+fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{wildcard:*}", 1);
+    router.insert("/{wildcard:*}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -602,7 +623,7 @@ fn root_catch_all_parameter_1() {
         }
     });
 
-    router.insert("/", 0);
+    router.insert("/", 0)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -616,14 +637,16 @@ fn root_catch_all_parameter_1() {
             value: 0
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn test_named_routes_with_non_ascii_paths() {
+fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 0);
-    router.insert("/{wildcard:*}", 1);
-    router.insert("/matchme/{slug}/", 2);
+    router.insert("/", 0)?;
+    router.insert("/{wildcard:*}", 1)?;
+    router.insert("/matchme/{slug}/", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -664,13 +687,15 @@ fn test_named_routes_with_non_ascii_paths() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn test_named_wildcard_collide() {
+fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<usize>::new();
-    router.insert("/git/{org}/{repo}", 1);
-    router.insert("/git/{wildcard:*}", 2);
+    router.insert("/git/{org}/{repo}", 1)?;
+    router.insert("/git/{wildcard:*}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -698,12 +723,14 @@ fn test_named_wildcard_collide() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn match_params() {
+fn match_params() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{wildcard:*}", 1);
+    router.insert("/api/v1/{param}/{wildcard:*}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -739,7 +766,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{plus:*}", 1);
+    router.insert("/api/v1/{param}/{plus:*}", 1)?;
 
     assert_router_matches!(router, {
         "/api/v1/entity" => None
@@ -778,7 +805,7 @@ fn match_params() {
     // });
 
     let mut router = Router::new();
-    router.insert("/v1/some/resource/name:customVerb", 1);
+    router.insert("/v1/some/resource/name:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -794,7 +821,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/v1/some/resource/{name}:customVerb", 1);
+    router.insert("/v1/some/resource/{name}:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -825,7 +852,7 @@ fn match_params() {
     // });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{wildcard:*}", 1);
+    router.insert("/api/v1/{wildcard:*}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -861,7 +888,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}", 1);
+    router.insert("/api/v1/{param}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -884,12 +911,12 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{param2}", 3);
-    router.insert("/api/v1/{param}-{param2}", 1);
-    router.insert("/api/v1/{param}~{param2}", 2);
-    router.insert("/api/v1/{param}.{param2}", 4);
-    router.insert("/api/v1/{param}_{param2}", 5);
-    router.insert("/api/v1/{param}:{param2}", 6);
+    router.insert("/api/v1/{param}/{param2}", 3)?;
+    router.insert("/api/v1/{param}-{param2}", 1)?;
+    router.insert("/api/v1/{param}~{param2}", 2)?;
+    router.insert("/api/v1/{param}.{param2}", 4)?;
+    router.insert("/api/v1/{param}_{param2}", 5)?;
+    router.insert("/api/v1/{param}:{param2}", 6)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -971,7 +998,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/const", 1);
+    router.insert("/api/v1/const", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -991,7 +1018,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/{param}/fixedEnd", 1);
+    router.insert("/api/{param}/fixedEnd", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1012,7 +1039,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/shop/product/:{filter}/color:{color}/size:{size}", 1);
+    router.insert("/shop/product/:{filter}/color:{color}/size:{size}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1048,7 +1075,7 @@ fn match_params() {
     // });
 
     let mut router = Router::new();
-    router.insert("/test{sign}{param}", 1);
+    router.insert("/test{sign}{param}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1176,13 +1203,13 @@ fn match_params() {
     // });
 
     let mut router = Router::new();
-    router.insert("/name{name}", 1);
-    router.insert("/@{name}", 2);
-    router.insert("/-{name}", 3);
-    router.insert("/.{name}", 4);
-    router.insert("/~{name}", 5);
-    router.insert("/_{name}", 6);
-    router.insert("/{name}", 7);
+    router.insert("/name{name}", 1)?;
+    router.insert("/@{name}", 2)?;
+    router.insert("/-{name}", 3)?;
+    router.insert("/.{name}", 4)?;
+    router.insert("/~{name}", 5)?;
+    router.insert("/_{name}", 6)?;
+    router.insert("/{name}", 7)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1255,7 +1282,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/abc/{wildcard:*}", 1);
+    router.insert("/api/v1/{param}/abc/{wildcard:*}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1342,7 +1369,7 @@ fn match_params() {
     // });
 
     let mut router = Router::new();
-    router.insert("/api/{wildcard:*}/{param}", 1);
+    router.insert("/api/{wildcard:*}/{param}", 1)?;
 
     assert_router_matches!(router, {
         "/api/test/abc" => {
@@ -1375,7 +1402,7 @@ fn match_params() {
     });
 
     let mut router = Router::new();
-    router.insert("/api/{wildcard:*}/{param}/{param2}", 1);
+    router.insert("/api/{wildcard:*}/{param}/{param2}", 1)?;
 
     assert_router_matches!(router, {
         "/api/test/abc/1" => {
@@ -1429,25 +1456,27 @@ fn match_params() {
         "/api" => None
         "/api/:test" => None
     });
+
+    Ok(())
 }
 
 #[test]
-fn basic() {
+fn basic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 0);
-    router.insert("/login", 1);
-    router.insert("/signup", 2);
-    router.insert("/settings", 3);
-    router.insert("/settings/{page}", 4);
-    router.insert("/{user}", 5);
-    router.insert("/{user}/{repo}", 6);
-    router.insert("/public/{any:*}", 7);
-    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 8);
-    router.insert("/{org}/{repo}/tags/{day}-{month}-{year}", 9);
-    router.insert("/{org}/{repo}/actions/{name}:{verb}", 10);
-    router.insert("/{org}/{repo}/{page}", 11);
-    router.insert("/{org}/{repo}/{path:*}", 12);
-    router.insert("/api/{plus:*}", 13);
+    router.insert("/", 0)?;
+    router.insert("/login", 1)?;
+    router.insert("/signup", 2)?;
+    router.insert("/settings", 3)?;
+    router.insert("/settings/{page}", 4)?;
+    router.insert("/{user}", 5)?;
+    router.insert("/{user}/{repo}", 6)?;
+    router.insert("/public/{any:*}", 7)?;
+    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 8)?;
+    router.insert("/{org}/{repo}/tags/{day}-{month}-{year}", 9)?;
+    router.insert("/{org}/{repo}/actions/{name}:{verb}", 10)?;
+    router.insert("/{org}/{repo}/{page}", 11)?;
+    router.insert("/{org}/{repo}/{path:*}", 12)?;
+    router.insert("/api/{plus:*}", 13)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1585,140 +1614,142 @@ fn basic() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn github_tree() {
+fn github_tree() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.insert("/", 0);
-    router.insert("/api", 1);
-    router.insert("/about", 2);
-    router.insert("/login", 3);
-    router.insert("/signup", 4);
-    router.insert("/pricing", 5);
+    router.insert("/", 0)?;
+    router.insert("/api", 1)?;
+    router.insert("/about", 2)?;
+    router.insert("/login", 3)?;
+    router.insert("/signup", 4)?;
+    router.insert("/pricing", 5)?;
 
-    router.insert("/features", 6);
-    router.insert("/features/actions", 600);
-    router.insert("/features/packages", 601);
-    router.insert("/features/security", 602);
-    router.insert("/features/codespaces", 603);
-    router.insert("/features/copilot", 604);
-    router.insert("/features/code-review", 605);
-    router.insert("/features/issues", 606);
-    router.insert("/features/discussions", 607);
+    router.insert("/features", 6)?;
+    router.insert("/features/actions", 600)?;
+    router.insert("/features/packages", 601)?;
+    router.insert("/features/security", 602)?;
+    router.insert("/features/codespaces", 603)?;
+    router.insert("/features/copilot", 604)?;
+    router.insert("/features/code-review", 605)?;
+    router.insert("/features/issues", 606)?;
+    router.insert("/features/discussions", 607)?;
 
-    router.insert("/enterprise", 7);
-    router.insert("/team", 8);
-    router.insert("/customer-stories", 9);
-    router.insert("/sponsors", 10);
-    router.insert("/readme", 11);
-    router.insert("/topics", 12);
-    router.insert("/trending", 13);
-    router.insert("/collections", 14);
-    router.insert("/search", 15);
-    router.insert("/pulls", 16);
-    router.insert("/issues", 17);
-    router.insert("/marketplace", 18);
-    router.insert("/explore", 19);
+    router.insert("/enterprise", 7)?;
+    router.insert("/team", 8)?;
+    router.insert("/customer-stories", 9)?;
+    router.insert("/sponsors", 10)?;
+    router.insert("/readme", 11)?;
+    router.insert("/topics", 12)?;
+    router.insert("/trending", 13)?;
+    router.insert("/collections", 14)?;
+    router.insert("/search", 15)?;
+    router.insert("/pulls", 16)?;
+    router.insert("/issues", 17)?;
+    router.insert("/marketplace", 18)?;
+    router.insert("/explore", 19)?;
 
-    router.insert("/sponsors/explore", 100);
-    router.insert("/sponsors/accounts", 101);
-    router.insert("/sponsors/{repo}", 102);
-    router.insert("/sponsors/{repo}/{user}", 103);
-    router.insert("/sponsors/{repo}/{plus:*}", 104);
-    router.insert("/sponsors/{repo}/issues/{path:*}", 106);
-    router.insert("/sponsors/{repo}/{plus:*}/{file}", 107);
-    router.insert("/sponsors/{repo}/{plus:*}/{filename}.{ext}", 108);
+    router.insert("/sponsors/explore", 100)?;
+    router.insert("/sponsors/accounts", 101)?;
+    router.insert("/sponsors/{repo}", 102)?;
+    router.insert("/sponsors/{repo}/{user}", 103)?;
+    router.insert("/sponsors/{repo}/{plus:*}", 104)?;
+    router.insert("/sponsors/{repo}/issues/{path:*}", 106)?;
+    router.insert("/sponsors/{repo}/{plus:*}/{file}", 107)?;
+    router.insert("/sponsors/{repo}/{plus:*}/{filename}.{ext}", 108)?;
 
-    router.insert("/about/careers", 200);
-    router.insert("/about/press", 201);
-    router.insert("/about/diversity", 202);
+    router.insert("/about/careers", 200)?;
+    router.insert("/about/press", 201)?;
+    router.insert("/about/diversity", 202)?;
 
-    router.insert("/settings", 20);
-    router.insert("/settings/admin", 2000);
-    router.insert("/settings/appearance", 2001);
-    router.insert("/settings/accessibility", 2002);
-    router.insert("/settings/notifications", 2003);
+    router.insert("/settings", 20)?;
+    router.insert("/settings/admin", 2000)?;
+    router.insert("/settings/appearance", 2001)?;
+    router.insert("/settings/accessibility", 2002)?;
+    router.insert("/settings/notifications", 2003)?;
 
-    router.insert("/settings/billing", 2004);
-    router.insert("/settings/billing/plans", 2005);
-    router.insert("/settings/security", 2006);
-    router.insert("/settings/keys", 2007);
-    router.insert("/settings/organizations", 2008);
+    router.insert("/settings/billing", 2004)?;
+    router.insert("/settings/billing/plans", 2005)?;
+    router.insert("/settings/security", 2006)?;
+    router.insert("/settings/keys", 2007)?;
+    router.insert("/settings/organizations", 2008)?;
 
-    router.insert("/settings/blocked_users", 2009);
-    router.insert("/settings/interaction_limits", 2010);
-    router.insert("/settings/code_review_limits", 2011);
+    router.insert("/settings/blocked_users", 2009)?;
+    router.insert("/settings/interaction_limits", 2010)?;
+    router.insert("/settings/code_review_limits", 2011)?;
 
-    router.insert("/settings/repositories", 2012);
-    router.insert("/settings/codespaces", 2013);
-    router.insert("/settings/deleted_packages", 2014);
-    router.insert("/settings/copilot", 2015);
-    router.insert("/settings/pages", 2016);
-    router.insert("/settings/replies", 2017);
+    router.insert("/settings/repositories", 2012)?;
+    router.insert("/settings/codespaces", 2013)?;
+    router.insert("/settings/deleted_packages", 2014)?;
+    router.insert("/settings/copilot", 2015)?;
+    router.insert("/settings/pages", 2016)?;
+    router.insert("/settings/replies", 2017)?;
 
-    router.insert("/settings/security_analysis", 2018);
+    router.insert("/settings/security_analysis", 2018)?;
 
-    router.insert("/settings/installations", 2019);
-    router.insert("/settings/reminders", 2020);
+    router.insert("/settings/installations", 2019)?;
+    router.insert("/settings/reminders", 2020)?;
 
-    router.insert("/settings/security-log", 2021);
-    router.insert("/settings/sponsors-log", 2022);
+    router.insert("/settings/security-log", 2021)?;
+    router.insert("/settings/sponsors-log", 2022)?;
 
-    router.insert("/settings/apps", 2023);
-    router.insert("/settings/developers", 2024);
-    router.insert("/settings/tokens", 2025);
+    router.insert("/settings/apps", 2023)?;
+    router.insert("/settings/developers", 2024)?;
+    router.insert("/settings/tokens", 2025)?;
 
-    router.insert("/404", 21);
-    router.insert("/500", 22);
-    router.insert("/503", 23);
+    router.insert("/404", 21)?;
+    router.insert("/500", 22)?;
+    router.insert("/503", 23)?;
 
-    router.insert("/{org}", 24);
-    router.insert("/{org}/{repo}", 2400);
-    router.insert("/{org}/{repo}/issues", 2410);
-    router.insert("/{org}/{repo}/issues/{id}", 2411);
-    router.insert("/{org}/{repo}/issues/new", 2412);
-    router.insert("/{org}/{repo}/pulls", 2420);
-    router.insert("/{org}/{repo}/pull/{id}", 2421);
-    router.insert("/{org}/{repo}/compare", 2422);
-    router.insert("/{org}/{repo}/discussions", 2430);
-    router.insert("/{org}/{repo}/discussions/{id}", 2431);
-    router.insert("/{org}/{repo}/actions", 2440);
-    router.insert("/{org}/{repo}/actions/workflows/{id}", 2441);
-    router.insert("/{org}/{repo}/actions/runs/{id}", 2442);
-    router.insert("/{org}/{repo}/wiki", 2450);
-    router.insert("/{org}/{repo}/wiki/{id}", 2451);
-    router.insert("/{org}/{repo}/security", 2460);
-    router.insert("/{org}/{repo}/security/policy", 2461);
-    router.insert("/{org}/{repo}/security/advisories", 2462);
-    router.insert("/{org}/{repo}/pulse", 2470);
-    router.insert("/{org}/{repo}/graphs/contributors", 2480);
-    router.insert("/{org}/{repo}/graphs/commit-activity", 2481);
-    router.insert("/{org}/{repo}/graphs/code-frequency", 2482);
-    router.insert("/{org}/{repo}/community", 2490);
-    router.insert("/{org}/{repo}/network", 2491);
-    router.insert("/{org}/{repo}/network/dependencies", 2492);
-    router.insert("/{org}/{repo}/network/dependents", 2493);
-    router.insert("/{org}/{repo}/network/members", 2494);
-    router.insert("/{org}/{repo}/stargazers", 2495);
-    router.insert("/{org}/{repo}/stargazers/yoou_know", 2496);
-    router.insert("/{org}/{repo}/watchers", 2497);
-    router.insert("/{org}/{repo}/releases", 2498);
-    router.insert("/{org}/{repo}/releases/tag/{id}", 2499);
-    router.insert("/{org}/{repo}/tags", 2500);
-    router.insert("/{org}/{repo}/tags/{id}", 2501);
-    router.insert("/{org}/{repo}/tree/{id}", 2502);
-    router.insert("/{org}/{repo}/commit/{id}", 2503);
+    router.insert("/{org}", 24)?;
+    router.insert("/{org}/{repo}", 2400)?;
+    router.insert("/{org}/{repo}/issues", 2410)?;
+    router.insert("/{org}/{repo}/issues/{id}", 2411)?;
+    router.insert("/{org}/{repo}/issues/new", 2412)?;
+    router.insert("/{org}/{repo}/pulls", 2420)?;
+    router.insert("/{org}/{repo}/pull/{id}", 2421)?;
+    router.insert("/{org}/{repo}/compare", 2422)?;
+    router.insert("/{org}/{repo}/discussions", 2430)?;
+    router.insert("/{org}/{repo}/discussions/{id}", 2431)?;
+    router.insert("/{org}/{repo}/actions", 2440)?;
+    router.insert("/{org}/{repo}/actions/workflows/{id}", 2441)?;
+    router.insert("/{org}/{repo}/actions/runs/{id}", 2442)?;
+    router.insert("/{org}/{repo}/wiki", 2450)?;
+    router.insert("/{org}/{repo}/wiki/{id}", 2451)?;
+    router.insert("/{org}/{repo}/security", 2460)?;
+    router.insert("/{org}/{repo}/security/policy", 2461)?;
+    router.insert("/{org}/{repo}/security/advisories", 2462)?;
+    router.insert("/{org}/{repo}/pulse", 2470)?;
+    router.insert("/{org}/{repo}/graphs/contributors", 2480)?;
+    router.insert("/{org}/{repo}/graphs/commit-activity", 2481)?;
+    router.insert("/{org}/{repo}/graphs/code-frequency", 2482)?;
+    router.insert("/{org}/{repo}/community", 2490)?;
+    router.insert("/{org}/{repo}/network", 2491)?;
+    router.insert("/{org}/{repo}/network/dependencies", 2492)?;
+    router.insert("/{org}/{repo}/network/dependents", 2493)?;
+    router.insert("/{org}/{repo}/network/members", 2494)?;
+    router.insert("/{org}/{repo}/stargazers", 2495)?;
+    router.insert("/{org}/{repo}/stargazers/yoou_know", 2496)?;
+    router.insert("/{org}/{repo}/watchers", 2497)?;
+    router.insert("/{org}/{repo}/releases", 2498)?;
+    router.insert("/{org}/{repo}/releases/tag/{id}", 2499)?;
+    router.insert("/{org}/{repo}/tags", 2500)?;
+    router.insert("/{org}/{repo}/tags/{id}", 2501)?;
+    router.insert("/{org}/{repo}/tree/{id}", 2502)?;
+    router.insert("/{org}/{repo}/commit/{id}", 2503)?;
 
-    router.insert("/new", 2504);
-    router.insert("/new/import", 2505);
-    router.insert("/organizations/new", 2506);
-    router.insert("/organizations/plan", 2507);
+    router.insert("/new", 2504)?;
+    router.insert("/new/import", 2505)?;
+    router.insert("/organizations/new", 2506)?;
+    router.insert("/organizations/plan", 2507)?;
 
-    router.insert("/{org}/{repo}/{path:*}", 3000);
-    router.insert("/{org}/{repo}/releases/{path:*}", 3001);
-    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 3002);
+    router.insert("/{org}/{repo}/{path:*}", 3000)?;
+    router.insert("/{org}/{repo}/releases/{path:*}", 3001)?;
+    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 3002)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1952,6 +1983,8 @@ fn github_tree() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
@@ -1964,9 +1997,9 @@ fn cloneable() {
 }
 
 #[test]
-fn test_dots_no_ext() {
+fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name}", 1);
+    router.insert("/{name}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1983,14 +2016,16 @@ fn test_dots_no_ext() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
 #[ignore = "we don't support 'one or more' or 'inline wildcard' logic"]
-fn test_dots_ext() {
+fn test_dots_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name:+}.123", 2);
-    router.insert("/{name:*}.123.456", 1);
+    router.insert("/{name:+}.123", 2)?;
+    router.insert("/{name:*}.123.456", 1)?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -2010,13 +2045,15 @@ fn test_dots_ext() {
             }
         }
     });
+
+    Ok(())
 }
 
 #[test]
-fn test_dots_ext_no_qualifier() {
+fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name}.js", 2);
-    router.insert("/{name}.js.gz", 1);
+    router.insert("/{name}.js", 2)?;
+    router.insert("/{name}.js.gz", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -2063,4 +2100,6 @@ fn test_dots_ext_no_qualifier() {
             }
         }
     });
+
+    Ok(())
 }
