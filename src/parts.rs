@@ -1,19 +1,37 @@
+use regex::bytes::Regex;
 use std::fmt::Debug;
 
-#[derive(Debug, PartialEq, Eq)]
+use crate::errors::insert::InsertError;
+
+#[derive(Debug)]
 pub enum Part<'a> {
     Static { prefix: &'a [u8] },
     Dynamic { name: &'a [u8] },
     Wildcard { name: &'a [u8] },
-    Regex { name: &'a [u8], pattern: &'a [u8] },
+    Regex { name: &'a [u8], pattern: Regex },
 }
+
+impl<'a> PartialEq for Part<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Part::Static { prefix: a }, Part::Static { prefix: b })
+            | (Part::Dynamic { name: a }, Part::Dynamic { name: b })
+            | (Part::Wildcard { name: a }, Part::Wildcard { name: b }) => a == b,
+            (Part::Regex { name: a, pattern: p1 }, Part::Regex { name: b, pattern: p2 }) => {
+                a == b && p1.as_str() == p2.as_str()
+            }
+            _ => false,
+        }
+    }
+}
+
+impl<'a> Eq for Part<'a> {}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a>(Vec<Part<'a>>);
 
 impl<'a> Parts<'a> {
-    #[must_use]
-    pub fn new(path: &'a [u8]) -> Self {
+    pub fn new(path: &'a [u8]) -> Result<Self, InsertError> {
         let mut parts = vec![];
         let mut index = 0;
 
@@ -21,10 +39,18 @@ impl<'a> Parts<'a> {
             if path[index] == b'{' {
                 let (name, value) = Self::parse_parameter(path, &mut index);
                 if let Some(value) = value {
-                    if value.starts_with(b"*") {
+                    if value == b"*" {
                         parts.push(Part::Wildcard { name });
                     } else {
-                        parts.push(Part::Regex { name, pattern: value });
+                        let Ok(value_str) = std::str::from_utf8(value) else {
+                            return Err(InsertError::InvalidRegex);
+                        };
+
+                        let Ok(pattern) = Regex::new(value_str) else {
+                            return Err(InsertError::InvalidRegex);
+                        };
+
+                        parts.push(Part::Regex { name, pattern });
                     }
                 } else {
                     parts.push(Part::Dynamic { name });
@@ -37,7 +63,7 @@ impl<'a> Parts<'a> {
 
         // Reverse here to allow for easy 'popping'
         parts.reverse();
-        Self(parts)
+        Ok(Self(parts))
     }
 
     pub fn pop(&mut self) -> Option<Part<'a>> {
@@ -104,17 +130,21 @@ impl<'a> Parts<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::error::Error;
 
     #[test]
     fn test_parts_static() {
-        assert_eq!(Parts(vec![Part::Static { prefix: b"/abcd" }]), Parts::new(b"/abcd"),);
+        assert_eq!(Parts::new(b"/abcd"), Ok(Parts(vec![Part::Static { prefix: b"/abcd" }])),);
     }
 
     #[test]
     fn test_parts_dynamic() {
         assert_eq!(
             Parts::new(b"/{name}"),
-            Parts(vec![Part::Dynamic { name: b"name" }, Part::Static { prefix: b"/" },])
+            Ok(Parts(vec![
+                Part::Dynamic { name: b"name" },
+                Part::Static { prefix: b"/" },
+            ]))
         );
     }
 
@@ -122,39 +152,46 @@ mod tests {
     fn test_parts_wildcard() {
         assert_eq!(
             Parts::new(b"/{path:*}"),
-            Parts(vec![Part::Wildcard { name: b"path" }, Part::Static { prefix: b"/" },])
+            Ok(Parts(vec![
+                Part::Wildcard { name: b"path" },
+                Part::Static { prefix: b"/" },
+            ]))
         );
     }
 
     #[test]
-    fn test_parts_regex() {
+    fn test_parts_regex() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/{id:[0-9]+}"),
-            Parts(vec![
+            Ok(Parts(vec![
                 Part::Regex {
                     name: b"id",
-                    pattern: b"[0-9]+"
+                    pattern: Regex::new("[0-9]+")?,
                 },
                 Part::Static { prefix: b"/" },
-            ])
+            ]))
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_parts_mixed() {
+    fn test_parts_mixed() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/users/{id:[0-9]+}/posts/{file}.{extension}"),
-            Parts(vec![
+            Ok(Parts(vec![
                 Part::Dynamic { name: b"extension" },
                 Part::Static { prefix: b"." },
                 Part::Dynamic { name: b"file" },
                 Part::Static { prefix: b"/posts/" },
                 Part::Regex {
                     name: b"id",
-                    pattern: b"[0-9]+"
+                    pattern: Regex::new("[0-9]+")?,
                 },
                 Part::Static { prefix: b"/users/" },
-            ])
+            ]))
         );
+
+        Ok(())
     }
 }

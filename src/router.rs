@@ -33,7 +33,7 @@ impl<T> Router<T> {
 
     pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
         self.root.insert(
-            Parts::new(path.as_bytes()),
+            Parts::new(path.as_bytes())?,
             NodeData {
                 path: Arc::from(path),
                 value,
