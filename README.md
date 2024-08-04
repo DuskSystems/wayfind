@@ -35,19 +35,6 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 - Regex Segment: `/ids/{id:[0-9]+}`
 - Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
 
-### Under consideration
-
-- Wildcard Inline: `/files/{file:*}.{extension}`
-
-Currently, inline dynamic variables are greedy in nature, but maybe we'd be better off using inline wildcards to allow choosing between greedy and lazy matching.
-
-### Unlikely
-
-Could be convinced to add these, but likely not in scope for `v1`.
-
-- Optional: `/photos/{id:?}`
-- Optional Groups: `/images/{name}(.{type})`
-
 ## Potential additional features
 
 - Case insensitive matches
