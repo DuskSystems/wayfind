@@ -1,4 +1,5 @@
 use crate::{
+    errors::insert::InsertError,
     matches::Match,
     node::{Node, NodeData, NodeKind},
     parts::Parts,
@@ -30,7 +31,7 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn insert(&mut self, path: &str, value: T) {
+    pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
         self.root.insert(
             Parts::new(path.as_bytes()),
             NodeData {
@@ -38,6 +39,8 @@ impl<T> Router<T> {
                 value,
             },
         );
+
+        Ok(())
     }
 
     #[must_use]

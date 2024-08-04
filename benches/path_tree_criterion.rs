@@ -14,7 +14,7 @@ fn benchmark(criterion: &mut Criterion) {
     group.bench_function("wayfind", |bencher| {
         let mut wayfind = wayfind::router::Router::new();
         for (index, route) in routes!(brackets).iter().enumerate() {
-            wayfind.insert(route, index);
+            wayfind.insert(route, index).unwrap();
         }
 
         bencher.iter(|| {

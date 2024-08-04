@@ -28,15 +28,15 @@ async fn main() -> Result<(), anyhow::Error> {
     router.insert(
         "/",
         Arc::new(move |path, parameters| Box::pin(index_route(path, parameters))),
-    );
+    )?;
     router.insert(
         "/hello/{name}",
         Arc::new(move |path, parameters| Box::pin(hello_route(path, parameters))),
-    );
+    )?;
     router.insert(
         "{catch_all:*}",
         Arc::new(move |path, parameters| Box::pin(not_found(path, parameters))),
-    );
+    )?;
 
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1337);
     let listener = TcpListener::bind(&socket).await?;
