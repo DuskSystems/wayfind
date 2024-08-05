@@ -38,6 +38,7 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 ## Potential additional features
 
 - Case insensitive matches
+- Trailing slash support
 - URL encoding/decoding
 - OpenAPI compatibility
 - Routing via query parameters, host, methods, ...
