@@ -4,7 +4,8 @@ use crate::{
     node::{Node, NodeData, NodeKind},
     parts::Parts,
 };
-use std::{fmt::Display, sync::Arc};
+use alloc::sync::Arc;
+use core::fmt::Display;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
@@ -13,7 +14,7 @@ pub struct Router<T> {
 
 impl<T> Router<T> {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             root: Node {
                 kind: NodeKind::Root,
@@ -65,7 +66,7 @@ impl<T> Default for Router<T> {
 }
 
 impl<T: Display> Display for Router<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.root)
     }
 }

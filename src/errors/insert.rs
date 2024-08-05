@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Display};
+use core::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
@@ -10,7 +10,7 @@ pub enum InsertError {
 impl Error for InsertError {}
 
 impl Display for InsertError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::InvalidPath => write!(f, "Invalid Path"),
             Self::InvalidRegex => write!(f, "Invalid Regex"),

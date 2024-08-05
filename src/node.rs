@@ -2,7 +2,13 @@ use crate::{
     matches::Parameter,
     parts::{Part, Parts},
 };
-use std::{fmt::Display, sync::Arc};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    sync::Arc,
+    vec::Vec,
+};
+use core::fmt::Display;
 
 #[cfg(regex)]
 use regex::bytes::Regex;
@@ -135,12 +141,12 @@ impl<T> Node<T> {
             prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
 
-            static_children: std::mem::take(&mut child.static_children),
+            static_children: core::mem::take(&mut child.static_children),
             #[cfg(regex)]
-            regex_children: std::mem::take(&mut child.regex_children),
-            dynamic_children: std::mem::take(&mut child.dynamic_children),
-            wildcard_children: std::mem::take(&mut child.wildcard_children),
-            end_wildcard: std::mem::take(&mut child.end_wildcard),
+            regex_children: core::mem::take(&mut child.regex_children),
+            dynamic_children: core::mem::take(&mut child.dynamic_children),
+            wildcard_children: core::mem::take(&mut child.wildcard_children),
+            end_wildcard: core::mem::take(&mut child.end_wildcard),
 
             #[cfg(regex)]
             quick_regex: false,
@@ -672,14 +678,14 @@ impl<T> Node<T> {
 // FIXME: Doesn't handle split multi-byte characters.
 impl<T: Display> Display for Node<T> {
     #[allow(clippy::too_many_lines)]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         fn debug_node<T: Display>(
-            f: &mut std::fmt::Formatter,
+            f: &mut core::fmt::Formatter,
             node: &Node<T>,
             padding: &str,
             is_root: bool,
             is_last: bool,
-        ) -> std::fmt::Result {
+        ) -> core::fmt::Result {
             let key = match &node.kind {
                 NodeKind::Root => "$",
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),

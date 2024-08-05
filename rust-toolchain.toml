@@ -1,5 +1,6 @@
 [toolchain]
-channel = "1.80.0"
+# FIXME: Once 1.81 releases, switch back to stable.
+channel = "nightly-2024-08-04"
 targets = ["wasm32-unknown-unknown"]
 components = [
   "cargo",

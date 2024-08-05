@@ -1,5 +1,6 @@
 use crate::node::NodeData;
-use std::fmt::Debug;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'a, T> {

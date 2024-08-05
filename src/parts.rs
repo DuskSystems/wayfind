@@ -1,5 +1,6 @@
 use crate::errors::insert::InsertError;
-use std::fmt::Debug;
+use alloc::vec::Vec;
+use core::fmt::Debug;
 
 #[cfg(regex)]
 use regex::bytes::Regex;

@@ -2,7 +2,7 @@ use crate::{
     matches::{Match, Parameter},
     router::Router,
 };
-use std::{fmt::Debug, sync::Arc};
+use alloc::{fmt::Debug, sync::Arc, vec::Vec};
 
 #[macro_export]
 macro_rules! assert_router_matches {
