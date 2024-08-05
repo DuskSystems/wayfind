@@ -96,6 +96,10 @@ macro_rules! routes {
         routes!(finish => "{p1}", "{p2}", "{p3}", "{p4}")
     }};
 
+    (chevrons) => {{
+        routes!(finish => "<p1>", "<p2>", "<p3>", "<p4>")
+    }};
+
     (regex) => {{
         routes!(finish => "(.*)", "(.*)", "(.*)", "(.*)")
     }};

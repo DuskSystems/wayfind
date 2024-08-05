@@ -35,7 +35,7 @@ impl<'a> Parts<'a> {
         let mut index = 0;
 
         while index < path.len() {
-            if path[index] == b'{' {
+            if path[index] == b'<' {
                 let (name, value) = Self::parse_parameter(path, &mut index);
                 if let Some(value) = value {
                     if value == b"*" {
@@ -77,9 +77,9 @@ impl<'a> Parts<'a> {
     fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
         let start = *index;
 
-        // Consume up until the next '{'
+        // Consume up until the next '<'
         while *index < path.len() {
-            if path[*index] == b'{' {
+            if path[*index] == b'<' {
                 break;
             }
 
@@ -90,14 +90,14 @@ impl<'a> Parts<'a> {
     }
 
     fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<&'a [u8]>) {
-        // Consume opening '{'
+        // Consume opening '<'
         *index += 1;
         let start = *index;
 
-        // Consume until we see a '}'
+        // Consume until we see a '>'
         let mut colon = None;
         while *index < path.len() {
-            if path[*index] == b'}' {
+            if path[*index] == b'>' {
                 break;
             }
 
@@ -108,7 +108,7 @@ impl<'a> Parts<'a> {
             *index += 1;
         }
 
-        // Consume closing '}'
+        // Consume closing '>'
         let end = *index;
         *index += 1;
 
@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn test_parts_dynamic() {
         assert_eq!(
-            Parts::new(b"/{name}"),
+            Parts::new(b"/<name>"),
             Ok(Parts(vec![
                 Part::Dynamic { name: b"name" },
                 Part::Static { prefix: b"/" },
@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn test_parts_wildcard() {
         assert_eq!(
-            Parts::new(b"/{path:*}"),
+            Parts::new(b"/<path:*>"),
             Ok(Parts(vec![
                 Part::Wildcard { name: b"path" },
                 Part::Static { prefix: b"/" },
@@ -161,7 +161,7 @@ mod tests {
     #[test]
     fn test_parts_regex() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Parts::new(b"/{id:[0-9]+}"),
+            Parts::new(b"/<id:[0-9]+>"),
             Ok(Parts(vec![
                 Part::Regex {
                     name: b"id",
@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn test_parts_mixed() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            Parts::new(b"/users/{id:[0-9]+}/posts/{file}.{extension}"),
+            Parts::new(b"/users/<id:[0-9]+>/posts/<file>.<extension>"),
             Ok(Parts(vec![
                 Part::Dynamic { name: b"extension" },
                 Part::Static { prefix: b"." },

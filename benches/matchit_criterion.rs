@@ -13,7 +13,7 @@ fn benchmark(criterion: &mut Criterion) {
 
     group.bench_function("wayfind", |bencher| {
         let mut wayfind = wayfind::router::Router::new();
-        for route in routes!(brackets) {
+        for route in routes!(chevrons) {
             wayfind.insert(route, true).unwrap();
         }
 

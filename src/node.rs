@@ -406,7 +406,7 @@ impl<T> Node<T> {
         }
     }
 
-    // Regex with support for inline regex sections, e.g. `{name:[a-z]+}.txt`
+    // Regex with support for inline regex sections, e.g. `<name:[a-z]+>.txt`
     fn matches_regex_inline<'a>(
         &'a self,
         path: &'a [u8],
@@ -445,7 +445,7 @@ impl<T> Node<T> {
         None
     }
 
-    // Doesn't support inline regex sections, e.g. `{name:[a-z]+}.txt`, only `/{segment:[a-z]+}/`
+    // Doesn't support inline regex sections, e.g. `<name:[a-z]+>.txt`, only `/<segment:[a-z]+>/`
     fn matches_regex_segment<'a>(
         &'a self,
         path: &'a [u8],
@@ -495,9 +495,9 @@ impl<T> Node<T> {
         }
     }
 
-    // Dynamic with support for inline dynamic sections, e.g. `{name}.{extension}`
+    // Dynamic with support for inline dynamic sections, e.g. `<name>.<extension>`
     // NOTE: Parameters are greedy in nature:
-    //   Route: `{name}.{extension}`
+    //   Route: `<name>.<extension>`
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
@@ -540,7 +540,7 @@ impl<T> Node<T> {
         None
     }
 
-    // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
+    // Doesn't support inline dynamic sections, e.g. `<name>.<extension>`, only `/<segment>/`
     fn matches_dynamic_segment<'a>(
         &'a self,
         path: &'a [u8],
@@ -652,15 +652,15 @@ impl<T: Display> Display for Node<T> {
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
                 NodeKind::Regex(regex) => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("{{{name}:{}}}", regex.as_str())
+                    &format!("<{name}:{}>", regex.as_str())
                 }
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("{{{name}}}")
+                    &format!("<{name}>")
                 }
                 NodeKind::Wildcard | NodeKind::EndWildcard => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("{{{name}:*}}")
+                    &format!("<{name}:*>")
                 }
             };
 

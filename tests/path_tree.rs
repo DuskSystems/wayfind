@@ -98,62 +98,62 @@ fn statics() -> Result<(), Box<dyn Error>> {
 fn wildcards() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
-    router.insert("/cmd/{tool}/{sub}", 1)?;
-    router.insert("/cmd/{tool}/", 2)?;
+    router.insert("/cmd/<tool>/<sub>", 1)?;
+    router.insert("/cmd/<tool>/", 2)?;
     router.insert("/cmd/vet", 3)?;
-    router.insert("/src/{filepath:*}", 4)?;
+    router.insert("/src/<filepath:*>", 4)?;
     router.insert("/src1/", 5)?;
-    router.insert("/src1/{filepath:*}", 6)?;
+    router.insert("/src1/<filepath:*>", 6)?;
     // NOTE: We don't support 'inline wildcard' logic.
-    // router.insert("/src2{filepath:*}", 7)?;
+    // router.insert("/src2<filepath:*>", 7)?;
     router.insert("/search/", 8)?;
-    router.insert("/search/{query}", 9)?;
+    router.insert("/search/<query>", 9)?;
     router.insert("/search/invalid", 10)?;
-    router.insert("/user_{name}", 11)?;
-    router.insert("/user_{name}/about", 12)?;
+    router.insert("/user_<name>", 11)?;
+    router.insert("/user_<name>/about", 12)?;
     router.insert("/user_x", 13)?;
-    router.insert("/files/{dir}/{filepath:*}", 14)?;
+    router.insert("/files/<dir>/<filepath:*>", 14)?;
     router.insert("/doc/", 15)?;
     router.insert("/doc/rust_faq.html", 16)?;
     router.insert("/doc/rust1.html", 17)?;
-    router.insert("/info/{user}/public", 18)?;
-    router.insert("/info/{user}/project/{project}", 19)?;
+    router.insert("/info/<user>/public", 18)?;
+    router.insert("/info/<user>/project/<project>", 19)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
        ├─ cmd/
        │     ├─ vet [3]
-       │     ╰─ {tool}
+       │     ╰─ <tool>
        │             ╰─ / [2]
-       │                ╰─ {sub} [1]
+       │                ╰─ <sub> [1]
        ├─ s
        │  ├─ rc
        │  │   ├─ /
-       │  │   │  ╰─ {filepath:*} [4]
+       │  │   │  ╰─ <filepath:*> [4]
        │  │   ╰─ 1/ [5]
-       │  │       ╰─ {filepath:*} [6]
+       │  │       ╰─ <filepath:*> [6]
        │  ╰─ earch/ [8]
        │          ├─ invalid [10]
-       │          ╰─ {query} [9]
+       │          ╰─ <query> [9]
        ├─ user_
        │      ├─ x [13]
-       │      ╰─ {name} [11]
+       │      ╰─ <name> [11]
        │              ╰─ /about [12]
        ├─ files/
-       │       ╰─ {dir}
+       │       ╰─ <dir>
        │              ╰─ /
-       │                 ╰─ {filepath:*} [14]
+       │                 ╰─ <filepath:*> [14]
        ├─ doc/ [15]
        │     ╰─ rust
        │           ├─ _faq.html [16]
        │           ╰─ 1.html [17]
        ╰─ info/
-              ╰─ {user}
+              ╰─ <user>
                       ╰─ /p
                           ├─ ublic [18]
                           ╰─ roject/
-                                   ╰─ {project} [19]
+                                   ╰─ <project> [19]
     "###);
 
     assert_router_matches!(router, {
@@ -162,52 +162,52 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
             value: 0
         }
         "/cmd/test/" => {
-            path: "/cmd/{tool}/",
+            path: "/cmd/<tool>/",
             value: 2,
             params: {
                 "tool" => "test"
             }
         }
         "/cmd/test/3" => {
-            path: "/cmd/{tool}/{sub}",
+            path: "/cmd/<tool>/<sub>",
             value: 1,
             params: {
                 "tool" => "test",
                 "sub" => "3"
             }
         }
-        // NOTE: Different behaviour: path-tree would match "/src/{filepath:*}"
+        // NOTE: Different behaviour: path-tree would match "/src/<filepath:*>"
         "/src/" => None
         "/src/some/file.png" => {
-            path: "/src/{filepath:*}",
+            path: "/src/<filepath:*>",
             value: 4,
             params: {
                 "filepath" => "some/file.png"
             }
         }
         "/search/someth!ng+in+ünìcodé" => {
-            path: "/search/{query}",
+            path: "/search/<query>",
             value: 9,
             params: {
                 "query" => "someth!ng+in+ünìcodé"
             }
         }
         "/user_rust" => {
-            path: "/user_{name}",
+            path: "/user_<name>",
             value: 11,
             params: {
                 "name" => "rust"
             }
         }
         "/user_rust/about" => {
-            path: "/user_{name}/about",
+            path: "/user_<name>/about",
             value: 12,
             params: {
                 "name" => "rust"
             }
         }
         "/files/js/inc/framework.js" => {
-            path: "/files/{dir}/{filepath:*}",
+            path: "/files/<dir>/<filepath:*>",
             value: 14,
             params: {
                 "dir" => "js",
@@ -215,14 +215,14 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
             }
         }
         "/info/gordon/public" => {
-            path: "/info/{user}/public",
+            path: "/info/<user>/public",
             value: 18,
             params: {
                 "user" => "gordon"
             }
         }
         "/info/gordon/project/rust" => {
-            path: "/info/{user}/project/{project}",
+            path: "/info/<user>/project/<project>",
             value: 19,
             params: {
                 "user" => "gordon",
@@ -237,25 +237,25 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
 #[test]
 fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 0)?;
+    router.insert("/users/<id>", 0)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /users/
-             ╰─ {id} [0]
+             ╰─ <id> [0]
     "###);
 
     assert_router_matches!(router, {
         "/" => None
         "/users/gordon" => {
-            path: "/users/{id}",
+            path: "/users/<id>",
             value: 0,
             params: {
                 "id" => "gordon"
             }
         }
         "/users/you" => {
-            path: "/users/{id}",
+            path: "/users/<id>",
             value: 0,
             params: {
                 "id" => "you"
@@ -273,8 +273,8 @@ fn single_named_parameter() -> Result<(), Box<dyn Error>> {
 #[ignore = "undecided on behaviour"]
 fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 0)?;
-    router.insert("/users/{user_id}", 1)?;
+    router.insert("/users/<id>", 0)?;
+    router.insert("/users/<user_id>", 1)?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -282,7 +282,7 @@ fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     // Possibly we'd be better off erroring here, since it's ambiguous.
     assert_router_matches!(router, {
         "/users/gordon" => {
-            path: "/users/{user_id}",
+            path: "/users/<user_id>",
             value: 1,
             params: {
                 "user_id" => "gordon"
@@ -299,7 +299,7 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c", "/a/b/c")?;
     router.insert("/a/c/d", "/a/c/d")?;
     router.insert("/a/c/a", "/a/c/a")?;
-    router.insert("/{id}/c/e", "/{id}/c/e")?;
+    router.insert("/<id>/c/e", "/<id>/c/e")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -309,8 +309,8 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
        │   ╰─ c/
        │       ├─ d [/a/c/d]
        │       ╰─ a [/a/c/a]
-       ╰─ {id}
-             ╰─ /c/e [/{id}/c/e]
+       ╰─ <id>
+             ╰─ /c/e [/<id>/c/e]
     "###);
 
     assert_router_matches!(router, {
@@ -328,8 +328,8 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
             value: "/a/c/a"
         }
         "/a/c/e" => {
-            path: "/{id}/c/e",
-            value: "/{id}/c/e",
+            path: "/<id>/c/e",
+            value: "/<id>/c/e",
             params: {
                 "id" => "a"
             }
@@ -342,16 +342,16 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
 #[test]
 fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{lang}/{keyword}", true)?;
-    router.insert("/{id}", true)?;
+    router.insert("/<lang>/<keyword>", true)?;
+    router.insert("/<id>", true)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ {lang}
+       ├─ <lang>
        │       ╰─ /
-       │          ╰─ {keyword} [true]
-       ╰─ {id} [true]
+       │          ╰─ <keyword> [true]
+       ╰─ <id> [true]
     "###);
 
     assert_router_matches!(router, {
@@ -360,7 +360,7 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
         "/rust/let/" => None
         "/rust/let/const" => None
         "/rust/let" => {
-            path: "/{lang}/{keyword}",
+            path: "/<lang>/<keyword>",
             value: true,
             params: {
                 "lang" => "rust",
@@ -368,7 +368,7 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust" => {
-            path: "/{id}",
+            path: "/<id>",
             value: true,
             params: {
                 "id" => "rust"
@@ -382,27 +382,27 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
 #[test]
 fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/src/{filepath:*}", "* files")?;
+    router.insert("/src/<filepath:*>", "* files")?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /src/
-           ╰─ {filepath:*} [* files]
+           ╰─ <filepath:*> [* files]
     "###);
 
     assert_router_matches!(router, {
         "/src" => None
-        // NOTE: Different behaviour: path-tree would match "/src/{filepath:*}"
+        // NOTE: Different behaviour: path-tree would match "/src/<filepath:*>"
         "/src/" => None
         "/src/somefile.rs" => {
-            path: "/src/{filepath:*}",
+            path: "/src/<filepath:*>",
             value: "* files",
             params: {
                 "filepath" => "somefile.rs"
             }
         }
         "/src/subdir/somefile.rs" => {
-            path: "/src/{filepath:*}",
+            path: "/src/<filepath:*>",
             value: "* files",
             params: {
                 "filepath" => "subdir/somefile.rs"
@@ -417,7 +417,7 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /src/ [dir]
-           ╰─ {filepath:*} [* files]
+           ╰─ <filepath:*> [* files]
     "###);
 
     assert_router_matches!(router, {
@@ -434,9 +434,9 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
 #[ignore = "wildcards not yet implemented"]
 fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/commit_{sha:*}", "* sha")?;
-    router.insert("/commit/{sha}", "hex")?;
-    router.insert("/commit/{sha0}/compare/{sha1}", "compare")?;
+    router.insert("/commit_<sha:*>", "* sha")?;
+    router.insert("/commit/<sha>", "hex")?;
+    router.insert("/commit/<sha0>/compare/<sha1>", "compare")?;
     router.insert("/src/", "dir")?;
 
     insta::assert_snapshot!(router, @"");
@@ -447,14 +447,14 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
             value: "dir"
         }
         "/commit/123" => {
-            path: "/commit/{sha}",
+            path: "/commit/<sha>",
             value: "hex",
             params: {
                 "sha" => "123"
             }
         }
         "/commit/123/compare/321" => {
-            path: "/commit/{sha0}/compare/{sha1}",
+            path: "/commit/<sha0>/compare/<sha1>",
             value: "compare",
             params: {
                 "sha0" => "123",
@@ -463,21 +463,21 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
         }
         "/commit" => None
         "/commit_" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => ""
             }
         }
         "/commit_/" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => "/"
             }
         }
         "/commit_/foo" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => "/foo"
@@ -485,21 +485,21 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
         }
         "/commit123" => None
         "/commit_123" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => "123"
             }
         }
         "/commit_123/" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => "123/"
             }
         }
         "/commit_123/foo" => {
-            path: "/commit_{sha:*}",
+            path: "/commit_<sha:*>",
             value: "* sha",
             params: {
                 "sha" => "123/foo"
@@ -516,7 +516,7 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c", "/a/b/c")?;
     router.insert("/a/c/d", "/a/c/d")?;
     router.insert("/a/c/a", "/a/c/a")?;
-    router.insert("/a/{c:*}", "/a/*c")?;
+    router.insert("/a/<c:*>", "/a/*c")?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -525,7 +525,7 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
          ├─ c/
          │   ├─ d [/a/c/d]
          │   ╰─ a [/a/c/a]
-         ╰─ {c:*} [/a/*c]
+         ╰─ <c:*> [/a/*c]
     "###);
 
     assert_router_matches!(router, {
@@ -543,7 +543,7 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
             value: "/a/c/a"
         }
         "/a/c/e" => {
-            path: "/a/{c:*}",
+            path: "/a/<c:*>",
             value: "/a/*c",
             params: {
                 "c" => "c/e"
@@ -558,15 +558,15 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
 fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
-    router.insert("/{wildcard:*}", 2)?;
-    router.insert("/users/{wildcard:*}", 3)?;
+    router.insert("/<wildcard:*>", 2)?;
+    router.insert("/users/<wildcard:*>", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [1]
        ├─ users/
-       │       ╰─ {wildcard:*} [3]
-       ╰─ {wildcard:*} [2]
+       │       ╰─ <wildcard:*> [3]
+       ╰─ <wildcard:*> [2]
     "###);
 
     assert_router_matches!(router, {
@@ -575,14 +575,14 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
             value: 1
         }
         "/download" => {
-            path: "/{wildcard:*}",
+            path: "/<wildcard:*>",
             value: 2,
             params: {
                 "wildcard" => "download"
             }
         }
         "/users/jordan" => {
-            path: "/users/{wildcard:*}",
+            path: "/users/<wildcard:*>",
             value: 3,
             params: {
                 "wildcard" => "jordan"
@@ -596,26 +596,26 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
 #[test]
 fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{wildcard:*}", 1)?;
+    router.insert("/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ╰─ {wildcard:*} [1]
+       ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
         // NOTE: Different behaviour: path-tree would match "/wildcard:*"
         "/" => None
         "/download" => {
-            path: "/{wildcard:*}",
+            path: "/<wildcard:*>",
             value: 1,
             params: {
                 "wildcard" => "download"
             }
         }
         "/users/jordan" => {
-            path: "/{wildcard:*}",
+            path: "/<wildcard:*>",
             value: 1,
             params: {
                 "wildcard" => "users/jordan"
@@ -628,7 +628,7 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
-       ╰─ {wildcard:*} [1]
+       ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
@@ -645,42 +645,42 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
 fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
-    router.insert("/{wildcard:*}", 1)?;
-    router.insert("/matchme/{slug}/", 2)?;
+    router.insert("/<wildcard:*>", 1)?;
+    router.insert("/matchme/<slug>/", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
        ├─ matchme/
-       │         ╰─ {slug}
+       │         ╰─ <slug>
        │                 ╰─ / [2]
-       ╰─ {wildcard:*} [1]
+       ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
         "/matchme/abc-s-def/" => {
-            path: "/matchme/{slug}/",
+            path: "/matchme/<slug>/",
             value: 2,
             params: {
                 "slug" => "abc-s-def"
             }
         }
         "/matchme/abc-ß-def/" => {
-            path: "/matchme/{slug}/",
+            path: "/matchme/<slug>/",
             value: 2,
             params: {
                 "slug" => "abc-ß-def"
             }
         }
         "/matchme/abc-⭐-def/" => {
-            path: "/matchme/{slug}/",
+            path: "/matchme/<slug>/",
             value: 2,
             params: {
                 "slug" => "abc-⭐-def"
             }
         }
         "/matchme/abc-def-ß/" => {
-            path: "/matchme/{slug}/",
+            path: "/matchme/<slug>/",
             value: 2,
             params: {
                 "slug" => "abc-def-ß"
@@ -694,21 +694,21 @@ fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<usize>::new();
-    router.insert("/git/{org}/{repo}", 1)?;
-    router.insert("/git/{wildcard:*}", 2)?;
+    router.insert("/git/<org>/<repo>", 1)?;
+    router.insert("/git/<wildcard:*>", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /git/
-           ├─ {org}
+           ├─ <org>
            │      ╰─ /
-           │         ╰─ {repo} [1]
-           ╰─ {wildcard:*} [2]
+           │         ╰─ <repo> [1]
+           ╰─ <wildcard:*> [2]
     "###);
 
     assert_router_matches!(router, {
         "/git/rust-lang/rust" => {
-            path: "/git/{org}/{repo}",
+            path: "/git/<org>/<repo>",
             value: 1,
             params: {
                 "org" => "rust-lang",
@@ -716,7 +716,7 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
             }
         }
         "/git/rust-lang" => {
-            path: "/git/{wildcard:*}",
+            path: "/git/<wildcard:*>",
             value: 2,
             params: {
                 "wildcard" => "rust-lang"
@@ -730,22 +730,22 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
 #[test]
 fn match_params() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{wildcard:*}", 1)?;
+    router.insert("/api/v1/<param>/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/v1/
-              ╰─ {param}
+              ╰─ <param>
                        ╰─ /
-                          ╰─ {wildcard:*} [1]
+                          ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
         "/api/v1/entity" => None
-        // NOTE: Different behaviour: path-tree would match "/api/v1/{param}/{wildcard:*}"
+        // NOTE: Different behaviour: path-tree would match "/api/v1/<param>/<wildcard:*>"
         "/api/v1/entity/" => None
         "/api/v1/entity/1" => {
-            path: "/api/v1/{param}/{wildcard:*}",
+            path: "/api/v1/<param>/<wildcard:*>",
             value: 1,
             params: {
                 "param" => "entity",
@@ -756,7 +756,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v2" => None
         "/api/v1/" => None
         "/api/v1/entity/1/foo/bar" => {
-            path: "/api/v1/{param}/{wildcard:*}",
+            path: "/api/v1/<param>/<wildcard:*>",
             value: 1,
             params: {
                 "param" => "entity",
@@ -766,13 +766,13 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{plus:*}", 1)?;
+    router.insert("/api/v1/<param>/<plus:*>", 1)?;
 
     assert_router_matches!(router, {
         "/api/v1/entity" => None
         "/api/v1/entity/" => None
         "/api/v1/entity/1" => {
-            path: "/api/v1/{param}/{plus:*}",
+            path: "/api/v1/<param>/<plus:*>",
             value: 1,
             params: {
                 "param" => "entity",
@@ -783,7 +783,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v2" => None
         "/api/v1/" => None
         "/api/v1/entity/1/foo/bar" => {
-            path: "/api/v1/{param}/{plus:*}",
+            path: "/api/v1/<param>/<plus:*>",
             value: 1,
             params: {
                 "param" => "entity",
@@ -794,7 +794,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/api/v1/{param?}", 1);
+    // router.insert("/api/v1/<param:?>", 1);
     //
     // assert_router_matches!(router, {
     //     "/api/v1/" => None
@@ -821,18 +821,18 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/v1/some/resource/{name}:customVerb", 1)?;
+    router.insert("/v1/some/resource/<name>:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /v1/some/resource/
-                        ╰─ {name}
+                        ╰─ <name>
                                 ╰─ :customVerb [1]
     "###);
 
     assert_router_matches!(router, {
         "/v1/some/resource/test:customVerb" => {
-            path: "/v1/some/resource/{name}:customVerb",
+            path: "/v1/some/resource/<name>:customVerb",
             value: 1,
             params: {
                 "name" => "test"
@@ -843,7 +843,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/v1/some/resource/name:customVerb?/{param}/{wildcard:*}", 1);
+    // router.insert("/v1/some/resource/name:customVerb?/<param>/<wildcard:*>", 1);
     //
     // assert_router_matches!(router, {
     //     "/v1/some/resource/name:customVerb??/test/optionalWildCard/character" => None
@@ -852,34 +852,34 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{wildcard:*}", 1)?;
+    router.insert("/api/v1/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/v1/
-              ╰─ {wildcard:*} [1]
+              ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
         "/api/v1" => None
-        // NOTE: Different behaviour: path-tree would match "/api/v1/{wildcard:*}"
+        // NOTE: Different behaviour: path-tree would match "/api/v1/<wildcard:*>"
         "/api/v1/" => None
         "/api/v1/entity" => {
-            path: "/api/v1/{wildcard:*}",
+            path: "/api/v1/<wildcard:*>",
             value: 1,
             params: {
                 "wildcard" => "entity"
             }
         }
         "/api/v1/entity/1/2" => {
-            path: "/api/v1/{wildcard:*}",
+            path: "/api/v1/<wildcard:*>",
             value: 1,
             params: {
                 "wildcard" => "entity/1/2"
             }
         }
         "/api/v1/Entity/1/2" => {
-            path: "/api/v1/{wildcard:*}",
+            path: "/api/v1/<wildcard:*>",
             value: 1,
             params: {
                 "wildcard" => "Entity/1/2"
@@ -888,19 +888,19 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}", 1)?;
+    router.insert("/api/v1/<param>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/v1/
-              ╰─ {param} [1]
+              ╰─ <param> [1]
     "###);
 
     assert_router_matches!(router, {
         "/api/v1" => None
         "/api/v1/" => None
         "/api/v1/entity" => {
-            path: "/api/v1/{param}",
+            path: "/api/v1/<param>",
             value: 1,
             params: {
                 "param" => "entity"
@@ -911,34 +911,34 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/{param2}", 3)?;
-    router.insert("/api/v1/{param}-{param2}", 1)?;
-    router.insert("/api/v1/{param}~{param2}", 2)?;
-    router.insert("/api/v1/{param}.{param2}", 4)?;
-    router.insert("/api/v1/{param}_{param2}", 5)?;
-    router.insert("/api/v1/{param}:{param2}", 6)?;
+    router.insert("/api/v1/<param>/<param2>", 3)?;
+    router.insert("/api/v1/<param>-<param2>", 1)?;
+    router.insert("/api/v1/<param>~<param2>", 2)?;
+    router.insert("/api/v1/<param>.<param2>", 4)?;
+    router.insert("/api/v1/<param>_<param2>", 5)?;
+    router.insert("/api/v1/<param>:<param2>", 6)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/v1/
-              ╰─ {param}
+              ╰─ <param>
                        ├─ /
-                       │  ╰─ {param2} [3]
+                       │  ╰─ <param2> [3]
                        ├─ -
-                       │  ╰─ {param2} [1]
+                       │  ╰─ <param2> [1]
                        ├─ ~
-                       │  ╰─ {param2} [2]
+                       │  ╰─ <param2> [2]
                        ├─ .
-                       │  ╰─ {param2} [4]
+                       │  ╰─ <param2> [4]
                        ├─ _
-                       │  ╰─ {param2} [5]
+                       │  ╰─ <param2> [5]
                        ╰─ :
-                          ╰─ {param2} [6]
+                          ╰─ <param2> [6]
     "###);
 
     assert_router_matches!(router, {
         "/api/v1/entity-entity2" => {
-            path: "/api/v1/{param}-{param2}",
+            path: "/api/v1/<param>-<param2>",
             value: 1,
             params: {
                 "param" => "entity",
@@ -946,7 +946,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/v1/entity~entity2" => {
-            path: "/api/v1/{param}~{param2}",
+            path: "/api/v1/<param>~<param2>",
             value: 2,
             params: {
                 "param" => "entity",
@@ -954,7 +954,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/v1/entity.entity2" => {
-            path: "/api/v1/{param}.{param2}",
+            path: "/api/v1/<param>.<param2>",
             value: 4,
             params: {
                 "param" => "entity",
@@ -962,7 +962,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/v1/entity_entity2" => {
-            path: "/api/v1/{param}_{param2}",
+            path: "/api/v1/<param>_<param2>",
             value: 5,
             params: {
                 "param" => "entity",
@@ -970,7 +970,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/v1/entity:entity2" => {
-            path: "/api/v1/{param}:{param2}",
+            path: "/api/v1/<param>:<param2>",
             value: 6,
             params: {
                 "param" => "entity",
@@ -978,7 +978,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/v1/entity/entity2" => {
-            path: "/api/v1/{param}/{param2}",
+            path: "/api/v1/<param>/<param2>",
             value: 3,
             params: {
                 "param" => "entity",
@@ -988,7 +988,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1" => None
         "/api/v1/" => None
         "/api/v1/test.pdf" => {
-            path: "/api/v1/{param}.{param2}",
+            path: "/api/v1/<param>.<param2>",
             value: 4,
             params: {
                 "param" => "test",
@@ -1018,18 +1018,18 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/{param}/fixedEnd", 1)?;
+    router.insert("/api/<param>/fixedEnd", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/
-           ╰─ {param}
+           ╰─ <param>
                     ╰─ /fixedEnd [1]
     "###);
 
     assert_router_matches!(router, {
         "/api/abc/fixedEnd" => {
-            path: "/api/{param}/fixedEnd",
+            path: "/api/<param>/fixedEnd",
             value: 1,
             params: {
                 "param" => "abc"
@@ -1039,21 +1039,21 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/shop/product/:{filter}/color:{color}/size:{size}", 1)?;
+    router.insert("/shop/product/:<filter>/color:<color>/size:<size>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /shop/product/:
-                     ╰─ {filter}
+                     ╰─ <filter>
                                ╰─ /color:
-                                        ╰─ {color}
+                                        ╰─ <color>
                                                  ╰─ /size:
-                                                         ╰─ {size} [1]
+                                                         ╰─ <size> [1]
     "###);
 
     assert_router_matches!(router, {
         "/shop/product/:test/color:blue/size:xs" => {
-            path: "/shop/product/:{filter}/color:{color}/size:{size}",
+            path: "/shop/product/:<filter>/color:<color>/size:<size>",
             value: 1,
             params: {
                 "filter" => "test",
@@ -1066,7 +1066,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/{param?}", 1);
+    // router.insert("/<param:?>", 1);
     //
     // assert_router_matches!(router, {
     //     "/:hello" => None
@@ -1075,13 +1075,13 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     let mut router = Router::new();
-    router.insert("/test{sign}{param}", 1)?;
+    router.insert("/test<sign><param>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /test
-           ╰─ {sign}
-                   ╰─ {param} [1]
+           ╰─ <sign>
+                   ╰─ <param> [1]
     "###);
 
     // FIXME: This is a bug in our matcher! We're 'too greedy' in our matching.
@@ -1089,7 +1089,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // Output below seems ambigous.
     assert_router_matches!(router, {
         // "/test-abc" => {
-        //     path: "/test{sign}{param}",
+        //     path: "/test<sign><param>",
         //     value: 1,
         //     params: {
         //         "sign" => "-",
@@ -1097,7 +1097,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         //     }
         // }
         // "/test-_" => {
-        //     path: "/test{sign}{param}",
+        //     path: "/test<sign><param>",
         //     value: 1,
         //     params: {
         //         "sign" => "-",
@@ -1110,7 +1110,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/{param1}{param2?}{param3}", 1);
+    // router.insert("/<param1><param2:?><param3>", 1);
     //
     // assert_router_matches!(router, {
     //     "/abbbc" => None
@@ -1120,7 +1120,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/test{optional?}{mandatory}", 1);
+    // router.insert("/test<optional:?><mandatory>", 1);
     //
     // assert_router_matches!(router, {
     //     "/testo" => None
@@ -1131,7 +1131,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/test{optional?}{optional2?}", 1);
+    // router.insert("/test<optional:?><optional2:?>", 1);
     //
     // assert_router_matches!(router, {
     //     "/testo" => None
@@ -1142,7 +1142,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/foo{param?}bar", 1);
+    // router.insert("/foo<param:?>bar", 1);
     //
     // assert_router_matches!(router, {
     //     "/foofalsebar" => None
@@ -1153,7 +1153,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'inline wildcard' logic.
     // let mut router = Router::new();
-    // router.insert("/foo{wildcard:*}bar", 1);
+    // router.insert("/foo<wildcard:*>bar", 1);
     //
     // assert_router_matches!(router, {
     //     "/foofalsebar" => None
@@ -1166,7 +1166,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'one or more' logic.
     // let mut router = Router::new();
-    // router.insert("/foo{plus:+}bar", 1);
+    // router.insert("/foo<plus:+>bar", 1);
     //
     // assert_router_matches!(router, {
     //     "/foofalsebar" => None
@@ -1179,7 +1179,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'inline wildcard' logic.
     // let mut router = Router::new();
-    // router.insert("/a{wildcard1:*}cde{wildcard2:*}g/", 1);
+    // router.insert("/a<wildcard1:*>cde<wildcard2:*>g/", 1);
     //
     // assert_router_matches!(router, {
     //     "/abbbcdefffg" => None
@@ -1194,7 +1194,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'inline wildcard' logic.
     // let mut router = Router::new();
-    // router.insert("/{wildcard1:*}v1{wildcard2:*}/proxy", 1);
+    // router.insert("/<wildcard1:*>v1<wildcard2:*>/proxy", 1);
     //
     // assert_router_matches!(router, {
     //     "/customer/v1/cart/proxy" => None
@@ -1203,77 +1203,77 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     let mut router = Router::new();
-    router.insert("/name{name}", 1)?;
-    router.insert("/@{name}", 2)?;
-    router.insert("/-{name}", 3)?;
-    router.insert("/.{name}", 4)?;
-    router.insert("/~{name}", 5)?;
-    router.insert("/_{name}", 6)?;
-    router.insert("/{name}", 7)?;
+    router.insert("/name<name>", 1)?;
+    router.insert("/@<name>", 2)?;
+    router.insert("/-<name>", 3)?;
+    router.insert("/.<name>", 4)?;
+    router.insert("/~<name>", 5)?;
+    router.insert("/_<name>", 6)?;
+    router.insert("/<name>", 7)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ name
-       │     ╰─ {name} [1]
+       │     ╰─ <name> [1]
        ├─ @
-       │  ╰─ {name} [2]
+       │  ╰─ <name> [2]
        ├─ -
-       │  ╰─ {name} [3]
+       │  ╰─ <name> [3]
        ├─ .
-       │  ╰─ {name} [4]
+       │  ╰─ <name> [4]
        ├─ ~
-       │  ╰─ {name} [5]
+       │  ╰─ <name> [5]
        ├─ _
-       │  ╰─ {name} [6]
-       ╰─ {name} [7]
+       │  ╰─ <name> [6]
+       ╰─ <name> [7]
     "###);
 
     assert_router_matches!(router, {
         "/name:john" => {
-            path: "/name{name}",
+            path: "/name<name>",
             value: 1,
             params: {
                 "name" => ":john"
             }
         }
         "/@john" => {
-            path: "/@{name}",
+            path: "/@<name>",
             value: 2,
             params: {
                 "name" => "john"
             }
         }
         "/-john" => {
-            path: "/-{name}",
+            path: "/-<name>",
             value: 3,
             params: {
                 "name" => "john"
             }
         }
         "/.john" => {
-            path: "/.{name}",
+            path: "/.<name>",
             value: 4,
             params: {
                 "name" => "john"
             }
         }
         "/~john" => {
-            path: "/~{name}",
+            path: "/~<name>",
             value: 5,
             params: {
                 "name" => "john"
             }
         }
         "/_john" => {
-            path: "/_{name}",
+            path: "/_<name>",
             value: 6,
             params: {
                 "name" => "john"
             }
         }
         "/john" => {
-            path: "/{name}",
+            path: "/<name>",
             value: 7,
             params: {
                 "name" => "john"
@@ -1282,26 +1282,26 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/v1/{param}/abc/{wildcard:*}", 1)?;
+    router.insert("/api/v1/<param>/abc/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /api/v1/
-              ╰─ {param}
+              ╰─ <param>
                        ╰─ /abc/
-                              ╰─ {wildcard:*} [1]
+                              ╰─ <wildcard:*> [1]
     "###);
 
     assert_router_matches!(router, {
         "/api/v1/well/abc/wildcard" => {
-            path: "/api/v1/{param}/abc/{wildcard:*}",
+            path: "/api/v1/<param>/abc/<wildcard:*>",
             value: 1,
             params: {
                 "param" => "well",
                 "wildcard" => "wildcard"
             }
         }
-        // NOTE: Different behaviour: path-tree would match "/api/v1/{param}/abc/{wildcard:*}
+        // NOTE: Different behaviour: path-tree would match "/api/v1/<param>/abc/<wildcard:*>
         "/api/v1/well/abc/" => None
         "/api/v1/well/abc" => None
         "/api/v1/well/ttt" => None
@@ -1309,7 +1309,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/api/{day}/{month?}/{year?}", 1);
+    // router.insert("/api/<day>/<month:?>/<year:?>", 1);
     //
     // assert_router_matches!(router, {
     //     "/api/1" => None
@@ -1324,8 +1324,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // NOTE: We don't support 'optional' logic.
     // let mut router = Router::new();
-    // router.insert("/api/{day}.{month?}.{year?}", 1);
-    // router.insert("/api/{day}-{month?}-{year?}", 2);
+    // router.insert("/api/<day>.<month:?>.<year:?>", 1);
+    // router.insert("/api/<day>-<month:?>-<year:?>", 2);
     //
     // assert_router_matches!(router, {
     //     "/api/1" => None
@@ -1343,8 +1343,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // NOTE: We don't support 'one or more' logic.
     // let mut router = Router::new();
     // router.insert("/config/abc.json", 1);
-    // router.insert("/config/{plus:+}.json", 2);
-    // router.insert("/config/{wildcard:*}.json", 3);
+    // router.insert("/config/<plus:+>.json", 2);
+    // router.insert("/config/<wildcard:*>.json", 3);
     //
     // assert_router_matches!(router, {
     //     "/config/abc.json" => None
@@ -1357,7 +1357,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     // FIXME: We don't support 'wildcard' logic.
     // let mut router = Router::new();
-    // router.insert("/api/{wildcard:*}/{param?}", 1);
+    // router.insert("/api/<wildcard:*>/<param:?>", 1);
     //
     // assert_router_matches!(router, {
     //     "/api/" => None
@@ -1369,11 +1369,11 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     let mut router = Router::new();
-    router.insert("/api/{wildcard:*}/{param}", 1)?;
+    router.insert("/api/<wildcard:*>/<param>", 1)?;
 
     assert_router_matches!(router, {
         "/api/test/abc" => {
-            path: "/api/{wildcard:*}/{param}",
+            path: "/api/<wildcard:*>/<param>",
             value: 1,
             params: {
                 "wildcard" => "test",
@@ -1381,7 +1381,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/joker/batman/robin/1" => {
-            path: "/api/{wildcard:*}/{param}",
+            path: "/api/<wildcard:*>/<param>",
             value: 1,
             params: {
                 "wildcard" => "joker/batman/robin",
@@ -1390,7 +1390,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
         // FIXME: This feels wrong. Maybe we should add a check for empty parts?
         "/api//joker" => {
-            path: "/api/{wildcard:*}/{param}",
+            path: "/api/<wildcard:*>/<param>",
             value: 1,
             params: {
                 "wildcard" => "",
@@ -1402,11 +1402,11 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/api/{wildcard:*}/{param}/{param2}", 1)?;
+    router.insert("/api/<wildcard:*>/<param>/<param2>", 1)?;
 
     assert_router_matches!(router, {
         "/api/test/abc/1" => {
-            path: "/api/{wildcard:*}/{param}/{param2}",
+            path: "/api/<wildcard:*>/<param>/<param2>",
             value: 1,
             params: {
                 "wildcard" => "test",
@@ -1416,7 +1416,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
         "/api/joker/batman" => None
         "/api/joker/batman-robin/1" => {
-            path: "/api/{wildcard:*}/{param}/{param2}",
+            path: "/api/<wildcard:*>/<param>/<param2>",
             value: 1,
             params: {
                 "wildcard" => "joker",
@@ -1427,7 +1427,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/joker-batman-robin-1" => None
         "/api/test/abc" => None
         "/api/joker/batman/robin" => {
-            path: "/api/{wildcard:*}/{param}/{param2}",
+            path: "/api/<wildcard:*>/<param>/<param2>",
             value: 1,
             params: {
                 "wildcard" => "joker",
@@ -1436,7 +1436,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/joker/batman/robin/1" => {
-            path: "/api/{wildcard:*}/{param}/{param2}",
+            path: "/api/<wildcard:*>/<param>/<param2>",
             value: 1,
             params: {
                 "wildcard" => "joker/batman",
@@ -1445,7 +1445,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/joker/batman/robin/1/2" => {
-            path: "/api/{wildcard:*}/{param}/{param2}",
+            path: "/api/<wildcard:*>/<param>/<param2>",
             value: 1,
             params: {
                 "wildcard" => "joker/batman/robin",
@@ -1467,16 +1467,16 @@ fn basic() -> Result<(), Box<dyn Error>> {
     router.insert("/login", 1)?;
     router.insert("/signup", 2)?;
     router.insert("/settings", 3)?;
-    router.insert("/settings/{page}", 4)?;
-    router.insert("/{user}", 5)?;
-    router.insert("/{user}/{repo}", 6)?;
-    router.insert("/public/{any:*}", 7)?;
-    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 8)?;
-    router.insert("/{org}/{repo}/tags/{day}-{month}-{year}", 9)?;
-    router.insert("/{org}/{repo}/actions/{name}:{verb}", 10)?;
-    router.insert("/{org}/{repo}/{page}", 11)?;
-    router.insert("/{org}/{repo}/{path:*}", 12)?;
-    router.insert("/api/{plus:*}", 13)?;
+    router.insert("/settings/<page>", 4)?;
+    router.insert("/<user>", 5)?;
+    router.insert("/<user>/<repo>", 6)?;
+    router.insert("/public/<any:*>", 7)?;
+    router.insert("/<org>/<repo>/releases/download/<tag>/<filename>.<ext>", 8)?;
+    router.insert("/<org>/<repo>/tags/<day>-<month>-<year>", 9)?;
+    router.insert("/<org>/<repo>/actions/<name>:<verb>", 10)?;
+    router.insert("/<org>/<repo>/<page>", 11)?;
+    router.insert("/<org>/<repo>/<path:*>", 12)?;
+    router.insert("/api/<plus:*>", 13)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1486,36 +1486,36 @@ fn basic() -> Result<(), Box<dyn Error>> {
        │  ├─ ignup [2]
        │  ╰─ ettings [3]
        │           ╰─ /
-       │              ╰─ {page} [4]
+       │              ╰─ <page> [4]
        ├─ public/
-       │        ╰─ {any:*} [7]
+       │        ╰─ <any:*> [7]
        ├─ api/
-       │     ╰─ {plus:*} [13]
-       ├─ {user} [5]
+       │     ╰─ <plus:*> [13]
+       ├─ <user> [5]
        │       ╰─ /
-       │          ╰─ {repo} [6]
-       ╰─ {org}
+       │          ╰─ <repo> [6]
+       ╰─ <org>
               ╰─ /
-                 ╰─ {repo}
+                 ╰─ <repo>
                          ╰─ /
                             ├─ releases/download/
-                            │                   ╰─ {tag}
+                            │                   ╰─ <tag>
                             │                          ╰─ /
-                            │                             ╰─ {filename}
+                            │                             ╰─ <filename>
                             │                                         ╰─ .
-                            │                                            ╰─ {ext} [8]
+                            │                                            ╰─ <ext> [8]
                             ├─ tags/
-                            │      ╰─ {day}
+                            │      ╰─ <day>
                             │             ╰─ -
-                            │                ╰─ {month}
+                            │                ╰─ <month>
                             │                         ╰─ -
-                            │                            ╰─ {year} [9]
+                            │                            ╰─ <year> [9]
                             ├─ actions/
-                            │         ╰─ {name}
+                            │         ╰─ <name>
                             │                 ╰─ :
-                            │                    ╰─ {verb} [10]
-                            ├─ {page} [11]
-                            ╰─ {path:*} [12]
+                            │                    ╰─ <verb> [10]
+                            ├─ <page> [11]
+                            ╰─ <path:*> [12]
     "###);
 
     assert_router_matches!(router, {
@@ -1528,21 +1528,21 @@ fn basic() -> Result<(), Box<dyn Error>> {
             value: 1
         }
         "/settings/admin" => {
-            path: "/settings/{page}",
+            path: "/settings/<page>",
             value: 4,
             params: {
                 "page" => "admin"
             }
         }
         "/viz-rs" => {
-            path: "/{user}",
+            path: "/<user>",
             value: 5,
             params: {
                 "user" => "viz-rs"
             }
         }
         "/viz-rs/path-tree" => {
-            path: "/{user}/{repo}",
+            path: "/<user>/<repo>",
             value: 6,
             params: {
                 "user" => "viz-rs",
@@ -1550,7 +1550,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/releases/download/2022-09-12/rust-analyzer-aarch64-apple-darwin.gz" => {
-            path: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
+            path: "/<org>/<repo>/releases/download/<tag>/<filename>.<ext>",
             value: 8,
             params: {
                 "org" => "rust-lang",
@@ -1561,7 +1561,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/tags/2022-09-12" => {
-            path: "/{org}/{repo}/tags/{day}-{month}-{year}",
+            path: "/<org>/<repo>/tags/<day>-<month>-<year>",
             value: 9,
             params: {
                 "org" => "rust-lang",
@@ -1572,7 +1572,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/actions/ci:bench" => {
-            path: "/{org}/{repo}/actions/{name}:{verb}",
+            path: "/<org>/<repo>/actions/<name>:<verb>",
             value: 10,
             params: {
                 "org" => "rust-lang",
@@ -1582,7 +1582,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/stargazers" => {
-            path: "/{org}/{repo}/{page}",
+            path: "/<org>/<repo>/<page>",
             value: 11,
             params: {
                 "org" => "rust-lang",
@@ -1591,7 +1591,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/stargazers/404" => {
-            path: "/{org}/{repo}/{path:*}",
+            path: "/<org>/<repo>/<path:*>",
             value: 12,
             params: {
                 "org" => "rust-lang",
@@ -1600,14 +1600,14 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/public/js/main.js" => {
-            path: "/public/{any:*}",
+            path: "/public/<any:*>",
             value: 7,
             params: {
                 "any" => "js/main.js"
             }
         }
         "/api/v1" => {
-            path: "/api/{plus:*}",
+            path: "/api/<plus:*>",
             value: 13,
             params: {
                 "plus" => "v1"
@@ -1655,12 +1655,12 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
 
     router.insert("/sponsors/explore", 100)?;
     router.insert("/sponsors/accounts", 101)?;
-    router.insert("/sponsors/{repo}", 102)?;
-    router.insert("/sponsors/{repo}/{user}", 103)?;
-    router.insert("/sponsors/{repo}/{plus:*}", 104)?;
-    router.insert("/sponsors/{repo}/issues/{path:*}", 106)?;
-    router.insert("/sponsors/{repo}/{plus:*}/{file}", 107)?;
-    router.insert("/sponsors/{repo}/{plus:*}/{filename}.{ext}", 108)?;
+    router.insert("/sponsors/<repo>", 102)?;
+    router.insert("/sponsors/<repo>/<user>", 103)?;
+    router.insert("/sponsors/<repo>/<plus:*>", 104)?;
+    router.insert("/sponsors/<repo>/issues/<path:*>", 106)?;
+    router.insert("/sponsors/<repo>/<plus:*>/<file>", 107)?;
+    router.insert("/sponsors/<repo>/<plus:*>/<filename>.<ext>", 108)?;
 
     router.insert("/about/careers", 200)?;
     router.insert("/about/press", 201)?;
@@ -1705,51 +1705,51 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
     router.insert("/500", 22)?;
     router.insert("/503", 23)?;
 
-    router.insert("/{org}", 24)?;
-    router.insert("/{org}/{repo}", 2400)?;
-    router.insert("/{org}/{repo}/issues", 2410)?;
-    router.insert("/{org}/{repo}/issues/{id}", 2411)?;
-    router.insert("/{org}/{repo}/issues/new", 2412)?;
-    router.insert("/{org}/{repo}/pulls", 2420)?;
-    router.insert("/{org}/{repo}/pull/{id}", 2421)?;
-    router.insert("/{org}/{repo}/compare", 2422)?;
-    router.insert("/{org}/{repo}/discussions", 2430)?;
-    router.insert("/{org}/{repo}/discussions/{id}", 2431)?;
-    router.insert("/{org}/{repo}/actions", 2440)?;
-    router.insert("/{org}/{repo}/actions/workflows/{id}", 2441)?;
-    router.insert("/{org}/{repo}/actions/runs/{id}", 2442)?;
-    router.insert("/{org}/{repo}/wiki", 2450)?;
-    router.insert("/{org}/{repo}/wiki/{id}", 2451)?;
-    router.insert("/{org}/{repo}/security", 2460)?;
-    router.insert("/{org}/{repo}/security/policy", 2461)?;
-    router.insert("/{org}/{repo}/security/advisories", 2462)?;
-    router.insert("/{org}/{repo}/pulse", 2470)?;
-    router.insert("/{org}/{repo}/graphs/contributors", 2480)?;
-    router.insert("/{org}/{repo}/graphs/commit-activity", 2481)?;
-    router.insert("/{org}/{repo}/graphs/code-frequency", 2482)?;
-    router.insert("/{org}/{repo}/community", 2490)?;
-    router.insert("/{org}/{repo}/network", 2491)?;
-    router.insert("/{org}/{repo}/network/dependencies", 2492)?;
-    router.insert("/{org}/{repo}/network/dependents", 2493)?;
-    router.insert("/{org}/{repo}/network/members", 2494)?;
-    router.insert("/{org}/{repo}/stargazers", 2495)?;
-    router.insert("/{org}/{repo}/stargazers/yoou_know", 2496)?;
-    router.insert("/{org}/{repo}/watchers", 2497)?;
-    router.insert("/{org}/{repo}/releases", 2498)?;
-    router.insert("/{org}/{repo}/releases/tag/{id}", 2499)?;
-    router.insert("/{org}/{repo}/tags", 2500)?;
-    router.insert("/{org}/{repo}/tags/{id}", 2501)?;
-    router.insert("/{org}/{repo}/tree/{id}", 2502)?;
-    router.insert("/{org}/{repo}/commit/{id}", 2503)?;
+    router.insert("/<org>", 24)?;
+    router.insert("/<org>/<repo>", 2400)?;
+    router.insert("/<org>/<repo>/issues", 2410)?;
+    router.insert("/<org>/<repo>/issues/<id>", 2411)?;
+    router.insert("/<org>/<repo>/issues/new", 2412)?;
+    router.insert("/<org>/<repo>/pulls", 2420)?;
+    router.insert("/<org>/<repo>/pull/<id>", 2421)?;
+    router.insert("/<org>/<repo>/compare", 2422)?;
+    router.insert("/<org>/<repo>/discussions", 2430)?;
+    router.insert("/<org>/<repo>/discussions/<id>", 2431)?;
+    router.insert("/<org>/<repo>/actions", 2440)?;
+    router.insert("/<org>/<repo>/actions/workflows/<id>", 2441)?;
+    router.insert("/<org>/<repo>/actions/runs/<id>", 2442)?;
+    router.insert("/<org>/<repo>/wiki", 2450)?;
+    router.insert("/<org>/<repo>/wiki/<id>", 2451)?;
+    router.insert("/<org>/<repo>/security", 2460)?;
+    router.insert("/<org>/<repo>/security/policy", 2461)?;
+    router.insert("/<org>/<repo>/security/advisories", 2462)?;
+    router.insert("/<org>/<repo>/pulse", 2470)?;
+    router.insert("/<org>/<repo>/graphs/contributors", 2480)?;
+    router.insert("/<org>/<repo>/graphs/commit-activity", 2481)?;
+    router.insert("/<org>/<repo>/graphs/code-frequency", 2482)?;
+    router.insert("/<org>/<repo>/community", 2490)?;
+    router.insert("/<org>/<repo>/network", 2491)?;
+    router.insert("/<org>/<repo>/network/dependencies", 2492)?;
+    router.insert("/<org>/<repo>/network/dependents", 2493)?;
+    router.insert("/<org>/<repo>/network/members", 2494)?;
+    router.insert("/<org>/<repo>/stargazers", 2495)?;
+    router.insert("/<org>/<repo>/stargazers/yoou_know", 2496)?;
+    router.insert("/<org>/<repo>/watchers", 2497)?;
+    router.insert("/<org>/<repo>/releases", 2498)?;
+    router.insert("/<org>/<repo>/releases/tag/<id>", 2499)?;
+    router.insert("/<org>/<repo>/tags", 2500)?;
+    router.insert("/<org>/<repo>/tags/<id>", 2501)?;
+    router.insert("/<org>/<repo>/tree/<id>", 2502)?;
+    router.insert("/<org>/<repo>/commit/<id>", 2503)?;
 
     router.insert("/new", 2504)?;
     router.insert("/new/import", 2505)?;
     router.insert("/organizations/new", 2506)?;
     router.insert("/organizations/plan", 2507)?;
 
-    router.insert("/{org}/{repo}/{path:*}", 3000)?;
-    router.insert("/{org}/{repo}/releases/{path:*}", 3001)?;
-    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 3002)?;
+    router.insert("/<org>/<repo>/<path:*>", 3000)?;
+    router.insert("/<org>/<repo>/releases/<path:*>", 3001)?;
+    router.insert("/<org>/<repo>/releases/download/<tag>/<filename>.<ext>", 3002)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -1768,18 +1768,18 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
        │  │        ╰─ /
        │  │           ├─ explore [100]
        │  │           ├─ accounts [101]
-       │  │           ╰─ {repo} [102]
+       │  │           ╰─ <repo> [102]
        │  │                   ╰─ /
        │  │                      ├─ issues/
-       │  │                      │        ╰─ {path:*} [106]
-       │  │                      ├─ {user} [103]
-       │  │                      ├─ {plus:*}
+       │  │                      │        ╰─ <path:*> [106]
+       │  │                      ├─ <user> [103]
+       │  │                      ├─ <plus:*>
        │  │                      │         ╰─ /
-       │  │                      │            ├─ {file} [107]
-       │  │                      │            ╰─ {filename}
+       │  │                      │            ├─ <file> [107]
+       │  │                      │            ╰─ <filename>
        │  │                      │                        ╰─ .
-       │  │                      │                           ╰─ {ext} [108]
-       │  │                      ╰─ {plus:*} [104]
+       │  │                      │                           ╰─ <ext> [108]
+       │  │                      ╰─ <plus:*> [104]
        │  ╰─ e
        │     ├─ arch [15]
        │     ╰─ ttings [20]
@@ -1857,39 +1857,39 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
        ├─ organizations/
        │               ├─ new [2506]
        │               ╰─ plan [2507]
-       ╰─ {org} [24]
+       ╰─ <org> [24]
               ╰─ /
-                 ╰─ {repo} [2400]
+                 ╰─ <repo> [2400]
                          ╰─ /
                             ├─ issues [2410]
                             │       ╰─ /
                             │          ├─ new [2412]
-                            │          ╰─ {id} [2411]
+                            │          ╰─ <id> [2411]
                             ├─ pul
                             │    ├─ l
                             │    │  ├─ s [2420]
                             │    │  ╰─ /
-                            │    │     ╰─ {id} [2421]
+                            │    │     ╰─ <id> [2421]
                             │    ╰─ se [2470]
                             ├─ com
                             │    ├─ pare [2422]
                             │    ╰─ m
                             │       ├─ unity [2490]
                             │       ╰─ it/
-                            │            ╰─ {id} [2503]
+                            │            ╰─ <id> [2503]
                             ├─ discussions [2430]
                             │            ╰─ /
-                            │               ╰─ {id} [2431]
+                            │               ╰─ <id> [2431]
                             ├─ actions [2440]
                             │        ╰─ /
                             │           ├─ workflows/
-                            │           │           ╰─ {id} [2441]
+                            │           │           ╰─ <id> [2441]
                             │           ╰─ runs/
-                            │                  ╰─ {id} [2442]
+                            │                  ╰─ <id> [2442]
                             ├─ w
                             │  ├─ iki [2450]
                             │  │    ╰─ /
-                            │  │       ╰─ {id} [2451]
+                            │  │       ╰─ <id> [2451]
                             │  ╰─ atchers [2497]
                             ├─ s
                             │  ├─ ecurity [2460]
@@ -1911,26 +1911,26 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
                             ├─ releases [2498]
                             │         ╰─ /
                             │            ├─ tag/
-                            │            │     ╰─ {id} [2499]
+                            │            │     ╰─ <id> [2499]
                             │            ├─ download/
-                            │            │          ╰─ {tag}
+                            │            │          ╰─ <tag>
                             │            │                 ╰─ /
-                            │            │                    ╰─ {filename}
+                            │            │                    ╰─ <filename>
                             │            │                                ╰─ .
-                            │            │                                   ╰─ {ext} [3002]
-                            │            ╰─ {path:*} [3001]
+                            │            │                                   ╰─ <ext> [3002]
+                            │            ╰─ <path:*> [3001]
                             ├─ t
                             │  ├─ ags [2500]
                             │  │    ╰─ /
-                            │  │       ╰─ {id} [2501]
+                            │  │       ╰─ <id> [2501]
                             │  ╰─ ree/
-                            │        ╰─ {id} [2502]
-                            ╰─ {path:*} [3000]
+                            │        ╰─ <id> [2502]
+                            ╰─ <path:*> [3000]
     "###);
 
     assert_router_matches!(router, {
         "/rust-lang/rust" => {
-            path: "/{org}/{repo}",
+            path: "/<org>/<repo>",
             value: 2400,
             params: {
                 "org" => "rust-lang",
@@ -1942,7 +1942,7 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
             value: 20
         }
         "/rust-lang/rust/actions/runs/1" => {
-            path: "/{org}/{repo}/actions/runs/{id}",
+            path: "/<org>/<repo>/actions/runs/<id>",
             value: 2442,
             params: {
                 "org" => "rust-lang",
@@ -1950,10 +1950,10 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
                 "id" => "1"
             }
         }
-        // NOTE: Different behaviour: path-tree would match "/{org}/{repo}/{path:*}"
+        // NOTE: Different behaviour: path-tree would match "/<org>/<repo>/<path:*>"
         "/rust-lang/rust/" => None
         "/rust-lang/rust/any" => {
-            path: "/{org}/{repo}/{path:*}",
+            path: "/<org>/<repo>/<path:*>",
             value: 3000,
             params: {
                 "org" => "rust-lang",
@@ -1961,9 +1961,9 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
                 "path" => "any"
             }
         }
-        // NOTE: Different behaviour: path-tree would match "/{org}/{repo}/{path:*}"
+        // NOTE: Different behaviour: path-tree would match "/<org>/<repo>/<path:*>"
         "/rust-lang/rust/releases/" => {
-            path: "/{org}/{repo}/{path:*}",
+            path: "/<org>/<repo>/<path:*>",
             value: 3000,
             params: {
                 "org" => "rust-lang",
@@ -1972,7 +1972,7 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/releases/download/2022-09-12/rust-analyzer-aarch64-apple-darwin.gz" => {
-            path: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
+            path: "/<org>/<repo>/releases/download/<tag>/<filename>.<ext>",
             value: 3002,
             params: {
                 "org" => "rust-lang",
@@ -1999,17 +1999,17 @@ fn cloneable() {
 #[test]
 fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name}", 1)?;
+    router.insert("/<name>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ╰─ {name} [1]
+       ╰─ <name> [1]
     "###);
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
-            path: "/{name}",
+            path: "/<name>",
             value: 1,
             params: {
                 "name" => "abc.xyz.123"
@@ -2024,21 +2024,21 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
 #[ignore = "we don't support 'one or more' or 'inline wildcard' logic"]
 fn test_dots_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name:+}.123", 2)?;
-    router.insert("/{name:*}.123.456", 1)?;
+    router.insert("/<name:+>.123", 2)?;
+    router.insert("/<name:*>.123.456", 1)?;
 
     insta::assert_snapshot!(router, @"");
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
-            path: "/{name:+}.123",
+            path: "/<name:+>.123",
             value: 2,
             params: {
                 "name" => "abc.xyz"
             }
         }
         "/abc.xyz.123.456" => {
-            path: "/{name:*}.123.456",
+            path: "/<name:*>.123.456",
             value: 1,
             params: {
                 "name" => "abc.xyz"
@@ -2052,48 +2052,48 @@ fn test_dots_ext() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name}.js", 2)?;
-    router.insert("/{name}.js.gz", 1)?;
+    router.insert("/<name>.js", 2)?;
+    router.insert("/<name>.js.gz", 1)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ╰─ {name}
+       ╰─ <name>
                ╰─ .js [2]
                     ╰─ .gz [1]
     "###);
 
     assert_router_matches!(router, {
         "/node.js" => {
-            path: "/{name}.js",
+            path: "/<name>.js",
             value: 2,
             params: {
                 "name" => "node"
             }
         }
         "/path.lib.js" => {
-            path: "/{name}.js",
+            path: "/<name>.js",
             value: 2,
             params: {
                 "name" => "path.lib"
             }
         }
         "/node.js.js" => {
-            path: "/{name}.js",
+            path: "/<name>.js",
             value: 2,
             params: {
                 "name" => "node.js"
             }
         }
         "/node.js.gz" => {
-            path: "/{name}.js.gz",
+            path: "/<name>.js.gz",
             value: 1,
             params: {
                 "name" => "node"
             }
         }
         "/node.js.gz.js.gz" => {
-            path: "/{name}.js.gz",
+            path: "/<name>.js.gz",
             value: 1,
             params: {
                 "name" => "node.js.gz"
