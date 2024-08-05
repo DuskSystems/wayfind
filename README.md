@@ -22,25 +22,13 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ## Parameters types
 
-### Implemented
-
 - Static: `/index.html`
+- Regex Segment: `/ids/{id:[0-9]+}`
+- Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
 - Dynamic Segment: `/users/{id}`
 - Dynamic Inline: `/calender/{year}-{month}-{day}`
 - Wildcard Segment(s): `/v1/{namespace:*}/tags/list`
 - Wildcard End: `/{catch_all:*}`
-
-### Planned
-
-- Regex Segment: `/ids/{id:[0-9]+}`
-- Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
-
-## Potential additional features
-
-- Case insensitive matches
-- URL encoding/decoding
-- OpenAPI compatibility
-- Routing via query parameters, host, methods, ...
 
 ## Benchmarks
 
@@ -52,45 +40,45 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a 
 
 ```
 matchit benchmarks/wayfind
-  time: [222.05 ns 222.63 ns 223.24 ns]
+  time: [224.82 ns 225.24 ns 225.73 ns]
 
 matchit benchmarks/actix-router
-  time: [20.607 µs 20.670 µs 20.739 µs]
+  time: [20.848 µs 20.926 µs 21.011 µs]
 
 matchit benchmarks/gonzales
-  time: [129.15 ns 129.43 ns 129.74 ns]
+  time: [129.74 ns 130.53 ns 131.51 ns]
 
 matchit benchmarks/matchit
-  time: [180.97 ns 181.29 ns 181.66 ns]
+  time: [180.96 ns 181.28 ns 181.63 ns]
 
 matchit benchmarks/ntex-router
-  time: [1.5582 µs 1.5616 µs 1.5658 µs]
+  time: [1.5466 µs 1.5509 µs 1.5556 µs]
 
 matchit benchmarks/path-table
-  time: [531.32 ns 532.15 ns 533.11 ns]
+  time: [545.95 ns 547.23 ns 548.67 ns]
 
 matchit benchmarks/path-tree
-  time: [314.40 ns 315.52 ns 316.88 ns]
+  time: [326.97 ns 327.64 ns 328.39 ns]
 
 matchit benchmarks/regex
-  time: [1.1640 µs 1.1684 µs 1.1733 µs]
+  time: [1.1433 µs 1.1454 µs 1.1477 µs]
 
 matchit benchmarks/route-recognizer
-  time: [4.3070 µs 4.3203 µs 4.3331 µs]
+  time: [4.2956 µs 4.3079 µs 4.3215 µs]
 
 matchit benchmarks/routefinder
-  time: [6.5039 µs 6.5201 µs 6.5386 µs]
+  time: [6.6991 µs 6.7098 µs 6.7216 µs]
 
 matchit allocations
 ├─ wayfind           alloc:
 │                      657
-│                      88.37 KB
+│                      125.1 KB
 │                    dealloc:
 │                      657
-│                      108.3 KB
+│                      153.7 KB
 │                    grow:
 │                      80
-│                      19.93 KB
+│                      28.64 KB
 │
 ├─ actix-router      alloc:
 │                      31187
@@ -193,45 +181,45 @@ matchit allocations
 
 ```
 path-tree benchmarks/wayfind
-  time: [4.1107 µs 4.1179 µs 4.1259 µs]
+  time: [4.2992 µs 4.3121 µs 4.3265 µs]
 
 path-tree benchmarks/actix-router
-  time: [172.34 µs 172.79 µs 173.28 µs]
+  time: [173.95 µs 174.45 µs 175.01 µs]
 
 path-tree benchmarks/gonzales
-  time: [5.7960 µs 5.8354 µs 5.8747 µs]
+  time: [5.7993 µs 5.8255 µs 5.8549 µs]
 
 path-tree benchmarks/matchit
-  time: [4.7748 µs 4.7830 µs 4.7923 µs]
+  time: [4.8306 µs 4.8723 µs 4.9377 µs]
 
 path-tree benchmarks/ntex-router
-  time: [26.684 µs 26.731 µs 26.787 µs]
+  time: [26.698 µs 26.744 µs 26.801 µs]
 
 path-tree benchmarks/path-table
-  time: [10.210 µs 10.231 µs 10.257 µs]
+  time: [10.303 µs 10.892 µs 11.641 µs]
 
 path-tree benchmarks/path-tree
-  time: [5.2184 µs 5.2325 µs 5.2493 µs]
+  time: [5.5977 µs 5.6225 µs 5.6498 µs]
 
 path-tree benchmarks/regex
-  time: [41.295 µs 41.461 µs 41.653 µs]
+  time: [41.449 µs 42.091 µs 43.003 µs]
 
 path-tree benchmarks/route-recognizer
-  time: [85.154 µs 85.424 µs 85.700 µs]
+  time: [84.758 µs 84.879 µs 85.021 µs]
 
 path-tree benchmarks/routefinder
-  time: [96.915 µs 97.096 µs 97.309 µs]
+  time: [95.339 µs 95.577 µs 95.841 µs]
 
 path-tree allocations
 ├─ wayfind           alloc:
 │                      1677
-│                      238.4 KB
+│                      334.9 KB
 │                    dealloc:
 │                      1677
-│                      282.6 KB
+│                      398.2 KB
 │                    grow:
 │                      195
-│                      44.2 KB
+│                      63.21 KB
 │
 ├─ actix-router      alloc:
 │                      78390
