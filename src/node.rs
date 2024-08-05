@@ -2,16 +2,34 @@ use crate::{
     matches::Parameter,
     parts::{Part, Parts},
 };
+use regex::bytes::Regex;
 use std::{fmt::Display, sync::Arc};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum NodeKind {
     Root,
     Static,
+    Regex(Regex),
     Dynamic,
     Wildcard,
     EndWildcard,
 }
+
+impl PartialEq for NodeKind {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Root, Self::Root)
+            | (Self::Static, Self::Static)
+            | (Self::Dynamic, Self::Dynamic)
+            | (Self::Wildcard, Self::Wildcard)
+            | (Self::EndWildcard, Self::EndWildcard) => true,
+            (Self::Regex(r1), Self::Regex(r2)) => r1.as_str() == r2.as_str(),
+            _ => false,
+        }
+    }
+}
+
+impl Eq for NodeKind {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {
@@ -27,6 +45,7 @@ pub struct Node<T> {
     pub data: Option<NodeData<T>>,
 
     pub static_children: Vec<Node<T>>,
+    pub regex_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,
     pub wildcard_children: Vec<Node<T>>,
     pub end_wildcard: Option<Box<Node<T>>>,
@@ -41,10 +60,10 @@ impl<T> Node<T> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, prefix),
+                Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern),
                 Part::Dynamic { name } => self.insert_dynamic(parts, data, name),
                 Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name),
                 Part::Wildcard { name } => self.insert_wildcard(parts, data, name),
-                Part::Regex { .. } => unimplemented!(),
             }
         } else {
             assert!(self.data.is_none(), "Duplicate path");
@@ -68,6 +87,7 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
+                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -105,6 +125,7 @@ impl<T> Node<T> {
             data: child.data.take(),
 
             static_children: std::mem::take(&mut child.static_children),
+            regex_children: std::mem::take(&mut child.regex_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
             wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard: std::mem::take(&mut child.end_wildcard),
@@ -119,6 +140,7 @@ impl<T> Node<T> {
             data: None,
 
             static_children: vec![],
+            regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
@@ -134,6 +156,36 @@ impl<T> Node<T> {
         } else {
             child.static_children = vec![new_child_a, new_child_b];
             child.static_children[1].insert(parts, data);
+        }
+    }
+
+    fn insert_regex(&mut self, parts: Parts, data: NodeData<T>, name: &[u8], pattern: Regex) {
+        if let Some(child) = self
+            .regex_children
+            .iter_mut()
+            .find(|child| child.prefix == name)
+        {
+            child.insert(parts, data);
+        } else {
+            self.regex_children.push({
+                let mut new_child = Self {
+                    kind: NodeKind::Regex(pattern),
+
+                    prefix: name.to_vec(),
+                    data: None,
+
+                    static_children: vec![],
+                    regex_children: vec![],
+                    dynamic_children: vec![],
+                    wildcard_children: vec![],
+                    end_wildcard: None,
+
+                    quick_dynamic: false,
+                };
+
+                new_child.insert(parts, data);
+                new_child
+            });
         }
     }
 
@@ -153,6 +205,7 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
+                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -182,6 +235,7 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
+                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -204,6 +258,7 @@ impl<T> Node<T> {
             data: Some(data),
 
             static_children: vec![],
+            regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
@@ -262,6 +317,10 @@ impl<T> Node<T> {
             return Some(matches);
         }
 
+        if let Some(matches) = self.matches_regex(path, parameters) {
+            return Some(matches);
+        }
+
         if let Some(matches) = self.matches_dynamic(path, parameters) {
             return Some(matches);
         }
@@ -291,6 +350,32 @@ impl<T> Node<T> {
                 if let Some(node_data) = static_child.matches(remaining_path, parameters) {
                     return Some(node_data);
                 }
+            }
+        }
+
+        None
+    }
+
+    fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
+        for regex_child in &self.regex_children {
+            let NodeKind::Regex(regex) = &regex_child.kind else {
+                continue;
+            };
+
+            let Some(captures) = regex.captures(path) else { continue };
+            if let Some(matched) = captures.get(0) {
+                let matched_len = matched.end();
+
+                parameters.push(Parameter {
+                    key: &regex_child.prefix,
+                    value: &path[..matched_len],
+                });
+
+                if let Some(node_data) = regex_child.matches(&path[matched_len..], parameters) {
+                    return Some(node_data);
+                }
+
+                parameters.pop();
             }
         }
 
@@ -448,6 +533,7 @@ impl<T> Node<T> {
 // FIXME: Messy, but it works.
 // FIXME: Doesn't handle split multi-byte characters.
 impl<T: Display> Display for Node<T> {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T: Display>(
             f: &mut std::fmt::Formatter,
@@ -456,16 +542,20 @@ impl<T: Display> Display for Node<T> {
             is_root: bool,
             is_last: bool,
         ) -> std::fmt::Result {
-            let key = match node.kind {
+            let key = match &node.kind {
                 NodeKind::Root => "$",
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
+                NodeKind::Regex(regex) => {
+                    let name = String::from_utf8_lossy(&node.prefix);
+                    &format!("{{{name}:{}}}", regex.as_str())
+                }
                 NodeKind::Dynamic => {
-                    let prefix = String::from_utf8_lossy(&node.prefix);
-                    &format!("{{{prefix}}}")
+                    let name = String::from_utf8_lossy(&node.prefix);
+                    &format!("{{{name}}}")
                 }
                 NodeKind::Wildcard | NodeKind::EndWildcard => {
-                    let prefix = String::from_utf8_lossy(&node.prefix);
-                    &format!("{{{prefix}:*}}")
+                    let name = String::from_utf8_lossy(&node.prefix);
+                    &format!("{{{name}:*}}")
                 }
             };
 
@@ -498,6 +588,7 @@ impl<T: Display> Display for Node<T> {
                 format!("{padding}│  {extra_spacing}")
             };
 
+            let has_regex_children = !node.regex_children.is_empty();
             let has_dynamic_children = !node.dynamic_children.is_empty();
             let has_wildcard_children = !node.wildcard_children.is_empty();
             let has_end_wildcard = node.end_wildcard.is_some();
@@ -505,10 +596,23 @@ impl<T: Display> Display for Node<T> {
             // Recursively print the static children
             let static_count = node.static_children.len();
             for (index, child) in node.static_children.iter().enumerate() {
-                let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
+                let is_last = if has_regex_children || has_dynamic_children || has_wildcard_children || has_end_wildcard
+                {
                     false
                 } else {
                     index == (static_count - 1)
+                };
+
+                debug_node(f, child, &new_prefix, false, is_last)?;
+            }
+
+            // Recursively print the rehex children
+            let regex_count = node.regex_children.len();
+            for (index, child) in node.regex_children.iter().enumerate() {
+                let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
+                    false
+                } else {
+                    index == (regex_count - 1)
                 };
 
                 debug_node(f, child, &new_prefix, false, is_last)?;
