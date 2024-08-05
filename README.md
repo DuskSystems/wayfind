@@ -23,12 +23,12 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 ## Parameters types
 
 - Static: `/index.html`
-- Regex Segment: `/ids/{id:[0-9]+}`
-- Regex Inline: `/user-{user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}}`
-- Dynamic Segment: `/users/{id}`
-- Dynamic Inline: `/calender/{year}-{month}-{day}`
-- Wildcard Segment(s): `/v1/{namespace:*}/tags/list`
-- Wildcard End: `/{catch_all:*}`
+- Regex Segment: `/ids/<id:[0-9]+>`
+- Regex Inline: `/user-<user_id:[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}>`
+- Dynamic Segment: `/users/<id>`
+- Dynamic Inline: `/calender/<year>-<month>-<day>`
+- Wildcard Segment(s): `/v1/<namespace:*>/tags/list`
+- Wildcard End: `/<catch_all:*>`
 
 ## Benchmarks
 
