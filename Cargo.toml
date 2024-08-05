@@ -15,6 +15,7 @@ categories = ["network-programming", "web-programming"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(regex)'] }
 
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
@@ -62,9 +63,12 @@ categories.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = []
+regex = ["dep:regex"]
+
 [dependencies]
-# TODO: Make a feature
-regex = "1.10"
+regex = { version = "1.10", optional = true }
 
 [dev-dependencies]
 # Snapshots

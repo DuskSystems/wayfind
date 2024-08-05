@@ -109,6 +109,7 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(regex)]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc/<name:\\d+>/def", 1)?;
@@ -147,6 +148,7 @@ fn test_add_result() {
 }
 
 #[test]
+#[cfg(regex)]
 fn test_matches() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/ab/def", 1)?;
@@ -275,6 +277,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(regex)]
 fn test_match_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/bc", 1)?;

@@ -4,6 +4,7 @@ use std::{error::Error, fmt::Display};
 pub enum InsertError {
     InvalidPath,
     InvalidRegex,
+    RegexNotEnabled,
 }
 
 impl Error for InsertError {}
@@ -13,6 +14,7 @@ impl Display for InsertError {
         match self {
             Self::InvalidPath => write!(f, "Invalid Path"),
             Self::InvalidRegex => write!(f, "Invalid Regex"),
+            Self::RegexNotEnabled => write!(f, "Regex Not Enabled"),
         }
     }
 }
