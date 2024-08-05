@@ -22,10 +22,12 @@ impl<T> Router<T> {
                 data: None,
 
                 static_children: vec![],
+                regex_children: vec![],
                 dynamic_children: vec![],
                 wildcard_children: vec![],
                 end_wildcard: None,
 
+                quick_regex: false,
                 quick_dynamic: false,
             },
         }
@@ -33,7 +35,7 @@ impl<T> Router<T> {
 
     pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
         self.root.insert(
-            Parts::new(path.as_bytes()),
+            Parts::new(path.as_bytes())?,
             NodeData {
                 path: Arc::from(path),
                 value,
