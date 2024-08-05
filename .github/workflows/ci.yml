@@ -48,6 +48,7 @@ jobs:
 
       - name: Run the tasks
         run: |
+          set -eufo pipefail
           cargo check
           cargo build
           cargo fmt --check

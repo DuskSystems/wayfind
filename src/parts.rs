@@ -1,7 +1,6 @@
+use crate::errors::insert::InsertError;
 use regex::bytes::Regex;
 use std::fmt::Debug;
-
-use crate::errors::insert::InsertError;
 
 #[derive(Debug)]
 pub enum Part<'a> {

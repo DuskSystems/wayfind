@@ -163,7 +163,7 @@ impl<T> Node<T> {
         if let Some(child) = self
             .regex_children
             .iter_mut()
-            .find(|child| child.prefix == name)
+            .find(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
         {
             child.insert(parts, data);
         } else {
@@ -357,25 +357,39 @@ impl<T> Node<T> {
     }
 
     fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
+        self.matches_regex_segment(path, parameters)
+    }
+
+    fn matches_regex_segment<'a>(
+        &'a self,
+        path: &'a [u8],
+        parameters: &mut Vec<Parameter<'a>>,
+    ) -> Option<&'a NodeData<T>> {
         for regex_child in &self.regex_children {
-            let NodeKind::Regex(regex) = &regex_child.kind else {
+            let NodeKind::Regex(ref regex) = regex_child.kind else {
                 continue;
             };
 
-            let Some(captures) = regex.captures(path) else { continue };
-            if let Some(matched) = captures.get(0) {
-                let matched_len = matched.end();
+            let segment_end = path
+                .iter()
+                .position(|&b| b == b'/')
+                .unwrap_or(path.len());
 
-                parameters.push(Parameter {
-                    key: &regex_child.prefix,
-                    value: &path[..matched_len],
-                });
+            let segment = &path[..segment_end];
 
-                if let Some(node_data) = regex_child.matches(&path[matched_len..], parameters) {
-                    return Some(node_data);
+            if let Some(captures) = regex.captures(segment) {
+                if let Some(matched) = captures.get(0) {
+                    parameters.push(Parameter {
+                        key: &regex_child.prefix,
+                        value: matched.as_bytes(),
+                    });
+
+                    if let Some(node_data) = regex_child.matches(&path[segment_end..], parameters) {
+                        return Some(node_data);
+                    }
+
+                    parameters.pop();
                 }
-
-                parameters.pop();
             }
         }
 
