@@ -49,12 +49,24 @@ jobs:
       - name: Run the tasks
         run: |
           set -eufo pipefail
+
+          # shared
+          cargo fmt --check
+
+          # default
           cargo check
           cargo build
-          cargo fmt --check
           cargo clippy
           cargo insta test
-          cargo codspeed build
+
+          # regex
+          cargo check --features regex
+          cargo build --features regex
+          cargo clippy --features regex
+          cargo insta test --features regex
+
+          # codspeed
+          cargo codspeed build --features regex
 
       - name: Run the benchmarks
         uses: CathalMullan/action@main
