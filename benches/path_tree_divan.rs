@@ -140,3 +140,16 @@ fn routefinder() {
         assert_eq!(*n, index);
     }
 }
+
+#[divan::bench(name = "xitca-router")]
+fn xitca_web() {
+    let mut xitca = xitca_router::Router::new();
+    for (index, route) in routes!(colon).iter().enumerate() {
+        xitca.insert(*route, index).unwrap();
+    }
+
+    for (index, path) in paths() {
+        let n = xitca.at(path).unwrap();
+        assert_eq!(*n.value, index);
+    }
+}

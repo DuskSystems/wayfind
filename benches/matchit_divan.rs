@@ -132,3 +132,15 @@ fn routefinder() {
         routefinder.best_match(route).unwrap();
     }
 }
+
+#[divan::bench(name = "xitca-router")]
+fn xitca_web() {
+    let mut xitca = xitca_router::Router::new();
+    for route in routes!(colon) {
+        xitca.insert(route, true).unwrap();
+    }
+
+    for route in paths() {
+        xitca.at(route).unwrap();
+    }
+}

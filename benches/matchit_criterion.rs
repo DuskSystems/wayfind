@@ -141,6 +141,19 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
+    group.bench_function("xitca-router", |bencher| {
+        let mut xitca = xitca_router::Router::new();
+        for route in routes!(colon) {
+            xitca.insert(route, true).unwrap();
+        }
+
+        bencher.iter(|| {
+            for route in paths() {
+                xitca.at(route).unwrap();
+            }
+        });
+    });
+
     group.finish();
 }
 

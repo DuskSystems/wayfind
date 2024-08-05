@@ -91,6 +91,7 @@ path-tree = "0.8.1"
 regex = "1.10.6"
 route-recognizer = "0.3.1"
 routefinder = "0.5.4"
+xitca-router = "0.3.0"
 
 [[bench]]
 name = "matchit_criterion"

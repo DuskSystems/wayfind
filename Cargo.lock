@@ -1336,6 +1336,7 @@ dependencies = [
  "regex",
  "route-recognizer",
  "routefinder",
+ "xitca-router",
 ]
 
 [[package]]
@@ -1519,3 +1520,18 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+
+[[package]]
+name = "xitca-router"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35a771113f381c9a2f5ae1096b70d629ed241a1a473304ea902258c3d528f536"
+dependencies = [
+ "xitca-unsafe-collection",
+]
+
+[[package]]
+name = "xitca-unsafe-collection"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "467b95b08735dcd7061be626d02aea062bc0b99918bc9de11b8fc15d901158ae"

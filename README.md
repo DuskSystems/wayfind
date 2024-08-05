@@ -72,6 +72,9 @@ matchit benchmarks/route-recognizer
 matchit benchmarks/routefinder
   time: [6.6991 µs 6.7098 µs 6.7216 µs]
 
+matchit benchmarks/xitca-router
+  time: [353.24 ns 354.21 ns 355.28 ns]
+
 matchit allocations
 ├─ wayfind           alloc:
 │                      657
@@ -169,15 +172,25 @@ matchit allocations
 │                      75
 │                      162.2 KB
 │
-╰─ routefinder       alloc:
-                       322
-                       37.74 KB
+├─ routefinder       alloc:
+│                      322
+│                      37.74 KB
+│                    dealloc:
+│                      322
+│                      58.74 KB
+│                    grow:
+│                      131
+│                      20.99 KB
+│
+╰─ xitca-router      alloc:
+                       1311
+                       55.61 KB
                      dealloc:
-                       322
-                       58.74 KB
+                       1311
+                       73.49 KB
                      grow:
-                       131
-                       20.99 KB
+                       89
+                       17.88 KB
 ```
 
 ### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
@@ -212,6 +225,9 @@ path-tree benchmarks/route-recognizer
 
 path-tree benchmarks/routefinder
   time: [95.339 µs 95.577 µs 95.841 µs]
+
+path-tree benchmarks/xitca-router
+  time: [7.3345 µs 7.3524 µs 7.3706 µs]
 
 path-tree allocations
 ├─ wayfind           alloc:
@@ -307,15 +323,25 @@ path-tree allocations
 │                      268
 │                      660.1 KB
 │
-╰─ routefinder       alloc:
-                       1131
-                       115.8 KB
+├─ routefinder       alloc:
+│                      1131
+│                      115.8 KB
+│                    dealloc:
+│                      1131
+│                      179.3 KB
+│                    grow:
+│                      375
+│                      63.48 KB
+│
+╰─ xitca-router      alloc:
+                       3548
+                       179.1 KB
                      dealloc:
-                       1131
-                       179.3 KB
+                       3548
+                       226.8 KB
                      grow:
-                       375
-                       63.48 KB
+                       218
+                       47.65 KB
 ```
 
 ## Inspirations
