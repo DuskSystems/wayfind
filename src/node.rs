@@ -63,15 +63,15 @@ pub struct Node<T> {
 
 impl<T> Node<T> {
     #[allow(clippy::missing_panics_doc)]
-    pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) {
+    pub fn insert(&mut self, mut parts: Parts, data: NodeData<T>) {
         if let Some(segment) = parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(parts, data, prefix),
+                Part::Static { prefix } => self.insert_static(parts, data, &prefix),
                 #[cfg(regex)]
-                Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern),
-                Part::Dynamic { name } => self.insert_dynamic(parts, data, name),
-                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name),
-                Part::Wildcard { name } => self.insert_wildcard(parts, data, name),
+                Part::Regex { name, pattern } => self.insert_regex(parts, data, &name, pattern),
+                Part::Dynamic { name } => self.insert_dynamic(parts, data, &name),
+                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, &name),
+                Part::Wildcard { name } => self.insert_wildcard(parts, data, &name),
             }
         } else {
             assert!(self.data.is_none(), "Duplicate path");
@@ -749,7 +749,7 @@ impl<T: Display> Display for Node<T> {
                 debug_node(f, child, &new_prefix, false, is_last)?;
             }
 
-            // Recursively print the rehex children
+            // Recursively print the regex children
             #[cfg(regex)]
             {
                 let regex_count = node.regex_children.len();

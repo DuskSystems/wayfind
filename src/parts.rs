@@ -5,34 +5,34 @@ use std::fmt::Debug;
 use regex::bytes::Regex;
 
 #[derive(Debug)]
-pub enum Part<'a> {
+pub enum Part {
     Static {
-        prefix: &'a [u8],
+        prefix: Vec<u8>,
     },
 
     Dynamic {
-        name: &'a [u8],
+        name: Vec<u8>,
     },
 
     Wildcard {
-        name: &'a [u8],
+        name: Vec<u8>,
     },
 
     #[cfg(regex)]
     Regex {
-        name: &'a [u8],
+        name: Vec<u8>,
         pattern: Regex,
     },
 }
 
-impl<'a> PartialEq for Part<'a> {
+impl PartialEq for Part {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Part::Static { prefix: a }, Part::Static { prefix: b })
-            | (Part::Dynamic { name: a }, Part::Dynamic { name: b })
-            | (Part::Wildcard { name: a }, Part::Wildcard { name: b }) => a == b,
+            (Self::Static { prefix: a }, Self::Static { prefix: b })
+            | (Self::Dynamic { name: a }, Self::Dynamic { name: b })
+            | (Self::Wildcard { name: a }, Self::Wildcard { name: b }) => a == b,
             #[cfg(regex)]
-            (Part::Regex { name: a, pattern: p1 }, Part::Regex { name: b, pattern: p2 }) => {
+            (Self::Regex { name: a, pattern: p1 }, Self::Regex { name: b, pattern: p2 }) => {
                 a == b && p1.as_str() == p2.as_str()
             }
             _ => false,
@@ -40,13 +40,13 @@ impl<'a> PartialEq for Part<'a> {
     }
 }
 
-impl<'a> Eq for Part<'a> {}
+impl Eq for Part {}
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a>(Vec<Part<'a>>);
+pub struct Parts(Vec<Part>);
 
-impl<'a> Parts<'a> {
-    pub fn new(path: &'a [u8]) -> Result<Self, InsertError> {
+impl Parts {
+    pub fn new(path: &[u8]) -> Result<Self, InsertError> {
         let mut parts = vec![];
         let mut index = 0;
 
@@ -55,7 +55,7 @@ impl<'a> Parts<'a> {
                 let (name, value) = Self::parse_parameter(path, &mut index);
                 if let Some(value) = value {
                     if value == b"*" {
-                        parts.push(Part::Wildcard { name });
+                        parts.push(Part::Wildcard { name: name.to_vec() });
                     } else {
                         #[cfg(regex)]
                         {
@@ -76,11 +76,13 @@ impl<'a> Parts<'a> {
                         }
                     }
                 } else {
-                    parts.push(Part::Dynamic { name });
+                    parts.push(Part::Dynamic { name: name.to_vec() });
                 }
             } else {
                 let prefix = Self::parse_static(path, &mut index);
-                parts.push(Part::Static { prefix });
+                parts.push(Part::Static {
+                    prefix: prefix.to_vec(),
+                });
             }
         }
 
@@ -89,7 +91,7 @@ impl<'a> Parts<'a> {
         Ok(Self(parts))
     }
 
-    pub fn pop(&mut self) -> Option<Part<'a>> {
+    pub fn pop(&mut self) -> Option<Part> {
         self.0.pop()
     }
 
@@ -98,7 +100,7 @@ impl<'a> Parts<'a> {
         self.0.is_empty()
     }
 
-    fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
+    fn parse_static<'a>(path: &'a [u8], index: &mut usize) -> &'a [u8] {
         let start = *index;
 
         // Consume up until the next '<'
@@ -113,7 +115,7 @@ impl<'a> Parts<'a> {
         &path[start..*index]
     }
 
-    fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<&'a [u8]>) {
+    fn parse_parameter<'a>(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<&'a [u8]>) {
         // Consume opening '<'
         *index += 1;
         let start = *index;
@@ -159,7 +161,12 @@ mod tests {
 
     #[test]
     fn test_parts_static() {
-        assert_eq!(Parts::new(b"/abcd"), Ok(Parts(vec![Part::Static { prefix: b"/abcd" }])),);
+        assert_eq!(
+            Parts::new(b"/abcd"),
+            Ok(Parts(vec![Part::Static {
+                prefix: b"/abcd".to_vec()
+            }])),
+        );
     }
 
     #[test]
@@ -167,8 +174,8 @@ mod tests {
         assert_eq!(
             Parts::new(b"/<name>"),
             Ok(Parts(vec![
-                Part::Dynamic { name: b"name" },
-                Part::Static { prefix: b"/" },
+                Part::Dynamic { name: b"name".to_vec() },
+                Part::Static { prefix: b"/".to_vec() },
             ]))
         );
     }
@@ -178,8 +185,8 @@ mod tests {
         assert_eq!(
             Parts::new(b"/<path:*>"),
             Ok(Parts(vec![
-                Part::Wildcard { name: b"path" },
-                Part::Static { prefix: b"/" },
+                Part::Wildcard { name: b"path".to_vec() },
+                Part::Static { prefix: b"/".to_vec() },
             ]))
         );
     }
@@ -191,10 +198,10 @@ mod tests {
             Parts::new(b"/<id:[0-9]+>"),
             Ok(Parts(vec![
                 Part::Regex {
-                    name: b"id",
+                    name: b"id".to_vec(),
                     pattern: Regex::new("[0-9]+")?,
                 },
-                Part::Static { prefix: b"/" },
+                Part::Static { prefix: b"/".to_vec() },
             ]))
         );
 
@@ -207,15 +214,21 @@ mod tests {
         assert_eq!(
             Parts::new(b"/users/<id:[0-9]+>/posts/<file>.<extension>"),
             Ok(Parts(vec![
-                Part::Dynamic { name: b"extension" },
-                Part::Static { prefix: b"." },
-                Part::Dynamic { name: b"file" },
-                Part::Static { prefix: b"/posts/" },
+                Part::Dynamic {
+                    name: b"extension".to_vec()
+                },
+                Part::Static { prefix: b".".to_vec() },
+                Part::Dynamic { name: b"file".to_vec() },
+                Part::Static {
+                    prefix: b"/posts/".to_vec()
+                },
                 Part::Regex {
-                    name: b"id",
+                    name: b"id".to_vec(),
                     pattern: Regex::new("[0-9]+")?,
                 },
-                Part::Static { prefix: b"/users/" },
+                Part::Static {
+                    prefix: b"/users/".to_vec()
+                },
             ]))
         );
 

@@ -798,27 +798,6 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/other/static/path", 6)?;
     router.insert("/other/long/static/path/", 7)?;
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /
-       ├─ secret/
-       │        ├─ 978/ [3]
-       │        ╰─ <id>
-       │              ╰─ /path [2]
-       ├─ other/
-       │       ├─ an_object/
-       │       │           ╰─ <id> [5]
-       │       ├─ static/path [6]
-       │       ├─ long/static/path/ [7]
-       │       ╰─ <object>
-       │                 ╰─ /
-       │                    ╰─ <id>
-       │                          ╰─ / [4]
-       ╰─ <object>
-                 ╰─ /
-                    ╰─ <id> [1]
-    "###);
-
     assert_router_matches!(router, {
         "/secret/978/path/" => None
         "/object/id/" => None
@@ -1103,130 +1082,161 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "escaping not yet implemented"]
 fn escaped() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 1)?;
-    router.insert("/{{", 2)?;
-    router.insert("/}}", 3)?;
-    router.insert("/{{x", 4)?;
-    router.insert("/}}y{{", 5)?;
-    router.insert("/xy{{", 6)?;
-    router.insert("/{{/xyz", 7)?;
-    router.insert("/{ba{{r}", 8)?;
-    router.insert("/{ba{{r}/", 9)?;
-    router.insert("/{ba{{r}/x", 10)?;
-    router.insert("/baz/<xxx>", 11)?;
-    router.insert("/baz/<xxx>/xy{{", 12)?;
-    router.insert("/baz/<xxx>/}}xy{{{{", 13)?;
-    router.insert("/{{/<x>", 14)?;
-    router.insert("/xxx/", 15)?;
-    router.insert("/xxx/<x>}{{}}}}{{}}{{{{}}y}", 16)?;
+    router.insert("/", 0)?;
+    router.insert("/<<", 1)?;
+    router.insert("/>>", 2)?;
+    router.insert("/<<x", 3)?;
+    router.insert("/>>y<<", 4)?;
+    router.insert("/xy<<", 5)?;
+    router.insert("/<</xyz", 6)?;
+    router.insert("/<ba<<r>", 7)?;
+    router.insert("/<ba<<r>/", 8)?;
+    router.insert("/<ba<<r>/x", 9)?;
+    router.insert("/baz/<xxx>", 10)?;
+    router.insert("/baz/<xxx>/xy<<", 11)?;
+    router.insert("/baz/<xxx>/>>xy<<<<", 12)?;
+    router.insert("/<</<x>", 13)?;
+    router.insert("/xxx/", 14)?;
+    router.insert("/xxx/<x>><<>>>><<>><<<<<>>y>", 15)?;
 
-    insta::assert_snapshot!(router, @"");
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ / [0]
+       ├─ >> [2]
+       │   ╰─ y
+       │      ╰─ <<> [4]
+       ├─ x
+       │  ├─ y
+       │  │  ╰─ <<> [5]
+       │  ╰─ xx/ [14]
+       │       ╰─ <x>
+       │            ╰─ >
+       │               ╰─ <<>
+       │                    ╰─ >>>
+       │                         ╰─ <<>
+       │                              ╰─ >
+       │                                 ╰─ <<<<<>
+       │                                         ╰─ >y> [15]
+       ├─ baz/
+       │     ╰─ <xxx> [10]
+       │            ╰─ /
+       │               ├─ xy
+       │               │   ╰─ <<> [11]
+       │               ╰─ >>xy
+       │                     ╰─ <<<<> [12]
+       ├─ <<> [1]
+       ├─ <<x> [3]
+       ├─ <</xyz> [6]
+       ├─ <ba<<r> [7]
+       │        ╰─ / [8]
+       │           ╰─ x [9]
+       ╰─ <</<x> [13]
+    "###);
 
     assert_router_matches!(router, {
         "/" => {
             path: "/",
+            value: 0
+        }
+        "/<" => {
+            path: "/<<",
             value: 1
         }
-        "/{" => {
-            path: "/{{",
+        "/>" => {
+            path: "/>>",
             value: 2
         }
-        "/}" => {
-            path: "/}}",
+        "/<x" => {
+            path: "/<<x",
             value: 3
         }
-        "/{x" => {
-            path: "/{{x",
+        "/>y<" => {
+            path: "/>>y<<",
             value: 4
         }
-        "/}y{" => {
-            path: "/}}y{{",
+        "/xy<" => {
+            path: "/xy<<",
             value: 5
         }
-        "/xy{" => {
-            path: "/xy{{",
+        "/<</xyz" => {
+            path: "/<</xyz",
             value: 6
         }
-        "/{/xyz" => {
-            path: "/{{/xyz",
-            value: 7
-        }
         "/foo" => {
-            path: "/{ba{{r}",
-            value: 8,
+            path: "/<ba<<r>",
+            value: 7,
             params: {
-                "ba{r" => "foo"
+                "ba<r" => "foo"
             }
         }
-        "/{{" => {
-            path: "/{ba{{r}",
-            value: 8,
+        "/<<" => {
+            path: "/<ba<<r>",
+            value: 7,
             params: {
-                "ba{r" => "{{"
+                "ba<r" => "<<"
             }
         }
-        "/{{}}/" => {
-            path: "/{ba{{r}/",
+        "/<</>//" => {
+            path: "/<ba<<r>/",
+            value: 8,
+            params: {
+                "ba<r" => "<<>>"
+            }
+        }
+        "/<<<<</x" => {
+            path: "/<ba<<r>/x",
             value: 9,
             params: {
-                "ba{r" => "{{}}"
-            }
-        }
-        "/{{}}{{/x" => {
-            path: "/{ba{{r}/x",
-            value: 10,
-            params: {
-                "ba{r" => "{{}}{{"
+                "ba<r" => "<<<<<"
             }
         }
         "/baz/x" => {
             path: "/baz/<xxx>",
+            value: 10,
+            params: {
+                "xxx" => "x"
+            }
+        }
+        "/baz/x/xy<" => {
+            path: "/baz/<xxx>/xy<<",
             value: 11,
             params: {
                 "xxx" => "x"
             }
         }
-        "/baz/x/xy{" => {
-            path: "/baz/<xxx>/xy{{",
+        "/baz/x/xy<<" => None
+        "/baz/x/>xy<<" => {
+            path: "/baz/<xxx>/>>xy<<<<",
             value: 12,
             params: {
                 "xxx" => "x"
             }
         }
-        "/baz/x/xy{{" => None
-        "/baz/x/}xy{{" => {
-            path: "/baz/<xxx>/}}xy{{{{",
+        "/</<" => {
+            path: "/<</<x>",
             value: 13,
             params: {
-                "xxx" => "x"
-            }
-        }
-        "/{/{{" => {
-            path: "/{{/<x>",
-            value: 14,
-            params: {
-                "x" => "{{"
+                "x" => "<"
             }
         }
         "/xxx" => {
-            path: "/{ba{{r}",
-            value: 8,
+            path: "/<ba<<r>",
+            value: 7,
             params: {
-                "ba{r" => "xxx"
+                "ba<r" => "xxx"
             }
         }
         "/xxx/" => {
             path: "/xxx/",
-            value: 15
+            value: 14
         }
         "/xxx/foo" => {
-            path: "/xxx/<x>}{{}}}}{{}}{{{{}}y}",
-            value: 16,
+            path: "/xxx/<x>><<>>>><<>><<<<<>>y>",
+            value: 15,
             params: {
-                "x}{}}{}{{}y" => "foo"
+                "x><>><><><y" => "foo"
             }
         }
     });
