@@ -64,27 +64,6 @@ impl<T> Node<T> {
         result
     }
 
-    // fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &Regex) -> Result<(), DeleteError> {
-    //     let index = self
-    //         .regex_children
-    //         .iter()
-    //         .position(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
-    //         .ok_or(DeleteError::NotFound)?;
-    //
-    //     let child = &mut self.regex_children[index];
-    //     let result = child.delete(parts);
-    //
-    //     if result.is_ok() {
-    //         child.optimize();
-    //
-    //         if child.is_empty() {
-    //             self.regex_children.remove(index);
-    //         }
-    //     }
-    //
-    //     result
-    // }
-
     fn delete_dynamic(&mut self, parts: &mut Parts<'_>, name: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children

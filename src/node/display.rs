@@ -2,8 +2,6 @@ use super::Node;
 use crate::node::NodeKind;
 use std::fmt::Display;
 
-// FIXME: Messy, but it works.
-// FIXME: Doesn't handle split multi-byte characters.
 impl<T: Display> Display for Node<T> {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -32,18 +30,27 @@ impl<T: Display> Display for Node<T> {
                 .as_ref()
                 .map(|node_data| &node_data.value);
 
+            let constraint = node
+                .constraint
+                .as_ref()
+                .map(|c| format!(" {c:?}"));
+
             if is_root {
                 writeln!(f, "{key}")?;
             } else if is_last {
-                match value {
-                    Some(value) => writeln!(f, "{padding}╰─ {key} [{value}]")?,
-                    None => writeln!(f, "{padding}╰─ {key}")?,
-                }
+                match (value, &constraint) {
+                    (Some(value), Some(constraint)) => writeln!(f, "{padding}╰─ {key} [{value}]{constraint}"),
+                    (Some(value), None) => writeln!(f, "{padding}╰─ {key} [{value}]"),
+                    (None, Some(constraint)) => writeln!(f, "{padding}╰─ {key}{constraint}"),
+                    (None, None) => writeln!(f, "{padding}╰─ {key}"),
+                }?;
             } else {
-                match value {
-                    Some(value) => writeln!(f, "{padding}├─ {key} [{value}]")?,
-                    None => writeln!(f, "{padding}├─ {key}")?,
-                }
+                match (value, &constraint) {
+                    (Some(value), Some(constraint)) => writeln!(f, "{padding}├─ {key} [{value}]{constraint}"),
+                    (Some(value), None) => writeln!(f, "{padding}├─ {key} [{value}]"),
+                    (None, Some(constraint)) => writeln!(f, "{padding}├─ {key}{constraint}"),
+                    (None, None) => writeln!(f, "{padding}├─ {key}"),
+                }?;
             }
 
             // Ensure we align children correctly
@@ -74,7 +81,7 @@ impl<T: Display> Display for Node<T> {
                 debug_node(f, child, &new_prefix, false, is_last)?;
             }
 
-            // Recursively print the rehex children
+            // Recursively print the regex children
             let regex_count = node.regex_children.len();
             for (index, child) in node.regex_children.iter().enumerate() {
                 let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {

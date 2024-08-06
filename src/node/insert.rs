@@ -1,14 +1,39 @@
-use super::{Node, NodeData, NodeKind};
+use super::{Node, NodeConstraint, NodeData, NodeKind};
 use crate::{errors::insert::InsertError, parts::Part, route::Route};
+use std::cmp::Ordering;
 
 impl<T> Node<T> {
     pub fn insert(&mut self, route: &mut Route<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = route.parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(route, data, prefix)?,
-                Part::Dynamic { name } => self.insert_dynamic(route, data, name)?,
-                Part::Wildcard { name } if route.parts.is_empty() => self.insert_end_wildcard(data, name)?,
-                Part::Wildcard { name } => self.insert_wildcard(route, data, name)?,
+                Part::Dynamic { name } => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.insert_dynamic(route, data, name, constraint)?;
+                }
+                Part::Wildcard { name } if route.parts.is_empty() => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.insert_end_wildcard(data, name, constraint)?;
+                }
+                Part::Wildcard { name } => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.insert_wildcard(route, data, name, constraint)?;
+                }
             };
         } else {
             if self.data.is_some() {
@@ -19,6 +44,7 @@ impl<T> Node<T> {
         }
 
         self.update_quicks();
+        self.sort_children();
         Ok(())
     }
 
@@ -116,7 +142,13 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_dynamic(&mut self, route: &mut Route<'_>, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
+    fn insert_dynamic(
+        &mut self,
+        route: &mut Route<'_>,
+        data: NodeData<T>,
+        name: &[u8],
+        constraint: Option<NodeConstraint>,
+    ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -130,7 +162,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
-                    constraint: None,
+                    constraint,
 
                     static_children: vec![],
                     regex_children: vec![],
@@ -150,7 +182,13 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_wildcard(&mut self, route: &mut Route<'_>, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
+    fn insert_wildcard(
+        &mut self,
+        route: &mut Route<'_>,
+        data: NodeData<T>,
+        name: &[u8],
+        constraint: Option<NodeConstraint>,
+    ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
@@ -164,7 +202,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
-                    constraint: None,
+                    constraint,
 
                     static_children: vec![],
                     regex_children: vec![],
@@ -185,14 +223,18 @@ impl<T> Node<T> {
     }
 
     #[allow(clippy::unnecessary_wraps)]
-    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
-        // FIXME: We probably need splitting capabilities here, to change a end wildcard into a normal wildcard?
+    fn insert_end_wildcard(
+        &mut self,
+        data: NodeData<T>,
+        name: &[u8],
+        constraint: Option<NodeConstraint>,
+    ) -> Result<(), InsertError> {
         self.end_wildcard = Some(Box::new(Self {
             kind: NodeKind::EndWildcard,
 
             prefix: name.to_vec(),
             data: Some(data),
-            constraint: None,
+            constraint,
 
             static_children: vec![],
             regex_children: vec![],
@@ -279,6 +321,38 @@ impl<T> Node<T> {
 
         if let Some(child) = self.end_wildcard.as_mut() {
             child.update_quicks();
+        }
+    }
+
+    fn sort_children(&mut self) {
+        self.dynamic_children
+            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
+                (Some(_), None) => Ordering::Less,
+                (None, Some(_)) => Ordering::Greater,
+                _ => Ordering::Equal,
+            });
+
+        self.wildcard_children
+            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
+                (Some(_), None) => Ordering::Less,
+                (None, Some(_)) => Ordering::Greater,
+                _ => Ordering::Equal,
+            });
+
+        for child in &mut self.static_children {
+            child.sort_children();
+        }
+
+        for child in &mut self.dynamic_children {
+            child.sort_children();
+        }
+
+        for child in &mut self.wildcard_children {
+            child.sort_children();
+        }
+
+        if let Some(ref mut end_wildcard) = self.end_wildcard {
+            end_wildcard.sort_children();
         }
     }
 }

@@ -68,14 +68,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id:[a-f0-9]{32}> [8]
-    │  │                          ╰─ /
-    │  │                             ├─ archive/v
-    │  │                             │          ╰─ <version:[0-9]+.[0-9]+.[0-9]+> [9]
-    │  │                             ╰─ compare/
-    │  │                                       ╰─ <base:[a-f0-9]{40}>
-    │  │                                                            ╰─ ..
-    │  │                                                                ╰─ <head:[a-f0-9]{40}> [10]
+    │  │       ╰─ <id> [8] [a-f0-9]{32}
+    │  │             ╰─ /
+    │  │                ├─ archive/v
+    │  │                │          ╰─ <version> [9] [0-9]+\.[0-9]+\.[0-9]+
+    │  │                ╰─ compare/
+    │  │                          ╰─ <base> [a-f0-9]{40}
+    │  │                                  ╰─ ..
+    │  │                                      ╰─ <head> [10] [a-f0-9]{40}
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

@@ -1,5 +1,5 @@
 use regex::bytes::Regex;
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 
 pub mod delete;
 pub mod display;
@@ -15,9 +15,17 @@ pub enum NodeKind {
     EndWildcard,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum NodeConstraint {
     Regex(Regex),
+}
+
+impl Debug for NodeConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Regex(regex) => write!(f, "{}", regex.as_str()),
+        }
+    }
 }
 
 impl PartialEq for NodeConstraint {
