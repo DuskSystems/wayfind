@@ -152,7 +152,7 @@ impl<T> Node<T> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
-            .find(|child| child.prefix == name)
+            .find(|child| child.prefix == name && child.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
@@ -192,7 +192,7 @@ impl<T> Node<T> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
-            .find(|child| child.prefix == name)
+            .find(|child| child.prefix == name && child.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
@@ -222,13 +222,18 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    #[allow(clippy::unnecessary_wraps)]
     fn insert_end_wildcard(
         &mut self,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<NodeConstraint>,
     ) -> Result<(), InsertError> {
+        if let Some(end_wildcard) = &self.end_wildcard {
+            if end_wildcard.prefix == name && end_wildcard.constraint == constraint {
+                return Err(InsertError::DuplicatePath);
+            }
+        }
+
         self.end_wildcard = Some(Box::new(Self {
             kind: NodeKind::EndWildcard,
 
