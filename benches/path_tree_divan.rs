@@ -17,7 +17,7 @@ fn main() {
 fn wayfind() {
     let mut wayfind = wayfind::router::Router::new();
     for (index, route) in routes!(chevrons).iter().enumerate() {
-        wayfind.insert(*route, index).unwrap();
+        wayfind.insert(route, index).unwrap();
     }
 
     for (index, path) in paths() {

@@ -1,18 +1,14 @@
 use super::{Node, NodeData, NodeKind};
-use crate::{
-    errors::insert::InsertError,
-    parts::{Part, Parts},
-};
+use crate::{errors::insert::InsertError, parts::Part, route::Route};
 
 impl<T> Node<T> {
-    pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
-        if let Some(segment) = parts.pop() {
+    pub fn insert(&mut self, route: &mut Route<'_>, data: NodeData<T>) -> Result<(), InsertError> {
+        if let Some(segment) = route.parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
-                // Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
-                Part::Dynamic { name } => self.insert_dynamic(parts, data, name)?,
-                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name)?,
-                Part::Wildcard { name } => self.insert_wildcard(parts, data, name)?,
+                Part::Static { prefix } => self.insert_static(route, data, prefix)?,
+                Part::Dynamic { name } => self.insert_dynamic(route, data, name)?,
+                Part::Wildcard { name } if route.parts.is_empty() => self.insert_end_wildcard(data, name)?,
+                Part::Wildcard { name } => self.insert_wildcard(route, data, name)?,
             };
         } else {
             if self.data.is_some() {
@@ -26,7 +22,7 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_static(&mut self, parts: Parts, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
+    fn insert_static(&mut self, route: &mut Route<'_>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -50,7 +46,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
 
@@ -65,9 +61,9 @@ impl<T> Node<T> {
 
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(parts, data)?;
+                child.insert(route, data)?;
             } else {
-                child.insert_static(parts, data, &prefix[common_prefix..])?;
+                child.insert_static(route, data, &prefix[common_prefix..])?;
             }
 
             return Ok(());
@@ -111,62 +107,22 @@ impl<T> Node<T> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(parts, data)?;
+            child.static_children[1].insert(route, data)?;
         }
 
         Ok(())
     }
 
-    // fn insert_regex(
-    //     &mut self,
-    //     parts: Parts,
-    //     data: NodeData<T>,
-    //     name: &[u8],
-    //     pattern: Regex,
-    // ) -> Result<(), InsertError> {
-    //     if let Some(child) = self
-    //         .regex_children
-    //         .iter_mut()
-    //         .find(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
-    //     {
-    //         child.insert(parts, data)?;
-    //     } else {
-    //         self.regex_children.push({
-    //             let mut new_child = Self {
-    //                 kind: NodeKind::Regex(pattern),
-    //
-    //                 prefix: name.to_vec(),
-    //                 data: None,
-    //                 constraint: None,
-    //
-    //                 static_children: vec![],
-    //                 regex_children: vec![],
-    //                 dynamic_children: vec![],
-    //                 wildcard_children: vec![],
-    //                 end_wildcard: None,
-    //
-    //                 quick_regex: false,
-    //                 quick_dynamic: false,
-    //             };
-    //
-    //             new_child.insert(parts, data)?;
-    //             new_child
-    //         });
-    //     }
-    //
-    //     Ok(())
-    // }
-
-    fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
+    fn insert_dynamic(&mut self, route: &mut Route<'_>, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
             .find(|child| child.prefix == name)
         {
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
@@ -186,7 +142,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
         }
@@ -194,13 +150,13 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_wildcard(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
+    fn insert_wildcard(&mut self, route: &mut Route<'_>, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
             .find(|child| child.prefix == name)
         {
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             self.wildcard_children.push({
                 let mut new_child = Self {
@@ -220,7 +176,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
         }

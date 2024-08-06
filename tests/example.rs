@@ -24,40 +24,34 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
     // Regex Segment
-    router.insert(
-        (
-            "/repos/<id>",
-            vec![("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?))],
-        ),
+    router.insert_with_constraints(
+        "/repos/<id>",
         8,
+        vec![("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?))],
     )?;
 
     // Regex Inline
-    router.insert(
-        (
-            "/repos/<id>/archive/v<version>",
-            vec![
-                ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
-                (
-                    "version",
-                    NodeConstraint::Regex(Regex::new("[0-9]+\\.[0-9]+\\.[0-9]+")?),
-                ),
-            ],
-        ),
+    router.insert_with_constraints(
+        "/repos/<id>/archive/v<version>",
         9,
+        vec![
+            ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
+            (
+                "version",
+                NodeConstraint::Regex(Regex::new("[0-9]+\\.[0-9]+\\.[0-9]+")?),
+            ),
+        ],
     )?;
 
     // Multiple Regex Inline
-    router.insert(
-        (
-            "/repos/<id>/compare/<base>..<head>",
-            vec![
-                ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
-                ("base", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
-                ("head", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
-            ],
-        ),
+    router.insert_with_constraints(
+        "/repos/<id>/compare/<base>..<head>",
         10,
+        vec![
+            ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
+            ("base", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
+            ("head", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
+        ],
     )?;
 
     // Catch All

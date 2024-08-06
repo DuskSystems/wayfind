@@ -1,7 +1,7 @@
 use crate::{
     errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
-    node::{Node, NodeData, NodeKind},
+    node::{Node, NodeConstraint, NodeData, NodeKind},
     parts::Parts,
     route::Route,
 };
@@ -35,17 +35,25 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn insert<'a>(&mut self, route: impl Into<Route<'a>>, value: T) -> Result<(), InsertError> {
-        let route = route.into();
+    pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
+        let mut route = Route::new(path, vec![])?;
+        let path = Arc::from(route.path);
 
-        let parts = Parts::new(route.path.as_bytes())?;
-        self.root.insert(
-            parts,
-            NodeData {
-                path: Arc::from(route.path),
-                value,
-            },
-        )
+        self.root
+            .insert(&mut route, NodeData { path, value })
+    }
+
+    pub fn insert_with_constraints(
+        &mut self,
+        path: &str,
+        value: T,
+        constraints: Vec<(&str, NodeConstraint)>,
+    ) -> Result<(), InsertError> {
+        let mut route = Route::new(path, constraints)?;
+        let path = Arc::from(route.path);
+
+        self.root
+            .insert(&mut route, NodeData { path, value })
     }
 
     pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
