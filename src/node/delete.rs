@@ -1,16 +1,14 @@
-use super::{Node, NodeKind};
+use super::Node;
 use crate::{
     errors::delete::DeleteError,
     parts::{Part, Parts},
 };
-use regex::bytes::Regex;
 
 impl<T> Node<T> {
     pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(parts, prefix),
-                Part::Regex { name, pattern } => self.delete_regex(parts, name, &pattern),
                 Part::Dynamic { name } => self.delete_dynamic(parts, name),
                 Part::Wildcard { name } if parts.is_empty() => self.delete_end_wildcard(name),
                 Part::Wildcard { name } => self.delete_wildcard(parts, name),
@@ -66,26 +64,26 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &Regex) -> Result<(), DeleteError> {
-        let index = self
-            .regex_children
-            .iter()
-            .position(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
-            .ok_or(DeleteError::NotFound)?;
-
-        let child = &mut self.regex_children[index];
-        let result = child.delete(parts);
-
-        if result.is_ok() {
-            child.optimize();
-
-            if child.is_empty() {
-                self.regex_children.remove(index);
-            }
-        }
-
-        result
-    }
+    // fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &Regex) -> Result<(), DeleteError> {
+    //     let index = self
+    //         .regex_children
+    //         .iter()
+    //         .position(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
+    //         .ok_or(DeleteError::NotFound)?;
+    //
+    //     let child = &mut self.regex_children[index];
+    //     let result = child.delete(parts);
+    //
+    //     if result.is_ok() {
+    //         child.optimize();
+    //
+    //         if child.is_empty() {
+    //             self.regex_children.remove(index);
+    //         }
+    //     }
+    //
+    //     result
+    // }
 
     fn delete_dynamic(&mut self, parts: &mut Parts<'_>, name: &[u8]) -> Result<(), DeleteError> {
         let index = self

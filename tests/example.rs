@@ -1,8 +1,8 @@
-use std::error::Error;
-use wayfind::router::Router;
+use regex::bytes::Regex;
+use wayfind::{node::NodeConstraint, router::Router};
 
 #[test]
-fn example() -> Result<(), Box<dyn Error>> {
+fn example() -> Result<(), Box<dyn std::error::Error>> {
     let mut router = Router::new();
 
     // Static route
@@ -24,14 +24,39 @@ fn example() -> Result<(), Box<dyn Error>> {
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
     // Regex Segment
-    router.insert("/repos/<id:[a-f0-9]{32}>", 8)?;
+    router.insert(
+        (
+            "/repos/<id>",
+            vec![("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?))],
+        ),
+        8,
+    )?;
 
     // Regex Inline
-    router.insert("/repos/<id:[a-f0-9]{32}>/archive/v<version:[0-9]+.[0-9]+.[0-9]+>", 9)?;
+    router.insert(
+        (
+            "/repos/<id>/archive/v<version>",
+            vec![
+                ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
+                (
+                    "version",
+                    NodeConstraint::Regex(Regex::new("[0-9]+\\.[0-9]+\\.[0-9]+")?),
+                ),
+            ],
+        ),
+        9,
+    )?;
 
     // Multiple Regex Inline
     router.insert(
-        "/repos/<id:[a-f0-9]{32}>/compare/<base:[a-f0-9]{40}>..<head:[a-f0-9]{40}>",
+        (
+            "/repos/<id>/compare/<base>..<head>",
+            vec![
+                ("id", NodeConstraint::Regex(Regex::new("[a-f0-9]{32}")?)),
+                ("base", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
+                ("head", NodeConstraint::Regex(Regex::new("[a-f0-9]{40}")?)),
+            ],
+        ),
         10,
     )?;
 

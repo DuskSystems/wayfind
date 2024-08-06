@@ -3,14 +3,13 @@ use crate::{
     errors::insert::InsertError,
     parts::{Part, Parts},
 };
-use regex::bytes::Regex;
 
 impl<T> Node<T> {
     pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
-                Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
+                // Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
                 Part::Dynamic { name } => self.insert_dynamic(parts, data, name)?,
                 Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name)?,
                 Part::Wildcard { name } => self.insert_wildcard(parts, data, name)?,
@@ -39,6 +38,7 @@ impl<T> Node<T> {
 
                     prefix: prefix.to_vec(),
                     data: None,
+                    constraint: None,
 
                     static_children: vec![],
                     regex_children: vec![],
@@ -78,6 +78,7 @@ impl<T> Node<T> {
 
             prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
+            constraint: None,
 
             static_children: std::mem::take(&mut child.static_children),
             regex_children: std::mem::take(&mut child.regex_children),
@@ -94,6 +95,7 @@ impl<T> Node<T> {
 
             prefix: prefix[common_prefix..].to_vec(),
             data: None,
+            constraint: None,
 
             static_children: vec![],
             regex_children: vec![],
@@ -118,44 +120,45 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_regex(
-        &mut self,
-        parts: Parts,
-        data: NodeData<T>,
-        name: &[u8],
-        pattern: Regex,
-    ) -> Result<(), InsertError> {
-        if let Some(child) = self
-            .regex_children
-            .iter_mut()
-            .find(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
-        {
-            child.insert(parts, data)?;
-        } else {
-            self.regex_children.push({
-                let mut new_child = Self {
-                    kind: NodeKind::Regex(pattern),
-
-                    prefix: name.to_vec(),
-                    data: None,
-
-                    static_children: vec![],
-                    regex_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard: None,
-
-                    quick_regex: false,
-                    quick_dynamic: false,
-                };
-
-                new_child.insert(parts, data)?;
-                new_child
-            });
-        }
-
-        Ok(())
-    }
+    // fn insert_regex(
+    //     &mut self,
+    //     parts: Parts,
+    //     data: NodeData<T>,
+    //     name: &[u8],
+    //     pattern: Regex,
+    // ) -> Result<(), InsertError> {
+    //     if let Some(child) = self
+    //         .regex_children
+    //         .iter_mut()
+    //         .find(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
+    //     {
+    //         child.insert(parts, data)?;
+    //     } else {
+    //         self.regex_children.push({
+    //             let mut new_child = Self {
+    //                 kind: NodeKind::Regex(pattern),
+    //
+    //                 prefix: name.to_vec(),
+    //                 data: None,
+    //                 constraint: None,
+    //
+    //                 static_children: vec![],
+    //                 regex_children: vec![],
+    //                 dynamic_children: vec![],
+    //                 wildcard_children: vec![],
+    //                 end_wildcard: None,
+    //
+    //                 quick_regex: false,
+    //                 quick_dynamic: false,
+    //             };
+    //
+    //             new_child.insert(parts, data)?;
+    //             new_child
+    //         });
+    //     }
+    //
+    //     Ok(())
+    // }
 
     fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         if let Some(child) = self
@@ -171,6 +174,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
+                    constraint: None,
 
                     static_children: vec![],
                     regex_children: vec![],
@@ -204,6 +208,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
+                    constraint: None,
 
                     static_children: vec![],
                     regex_children: vec![],
@@ -231,6 +236,7 @@ impl<T> Node<T> {
 
             prefix: name.to_vec(),
             data: Some(data),
+            constraint: None,
 
             static_children: vec![],
             regex_children: vec![],

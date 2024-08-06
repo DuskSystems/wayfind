@@ -6,31 +6,29 @@ pub mod display;
 pub mod insert;
 pub mod matches;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeKind {
     Root,
     Static,
-    Regex(Regex),
     Dynamic,
     Wildcard,
     EndWildcard,
 }
 
-impl PartialEq for NodeKind {
+#[derive(Clone, Debug)]
+pub enum NodeConstraint {
+    Regex(Regex),
+}
+
+impl PartialEq for NodeConstraint {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Root, Self::Root)
-            | (Self::Static, Self::Static)
-            | (Self::Dynamic, Self::Dynamic)
-            | (Self::Wildcard, Self::Wildcard)
-            | (Self::EndWildcard, Self::EndWildcard) => true,
-            (Self::Regex(r1), Self::Regex(r2)) => r1.as_str() == r2.as_str(),
-            _ => false,
+            (Self::Regex(left), Self::Regex(right)) => left.as_str() == right.as_str(),
         }
     }
 }
 
-impl Eq for NodeKind {}
+impl Eq for NodeConstraint {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {
@@ -44,6 +42,7 @@ pub struct Node<T> {
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
+    pub constraint: Option<NodeConstraint>,
 
     pub static_children: Vec<Node<T>>,
     pub regex_children: Vec<Node<T>>,

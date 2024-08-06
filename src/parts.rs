@@ -1,30 +1,12 @@
 use crate::errors::parts::PartsError;
-use regex::bytes::Regex;
 use std::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Part<'a> {
     Static { prefix: &'a [u8] },
-    Regex { name: &'a [u8], pattern: Regex },
     Dynamic { name: &'a [u8] },
     Wildcard { name: &'a [u8] },
 }
-
-impl<'a> PartialEq for Part<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Part::Static { prefix: a }, Part::Static { prefix: b })
-            | (Part::Dynamic { name: a }, Part::Dynamic { name: b })
-            | (Part::Wildcard { name: a }, Part::Wildcard { name: b }) => a == b,
-            (Part::Regex { name: a, pattern: p1 }, Part::Regex { name: b, pattern: p2 }) => {
-                a == b && p1.as_str() == p2.as_str()
-            }
-            _ => false,
-        }
-    }
-}
-
-impl<'a> Eq for Part<'a> {}
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a>(Vec<Part<'a>>);
@@ -41,15 +23,7 @@ impl<'a> Parts<'a> {
                     if value == b"*" {
                         parts.push(Part::Wildcard { name });
                     } else {
-                        let Ok(value_str) = std::str::from_utf8(value) else {
-                            return Err(PartsError::InvalidRegex);
-                        };
-
-                        let Ok(pattern) = Regex::new(value_str) else {
-                            return Err(PartsError::InvalidRegex);
-                        };
-
-                        parts.push(Part::Regex { name, pattern });
+                        return Err(PartsError::InvalidPath);
                     }
                 } else {
                     parts.push(Part::Dynamic { name });
@@ -129,7 +103,6 @@ impl<'a> Parts<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::error::Error;
 
     #[test]
     fn test_parts_static() {
@@ -156,41 +129,5 @@ mod tests {
                 Part::Static { prefix: b"/" },
             ]))
         );
-    }
-
-    #[test]
-    fn test_parts_regex() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            Parts::new(b"/<id:[0-9]+>"),
-            Ok(Parts(vec![
-                Part::Regex {
-                    name: b"id",
-                    pattern: Regex::new("[0-9]+")?,
-                },
-                Part::Static { prefix: b"/" },
-            ]))
-        );
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_parts_mixed() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            Parts::new(b"/users/<id:[0-9]+>/posts/<file>.<extension>"),
-            Ok(Parts(vec![
-                Part::Dynamic { name: b"extension" },
-                Part::Static { prefix: b"." },
-                Part::Dynamic { name: b"file" },
-                Part::Static { prefix: b"/posts/" },
-                Part::Regex {
-                    name: b"id",
-                    pattern: Regex::new("[0-9]+")?,
-                },
-                Part::Static { prefix: b"/users/" },
-            ]))
-        );
-
-        Ok(())
     }
 }

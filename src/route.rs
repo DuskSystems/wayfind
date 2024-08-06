@@ -1,6 +1,8 @@
+use crate::node::NodeConstraint;
+
 pub struct Route<'a> {
     pub path: &'a str,
-    pub constraints: Vec<(&'a str, &'a str)>,
+    pub constraints: Vec<(&'a str, NodeConstraint)>,
 }
 
 impl<'a> Route<'a> {
@@ -19,8 +21,8 @@ impl<'a> From<&'a str> for Route<'a> {
     }
 }
 
-impl<'a> From<(&'a str, Vec<(&'a str, &'a str)>)> for Route<'a> {
-    fn from((path, constraints): (&'a str, Vec<(&'a str, &'a str)>)) -> Self {
+impl<'a> From<(&'a str, Vec<(&'a str, NodeConstraint)>)> for Route<'a> {
+    fn from((path, constraints): (&'a str, Vec<(&'a str, NodeConstraint)>)) -> Self {
         Self { path, constraints }
     }
 }

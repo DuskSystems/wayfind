@@ -1,4 +1,4 @@
-use super::{Node, NodeData, NodeKind};
+use super::{Node, NodeData};
 use crate::matches::Parameter;
 
 impl<T> Node<T> {
@@ -11,9 +11,9 @@ impl<T> Node<T> {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_regex(path, parameters) {
-            return Some(matches);
-        }
+        // if let Some(matches) = self.matches_regex(path, parameters) {
+        //     return Some(matches);
+        // }
 
         if let Some(matches) = self.matches_dynamic(path, parameters) {
             return Some(matches);
@@ -50,94 +50,94 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
-        if self.quick_regex {
-            self.matches_regex_segment(path, parameters)
-        } else {
-            self.matches_regex_inline(path, parameters)
-        }
-    }
+    // fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
+    //     if self.quick_regex {
+    //         self.matches_regex_segment(path, parameters)
+    //     } else {
+    //         self.matches_regex_inline(path, parameters)
+    //     }
+    // }
 
     // Regex with support for inline regex sections, e.g. `<name:[a-z]+>.txt`
-    fn matches_regex_inline<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut Vec<Parameter<'a>>,
-    ) -> Option<&'a NodeData<T>> {
-        for regex_child in &self.regex_children {
-            let NodeKind::Regex(ref regex) = regex_child.kind else {
-                continue;
-            };
-
-            for end in (1..=path.len()).rev() {
-                let segment = &path[..end];
-
-                let Some(captures) = regex.captures(segment) else {
-                    continue;
-                };
-
-                let Some(matches) = captures.get(0) else { continue };
-                if !(matches.start() == 0 && matches.end() == segment.len()) {
-                    continue;
-                }
-
-                let mut current_parameters = parameters.clone();
-                current_parameters.push(Parameter {
-                    key: &regex_child.prefix,
-                    value: segment,
-                });
-
-                if let Some(node_data) = regex_child.matches(&path[end..], &mut current_parameters) {
-                    *parameters = current_parameters;
-                    return Some(node_data);
-                }
-            }
-        }
-
-        None
-    }
+    // fn matches_regex_inline<'a>(
+    //     &'a self,
+    //     path: &'a [u8],
+    //     parameters: &mut Vec<Parameter<'a>>,
+    // ) -> Option<&'a NodeData<T>> {
+    //     for regex_child in &self.regex_children {
+    //         let NodeKind::Regex(ref regex) = regex_child.kind else {
+    //             continue;
+    //         };
+    //
+    //         for end in (1..=path.len()).rev() {
+    //             let segment = &path[..end];
+    //
+    //             let Some(captures) = regex.captures(segment) else {
+    //                 continue;
+    //             };
+    //
+    //             let Some(matches) = captures.get(0) else { continue };
+    //             if !(matches.start() == 0 && matches.end() == segment.len()) {
+    //                 continue;
+    //             }
+    //
+    //             let mut current_parameters = parameters.clone();
+    //             current_parameters.push(Parameter {
+    //                 key: &regex_child.prefix,
+    //                 value: segment,
+    //             });
+    //
+    //             if let Some(node_data) = regex_child.matches(&path[end..], &mut current_parameters) {
+    //                 *parameters = current_parameters;
+    //                 return Some(node_data);
+    //             }
+    //         }
+    //     }
+    //
+    //     None
+    // }
 
     // Doesn't support inline regex sections, e.g. `<name:[a-z]+>.txt`, only `/<segment:[a-z]+>/`
-    fn matches_regex_segment<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut Vec<Parameter<'a>>,
-    ) -> Option<&'a NodeData<T>> {
-        for regex_child in &self.regex_children {
-            let NodeKind::Regex(ref regex) = regex_child.kind else {
-                continue;
-            };
-
-            let segment_end = path
-                .iter()
-                .position(|&b| b == b'/')
-                .unwrap_or(path.len());
-
-            let segment = &path[..segment_end];
-
-            let Some(captures) = regex.captures(segment) else {
-                continue;
-            };
-
-            let Some(matches) = captures.get(0) else { continue };
-            if !(matches.start() == 0 && matches.end() == segment.len()) {
-                continue;
-            }
-
-            parameters.push(Parameter {
-                key: &regex_child.prefix,
-                value: matches.as_bytes(),
-            });
-
-            if let Some(node_data) = regex_child.matches(&path[segment_end..], parameters) {
-                return Some(node_data);
-            }
-
-            parameters.pop();
-        }
-
-        None
-    }
+    // fn matches_regex_segment<'a>(
+    //     &'a self,
+    //     path: &'a [u8],
+    //     parameters: &mut Vec<Parameter<'a>>,
+    // ) -> Option<&'a NodeData<T>> {
+    //     for regex_child in &self.regex_children {
+    //         let NodeKind::Regex(ref regex) = regex_child.kind else {
+    //             continue;
+    //         };
+    //
+    //         let segment_end = path
+    //             .iter()
+    //             .position(|&b| b == b'/')
+    //             .unwrap_or(path.len());
+    //
+    //         let segment = &path[..segment_end];
+    //
+    //         let Some(captures) = regex.captures(segment) else {
+    //             continue;
+    //         };
+    //
+    //         let Some(matches) = captures.get(0) else { continue };
+    //         if !(matches.start() == 0 && matches.end() == segment.len()) {
+    //             continue;
+    //         }
+    //
+    //         parameters.push(Parameter {
+    //             key: &regex_child.prefix,
+    //             value: matches.as_bytes(),
+    //         });
+    //
+    //         if let Some(node_data) = regex_child.matches(&path[segment_end..], parameters) {
+    //             return Some(node_data);
+    //         }
+    //
+    //         parameters.pop();
+    //     }
+    //
+    //     None
+    // }
 
     fn matches_dynamic<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
         if self.quick_dynamic {

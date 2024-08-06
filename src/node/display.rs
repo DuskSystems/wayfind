@@ -17,10 +17,6 @@ impl<T: Display> Display for Node<T> {
             let key = match &node.kind {
                 NodeKind::Root => "$",
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
-                NodeKind::Regex(regex) => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("<{name}:{}>", regex.as_str())
-                }
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     &format!("<{name}>")
