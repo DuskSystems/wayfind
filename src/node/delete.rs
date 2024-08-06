@@ -158,11 +158,6 @@ impl<T> Node<T> {
                 !child.is_empty()
             });
 
-        self.regex_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
-
         self.dynamic_children
             .retain_mut(|child| {
                 child.optimize();
@@ -187,7 +182,6 @@ impl<T> Node<T> {
     pub(super) fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
-            && self.regex_children.is_empty()
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
             && self.end_wildcard.is_none()

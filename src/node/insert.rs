@@ -64,7 +64,6 @@ impl<T> Node<T> {
                     constraint: None,
 
                     static_children: vec![],
-                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -103,7 +102,6 @@ impl<T> Node<T> {
             constraint: None,
 
             static_children: std::mem::take(&mut child.static_children),
-            regex_children: std::mem::take(&mut child.regex_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
             wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard: std::mem::take(&mut child.end_wildcard),
@@ -119,7 +117,6 @@ impl<T> Node<T> {
             constraint: None,
 
             static_children: vec![],
-            regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
@@ -163,7 +160,6 @@ impl<T> Node<T> {
                     constraint,
 
                     static_children: vec![],
-                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -202,7 +198,6 @@ impl<T> Node<T> {
                     constraint,
 
                     static_children: vec![],
-                    regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
@@ -238,7 +233,6 @@ impl<T> Node<T> {
             constraint,
 
             static_children: vec![],
-            regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
@@ -260,10 +254,7 @@ impl<T> Node<T> {
                 }
 
                 // No children?
-                if child.static_children.is_empty()
-                    && child.regex_children.is_empty()
-                    && child.dynamic_children.is_empty()
-                    && child.end_wildcard.is_none()
+                if child.static_children.is_empty() && child.dynamic_children.is_empty() && child.end_wildcard.is_none()
                 {
                     return true;
                 }
@@ -281,10 +272,6 @@ impl<T> Node<T> {
             });
 
         for child in &mut self.static_children {
-            child.update_quicks();
-        }
-
-        for child in &mut self.regex_children {
             child.update_quicks();
         }
 

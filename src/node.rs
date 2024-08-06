@@ -59,7 +59,6 @@ pub struct Node<T> {
     pub constraint: Option<NodeConstraint>,
 
     pub static_children: Vec<Node<T>>,
-    pub regex_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,
     pub wildcard_children: Vec<Node<T>>,
     pub end_wildcard: Option<Box<Node<T>>>,

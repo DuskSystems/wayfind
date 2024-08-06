@@ -63,7 +63,6 @@ impl<T: Display> Display for Node<T> {
                 format!("{padding}│  {extra_spacing}")
             };
 
-            let has_regex_children = !node.regex_children.is_empty();
             let has_dynamic_children = !node.dynamic_children.is_empty();
             let has_wildcard_children = !node.wildcard_children.is_empty();
             let has_end_wildcard = node.end_wildcard.is_some();
@@ -71,23 +70,10 @@ impl<T: Display> Display for Node<T> {
             // Recursively print the static children
             let static_count = node.static_children.len();
             for (index, child) in node.static_children.iter().enumerate() {
-                let is_last = if has_regex_children || has_dynamic_children || has_wildcard_children || has_end_wildcard
-                {
-                    false
-                } else {
-                    index == (static_count - 1)
-                };
-
-                debug_node(f, child, &new_prefix, false, is_last)?;
-            }
-
-            // Recursively print the regex children
-            let regex_count = node.regex_children.len();
-            for (index, child) in node.regex_children.iter().enumerate() {
                 let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
                     false
                 } else {
-                    index == (regex_count - 1)
+                    index == (static_count - 1)
                 };
 
                 debug_node(f, child, &new_prefix, false, is_last)?;
