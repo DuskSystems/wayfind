@@ -217,7 +217,21 @@ impl<T> Node<T> {
         node.constraint
             .as_ref()
             .map_or(true, |constraint| match constraint {
-                NodeConstraint::Regex(regex) => regex.is_match(segment),
+                NodeConstraint::Regex(regex) => {
+                    let Some(captures) = regex.captures(segment) else {
+                        return false;
+                    };
+
+                    let Some(matches) = captures.get(0) else {
+                        return false;
+                    };
+
+                    if !(matches.start() == 0 && matches.end() == segment.len()) {
+                        return false;
+                    }
+
+                    true
+                }
             })
     }
 }
