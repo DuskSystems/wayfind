@@ -45,6 +45,7 @@ impl<T> Node<T> {
 
         self.update_quicks();
         self.sort_children();
+
         Ok(())
     }
 

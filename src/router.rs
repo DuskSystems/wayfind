@@ -2,7 +2,6 @@ use crate::{
     errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
     node::{Node, NodeConstraint, NodeData, NodeKind},
-    parts::Parts,
     route::Route,
 };
 use std::{fmt::Display, sync::Arc};
@@ -57,8 +56,17 @@ impl<T> Router<T> {
     }
 
     pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
-        let mut parts = Parts::new(path.as_bytes())?;
-        self.root.delete(&mut parts)
+        let mut route = Route::new(path, vec![])?;
+        self.root.delete(&mut route)
+    }
+
+    pub fn delete_with_constraints(
+        &mut self,
+        path: &str,
+        constraints: Vec<(&str, NodeConstraint)>,
+    ) -> Result<(), DeleteError> {
+        let mut route = Route::new(path, constraints)?;
+        self.root.delete(&mut route)
     }
 
     #[must_use]

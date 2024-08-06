@@ -54,7 +54,7 @@ jobs:
           cargo check
           cargo build
           cargo insta test
-          cargo codspeed build --features regex
+          cargo codspeed build
 
       - name: Run the benchmarks
         uses: CathalMullan/action@main
