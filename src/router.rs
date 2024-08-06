@@ -3,6 +3,7 @@ use crate::{
     matches::Match,
     node::{Node, NodeData, NodeKind},
     parts::Parts,
+    route::Route,
 };
 use std::{fmt::Display, sync::Arc};
 
@@ -35,12 +36,14 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
-        let parts = Parts::new(path.as_bytes())?;
+    pub fn insert<'a>(&mut self, route: impl Into<Route<'a>>, value: T) -> Result<(), InsertError> {
+        let route = route.into();
+
+        let parts = Parts::new(route.path.as_bytes())?;
         self.root.insert(
             parts,
             NodeData {
-                path: Arc::from(path),
+                path: Arc::from(route.path),
                 value,
             },
         )
