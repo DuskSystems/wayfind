@@ -1,5 +1,5 @@
 use crate::{
-    errors::insert::InsertError,
+    errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
     node::{Node, NodeData, NodeKind},
     parts::Parts,
@@ -44,6 +44,10 @@ impl<T> Router<T> {
             },
         );
 
+        Ok(())
+    }
+
+    pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
         Ok(())
     }
 
