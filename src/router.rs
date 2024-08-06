@@ -1,8 +1,8 @@
 use crate::{
     errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
-    node::{Node, NodeData, NodeKind},
-    parts::Parts,
+    node::{Node, NodeConstraint, NodeData, NodeKind},
+    route::Route,
 };
 use std::{fmt::Display, sync::Arc};
 
@@ -20,35 +20,61 @@ impl<T> Router<T> {
 
                 prefix: vec![],
                 data: None,
+                constraint: None,
 
                 static_children: vec![],
-                #[cfg(feature = "regex")]
-                regex_children: vec![],
                 dynamic_children: vec![],
                 wildcard_children: vec![],
                 end_wildcard: None,
 
-                #[cfg(feature = "regex")]
-                quick_regex: false,
                 quick_dynamic: false,
             },
         }
     }
 
     pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
-        let parts = Parts::new(path.as_bytes())?;
-        self.root.insert(
-            parts,
-            NodeData {
-                path: Arc::from(path),
-                value,
-            },
-        )
+        let mut route = Route::new(path, vec![])?;
+        let path = Arc::from(route.path);
+
+        self.root
+            .insert(&mut route, NodeData { path, value })
+    }
+
+    pub fn insert_with_constraints(
+        &mut self,
+        path: &str,
+        value: T,
+        constraints: Vec<(&str, impl Into<NodeConstraint>)>,
+    ) -> Result<(), InsertError> {
+        let constraints = constraints
+            .into_iter()
+            .map(|(name, constraint)| (name, constraint.into()))
+            .collect();
+
+        let mut route = Route::new(path, constraints)?;
+        let path = Arc::from(route.path);
+
+        self.root
+            .insert(&mut route, NodeData { path, value })
     }
 
     pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
-        let mut parts = Parts::new(path.as_bytes())?;
-        self.root.delete(&mut parts)
+        let mut route = Route::new(path, vec![])?;
+        self.root.delete(&mut route)
+    }
+
+    pub fn delete_with_constraints(
+        &mut self,
+        path: &str,
+        constraints: Vec<(&str, impl Into<NodeConstraint>)>,
+    ) -> Result<(), DeleteError> {
+        let constraints = constraints
+            .into_iter()
+            .map(|(name, constraint)| (name, constraint.into()))
+            .collect();
+
+        let mut route = Route::new(path, constraints)?;
+        self.root.delete(&mut route)
     }
 
     #[must_use]

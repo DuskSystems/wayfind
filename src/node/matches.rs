@@ -1,8 +1,5 @@
-use super::{Node, NodeData};
+use super::{Node, NodeConstraint, NodeData};
 use crate::matches::Parameter;
-
-#[cfg(feature = "regex")]
-use super::NodeKind;
 
 impl<T> Node<T> {
     pub fn matches<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
@@ -11,11 +8,6 @@ impl<T> Node<T> {
         }
 
         if let Some(matches) = self.matches_static(path, parameters) {
-            return Some(matches);
-        }
-
-        #[cfg(feature = "regex")]
-        if let Some(matches) = self.matches_regex(path, parameters) {
             return Some(matches);
         }
 
@@ -54,98 +46,6 @@ impl<T> Node<T> {
         None
     }
 
-    #[cfg(feature = "regex")]
-    fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
-        if self.quick_regex {
-            self.matches_regex_segment(path, parameters)
-        } else {
-            self.matches_regex_inline(path, parameters)
-        }
-    }
-
-    // Regex with support for inline regex sections, e.g. `<name:[a-z]+>.txt`
-    #[cfg(feature = "regex")]
-    fn matches_regex_inline<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut Vec<Parameter<'a>>,
-    ) -> Option<&'a NodeData<T>> {
-        for regex_child in &self.regex_children {
-            let NodeKind::Regex(ref regex) = regex_child.kind else {
-                continue;
-            };
-
-            for end in (1..=path.len()).rev() {
-                let segment = &path[..end];
-
-                let Some(captures) = regex.captures(segment) else {
-                    continue;
-                };
-
-                let Some(matches) = captures.get(0) else { continue };
-                if !(matches.start() == 0 && matches.end() == segment.len()) {
-                    continue;
-                }
-
-                let mut current_parameters = parameters.clone();
-                current_parameters.push(Parameter {
-                    key: &regex_child.prefix,
-                    value: segment,
-                });
-
-                if let Some(node_data) = regex_child.matches(&path[end..], &mut current_parameters) {
-                    *parameters = current_parameters;
-                    return Some(node_data);
-                }
-            }
-        }
-
-        None
-    }
-
-    // Doesn't support inline regex sections, e.g. `<name:[a-z]+>.txt`, only `/<segment:[a-z]+>/`
-    #[cfg(feature = "regex")]
-    fn matches_regex_segment<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut Vec<Parameter<'a>>,
-    ) -> Option<&'a NodeData<T>> {
-        for regex_child in &self.regex_children {
-            let NodeKind::Regex(ref regex) = regex_child.kind else {
-                continue;
-            };
-
-            let segment_end = path
-                .iter()
-                .position(|&b| b == b'/')
-                .unwrap_or(path.len());
-
-            let segment = &path[..segment_end];
-
-            let Some(captures) = regex.captures(segment) else {
-                continue;
-            };
-
-            let Some(matches) = captures.get(0) else { continue };
-            if !(matches.start() == 0 && matches.end() == segment.len()) {
-                continue;
-            }
-
-            parameters.push(Parameter {
-                key: &regex_child.prefix,
-                value: matches.as_bytes(),
-            });
-
-            if let Some(node_data) = regex_child.matches(&path[segment_end..], parameters) {
-                return Some(node_data);
-            }
-
-            parameters.pop();
-        }
-
-        None
-    }
-
     fn matches_dynamic<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
@@ -178,10 +78,15 @@ impl<T> Node<T> {
 
                 consumed += 1;
 
+                let segment = &path[..consumed];
+                if !Self::check_constraint(dynamic_child, segment) {
+                    continue;
+                }
+
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
                     key: &dynamic_child.prefix,
-                    value: &path[..consumed],
+                    value: segment,
                 });
 
                 if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
@@ -211,9 +116,14 @@ impl<T> Node<T> {
                 .position(|&b| b == b'/')
                 .unwrap_or(path.len());
 
+            let segment = &path[..segment_end];
+            if !Self::check_constraint(dynamic_child, segment) {
+                continue;
+            }
+
             parameters.push(Parameter {
                 key: &dynamic_child.prefix,
-                value: &path[..segment_end],
+                value: segment,
             });
 
             if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters) {
@@ -250,13 +160,19 @@ impl<T> Node<T> {
                     section_end = true;
                 }
 
+                let segment = if path[..consumed].ends_with(b"/") {
+                    &path[..consumed - 1]
+                } else {
+                    &path[..consumed]
+                };
+
+                if !Self::check_constraint(wildcard_child, segment) {
+                    break;
+                }
+
                 parameters.push(Parameter {
                     key: &wildcard_child.prefix,
-                    value: if path[..consumed].ends_with(b"/") {
-                        &path[..consumed - 1]
-                    } else {
-                        &path[..consumed]
-                    },
+                    value: segment,
                 });
 
                 if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters) {
@@ -282,6 +198,10 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'a>>,
     ) -> Option<&'a NodeData<T>> {
         if let Some(end_wildcard) = &self.end_wildcard {
+            if !Self::check_constraint(end_wildcard, path) {
+                return None;
+            }
+
             parameters.push(Parameter {
                 key: &end_wildcard.prefix,
                 value: path,
@@ -291,5 +211,27 @@ impl<T> Node<T> {
         }
 
         None
+    }
+
+    fn check_constraint(node: &Self, segment: &[u8]) -> bool {
+        node.constraint
+            .as_ref()
+            .map_or(true, |constraint| match constraint {
+                NodeConstraint::Regex(regex) => {
+                    let Some(captures) = regex.captures(segment) else {
+                        return false;
+                    };
+
+                    let Some(matches) = captures.get(0) else {
+                        return false;
+                    };
+
+                    if !(matches.start() == 0 && matches.end() == segment.len()) {
+                        return false;
+                    }
+
+                    true
+                }
+            })
     }
 }

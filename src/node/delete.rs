@@ -1,22 +1,42 @@
-use super::Node;
 use crate::{
     errors::delete::DeleteError,
-    parts::{Part, Parts},
+    node::{Node, NodeConstraint},
+    parts::Part,
+    route::Route,
 };
 
-#[cfg(feature = "regex")]
-use regex::bytes::Regex;
-
 impl<T> Node<T> {
-    pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
-        if let Some(segment) = parts.pop() {
+    pub fn delete(&mut self, route: &mut Route<'_>) -> Result<(), DeleteError> {
+        if let Some(segment) = route.parts.pop() {
             let result = match segment {
-                Part::Static { prefix } => self.delete_static(parts, prefix),
-                #[cfg(feature = "regex")]
-                Part::Regex { name, pattern } => self.delete_regex(parts, name, &pattern),
-                Part::Dynamic { name } => self.delete_dynamic(parts, name),
-                Part::Wildcard { name } if parts.is_empty() => self.delete_end_wildcard(name),
-                Part::Wildcard { name } => self.delete_wildcard(parts, name),
+                Part::Static { prefix } => self.delete_static(route, prefix),
+                Part::Dynamic { name } => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.delete_dynamic(route, name, &constraint)
+                }
+                Part::Wildcard { name } if route.parts.is_empty() => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.delete_end_wildcard(name, &constraint)
+                }
+                Part::Wildcard { name } => {
+                    let constraint = route
+                        .constraints
+                        .iter()
+                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
+                        .map(|index| route.constraints.remove(index).1);
+
+                    self.delete_wildcard(route, name, &constraint)
+                }
             };
 
             if result.is_ok() {
@@ -34,12 +54,11 @@ impl<T> Node<T> {
         }
     }
 
-    fn delete_static(&mut self, parts: &mut Parts<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, route: &mut Route<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
             .position(|child| {
-                // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
                 prefix.len() >= child.prefix.len()
                     && child
                         .prefix
@@ -53,9 +72,9 @@ impl<T> Node<T> {
         let remaining_prefix = &prefix[child.prefix.len()..];
 
         let result = if remaining_prefix.is_empty() {
-            child.delete(parts)
+            child.delete(route)
         } else {
-            child.delete_static(parts, remaining_prefix)
+            child.delete_static(route, remaining_prefix)
         };
 
         if result.is_ok() {
@@ -69,39 +88,20 @@ impl<T> Node<T> {
         result
     }
 
-    #[cfg(feature = "regex")]
-    fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &Regex) -> Result<(), DeleteError> {
-        use super::NodeKind;
-
-        let index = self
-            .regex_children
-            .iter()
-            .position(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
-            .ok_or(DeleteError::NotFound)?;
-
-        let child = &mut self.regex_children[index];
-        let result = child.delete(parts);
-
-        if result.is_ok() {
-            child.optimize();
-
-            if child.is_empty() {
-                self.regex_children.remove(index);
-            }
-        }
-
-        result
-    }
-
-    fn delete_dynamic(&mut self, parts: &mut Parts<'_>, name: &[u8]) -> Result<(), DeleteError> {
+    fn delete_dynamic(
+        &mut self,
+        route: &mut Route<'_>,
+        name: &[u8],
+        constraint: &Option<NodeConstraint>,
+    ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name)
+            .position(|child| child.prefix == name && child.constraint == *constraint)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.dynamic_children[index];
-        let result = child.delete(parts);
+        let result = child.delete(route);
 
         if result.is_ok() {
             child.optimize();
@@ -114,15 +114,20 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_wildcard(&mut self, parts: &mut Parts<'_>, name: &[u8]) -> Result<(), DeleteError> {
+    fn delete_wildcard(
+        &mut self,
+        route: &mut Route<'_>,
+        name: &[u8],
+        constraint: &Option<NodeConstraint>,
+    ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name)
+            .position(|child| child.prefix == name && child.constraint == *constraint)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.wildcard_children[index];
-        let result = child.delete(parts);
+        let result = child.delete(route);
 
         if result.is_ok() {
             child.optimize();
@@ -135,9 +140,9 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8]) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<NodeConstraint>) -> Result<(), DeleteError> {
         if let Some(end_wildcard) = &self.end_wildcard {
-            if end_wildcard.prefix == name {
+            if end_wildcard.prefix == name && end_wildcard.constraint == *constraint {
                 self.end_wildcard = None;
                 return Ok(());
             }
@@ -152,12 +157,6 @@ impl<T> Node<T> {
                 child.optimize();
                 !child.is_empty()
             });
-
-        #[cfg(feature = "regex")]
-        self.regex_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
 
         self.dynamic_children
             .retain_mut(|child| {
@@ -181,14 +180,8 @@ impl<T> Node<T> {
     }
 
     pub(super) fn is_empty(&self) -> bool {
-        #[cfg(feature = "regex")]
-        let has_regex_children = !self.regex_children.is_empty();
-        #[cfg(not(feature = "regex"))]
-        let has_regex_children = false;
-
         self.data.is_none()
             && self.static_children.is_empty()
-            && !has_regex_children
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
             && self.end_wildcard.is_none()

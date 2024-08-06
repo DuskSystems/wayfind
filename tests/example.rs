@@ -1,12 +1,8 @@
-#[cfg(feature = "regex")]
-use std::error::Error;
-
-#[cfg(feature = "regex")]
+use regex::bytes::Regex;
 use wayfind::router::Router;
 
 #[test]
-#[cfg(feature = "regex")]
-fn example() -> Result<(), Box<dyn Error>> {
+fn example() -> Result<(), Box<dyn std::error::Error>> {
     let mut router = Router::new();
 
     // Static route
@@ -28,15 +24,27 @@ fn example() -> Result<(), Box<dyn Error>> {
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
     // Regex Segment
-    router.insert("/repos/<id:[a-f0-9]{32}>", 8)?;
+    router.insert_with_constraints("/repos/<id>", 8, vec![("id", Regex::new("[a-f0-9]{32}")?)])?;
 
     // Regex Inline
-    router.insert("/repos/<id:[a-f0-9]{32}>/archive/v<version:[0-9]+.[0-9]+.[0-9]+>", 9)?;
+    router.insert_with_constraints(
+        "/repos/<id>/archive/v<version>",
+        9,
+        vec![
+            ("id", Regex::new("[a-f0-9]{32}")?),
+            ("version", Regex::new("[0-9]+\\.[0-9]+\\.[0-9]+")?),
+        ],
+    )?;
 
     // Multiple Regex Inline
-    router.insert(
-        "/repos/<id:[a-f0-9]{32}>/compare/<base:[a-f0-9]{40}>..<head:[a-f0-9]{40}>",
+    router.insert_with_constraints(
+        "/repos/<id>/compare/<base>..<head>",
         10,
+        vec![
+            ("id", Regex::new("[a-f0-9]{32}")?),
+            ("base", Regex::new("[a-f0-9]{40}")?),
+            ("head", Regex::new("[a-f0-9]{40}")?),
+        ],
     )?;
 
     // Catch All
@@ -53,14 +61,14 @@ fn example() -> Result<(), Box<dyn Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id:[a-f0-9]{32}> [8]
-    │  │                          ╰─ /
-    │  │                             ├─ archive/v
-    │  │                             │          ╰─ <version:[0-9]+.[0-9]+.[0-9]+> [9]
-    │  │                             ╰─ compare/
-    │  │                                       ╰─ <base:[a-f0-9]{40}>
-    │  │                                                            ╰─ ..
-    │  │                                                                ╰─ <head:[a-f0-9]{40}> [10]
+    │  │       ╰─ <id> [8] [a-f0-9]{32}
+    │  │             ╰─ /
+    │  │                ├─ archive/v
+    │  │                │          ╰─ <version> [9] [0-9]+\.[0-9]+\.[0-9]+
+    │  │                ╰─ compare/
+    │  │                          ╰─ <base> [a-f0-9]{40}
+    │  │                                  ╰─ ..
+    │  │                                      ╰─ <head> [10] [a-f0-9]{40}
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

@@ -3,6 +3,7 @@
 
 #![allow(clippy::too_many_lines)]
 
+use regex::bytes::Regex;
 use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};
 
@@ -109,19 +110,18 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[cfg(feature = "regex")]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/abc/<name:\\d+>/def", 1)?;
-    router.insert("/abc/def/<name:\\d+>", 2)?;
+    router.insert_with_constraints("/abc/<name>/def", 1, vec![("name", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints("/abc/def/<name>", 2, vec![("name", Regex::new(r"\d+")?)])?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name:\d+> [2]
-           ╰─ <name:\d+>
-                       ╰─ /def [1]
+           │     ╰─ <name> [2] \d+
+           ╰─ <name> \d+
+                   ╰─ /def [1]
     "###);
 
     Ok(())
@@ -129,7 +129,7 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 
 #[test]
 #[ignore = "todo"]
-fn test_add_result() {
+fn test_add_result() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     assert!(router.insert("/a/b", 1).is_ok());
     assert!(router.insert("/a/b", 2).is_err());
@@ -141,14 +141,15 @@ fn test_add_result() {
     assert!(router.insert("/a/b/<p:*>", 1).is_ok());
     assert!(router.insert("/a/b/<p2:*>", 2).is_err());
     assert!(router
-        .insert("/k/h/<name:\\d+>", 1)
+        .insert_with_constraints("/k/h/<name>", 1, vec![("name", Regex::new(r"\d+")?)],)
         .is_ok());
 
     insta::assert_snapshot!(router, @"");
+
+    Ok(())
 }
 
 #[test]
-#[cfg(feature = "regex")]
 fn test_matches() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/ab/def", 1)?;
@@ -160,9 +161,13 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c/d", 7)?;
     router.insert("/a/<p1>/<p2>/c", 8)?;
     router.insert("/<p1:*>", 9)?;
-    router.insert("/abc/<param:\\d+>/def", 10)?;
-    router.insert("/kcd/<p1:\\d+>", 11)?;
-    router.insert("/<package>/-/<package_tgz:.*tgz$>", 12)?;
+    router.insert_with_constraints("/abc/<param>/def", 10, vec![("param", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints("/kcd/<p1>", 11, vec![("p1", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints(
+        "/<package>/-/<package_tgz>",
+        12,
+        vec![("package_tgz", Regex::new(r".*tgz$")?)],
+    )?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -174,8 +179,8 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param:\d+>
-       │  │      │            ╰─ /def [10]
+       │  │      ├─ <param> \d+
+       │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
        │  │               ├─ def [4]
@@ -187,10 +192,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1:\d+> [11]
+       │     ╰─ <p1> [11] \d+
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz:.*tgz$> [12]
+       │               ╰─ <package_tgz> [12] .*tgz$
        ╰─ <p1:*> [9]
     "###);
 
@@ -250,21 +255,21 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: poem would match "/<p1:*>"
         "/" => None
         "/abc/123/def" => {
-            path: "/abc/<param:\\d+>/def",
+            path: "/abc/<param>/def",
             value: 10,
             params: {
                 "param" => "123"
             }
         }
         "/kcd/567" => {
-            path: "/kcd/<p1:\\d+>",
+            path: "/kcd/<p1>",
             value: 11,
             params: {
                 "p1" => "567"
             }
         }
         "/is-number/-/is-number-7.0.0.tgz" => {
-            path: "/<package>/-/<package_tgz:.*tgz$>",
+            path: "/<package>/-/<package_tgz>",
             value: 12,
             params: {
                 "package" => "is-number",
@@ -277,7 +282,6 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[cfg(feature = "regex")]
 fn test_match_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/bc", 1)?;
@@ -320,20 +324,20 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    router.insert("/a/<id:\\d+>", 4)?;
+    router.insert_with_constraints("/a/<id>", 4, vec![("id", Regex::new(r"\d+")?)])?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id:\d+> [4]
+         ├─ <id> [4] \d+
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/<id:\\d+>",
+            path: "/a/<id>",
             value: 4,
             params: {
                 "id" => "123"
@@ -348,7 +352,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id:\d+> [4]
+         ├─ <id> [4] \d+
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);

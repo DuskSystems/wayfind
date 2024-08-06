@@ -2,8 +2,6 @@ use super::Node;
 use crate::node::NodeKind;
 use std::fmt::Display;
 
-// FIXME: Messy, but it works.
-// FIXME: Doesn't handle split multi-byte characters.
 impl<T: Display> Display for Node<T> {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -17,11 +15,6 @@ impl<T: Display> Display for Node<T> {
             let key = match &node.kind {
                 NodeKind::Root => "$",
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
-                #[cfg(feature = "regex")]
-                NodeKind::Regex(regex) => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("<{name}:{}>", regex.as_str())
-                }
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     &format!("<{name}>")
@@ -37,18 +30,27 @@ impl<T: Display> Display for Node<T> {
                 .as_ref()
                 .map(|node_data| &node_data.value);
 
+            let constraint = node
+                .constraint
+                .as_ref()
+                .map(|c| format!(" {c:?}"));
+
             if is_root {
                 writeln!(f, "{key}")?;
             } else if is_last {
-                match value {
-                    Some(value) => writeln!(f, "{padding}╰─ {key} [{value}]")?,
-                    None => writeln!(f, "{padding}╰─ {key}")?,
-                }
+                match (value, &constraint) {
+                    (Some(value), Some(constraint)) => writeln!(f, "{padding}╰─ {key} [{value}]{constraint}"),
+                    (Some(value), None) => writeln!(f, "{padding}╰─ {key} [{value}]"),
+                    (None, Some(constraint)) => writeln!(f, "{padding}╰─ {key}{constraint}"),
+                    (None, None) => writeln!(f, "{padding}╰─ {key}"),
+                }?;
             } else {
-                match value {
-                    Some(value) => writeln!(f, "{padding}├─ {key} [{value}]")?,
-                    None => writeln!(f, "{padding}├─ {key}")?,
-                }
+                match (value, &constraint) {
+                    (Some(value), Some(constraint)) => writeln!(f, "{padding}├─ {key} [{value}]{constraint}"),
+                    (Some(value), None) => writeln!(f, "{padding}├─ {key} [{value}]"),
+                    (None, Some(constraint)) => writeln!(f, "{padding}├─ {key}{constraint}"),
+                    (None, None) => writeln!(f, "{padding}├─ {key}"),
+                }?;
             }
 
             // Ensure we align children correctly
@@ -61,11 +63,6 @@ impl<T: Display> Display for Node<T> {
                 format!("{padding}│  {extra_spacing}")
             };
 
-            #[cfg(feature = "regex")]
-            let has_regex_children = !node.regex_children.is_empty();
-            #[cfg(not(feature = "regex"))]
-            let has_regex_children = false;
-
             let has_dynamic_children = !node.dynamic_children.is_empty();
             let has_wildcard_children = !node.wildcard_children.is_empty();
             let has_end_wildcard = node.end_wildcard.is_some();
@@ -73,29 +70,13 @@ impl<T: Display> Display for Node<T> {
             // Recursively print the static children
             let static_count = node.static_children.len();
             for (index, child) in node.static_children.iter().enumerate() {
-                let is_last = if has_regex_children || has_dynamic_children || has_wildcard_children || has_end_wildcard
-                {
+                let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
                     false
                 } else {
                     index == (static_count - 1)
                 };
 
                 debug_node(f, child, &new_prefix, false, is_last)?;
-            }
-
-            // Recursively print the rehex children
-            #[cfg(feature = "regex")]
-            {
-                let regex_count = node.regex_children.len();
-                for (index, child) in node.regex_children.iter().enumerate() {
-                    let is_last = if has_dynamic_children || has_wildcard_children || has_end_wildcard {
-                        false
-                    } else {
-                        index == (regex_count - 1)
-                    };
-
-                    debug_node(f, child, &new_prefix, false, is_last)?;
-                }
             }
 
             // Recursively print dynamic children
