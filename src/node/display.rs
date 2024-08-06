@@ -17,7 +17,7 @@ impl<T: Display> Display for Node<T> {
             let key = match &node.kind {
                 NodeKind::Root => "$",
                 NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
-                #[cfg(regex)]
+                #[cfg(feature = "regex")]
                 NodeKind::Regex(regex) => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     &format!("<{name}:{}>", regex.as_str())
@@ -61,9 +61,9 @@ impl<T: Display> Display for Node<T> {
                 format!("{padding}│  {extra_spacing}")
             };
 
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             let has_regex_children = !node.regex_children.is_empty();
-            #[cfg(not(regex))]
+            #[cfg(not(feature = "regex"))]
             let has_regex_children = false;
 
             let has_dynamic_children = !node.dynamic_children.is_empty();
@@ -84,7 +84,7 @@ impl<T: Display> Display for Node<T> {
             }
 
             // Recursively print the rehex children
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             {
                 let regex_count = node.regex_children.len();
                 for (index, child) in node.regex_children.iter().enumerate() {

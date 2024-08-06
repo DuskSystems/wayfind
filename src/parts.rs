@@ -1,7 +1,7 @@
 use crate::errors::parts::PartsError;
 use std::fmt::Debug;
 
-#[cfg(regex)]
+#[cfg(feature = "regex")]
 use regex::bytes::Regex;
 
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub enum Part<'a> {
         name: &'a [u8],
     },
 
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     Regex {
         name: &'a [u8],
         pattern: Regex,
@@ -31,7 +31,7 @@ impl<'a> PartialEq for Part<'a> {
             (Part::Static { prefix: a }, Part::Static { prefix: b })
             | (Part::Dynamic { name: a }, Part::Dynamic { name: b })
             | (Part::Wildcard { name: a }, Part::Wildcard { name: b }) => a == b,
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             (Part::Regex { name: a, pattern: p1 }, Part::Regex { name: b, pattern: p2 }) => {
                 a == b && p1.as_str() == p2.as_str()
             }
@@ -57,7 +57,7 @@ impl<'a> Parts<'a> {
                     if value == b"*" {
                         parts.push(Part::Wildcard { name });
                     } else {
-                        #[cfg(regex)]
+                        #[cfg(feature = "regex")]
                         {
                             let Ok(value_str) = std::str::from_utf8(value) else {
                                 return Err(PartsError::InvalidRegex);
@@ -70,7 +70,7 @@ impl<'a> Parts<'a> {
                             parts.push(Part::Regex { name, pattern });
                         }
 
-                        #[cfg(not(regex))]
+                        #[cfg(not(feature = "regex"))]
                         {
                             return Err(PartsError::RegexNotEnabled);
                         }
@@ -154,7 +154,7 @@ impl<'a> Parts<'a> {
 mod tests {
     use super::*;
 
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     use std::error::Error;
 
     #[test]
@@ -185,7 +185,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn test_parts_regex() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/<id:[0-9]+>"),
@@ -202,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn test_parts_mixed() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/users/<id:[0-9]+>/posts/<file>.<extension>"),

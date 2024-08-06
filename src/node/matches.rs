@@ -1,6 +1,9 @@
 use super::{Node, NodeData};
 use crate::matches::Parameter;
 
+#[cfg(feature = "regex")]
+use super::NodeKind;
+
 impl<T> Node<T> {
     pub fn matches<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
         if path.is_empty() {
@@ -11,7 +14,7 @@ impl<T> Node<T> {
             return Some(matches);
         }
 
-        #[cfg(regex)]
+        #[cfg(feature = "regex")]
         if let Some(matches) = self.matches_regex(path, parameters) {
             return Some(matches);
         }
@@ -51,7 +54,7 @@ impl<T> Node<T> {
         None
     }
 
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn matches_regex<'a>(&'a self, path: &'a [u8], parameters: &mut Vec<Parameter<'a>>) -> Option<&'a NodeData<T>> {
         if self.quick_regex {
             self.matches_regex_segment(path, parameters)
@@ -61,7 +64,7 @@ impl<T> Node<T> {
     }
 
     // Regex with support for inline regex sections, e.g. `<name:[a-z]+>.txt`
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn matches_regex_inline<'a>(
         &'a self,
         path: &'a [u8],
@@ -101,7 +104,7 @@ impl<T> Node<T> {
     }
 
     // Doesn't support inline regex sections, e.g. `<name:[a-z]+>.txt`, only `/<segment:[a-z]+>/`
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn matches_regex_segment<'a>(
         &'a self,
         path: &'a [u8],
