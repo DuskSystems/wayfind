@@ -1,4 +1,4 @@
-use crate::errors::insert::InsertError;
+use crate::errors::parts::PartsError;
 use std::fmt::Debug;
 
 #[cfg(regex)]
@@ -46,7 +46,7 @@ impl<'a> Eq for Part<'a> {}
 pub struct Parts<'a>(Vec<Part<'a>>);
 
 impl<'a> Parts<'a> {
-    pub fn new(path: &'a [u8]) -> Result<Self, InsertError> {
+    pub fn new(path: &'a [u8]) -> Result<Self, PartsError> {
         let mut parts = vec![];
         let mut index = 0;
 
@@ -60,11 +60,11 @@ impl<'a> Parts<'a> {
                         #[cfg(regex)]
                         {
                             let Ok(value_str) = std::str::from_utf8(value) else {
-                                return Err(InsertError::InvalidRegex);
+                                return Err(PartsError::InvalidRegex);
                             };
 
                             let Ok(pattern) = Regex::new(value_str) else {
-                                return Err(InsertError::InvalidRegex);
+                                return Err(PartsError::InvalidRegex);
                             };
 
                             parts.push(Part::Regex { name, pattern });
@@ -72,7 +72,7 @@ impl<'a> Parts<'a> {
 
                         #[cfg(not(regex))]
                         {
-                            return Err(InsertError::RegexNotEnabled);
+                            return Err(PartsError::RegexNotEnabled);
                         }
                     }
                 } else {

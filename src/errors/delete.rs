@@ -2,23 +2,23 @@ use super::parts::PartsError;
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum InsertError {
+pub enum DeleteError {
     PartsError(PartsError),
-    DuplicatePath,
+    NotFound,
 }
 
-impl Error for InsertError {}
+impl Error for DeleteError {}
 
-impl Display for InsertError {
+impl Display for DeleteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PartsError(error) => error.fmt(f),
-            Self::DuplicatePath => write!(f, "Duplicate Path"),
+            Self::NotFound => write!(f, "Path Not Found"),
         }
     }
 }
 
-impl From<PartsError> for InsertError {
+impl From<PartsError> for DeleteError {
     fn from(error: PartsError) -> Self {
         Self::PartsError(error)
     }

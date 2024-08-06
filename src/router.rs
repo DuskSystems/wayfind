@@ -1,5 +1,5 @@
 use crate::{
-    errors::insert::InsertError,
+    errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
     node::{Node, NodeData, NodeKind},
     parts::Parts,
@@ -36,15 +36,19 @@ impl<T> Router<T> {
     }
 
     pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
+        let parts = Parts::new(path.as_bytes())?;
         self.root.insert(
-            Parts::new(path.as_bytes())?,
+            parts,
             NodeData {
                 path: Arc::from(path),
                 value,
             },
-        );
+        )
+    }
 
-        Ok(())
+    pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
+        let mut parts = Parts::new(path.as_bytes())?;
+        self.root.delete(&mut parts)
     }
 
     #[must_use]
