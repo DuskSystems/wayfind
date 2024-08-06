@@ -1,26 +1,33 @@
 use super::{Node, NodeData, NodeKind};
-use crate::parts::{Part, Parts};
+use crate::{
+    errors::insert::InsertError,
+    parts::{Part, Parts},
+};
 
 impl<T> Node<T> {
-    pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) {
+    pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(parts, data, prefix),
+                Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
                 #[cfg(regex)]
-                Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern),
-                Part::Dynamic { name } => self.insert_dynamic(parts, data, name),
-                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name),
-                Part::Wildcard { name } => self.insert_wildcard(parts, data, name),
-            }
+                Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
+                Part::Dynamic { name } => self.insert_dynamic(parts, data, name)?,
+                Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name)?,
+                Part::Wildcard { name } => self.insert_wildcard(parts, data, name)?,
+            };
         } else {
-            assert!(self.data.is_none(), "Duplicate path");
+            if self.data.is_some() {
+                return Err(InsertError::DuplicatePath);
+            }
+
             self.data = Some(data);
         }
 
         self.update_quicks();
+        Ok(())
     }
 
-    fn insert_static(&mut self, parts: Parts, data: NodeData<T>, prefix: &[u8]) {
+    fn insert_static(&mut self, parts: Parts, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -45,11 +52,11 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data);
+                new_child.insert(parts, data)?;
                 new_child
             });
 
-            return;
+            return Ok(());
         };
 
         let common_prefix = prefix
@@ -60,12 +67,12 @@ impl<T> Node<T> {
 
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(parts, data);
+                child.insert(parts, data)?;
             } else {
-                child.insert_static(parts, data, &prefix[common_prefix..]);
+                child.insert_static(parts, data, &prefix[common_prefix..])?;
             }
 
-            return;
+            return Ok(());
         }
 
         let new_child_a = Self {
@@ -108,21 +115,29 @@ impl<T> Node<T> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
-            child.insert(parts, data);
+            child.insert(parts, data)?;
         } else {
             child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(parts, data);
+            child.static_children[1].insert(parts, data)?;
         }
+
+        Ok(())
     }
 
     #[cfg(regex)]
-    fn insert_regex(&mut self, parts: Parts, data: NodeData<T>, name: &[u8], pattern: Regex) {
+    fn insert_regex(
+        &mut self,
+        parts: Parts,
+        data: NodeData<T>,
+        name: &[u8],
+        pattern: Regex,
+    ) -> Result<(), InsertError> {
         if let Some(child) = self
             .regex_children
             .iter_mut()
             .find(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
         {
-            child.insert(parts, data);
+            child.insert(parts, data)?;
         } else {
             self.regex_children.push({
                 let mut new_child = Self {
@@ -141,19 +156,19 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data);
+                new_child.insert(parts, data)?;
                 new_child
             });
         }
     }
 
-    fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) {
+    fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
             .find(|child| child.prefix == name)
         {
-            child.insert(parts, data);
+            child.insert(parts, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
@@ -174,19 +189,21 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data);
+                new_child.insert(parts, data)?;
                 new_child
             });
         }
+
+        Ok(())
     }
 
-    fn insert_wildcard(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) {
+    fn insert_wildcard(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
             .find(|child| child.prefix == name)
         {
-            child.insert(parts, data);
+            child.insert(parts, data)?;
         } else {
             self.wildcard_children.push({
                 let mut new_child = Self {
@@ -207,13 +224,16 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data);
+                new_child.insert(parts, data)?;
                 new_child
             });
         }
+
+        Ok(())
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: &[u8]) {
+    #[allow(clippy::unnecessary_wraps)]
+    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
         // FIXME: We probably need splitting capabilities here, to change a end wildcard into a normal wildcard?
         self.end_wildcard = Some(Box::new(Self {
             kind: NodeKind::EndWildcard,
@@ -232,9 +252,11 @@ impl<T> Node<T> {
             quick_regex: false,
             quick_dynamic: false,
         }));
+
+        Ok(())
     }
 
-    fn update_quicks(&mut self) {
+    pub(super) fn update_quicks(&mut self) {
         #[cfg(regex)]
         {
             self.quick_regex = self.regex_children.iter().all(|child| {
