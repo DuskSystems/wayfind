@@ -1,40 +1,48 @@
-use std::sync::Arc;
-
-#[cfg(feature = "regex")]
 use regex::bytes::Regex;
+use std::{fmt::Debug, sync::Arc};
 
 pub mod delete;
 pub mod display;
 pub mod insert;
 pub mod matches;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeKind {
     Root,
     Static,
-    #[cfg(feature = "regex")]
-    Regex(Regex),
     Dynamic,
     Wildcard,
     EndWildcard,
 }
 
-impl PartialEq for NodeKind {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Root, Self::Root)
-            | (Self::Static, Self::Static)
-            | (Self::Dynamic, Self::Dynamic)
-            | (Self::Wildcard, Self::Wildcard)
-            | (Self::EndWildcard, Self::EndWildcard) => true,
-            #[cfg(feature = "regex")]
-            (Self::Regex(r1), Self::Regex(r2)) => r1.as_str() == r2.as_str(),
-            _ => false,
+#[derive(Clone)]
+pub enum NodeConstraint {
+    Regex(Regex),
+}
+
+impl Debug for NodeConstraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Regex(regex) => write!(f, "{}", regex.as_str()),
         }
     }
 }
 
-impl Eq for NodeKind {}
+impl PartialEq for NodeConstraint {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Regex(left), Self::Regex(right)) => left.as_str() == right.as_str(),
+        }
+    }
+}
+
+impl Eq for NodeConstraint {}
+
+impl From<Regex> for NodeConstraint {
+    fn from(regex: Regex) -> Self {
+        Self::Regex(regex)
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {
@@ -43,21 +51,18 @@ pub struct NodeData<T> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<T> {
+pub struct Node<'a, T> {
     pub kind: NodeKind,
 
-    pub prefix: Vec<u8>,
+    pub prefix: &'a [u8],
     pub data: Option<NodeData<T>>,
+    pub constraint: Option<NodeConstraint>,
 
-    pub static_children: Vec<Node<T>>,
-    #[cfg(feature = "regex")]
-    pub regex_children: Vec<Node<T>>,
-    pub dynamic_children: Vec<Node<T>>,
-    pub wildcard_children: Vec<Node<T>>,
-    pub end_wildcard: Option<Box<Node<T>>>,
+    pub static_children: Vec<Node<'a, T>>,
+    pub dynamic_children: Vec<Node<'a, T>>,
+    pub wildcard_children: Vec<Node<'a, T>>,
+    pub end_wildcard: Option<Box<Node<'a, T>>>,
 
     // TODO: Come up with a better names.
-    #[cfg(feature = "regex")]
-    pub quick_regex: bool,
     pub quick_dynamic: bool,
 }

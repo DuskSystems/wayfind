@@ -13,10 +13,6 @@ license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 
-[workspace.lints.rust]
-unsafe_code = "forbid"
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(regex)'] }
-
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
@@ -63,12 +59,9 @@ categories.workspace = true
 [lints]
 workspace = true
 
-[features]
-default = []
-regex = ["dep:regex"]
-
 [dependencies]
-regex = { version = "1.10", optional = true }
+regex = "1.10"
+smallvec = "1.13"
 
 [dev-dependencies]
 # Snapshots

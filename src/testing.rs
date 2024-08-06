@@ -28,8 +28,8 @@ macro_rules! assert_router_matches {
             params: vec![
                 $(
                     $( $crate::matches::Parameter {
-                        key: $param_key.as_bytes(),
-                        value: $param_value.as_bytes(),
+                        key: $param_key,
+                        value: $param_value,
                     } ),+
                 )?
             ]
@@ -61,7 +61,11 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     if let Some(expected) = expected {
         assert_eq!(data.path, expected.path, "Path mismatch for input: {input}");
         assert_eq!(data.value, expected.value, "Value mismatch for input: {input}");
-        assert_eq!(parameters, expected.params, "Parameters mismatch for input: {input}");
+        assert_eq!(
+            parameters.to_vec(),
+            expected.params,
+            "Parameters mismatch for input: {input}"
+        );
     } else {
         panic!("Unexpected match for input: {input}");
     }

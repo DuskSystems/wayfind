@@ -94,7 +94,7 @@ async fn hello_route(
     _: &'_ str,
     parameters: &'_ [Parameter<'_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
-    let name = String::from_utf8_lossy(parameters[0].value);
+    let name = parameters[0].value;
     let json = serde_json::json!({
         "hello": name,
     });
