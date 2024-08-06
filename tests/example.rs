@@ -1,11 +1,7 @@
-#[cfg(feature = "regex")]
 use std::error::Error;
-
-#[cfg(feature = "regex")]
 use wayfind::router::Router;
 
 #[test]
-#[cfg(feature = "regex")]
 fn example() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 

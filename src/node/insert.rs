@@ -3,8 +3,6 @@ use crate::{
     errors::insert::InsertError,
     parts::{Part, Parts},
 };
-
-#[cfg(feature = "regex")]
 use regex::bytes::Regex;
 
 impl<T> Node<T> {
@@ -12,7 +10,6 @@ impl<T> Node<T> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
-                #[cfg(feature = "regex")]
                 Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
                 Part::Dynamic { name } => self.insert_dynamic(parts, data, name)?,
                 Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name)?,
@@ -44,13 +41,11 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -85,13 +80,11 @@ impl<T> Node<T> {
             data: child.data.take(),
 
             static_children: std::mem::take(&mut child.static_children),
-            #[cfg(feature = "regex")]
             regex_children: std::mem::take(&mut child.regex_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
             wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard: std::mem::take(&mut child.end_wildcard),
 
-            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         };
@@ -103,13 +96,11 @@ impl<T> Node<T> {
             data: None,
 
             static_children: vec![],
-            #[cfg(feature = "regex")]
             regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
 
-            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         };
@@ -127,7 +118,6 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    #[cfg(feature = "regex")]
     fn insert_regex(
         &mut self,
         parts: Parts,
@@ -183,13 +173,11 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -218,13 +206,11 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -247,13 +233,11 @@ impl<T> Node<T> {
             data: Some(data),
 
             static_children: vec![],
-            #[cfg(feature = "regex")]
             regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
 
-            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         }));
@@ -262,9 +246,37 @@ impl<T> Node<T> {
     }
 
     pub(super) fn update_quicks(&mut self) {
-        #[cfg(feature = "regex")]
-        {
-            self.quick_regex = self.regex_children.iter().all(|child| {
+        self.quick_regex = self.regex_children.iter().all(|child| {
+            // Leading slash?
+            if child.prefix.first() == Some(&b'/') {
+                return true;
+            }
+
+            // No children?
+            if child.static_children.is_empty()
+                && child.regex_children.is_empty()
+                && child.dynamic_children.is_empty()
+                && child.end_wildcard.is_none()
+            {
+                return true;
+            }
+
+            // All static children start with a slash?
+            if child
+                .static_children
+                .iter()
+                .all(|child| child.prefix.first() == Some(&b'/'))
+            {
+                return true;
+            }
+
+            false
+        });
+
+        self.quick_dynamic = self
+            .dynamic_children
+            .iter()
+            .all(|child| {
                 // Leading slash?
                 if child.prefix.first() == Some(&b'/') {
                     return true;
@@ -290,48 +302,11 @@ impl<T> Node<T> {
 
                 false
             });
-        }
-
-        self.quick_dynamic = self
-            .dynamic_children
-            .iter()
-            .all(|child| {
-                // Leading slash?
-                if child.prefix.first() == Some(&b'/') {
-                    return true;
-                }
-
-                // No children?
-                #[cfg(feature = "regex")]
-                let has_regex_children = child.regex_children.is_empty();
-                #[cfg(not(feature = "regex"))]
-                let has_regex_children = false;
-
-                if child.static_children.is_empty()
-                    && !has_regex_children
-                    && child.dynamic_children.is_empty()
-                    && child.end_wildcard.is_none()
-                {
-                    return true;
-                }
-
-                // All static children start with a slash?
-                if child
-                    .static_children
-                    .iter()
-                    .all(|child| child.prefix.first() == Some(&b'/'))
-                {
-                    return true;
-                }
-
-                false
-            });
 
         for child in &mut self.static_children {
             child.update_quicks();
         }
 
-        #[cfg(feature = "regex")]
         for child in &mut self.regex_children {
             child.update_quicks();
         }

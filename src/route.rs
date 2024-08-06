@@ -1,7 +1,5 @@
 pub struct Route<'a> {
     pub path: &'a str,
-
-    #[cfg(feature = "regex")]
     pub constraints: Vec<(&'a str, &'a str)>,
 }
 
@@ -10,8 +8,6 @@ impl<'a> Route<'a> {
     pub const fn new(path: &'a str) -> Self {
         Self {
             path,
-
-            #[cfg(feature = "regex")]
             constraints: vec![],
         }
     }

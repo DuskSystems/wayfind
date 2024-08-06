@@ -23,13 +23,11 @@ impl<T> Router<T> {
                 data: None,
 
                 static_children: vec![],
-                #[cfg(feature = "regex")]
                 regex_children: vec![],
                 dynamic_children: vec![],
                 wildcard_children: vec![],
                 end_wildcard: None,
 
-                #[cfg(feature = "regex")]
                 quick_regex: false,
                 quick_dynamic: false,
             },

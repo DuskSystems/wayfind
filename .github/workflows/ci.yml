@@ -49,23 +49,11 @@ jobs:
       - name: Run the tasks
         run: |
           set -eufo pipefail
-
-          # shared
           cargo fmt --check
-
-          # default
+          cargo clippy
           cargo check
           cargo build
-          cargo clippy
           cargo insta test
-
-          # regex
-          cargo check --features regex
-          cargo build --features regex
-          cargo clippy --features regex
-          cargo insta test --features regex
-
-          # codspeed
           cargo codspeed build --features regex
 
       - name: Run the benchmarks

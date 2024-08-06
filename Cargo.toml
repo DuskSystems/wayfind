@@ -63,12 +63,8 @@ categories.workspace = true
 [lints]
 workspace = true
 
-[features]
-default = []
-regex = ["dep:regex"]
-
 [dependencies]
-regex = { version = "1.10", optional = true }
+regex = "1.10"
 
 [dev-dependencies]
 # Snapshots

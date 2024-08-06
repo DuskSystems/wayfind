@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
-#[cfg(feature = "regex")]
 use regex::bytes::Regex;
+use std::sync::Arc;
 
 pub mod delete;
 pub mod display;
@@ -12,7 +10,6 @@ pub mod matches;
 pub enum NodeKind {
     Root,
     Static,
-    #[cfg(feature = "regex")]
     Regex(Regex),
     Dynamic,
     Wildcard,
@@ -27,7 +24,6 @@ impl PartialEq for NodeKind {
             | (Self::Dynamic, Self::Dynamic)
             | (Self::Wildcard, Self::Wildcard)
             | (Self::EndWildcard, Self::EndWildcard) => true,
-            #[cfg(feature = "regex")]
             (Self::Regex(r1), Self::Regex(r2)) => r1.as_str() == r2.as_str(),
             _ => false,
         }
@@ -50,14 +46,12 @@ pub struct Node<T> {
     pub data: Option<NodeData<T>>,
 
     pub static_children: Vec<Node<T>>,
-    #[cfg(feature = "regex")]
     pub regex_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,
     pub wildcard_children: Vec<Node<T>>,
     pub end_wildcard: Option<Box<Node<T>>>,
 
     // TODO: Come up with a better names.
-    #[cfg(feature = "regex")]
     pub quick_regex: bool,
     pub quick_dynamic: bool,
 }

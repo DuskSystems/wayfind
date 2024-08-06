@@ -1,28 +1,13 @@
 use crate::errors::parts::PartsError;
-use std::fmt::Debug;
-
-#[cfg(feature = "regex")]
 use regex::bytes::Regex;
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub enum Part<'a> {
-    Static {
-        prefix: &'a [u8],
-    },
-
-    Dynamic {
-        name: &'a [u8],
-    },
-
-    Wildcard {
-        name: &'a [u8],
-    },
-
-    #[cfg(feature = "regex")]
-    Regex {
-        name: &'a [u8],
-        pattern: Regex,
-    },
+    Static { prefix: &'a [u8] },
+    Regex { name: &'a [u8], pattern: Regex },
+    Dynamic { name: &'a [u8] },
+    Wildcard { name: &'a [u8] },
 }
 
 impl<'a> PartialEq for Part<'a> {
@@ -31,7 +16,6 @@ impl<'a> PartialEq for Part<'a> {
             (Part::Static { prefix: a }, Part::Static { prefix: b })
             | (Part::Dynamic { name: a }, Part::Dynamic { name: b })
             | (Part::Wildcard { name: a }, Part::Wildcard { name: b }) => a == b,
-            #[cfg(feature = "regex")]
             (Part::Regex { name: a, pattern: p1 }, Part::Regex { name: b, pattern: p2 }) => {
                 a == b && p1.as_str() == p2.as_str()
             }
@@ -57,23 +41,15 @@ impl<'a> Parts<'a> {
                     if value == b"*" {
                         parts.push(Part::Wildcard { name });
                     } else {
-                        #[cfg(feature = "regex")]
-                        {
-                            let Ok(value_str) = std::str::from_utf8(value) else {
-                                return Err(PartsError::InvalidRegex);
-                            };
+                        let Ok(value_str) = std::str::from_utf8(value) else {
+                            return Err(PartsError::InvalidRegex);
+                        };
 
-                            let Ok(pattern) = Regex::new(value_str) else {
-                                return Err(PartsError::InvalidRegex);
-                            };
+                        let Ok(pattern) = Regex::new(value_str) else {
+                            return Err(PartsError::InvalidRegex);
+                        };
 
-                            parts.push(Part::Regex { name, pattern });
-                        }
-
-                        #[cfg(not(feature = "regex"))]
-                        {
-                            return Err(PartsError::RegexNotEnabled);
-                        }
+                        parts.push(Part::Regex { name, pattern });
                     }
                 } else {
                     parts.push(Part::Dynamic { name });
@@ -153,8 +129,6 @@ impl<'a> Parts<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[cfg(feature = "regex")]
     use std::error::Error;
 
     #[test]
@@ -185,7 +159,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "regex")]
     fn test_parts_regex() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/<id:[0-9]+>"),
@@ -202,7 +175,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "regex")]
     fn test_parts_mixed() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             Parts::new(b"/users/<id:[0-9]+>/posts/<file>.<extension>"),
