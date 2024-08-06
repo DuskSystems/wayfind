@@ -28,7 +28,6 @@ impl<T> Router<T> {
                 wildcard_children: vec![],
                 end_wildcard: None,
 
-                quick_regex: false,
                 quick_dynamic: false,
             },
         }

@@ -65,6 +65,5 @@ pub struct Node<T> {
     pub end_wildcard: Option<Box<Node<T>>>,
 
     // TODO: Come up with a better names.
-    pub quick_regex: bool,
     pub quick_dynamic: bool,
 }
