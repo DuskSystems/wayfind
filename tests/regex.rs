@@ -1,12 +1,12 @@
 #![allow(clippy::too_many_lines)]
 
-#[cfg(regex)]
+#[cfg(feature = "regex")]
 use std::error::Error;
-#[cfg(regex)]
+#[cfg(feature = "regex")]
 use wayfind::{assert_router_matches, router::Router};
 
 #[test]
-#[cfg(regex)]
+#[cfg(feature = "regex")]
 fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/user/<name:[a-z]+>.<ext:png|jpg>", 1)?;

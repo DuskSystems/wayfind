@@ -4,12 +4,15 @@ use crate::{
     parts::{Part, Parts},
 };
 
+#[cfg(feature = "regex")]
+use regex::bytes::Regex;
+
 impl<T> Node<T> {
     pub fn insert(&mut self, mut parts: Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
-                #[cfg(regex)]
+                #[cfg(feature = "regex")]
                 Part::Regex { name, pattern } => self.insert_regex(parts, data, name, pattern)?,
                 Part::Dynamic { name } => self.insert_dynamic(parts, data, name)?,
                 Part::Wildcard { name } if parts.is_empty() => self.insert_end_wildcard(data, name)?,
@@ -41,13 +44,13 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -82,13 +85,13 @@ impl<T> Node<T> {
             data: child.data.take(),
 
             static_children: std::mem::take(&mut child.static_children),
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             regex_children: std::mem::take(&mut child.regex_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
             wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard: std::mem::take(&mut child.end_wildcard),
 
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         };
@@ -100,13 +103,13 @@ impl<T> Node<T> {
             data: None,
 
             static_children: vec![],
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
 
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         };
@@ -124,7 +127,7 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    #[cfg(regex)]
+    #[cfg(feature = "regex")]
     fn insert_regex(
         &mut self,
         parts: Parts,
@@ -160,6 +163,8 @@ impl<T> Node<T> {
                 new_child
             });
         }
+
+        Ok(())
     }
 
     fn insert_dynamic(&mut self, parts: Parts, data: NodeData<T>, name: &[u8]) -> Result<(), InsertError> {
@@ -178,13 +183,13 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -213,13 +218,13 @@ impl<T> Node<T> {
                     data: None,
 
                     static_children: vec![],
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     regex_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
                     end_wildcard: None,
 
-                    #[cfg(regex)]
+                    #[cfg(feature = "regex")]
                     quick_regex: false,
                     quick_dynamic: false,
                 };
@@ -242,13 +247,13 @@ impl<T> Node<T> {
             data: Some(data),
 
             static_children: vec![],
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             regex_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
             end_wildcard: None,
 
-            #[cfg(regex)]
+            #[cfg(feature = "regex")]
             quick_regex: false,
             quick_dynamic: false,
         }));
@@ -257,7 +262,7 @@ impl<T> Node<T> {
     }
 
     pub(super) fn update_quicks(&mut self) {
-        #[cfg(regex)]
+        #[cfg(feature = "regex")]
         {
             self.quick_regex = self.regex_children.iter().all(|child| {
                 // Leading slash?
@@ -297,9 +302,9 @@ impl<T> Node<T> {
                 }
 
                 // No children?
-                #[cfg(regex)]
+                #[cfg(feature = "regex")]
                 let has_regex_children = child.regex_children.is_empty();
-                #[cfg(not(regex))]
+                #[cfg(not(feature = "regex"))]
                 let has_regex_children = false;
 
                 if child.static_children.is_empty()
@@ -326,7 +331,7 @@ impl<T> Node<T> {
             child.update_quicks();
         }
 
-        #[cfg(regex)]
+        #[cfg(feature = "regex")]
         for child in &mut self.regex_children {
             child.update_quicks();
         }

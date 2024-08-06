@@ -4,13 +4,16 @@ use crate::{
     parts::{Part, Parts},
 };
 
+#[cfg(feature = "regex")]
+use regex::bytes::Regex;
+
 impl<T> Node<T> {
     pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(parts, prefix),
-                #[cfg(regex)]
-                Part::Regex { name, pattern } => self.delete_regex(parts, data, name, pattern),
+                #[cfg(feature = "regex")]
+                Part::Regex { name, pattern } => self.delete_regex(parts, name, &pattern),
                 Part::Dynamic { name } => self.delete_dynamic(parts, name),
                 Part::Wildcard { name } if parts.is_empty() => self.delete_end_wildcard(name),
                 Part::Wildcard { name } => self.delete_wildcard(parts, name),
@@ -66,12 +69,14 @@ impl<T> Node<T> {
         result
     }
 
-    #[cfg(regex)]
-    fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &str) -> Result<(), DeleteError> {
+    #[cfg(feature = "regex")]
+    fn delete_regex(&mut self, parts: &mut Parts<'_>, name: &[u8], pattern: &Regex) -> Result<(), DeleteError> {
+        use super::NodeKind;
+
         let index = self
             .regex_children
             .iter()
-            .position(|child| child.prefix == name && child.pattern == pattern)
+            .position(|child| child.prefix == name && child.kind == NodeKind::Regex(pattern.clone()))
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.regex_children[index];
@@ -148,7 +153,7 @@ impl<T> Node<T> {
                 !child.is_empty()
             });
 
-        #[cfg(regex)]
+        #[cfg(feature = "regex")]
         self.regex_children.retain_mut(|child| {
             child.optimize();
             !child.is_empty()
@@ -176,9 +181,9 @@ impl<T> Node<T> {
     }
 
     pub(super) fn is_empty(&self) -> bool {
-        #[cfg(regex)]
-        let has_regex_children = !node.regex_children.is_empty();
-        #[cfg(not(regex))]
+        #[cfg(feature = "regex")]
+        let has_regex_children = !self.regex_children.is_empty();
+        #[cfg(not(feature = "regex"))]
         let has_regex_children = false;
 
         self.data.is_none()
