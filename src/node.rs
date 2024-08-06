@@ -38,6 +38,12 @@ impl PartialEq for NodeConstraint {
 
 impl Eq for NodeConstraint {}
 
+impl From<Regex> for NodeConstraint {
+    fn from(regex: Regex) -> Self {
+        Self::Regex(regex)
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {
     pub path: Arc<str>,

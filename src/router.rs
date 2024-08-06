@@ -46,8 +46,13 @@ impl<T> Router<T> {
         &mut self,
         path: &str,
         value: T,
-        constraints: Vec<(&str, NodeConstraint)>,
+        constraints: Vec<(&str, impl Into<NodeConstraint>)>,
     ) -> Result<(), InsertError> {
+        let constraints = constraints
+            .into_iter()
+            .map(|(name, constraint)| (name, constraint.into()))
+            .collect();
+
         let mut route = Route::new(path, constraints)?;
         let path = Arc::from(route.path);
 
@@ -63,8 +68,13 @@ impl<T> Router<T> {
     pub fn delete_with_constraints(
         &mut self,
         path: &str,
-        constraints: Vec<(&str, NodeConstraint)>,
+        constraints: Vec<(&str, impl Into<NodeConstraint>)>,
     ) -> Result<(), DeleteError> {
+        let constraints = constraints
+            .into_iter()
+            .map(|(name, constraint)| (name, constraint.into()))
+            .collect();
+
         let mut route = Route::new(path, constraints)?;
         self.root.delete(&mut route)
     }

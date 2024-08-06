@@ -2,7 +2,7 @@
 
 use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
+use wayfind::{assert_router_matches, router::Router};
 
 #[test]
 fn test_inline_regex() -> Result<(), Box<dyn Error>> {
@@ -11,46 +11,28 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     router.insert_with_constraints(
         "/user/<name>.<ext>",
         1,
-        vec![
-            ("name", NodeConstraint::Regex(Regex::new(r"[a-z]+")?)),
-            ("ext", NodeConstraint::Regex(Regex::new(r"png|jpg")?)),
-        ],
+        vec![("name", Regex::new(r"[a-z]+")?), ("ext", Regex::new(r"png|jpg")?)],
     )?;
 
     router.insert_with_constraints(
         "/file-<year>-doc.<ext>",
         2,
-        vec![
-            ("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?)),
-            ("ext", NodeConstraint::Regex(Regex::new(r"pdf|docx")?)),
-        ],
+        vec![("year", Regex::new(r"\d{4}")?), ("ext", Regex::new(r"pdf|docx")?)],
     )?;
 
-    router.insert_with_constraints(
-        "/<category>-items.html",
-        3,
-        vec![("category", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))],
-    )?;
+    router.insert_with_constraints("/<category>-items.html", 3, vec![("category", Regex::new(r"[a-z-]+")?)])?;
 
-    router.insert_with_constraints(
-        "/report-<id>",
-        4,
-        vec![("id", NodeConstraint::Regex(Regex::new(r"\d+")?))],
-    )?;
+    router.insert_with_constraints("/report-<id>", 4, vec![("id", Regex::new(r"\d+")?)])?;
 
-    router.insert_with_constraints(
-        "/posts/<year>/<slug:*>",
-        5,
-        vec![("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))],
-    )?;
+    router.insert_with_constraints("/posts/<year>/<slug:*>", 5, vec![("year", Regex::new(r"\d{4}")?)])?;
 
     router.insert_with_constraints(
         "/products/<category>/<id>-<slug>",
         6,
         vec![
-            ("category", NodeConstraint::Regex(Regex::new(r"[a-z]+")?)),
-            ("id", NodeConstraint::Regex(Regex::new(r"\d+")?)),
-            ("slug", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?)),
+            ("category", Regex::new(r"[a-z]+")?),
+            ("id", Regex::new(r"\d+")?),
+            ("slug", Regex::new(r"[a-z-]+")?),
         ],
     )?;
 
