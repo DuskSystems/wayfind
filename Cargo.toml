@@ -15,7 +15,6 @@ categories = ["network-programming", "web-programming"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(regex)'] }
 
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
