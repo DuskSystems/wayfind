@@ -3,6 +3,7 @@ use crate::node::NodeKind;
 use std::fmt::Display;
 
 impl<T: Display> Display for Node<T> {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T: Display>(
             f: &mut std::fmt::Formatter,
@@ -64,7 +65,7 @@ impl<T: Display> Display for Node<T> {
 
             let has_dynamic_children = !node.dynamic_children.is_empty();
             let has_wildcard_children = !node.wildcard_children.is_empty();
-            let has_end_wildcard = node.end_wildcard.is_some();
+            let has_end_wildcard = !node.end_wildcard_children.is_empty();
 
             // Recursively print the static children
             let static_count = node.static_children.len();
@@ -106,9 +107,15 @@ impl<T: Display> Display for Node<T> {
                 debug_node(f, child, &new_prefix, false, is_last)?;
             }
 
-            // Print end wildcard
-            if let Some(child) = &node.end_wildcard {
-                debug_node(f, child, &new_prefix, false, true)?;
+            // Recursively print end wildcard children
+            let end_wildcard_count = node.end_wildcard_children.len();
+            for (index, child) in node
+                .end_wildcard_children
+                .iter()
+                .enumerate()
+            {
+                let is_last = index == (end_wildcard_count - 1);
+                debug_node(f, child, &new_prefix, false, is_last)?;
             }
 
             Ok(())

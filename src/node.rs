@@ -61,7 +61,7 @@ pub struct Node<T> {
     pub static_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,
     pub wildcard_children: Vec<Node<T>>,
-    pub end_wildcard: Option<Box<Node<T>>>,
+    pub end_wildcard_children: Vec<Node<T>>,
 
     // TODO: Come up with a better names.
     pub quick_dynamic: bool,

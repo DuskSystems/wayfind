@@ -141,14 +141,14 @@ impl<T> Node<T> {
     }
 
     fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<NodeConstraint>) -> Result<(), DeleteError> {
-        if let Some(end_wildcard) = &self.end_wildcard {
-            if end_wildcard.prefix == name && end_wildcard.constraint == *constraint {
-                self.end_wildcard = None;
-                return Ok(());
-            }
-        }
+        let index = self
+            .end_wildcard_children
+            .iter()
+            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .ok_or(DeleteError::NotFound)?;
 
-        Err(DeleteError::NotFound)
+        self.end_wildcard_children.remove(index);
+        Ok(())
     }
 
     fn optimize(&mut self) {
@@ -170,11 +170,11 @@ impl<T> Node<T> {
                 !child.is_empty()
             });
 
-        if let Some(end_wildcard) = &mut self.end_wildcard {
-            if end_wildcard.is_empty() {
-                self.end_wildcard = None;
-            }
-        }
+        self.end_wildcard_children
+            .retain_mut(|child| {
+                child.optimize();
+                !child.is_empty()
+            });
 
         self.update_quicks();
     }
@@ -184,6 +184,6 @@ impl<T> Node<T> {
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
-            && self.end_wildcard.is_none()
+            && self.end_wildcard_children.is_empty()
     }
 }
