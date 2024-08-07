@@ -61,10 +61,10 @@ impl<T> Node<T> {
                     data: None,
                     constraints: smallvec![],
 
-                    static_children: smallvec![],
-                    dynamic_children: smallvec![],
-                    wildcard_children: smallvec![],
-                    end_wildcard_children: smallvec![],
+                    static_children: vec![],
+                    dynamic_children: vec![],
+                    wildcard_children: vec![],
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -114,10 +114,10 @@ impl<T> Node<T> {
             data: None,
             constraints: smallvec![],
 
-            static_children: smallvec![],
-            dynamic_children: smallvec![],
-            wildcard_children: smallvec![],
-            end_wildcard_children: smallvec![],
+            static_children: vec![],
+            dynamic_children: vec![],
+            wildcard_children: vec![],
+            end_wildcard_children: vec![],
 
             quick_dynamic: false,
         };
@@ -125,10 +125,10 @@ impl<T> Node<T> {
         child.prefix = child.prefix[..common_prefix].to_vec();
 
         if prefix[common_prefix..].is_empty() {
-            child.static_children = smallvec![Box::new(new_child_a)];
+            child.static_children = vec![Box::new(new_child_a)];
             child.insert(route, data)?;
         } else {
-            child.static_children = smallvec![Box::new(new_child_a), Box::new(new_child_b)];
+            child.static_children = vec![Box::new(new_child_a), Box::new(new_child_b)];
             child.static_children[1].insert(route, data)?;
         }
 
@@ -157,10 +157,10 @@ impl<T> Node<T> {
                     data: None,
                     constraints,
 
-                    static_children: smallvec![],
-                    dynamic_children: smallvec![],
-                    wildcard_children: smallvec![],
-                    end_wildcard_children: smallvec![],
+                    static_children: vec![],
+                    dynamic_children: vec![],
+                    wildcard_children: vec![],
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -195,10 +195,10 @@ impl<T> Node<T> {
                     data: None,
                     constraints,
 
-                    static_children: smallvec![],
-                    dynamic_children: smallvec![],
-                    wildcard_children: smallvec![],
-                    end_wildcard_children: smallvec![],
+                    static_children: vec![],
+                    dynamic_children: vec![],
+                    wildcard_children: vec![],
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -233,10 +233,10 @@ impl<T> Node<T> {
                 data: Some(data),
                 constraints,
 
-                static_children: smallvec![],
-                dynamic_children: smallvec![],
-                wildcard_children: smallvec![],
-                end_wildcard_children: smallvec![],
+                static_children: vec![],
+                dynamic_children: vec![],
+                wildcard_children: vec![],
+                end_wildcard_children: vec![],
 
                 quick_dynamic: false,
             }));

@@ -23,10 +23,10 @@ impl<T> Router<T> {
                 data: None,
                 constraints: smallvec![],
 
-                static_children: smallvec![],
-                dynamic_children: smallvec![],
-                wildcard_children: smallvec![],
-                end_wildcard_children: smallvec![],
+                static_children: vec![],
+                dynamic_children: vec![],
+                wildcard_children: vec![],
+                end_wildcard_children: vec![],
 
                 quick_dynamic: false,
             },

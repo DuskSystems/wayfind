@@ -58,10 +58,10 @@ pub struct Node<T> {
     pub data: Option<NodeData<T>>,
     pub constraints: SmallVec<[NodeConstraint; 4]>,
 
-    pub static_children: SmallVec<[Box<Node<T>>; 4]>,
-    pub dynamic_children: SmallVec<[Box<Node<T>>; 4]>,
-    pub wildcard_children: SmallVec<[Box<Node<T>>; 4]>,
-    pub end_wildcard_children: SmallVec<[Box<Node<T>>; 4]>,
+    pub static_children: Vec<Box<Node<T>>>,
+    pub dynamic_children: Vec<Box<Node<T>>>,
+    pub wildcard_children: Vec<Box<Node<T>>>,
+    pub end_wildcard_children: Vec<Box<Node<T>>>,
 
     // TODO: Come up with a better names.
     pub quick_dynamic: bool,
