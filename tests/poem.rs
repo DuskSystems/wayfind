@@ -5,7 +5,7 @@
 
 use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
+use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
 
 #[test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
@@ -112,15 +112,19 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert_with_constraints(
-        "/abc/<name>/def",
+
+    router.insert(
+        RouteBuilder::new("/abc/<name>/def")
+            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
         1,
-        vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
     )?;
-    router.insert_with_constraints(
-        "/abc/def/<name>",
+
+    router.insert(
+        RouteBuilder::new("/abc/def/<name>")
+            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
         2,
-        vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
     )?;
 
     insta::assert_snapshot!(router, @r###"
@@ -149,10 +153,11 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router.insert("/a/b/<p:*>", 1).is_ok());
     assert!(router.insert("/a/b/<p2:*>", 2).is_err());
     assert!(router
-        .insert_with_constraints(
-            "/k/h/<name>",
+        .insert(
+            RouteBuilder::new("/k/h/<name>")
+                .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+                .build()?,
             1,
-            vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
         )
         .is_ok());
 
@@ -173,20 +178,26 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c/d", 7)?;
     router.insert("/a/<p1>/<p2>/c", 8)?;
     router.insert("/<p1:*>", 9)?;
-    router.insert_with_constraints(
-        "/abc/<param>/def",
+
+    router.insert(
+        RouteBuilder::new("/abc/<param>/def")
+            .constraint("param", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
         10,
-        vec![("param", NodeConstraint::Regex(Regex::new(r"\d+")?))],
     )?;
-    router.insert_with_constraints(
-        "/kcd/<p1>",
+
+    router.insert(
+        RouteBuilder::new("/kcd/<p1>")
+            .constraint("p1", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
         11,
-        vec![("p1", NodeConstraint::Regex(Regex::new(r"\d+")?))],
     )?;
-    router.insert_with_constraints(
-        "/<package>/-/<package_tgz>",
+
+    router.insert(
+        RouteBuilder::new("/<package>/-/<package_tgz>")
+            .constraint("package_tgz", NodeConstraint::Regex(Regex::new(r".*tgz$")?))
+            .build()?,
         12,
-        vec![("package_tgz", NodeConstraint::Regex(Regex::new(r".*tgz$")?))],
     )?;
 
     insta::assert_snapshot!(router, @r###"
@@ -344,7 +355,12 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    router.insert_with_constraints("/a/<id>", 4, vec![("id", NodeConstraint::Regex(Regex::new(r"\d+")?))])?;
+    router.insert(
+        RouteBuilder::new("/a/<id>")
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
+        4,
+    )?;
 
     insta::assert_snapshot!(router, @r###"
     $
