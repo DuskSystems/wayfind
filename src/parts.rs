@@ -1,4 +1,4 @@
-use crate::errors::parts::PartsError;
+use crate::errors::route::RouteError;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -12,7 +12,7 @@ pub enum Part<'a> {
 pub struct Parts<'a>(Vec<Part<'a>>);
 
 impl<'a> Parts<'a> {
-    pub fn new(path: &'a [u8]) -> Result<Self, PartsError> {
+    pub fn new(path: &'a [u8]) -> Result<Self, RouteError> {
         let mut parts = vec![];
         let mut index = 0;
 
@@ -23,7 +23,7 @@ impl<'a> Parts<'a> {
                     if value == b"*" {
                         parts.push(Part::Wildcard { name });
                     } else {
-                        return Err(PartsError::InvalidPath);
+                        return Err(RouteError::InvalidPath);
                     }
                 } else {
                     parts.push(Part::Dynamic { name });

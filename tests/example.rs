@@ -1,5 +1,5 @@
 use regex::bytes::Regex;
-use wayfind::{node::NodeConstraint, router::Router};
+use wayfind::{node::NodeConstraint, route::RouteBuilder, router::Router};
 
 #[test]
 fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,31 +24,30 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
     // Regex Segment
-    router.insert_with_constraints(
-        "/repos/<id>",
+    router.insert(
+        RouteBuilder::new("/repos/<id>")
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .build()?,
         8,
-        vec![("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))],
     )?;
 
     // Regex Inline
-    router.insert_with_constraints(
-        "/repos/<id>/archive/v<version>",
+    router.insert(
+        RouteBuilder::new("/repos/<id>/archive/v<version>")
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .constraint("version", NodeConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?))
+            .build()?,
         9,
-        vec![
-            ("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?)),
-            ("version", NodeConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?)),
-        ],
     )?;
 
     // Multiple Regex Inline
-    router.insert_with_constraints(
-        "/repos/<id>/compare/<base>..<head>",
+    router.insert(
+        RouteBuilder::new("/repos/<id>/compare/<base>..<head>")
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .constraint("base", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
+            .constraint("head", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
+            .build()?,
         10,
-        vec![
-            ("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?)),
-            ("base", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?)),
-            ("head", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?)),
-        ],
     )?;
 
     // Catch All

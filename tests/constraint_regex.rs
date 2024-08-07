@@ -2,56 +2,56 @@
 
 use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
+use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
 
 #[test]
 fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.insert_with_constraints(
-        "/user/<name>.<ext>",
+    router.insert(
+        RouteBuilder::new("/user/<name>.<ext>")
+            .constraint("name", NodeConstraint::Regex(Regex::new(r"[a-z]+")?))
+            .constraint("ext", NodeConstraint::Regex(Regex::new(r"png|jpg")?))
+            .build()?,
         1,
-        vec![
-            ("name", NodeConstraint::Regex(Regex::new(r"[a-z]+")?)),
-            ("ext", NodeConstraint::Regex(Regex::new(r"png|jpg")?)),
-        ],
     )?;
 
-    router.insert_with_constraints(
-        "/file-<year>-doc.<ext>",
+    router.insert(
+        RouteBuilder::new("/file-<year>-doc.<ext>")
+            .constraint("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))
+            .constraint("ext", NodeConstraint::Regex(Regex::new(r"pdf|docx")?))
+            .build()?,
         2,
-        vec![
-            ("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?)),
-            ("ext", NodeConstraint::Regex(Regex::new(r"pdf|docx")?)),
-        ],
     )?;
 
-    router.insert_with_constraints(
-        "/<category>-items.html",
+    router.insert(
+        RouteBuilder::new("/<category>-items.html")
+            .constraint("category", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))
+            .build()?,
         3,
-        vec![("category", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))],
     )?;
 
-    router.insert_with_constraints(
-        "/report-<id>",
+    router.insert(
+        RouteBuilder::new("/report-<id>")
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .build()?,
         4,
-        vec![("id", NodeConstraint::Regex(Regex::new(r"\d+")?))],
     )?;
 
-    router.insert_with_constraints(
-        "/posts/<year>/<slug:*>",
+    router.insert(
+        RouteBuilder::new("/posts/<year>/<slug:*>")
+            .constraint("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))
+            .build()?,
         5,
-        vec![("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))],
     )?;
 
-    router.insert_with_constraints(
-        "/products/<category>/<id>-<slug>",
+    router.insert(
+        RouteBuilder::new("/products/<category>/<id>-<slug>")
+            .constraint("category", NodeConstraint::Regex(Regex::new(r"[a-z]+")?))
+            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("slug", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))
+            .build()?,
         6,
-        vec![
-            ("category", NodeConstraint::Regex(Regex::new(r"[a-z]+")?)),
-            ("id", NodeConstraint::Regex(Regex::new(r"\d+")?)),
-            ("slug", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?)),
-        ],
     )?;
 
     insta::assert_snapshot!(router, @r###"

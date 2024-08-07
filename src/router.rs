@@ -1,8 +1,8 @@
 use crate::{
     errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
-    node::{Node, NodeConstraint, NodeData, NodeKind},
-    route::Route,
+    node::{Node, NodeData, NodeKind},
+    route::IntoRoute,
 };
 use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
@@ -33,38 +33,22 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn insert(&mut self, path: &str, value: T) -> Result<(), InsertError> {
-        let mut route = Route::new(path, vec![])?;
+    pub fn insert<'a, R>(&mut self, route: R, value: T) -> Result<(), InsertError>
+    where
+        R: IntoRoute<'a>,
+    {
+        let mut route = route.into_route()?;
         let path = Arc::from(route.path);
 
         self.root
             .insert(&mut route, NodeData { path, value })
     }
 
-    pub fn insert_with_constraints(
-        &mut self,
-        path: &str,
-        value: T,
-        constraints: Vec<(&str, NodeConstraint)>,
-    ) -> Result<(), InsertError> {
-        let mut route = Route::new(path, constraints)?;
-        let path = Arc::from(route.path);
-
-        self.root
-            .insert(&mut route, NodeData { path, value })
-    }
-
-    pub fn delete(&mut self, path: &str) -> Result<(), DeleteError> {
-        let mut route = Route::new(path, vec![])?;
-        self.root.delete(&mut route)
-    }
-
-    pub fn delete_with_constraints(
-        &mut self,
-        path: &str,
-        constraints: Vec<(&str, NodeConstraint)>,
-    ) -> Result<(), DeleteError> {
-        let mut route = Route::new(path, constraints)?;
+    pub fn delete<'a, R>(&mut self, route: R) -> Result<(), DeleteError>
+    where
+        R: IntoRoute<'a>,
+    {
+        let mut route = route.into_route()?;
         self.root.delete(&mut route)
     }
 

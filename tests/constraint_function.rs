@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
+use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
 
 fn is_lowercase_alpha(bytes: &[u8]) -> bool {
     bytes
@@ -40,46 +40,50 @@ fn is_numeric(bytes: &[u8]) -> bool {
 fn test_inline_functions() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.insert_with_constraints(
-        "/user/<name>.<ext>",
+    router.insert(
+        RouteBuilder::new("/user/<name>.<ext>")
+            .constraint("name", NodeConstraint::Function(is_lowercase_alpha))
+            .constraint("ext", NodeConstraint::Function(is_png_or_jpg))
+            .build()?,
         1,
-        vec![
-            ("name", NodeConstraint::Function(is_lowercase_alpha)),
-            ("ext", NodeConstraint::Function(is_png_or_jpg)),
-        ],
     )?;
 
-    router.insert_with_constraints(
-        "/file-<year>-doc.<ext>",
+    router.insert(
+        RouteBuilder::new("/file-<year>-doc.<ext>")
+            .constraint("year", NodeConstraint::Function(is_four_digit_year))
+            .constraint("ext", NodeConstraint::Function(is_pdf_or_docx))
+            .build()?,
         2,
-        vec![
-            ("year", NodeConstraint::Function(is_four_digit_year)),
-            ("ext", NodeConstraint::Function(is_pdf_or_docx)),
-        ],
     )?;
 
-    router.insert_with_constraints(
-        "/<category>-items.html",
+    router.insert(
+        RouteBuilder::new("/<category>-items.html")
+            .constraint("category", NodeConstraint::Function(is_lowercase_alpha_or_dash))
+            .build()?,
         3,
-        vec![("category", NodeConstraint::Function(is_lowercase_alpha_or_dash))],
     )?;
 
-    router.insert_with_constraints("/report-<id>", 4, vec![("id", NodeConstraint::Function(is_numeric))])?;
+    router.insert(
+        RouteBuilder::new("/report-<id>")
+            .constraint("id", NodeConstraint::Function(is_numeric))
+            .build()?,
+        4,
+    )?;
 
-    router.insert_with_constraints(
-        "/posts/<year>/<slug:*>",
+    router.insert(
+        RouteBuilder::new("/posts/<year>/<slug:*>")
+            .constraint("year", NodeConstraint::Function(is_four_digit_year))
+            .build()?,
         5,
-        vec![("year", NodeConstraint::Function(is_four_digit_year))],
     )?;
 
-    router.insert_with_constraints(
-        "/products/<category>/<id>-<slug>",
+    router.insert(
+        RouteBuilder::new("/products/<category>/<id>-<slug>")
+            .constraint("category", NodeConstraint::Function(is_lowercase_alpha))
+            .constraint("id", NodeConstraint::Function(is_numeric))
+            .constraint("slug", NodeConstraint::Function(is_lowercase_alpha_or_dash))
+            .build()?,
         6,
-        vec![
-            ("category", NodeConstraint::Function(is_lowercase_alpha)),
-            ("id", NodeConstraint::Function(is_numeric)),
-            ("slug", NodeConstraint::Function(is_lowercase_alpha_or_dash)),
-        ],
     )?;
 
     insta::assert_snapshot!(router, @r###"
