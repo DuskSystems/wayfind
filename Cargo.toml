@@ -66,6 +66,7 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
+smallvec = "1.13"
 regex = "1.10"
 
 [dev-dependencies]

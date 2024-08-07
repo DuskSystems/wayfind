@@ -30,48 +30,48 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a 
 
 ```
 matchit benchmarks/wayfind
-  time: [224.82 ns 225.24 ns 225.73 ns]
+  time: [177.92 ns 178.21 ns 178.58 ns]
 
 matchit benchmarks/actix-router
-  time: [20.848 µs 20.926 µs 21.011 µs]
+  time: [20.811 µs 21.040 µs 21.435 µs]
 
 matchit benchmarks/gonzales
-  time: [129.74 ns 130.53 ns 131.51 ns]
+  time: [128.86 ns 128.98 ns 129.15 ns]
 
 matchit benchmarks/matchit
-  time: [180.96 ns 181.28 ns 181.63 ns]
+  time: [180.75 ns 180.95 ns 181.21 ns]
 
 matchit benchmarks/ntex-router
-  time: [1.5466 µs 1.5509 µs 1.5556 µs]
+  time: [1.5571 µs 1.5602 µs 1.5640 µs]
 
 matchit benchmarks/path-table
-  time: [545.95 ns 547.23 ns 548.67 ns]
+  time: [532.16 ns 533.23 ns 534.50 ns]
 
 matchit benchmarks/path-tree
-  time: [326.97 ns 327.64 ns 328.39 ns]
+  time: [327.58 ns 328.18 ns 328.91 ns]
 
 matchit benchmarks/regex
-  time: [1.1433 µs 1.1454 µs 1.1477 µs]
+  time: [1.1405 µs 1.1442 µs 1.1481 µs]
 
 matchit benchmarks/route-recognizer
-  time: [4.2956 µs 4.3079 µs 4.3215 µs]
+  time: [4.3165 µs 4.3230 µs 4.3299 µs]
 
 matchit benchmarks/routefinder
-  time: [6.6991 µs 6.7098 µs 6.7216 µs]
+  time: [6.2712 µs 6.2829 µs 6.2969 µs]
 
 matchit benchmarks/xitca-router
-  time: [353.24 ns 354.21 ns 355.28 ns]
+  time: [355.19 ns 355.78 ns 356.46 ns]
 
 matchit allocations
 ├─ wayfind           alloc:
-│                      657
-│                      125.1 KB
+│                      654
+│                      100.9 KB
 │                    dealloc:
-│                      657
-│                      153.7 KB
+│                      654
+│                      100.9 KB
 │                    grow:
 │                      80
-│                      28.64 KB
+│                      19.74 KB
 │
 ├─ actix-router      alloc:
 │                      31187
@@ -184,48 +184,48 @@ matchit allocations
 
 ```
 path-tree benchmarks/wayfind
-  time: [4.2992 µs 4.3121 µs 4.3265 µs]
+  time: [3.0148 µs 3.0200 µs 3.0256 µs]
 
 path-tree benchmarks/actix-router
-  time: [173.95 µs 174.45 µs 175.01 µs]
+  time: [173.24 µs 173.70 µs 174.22 µs]
 
 path-tree benchmarks/gonzales
-  time: [5.7993 µs 5.8255 µs 5.8549 µs]
+  time: [5.8082 µs 5.8474 µs 5.8877 µs]
 
 path-tree benchmarks/matchit
-  time: [4.8306 µs 4.8723 µs 4.9377 µs]
+  time: [4.8001 µs 4.8139 µs 4.8322 µs]
 
 path-tree benchmarks/ntex-router
-  time: [26.698 µs 26.744 µs 26.801 µs]
+  time: [27.171 µs 27.204 µs 27.245 µs]
 
 path-tree benchmarks/path-table
-  time: [10.303 µs 10.892 µs 11.641 µs]
+  time: [10.323 µs 10.345 µs 10.371 µs]
 
 path-tree benchmarks/path-tree
-  time: [5.5977 µs 5.6225 µs 5.6498 µs]
+  time: [5.5324 µs 5.5452 µs 5.5584 µs]
 
 path-tree benchmarks/regex
-  time: [41.449 µs 42.091 µs 43.003 µs]
+  time: [41.077 µs 41.219 µs 41.389 µs]
 
 path-tree benchmarks/route-recognizer
-  time: [84.758 µs 84.879 µs 85.021 µs]
+  time: [85.506 µs 85.607 µs 85.733 µs]
 
 path-tree benchmarks/routefinder
-  time: [95.339 µs 95.577 µs 95.841 µs]
+  time: [91.992 µs 92.100 µs 92.234 µs]
 
 path-tree benchmarks/xitca-router
-  time: [7.3345 µs 7.3524 µs 7.3706 µs]
+  time: [7.2957 µs 7.3110 µs 7.3296 µs]
 
 path-tree allocations
 ├─ wayfind           alloc:
-│                      1677
-│                      334.9 KB
+│                      1619
+│                      268.1 KB
 │                    dealloc:
-│                      1677
-│                      398.2 KB
+│                      1619
+│                      308.7 KB
 │                    grow:
 │                      195
-│                      63.21 KB
+│                      40.65 KB
 │
 ├─ actix-router      alloc:
 │                      78390
