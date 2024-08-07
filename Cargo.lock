@@ -2342,6 +2342,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "wayfind-axum-example"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "tokio",
+ "wayfind-axum",
+]
+
+[[package]]
 name = "wayfind-fuzz"
 version = "0.0.0"
 dependencies = [
@@ -2350,7 +2361,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wayfind-hyper"
+name = "wayfind-hyper-example"
 version = "0.0.0"
 dependencies = [
  "anyhow",

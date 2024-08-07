@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
-name = "wayfind-hyper-example"
-description = "Example of using `wayfind` with `hyper`."
+name = "wayfind-axum-example"
+description = "Example of using `wayfind` with `axum`."
 publish = false
 
 version.workspace = true
@@ -17,14 +17,9 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
-wayfind = { path = "../.." }
+wayfind-axum = { path = "../axum-fork" }
 
 tokio = { version = "1.39", features = ["full"] }
-hyper = { version = "1.4", features = ["full"] }
-hyper-util = { version = "0.1", features = ["full"] }
-http = "1.1"
-http-body-util = "0.1"
-bytes = "1.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
