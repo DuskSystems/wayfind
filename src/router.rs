@@ -4,6 +4,7 @@ use crate::{
     node::{Node, NodeConstraint, NodeData, NodeKind},
     route::Route,
 };
+use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -79,7 +80,7 @@ impl<T> Router<T> {
 
     #[must_use]
     pub fn matches<'a>(&'a self, path: &'a str) -> Option<Match<'a, T>> {
-        let mut parameters = vec![];
+        let mut parameters = smallvec![];
         let data = self
             .root
             .matches(path.as_bytes(), &mut parameters)?;
