@@ -48,10 +48,10 @@ jobs:
       - name: Run the tasks
         run: |
           set -eufo pipefail
-          cargo fmt --check
+          cargo fmt --all --check
           cargo clippy
-          cargo check
-          cargo build
+          cargo check --workspace
+          cargo build --workspace
           cargo insta test
           cargo codspeed build
 

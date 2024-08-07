@@ -53,7 +53,7 @@ impl<T> Router<T> {
     }
 
     #[must_use]
-    pub fn matches<'a>(&'a self, path: &'a str) -> Option<Match<'a, T>> {
+    pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
         let data = self
             .root

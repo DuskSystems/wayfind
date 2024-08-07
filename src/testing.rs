@@ -41,16 +41,16 @@ macro_rules! assert_router_matches {
     };
 }
 
-pub struct ExpectedMatch<'a, T> {
+pub struct ExpectedMatch<'k, 'v, T> {
     pub path: Arc<str>,
     pub value: T,
-    pub params: Vec<Parameter<'a>>,
+    pub params: Vec<Parameter<'k, 'v>>,
 }
 
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
     router: &'a Router<T>,
     input: &'a str,
-    expected: Option<ExpectedMatch<'a, T>>,
+    expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
     let Some(Match { data, parameters }) = router.matches(input) else {
         assert!(expected.is_none(), "No match found for input: {input}");

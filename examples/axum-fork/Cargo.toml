@@ -54,6 +54,8 @@ ws = ["dep:hyper", "tokio", "dep:tokio-tungstenite", "dep:sha1", "dep:base64"]
 __private_docs = ["tower/full", "dep:tower-http"]
 
 [dependencies]
+wayfind = { path = "../.." }
+
 async-trait = "0.1.67"
 axum-core = "0.4.3"
 bytes = "1.0"
@@ -64,7 +66,6 @@ http = "1.0.0"
 http-body = "1.0.0"
 http-body-util = "0.1.0"
 itoa = "1.0.5"
-matchit = "0.7"
 memchr = "2.4.1"
 mime = "0.3.16"
 percent-encoding = "2.1"

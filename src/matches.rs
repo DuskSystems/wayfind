@@ -3,13 +3,13 @@ use smallvec::SmallVec;
 use std::fmt::Debug;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Match<'a, T> {
-    pub data: &'a NodeData<T>,
-    pub parameters: SmallVec<[Parameter<'a>; 4]>,
+pub struct Match<'k, 'v, T> {
+    pub data: &'k NodeData<T>,
+    pub parameters: SmallVec<[Parameter<'k, 'v>; 4]>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Parameter<'a> {
-    pub key: &'a [u8],
-    pub value: &'a [u8],
+pub struct Parameter<'k, 'v> {
+    pub key: &'k [u8],
+    pub value: &'v [u8],
 }

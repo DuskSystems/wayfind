@@ -1,9 +1,9 @@
 use crate::extract::{nested_path::SetNestedPath, Request};
 use axum_core::response::IntoResponse;
-use matchit::MatchError;
 use std::{borrow::Cow, collections::HashMap, convert::Infallible, fmt, sync::Arc};
 use tower_layer::Layer;
 use tower_service::Service;
+use wayfind::{errors::insert::InsertError, matches::Match, router::Router};
 
 use super::{
     future::RouteFuture, not_found::NotFound, strip_prefix::StripPrefix, url_params, Endpoint, MethodRouter, Route,
@@ -309,10 +309,9 @@ where
         }
 
         let path = req.uri().path().to_owned();
-
-        match self.node.at(&path) {
-            Ok(match_) => {
-                let id = *match_.value;
+        let result = match self.node.matches(&path) {
+            Some(match_) => {
+                let id = match_.data.value;
 
                 if !IS_FALLBACK {
                     #[cfg(feature = "matched-path")]
@@ -323,7 +322,7 @@ where
                     );
                 }
 
-                url_params::insert_url_params(req.extensions_mut(), match_.params);
+                url_params::insert_url_params(req.extensions_mut(), &match_.parameters);
 
                 let endpoint = self
                     .routes
@@ -335,24 +334,21 @@ where
                     Endpoint::Route(route) => Ok(route.clone().call(req)),
                 }
             }
-            // explicitly handle all variants in case matchit adds
-            // new ones we need to handle differently
-            Err(MatchError::NotFound | MatchError::ExtraTrailingSlash | MatchError::MissingTrailingSlash) => {
-                Err((req, state))
-            }
-        }
+            None => Err((req, state)),
+        };
+
+        result
     }
 
     pub(super) fn replace_endpoint(&mut self, path: &str, endpoint: Endpoint<S>) {
-        match self.node.at(path) {
-            Ok(match_) => {
-                let id = *match_.value;
-                self.routes.insert(id, endpoint);
-            }
-            Err(_) => self
-                .route_endpoint(path, endpoint)
-                .expect("path wasn't matched so endpoint shouldn't exist"),
+        if let Some(match_) = self.node.matches(path) {
+            let id = match_.data.value;
+            self.routes.insert(id, endpoint);
+            return;
         }
+
+        self.route_endpoint(path, endpoint)
+            .expect("path wasn't matched so endpoint shouldn't exist");
     }
 
     fn next_route_id(&mut self) -> RouteId {
@@ -398,16 +394,15 @@ impl<S, const IS_FALLBACK: bool> Clone for PathRouter<S, IS_FALLBACK> {
 /// Wrapper around `matchit::Router` that supports merging two `Router`s.
 #[derive(Clone, Default)]
 struct Node {
-    inner: matchit::Router<RouteId>,
+    inner: Router<RouteId>,
     route_id_to_path: HashMap<RouteId, Arc<str>>,
     path_to_route_id: HashMap<Arc<str>, RouteId>,
 }
 
 impl Node {
-    fn insert(&mut self, path: impl Into<String>, val: RouteId) -> Result<(), matchit::InsertError> {
+    fn insert(&mut self, path: impl Into<String>, val: RouteId) -> Result<(), InsertError> {
         let path = path.into();
-
-        self.inner.insert(&path, val)?;
+        self.inner.insert(&*path, val)?;
 
         let shared_path: Arc<str> = path.into();
         self.route_id_to_path
@@ -418,8 +413,8 @@ impl Node {
         Ok(())
     }
 
-    fn at<'n, 'p>(&'n self, path: &'p str) -> Result<matchit::Match<'n, 'p, &'n RouteId>, MatchError> {
-        self.inner.at(path)
+    fn matches<'n, 'p>(&'n self, path: &'p str) -> Option<Match<'n, 'p, RouteId>> {
+        self.inner.matches(path)
     }
 }
 
