@@ -20,7 +20,7 @@ use wayfind::{matches::Parameter, router::Router};
 type BoxFuture<'a> =
     Pin<Box<dyn Future<Output = Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error>> + Send + 'a>>;
 
-type HandlerFn = Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'a>]) -> BoxFuture<'a> + Send + Sync>;
+type HandlerFn = Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'_, 'a>]) -> BoxFuture<'a> + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -76,7 +76,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 async fn index_route(
     _: &'_ str,
-    _: &'_ [Parameter<'_>],
+    _: &'_ [Parameter<'_, '_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "hello": "world"
@@ -92,7 +92,7 @@ async fn index_route(
 
 async fn hello_route(
     _: &'_ str,
-    parameters: &'_ [Parameter<'_>],
+    parameters: &'_ [Parameter<'_, '_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let name = String::from_utf8_lossy(parameters[0].value);
     let json = serde_json::json!({
@@ -109,7 +109,7 @@ async fn hello_route(
 
 async fn not_found(
     path: &'_ str,
-    _: &'_ [Parameter<'_>],
+    _: &'_ [Parameter<'_, '_>],
 ) -> Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error> {
     let json = serde_json::json!({
         "error": "route_not_found",

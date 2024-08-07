@@ -3,11 +3,11 @@ use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
 impl<T> Node<T> {
-    pub fn matches<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    pub fn matches<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -31,11 +31,11 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_static<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_static<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -55,11 +55,11 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_dynamic<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_dynamic<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -73,11 +73,11 @@ impl<T> Node<T> {
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
-    fn matches_dynamic_inline<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_dynamic_inline<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -118,11 +118,11 @@ impl<T> Node<T> {
     }
 
     // Doesn't support inline dynamic sections, e.g. `<name>.<extension>`, only `/<segment>/`
-    fn matches_dynamic_segment<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_dynamic_segment<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -149,11 +149,11 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_wildcard<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_wildcard<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -209,11 +209,11 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_end_wildcard<'a>(
-        &'a self,
-        path: &'a [u8],
-        parameters: &mut SmallVec<[Parameter<'a>; 4]>,
-    ) -> Option<&'a NodeData<T>> {
+    fn matches_end_wildcard<'k, 'v>(
+        &'k self,
+        path: &'v [u8],
+        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    ) -> Option<&'k NodeData<T>> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_constraints(end_wildcard, path) {
                 continue;
