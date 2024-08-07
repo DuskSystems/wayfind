@@ -44,6 +44,8 @@ name = "wayfind"
 description = "A speedy, flexible router."
 include = [
   "/benches",
+  "/examples",
+  "/fuzz",
   "/src",
   "/tests",
   "LICENSE-APACHE",

@@ -66,7 +66,7 @@ impl<T> Node<T> {
                     static_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
-                    end_wildcard: None,
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -104,7 +104,7 @@ impl<T> Node<T> {
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
             wildcard_children: std::mem::take(&mut child.wildcard_children),
-            end_wildcard: std::mem::take(&mut child.end_wildcard),
+            end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
 
             quick_dynamic: false,
         };
@@ -119,7 +119,7 @@ impl<T> Node<T> {
             static_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
-            end_wildcard: None,
+            end_wildcard_children: vec![],
 
             quick_dynamic: false,
         };
@@ -162,7 +162,7 @@ impl<T> Node<T> {
                     static_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
-                    end_wildcard: None,
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -200,7 +200,7 @@ impl<T> Node<T> {
                     static_children: vec![],
                     dynamic_children: vec![],
                     wildcard_children: vec![],
-                    end_wildcard: None,
+                    end_wildcard_children: vec![],
 
                     quick_dynamic: false,
                 };
@@ -219,13 +219,15 @@ impl<T> Node<T> {
         name: &[u8],
         constraint: Option<NodeConstraint>,
     ) -> Result<(), InsertError> {
-        if let Some(end_wildcard) = &self.end_wildcard {
-            if end_wildcard.prefix == name && end_wildcard.constraint == constraint {
-                return Err(InsertError::DuplicatePath);
-            }
+        if self
+            .end_wildcard_children
+            .iter()
+            .any(|child| child.prefix == name && child.constraint == constraint)
+        {
+            return Err(InsertError::DuplicatePath);
         }
 
-        self.end_wildcard = Some(Box::new(Self {
+        self.end_wildcard_children.push(Self {
             kind: NodeKind::EndWildcard,
 
             prefix: name.to_vec(),
@@ -235,10 +237,10 @@ impl<T> Node<T> {
             static_children: vec![],
             dynamic_children: vec![],
             wildcard_children: vec![],
-            end_wildcard: None,
+            end_wildcard_children: vec![],
 
             quick_dynamic: false,
-        }));
+        });
 
         Ok(())
     }
@@ -254,7 +256,10 @@ impl<T> Node<T> {
                 }
 
                 // No children?
-                if child.static_children.is_empty() && child.dynamic_children.is_empty() && child.end_wildcard.is_none()
+                if child.static_children.is_empty()
+                    && child.dynamic_children.is_empty()
+                    && child.wildcard_children.is_empty()
+                    && child.end_wildcard_children.is_empty()
                 {
                     return true;
                 }
@@ -279,7 +284,7 @@ impl<T> Node<T> {
             child.update_quicks();
         }
 
-        if let Some(child) = self.end_wildcard.as_mut() {
+        for child in &mut self.end_wildcard_children {
             child.update_quicks();
         }
     }
@@ -299,6 +304,13 @@ impl<T> Node<T> {
                 _ => Ordering::Equal,
             });
 
+        self.end_wildcard_children
+            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
+                (Some(_), None) => Ordering::Less,
+                (None, Some(_)) => Ordering::Greater,
+                _ => Ordering::Equal,
+            });
+
         for child in &mut self.static_children {
             child.sort_children();
         }
@@ -311,8 +323,8 @@ impl<T> Node<T> {
             child.sort_children();
         }
 
-        if let Some(ref mut end_wildcard) = self.end_wildcard {
-            end_wildcard.sort_children();
+        for child in &mut self.end_wildcard_children {
+            child.sort_children();
         }
     }
 }

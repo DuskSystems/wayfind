@@ -197,9 +197,9 @@ impl<T> Node<T> {
         path: &'a [u8],
         parameters: &mut Vec<Parameter<'a>>,
     ) -> Option<&'a NodeData<T>> {
-        if let Some(end_wildcard) = &self.end_wildcard {
+        for end_wildcard in &self.end_wildcard_children {
             if !Self::check_constraint(end_wildcard, path) {
-                return None;
+                continue;
             }
 
             parameters.push(Parameter {
