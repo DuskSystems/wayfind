@@ -11,31 +11,28 @@ impl<T> Node<T> {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(route, prefix),
                 Part::Dynamic { name } => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.delete_dynamic(route, name, &constraint)
+                    self.delete_dynamic(route, name, &constraints)
                 }
                 Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.delete_end_wildcard(name, &constraint)
+                    self.delete_end_wildcard(name, &constraints)
                 }
                 Part::Wildcard { name } => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.delete_wildcard(route, name, &constraint)
+                    self.delete_wildcard(route, name, &constraints)
                 }
             };
 
@@ -92,12 +89,12 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraint: &Option<NodeConstraint>,
+        constraints: &[NodeConstraint],
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraints == *constraints)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.dynamic_children[index];
@@ -118,12 +115,12 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraint: &Option<NodeConstraint>,
+        constraints: &[NodeConstraint],
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraints == *constraints)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.wildcard_children[index];
@@ -140,11 +137,11 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<NodeConstraint>) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(&mut self, name: &[u8], constraints: &[NodeConstraint]) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraints == *constraints)
             .ok_or(DeleteError::NotFound)?;
 
         self.end_wildcard_children.remove(index);

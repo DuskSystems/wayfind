@@ -8,31 +8,28 @@ impl<T> Node<T> {
             match segment {
                 Part::Static { prefix } => self.insert_static(route, data, prefix)?,
                 Part::Dynamic { name } => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.insert_dynamic(route, data, name, constraint)?;
+                    self.insert_dynamic(route, data, name, constraints)?;
                 }
                 Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.insert_end_wildcard(data, name, constraint)?;
+                    self.insert_end_wildcard(data, name, constraints)?;
                 }
                 Part::Wildcard { name } => {
-                    let constraint = route
+                    let constraints = route
                         .constraints
-                        .iter()
-                        .position(|&(constraint_name, _)| constraint_name.as_bytes() == name)
-                        .map(|index| route.constraints.remove(index).1);
+                        .remove(name)
+                        .unwrap_or_default();
 
-                    self.insert_wildcard(route, data, name, constraint)?;
+                    self.insert_wildcard(route, data, name, constraints)?;
                 }
             };
         } else {
@@ -61,7 +58,7 @@ impl<T> Node<T> {
 
                     prefix: prefix.to_vec(),
                     data: None,
-                    constraint: None,
+                    constraints: vec![],
 
                     static_children: vec![],
                     dynamic_children: vec![],
@@ -99,7 +96,7 @@ impl<T> Node<T> {
 
             prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
-            constraint: None,
+            constraints: vec![],
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -114,7 +111,7 @@ impl<T> Node<T> {
 
             prefix: prefix[common_prefix..].to_vec(),
             data: None,
-            constraint: None,
+            constraints: vec![],
 
             static_children: vec![],
             dynamic_children: vec![],
@@ -142,12 +139,12 @@ impl<T> Node<T> {
         route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraints: Vec<NodeConstraint>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find(|child| child.prefix == name && child.constraints == constraints)
         {
             child.insert(route, data)?;
         } else {
@@ -157,7 +154,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
-                    constraint,
+                    constraints,
 
                     static_children: vec![],
                     dynamic_children: vec![],
@@ -180,12 +177,12 @@ impl<T> Node<T> {
         route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraints: Vec<NodeConstraint>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find(|child| child.prefix == name && child.constraints == constraints)
         {
             child.insert(route, data)?;
         } else {
@@ -195,7 +192,7 @@ impl<T> Node<T> {
 
                     prefix: name.to_vec(),
                     data: None,
-                    constraint,
+                    constraints,
 
                     static_children: vec![],
                     dynamic_children: vec![],
@@ -217,12 +214,12 @@ impl<T> Node<T> {
         &mut self,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraints: Vec<NodeConstraint>,
     ) -> Result<(), InsertError> {
         if self
             .end_wildcard_children
             .iter()
-            .any(|child| child.prefix == name && child.constraint == constraint)
+            .any(|child| child.prefix == name && child.constraints == constraints)
         {
             return Err(InsertError::DuplicatePath);
         }
@@ -232,7 +229,7 @@ impl<T> Node<T> {
 
             prefix: name.to_vec(),
             data: Some(data),
-            constraint,
+            constraints,
 
             static_children: vec![],
             dynamic_children: vec![],
@@ -289,25 +286,26 @@ impl<T> Node<T> {
         }
     }
 
+    // FIXME: Need to decide an order for sorting.
     fn sort_children(&mut self) {
         self.dynamic_children
-            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
-                (Some(_), None) => Ordering::Less,
-                (None, Some(_)) => Ordering::Greater,
+            .sort_by(|a, b| match (a.constraints.is_empty(), b.constraints.is_empty()) {
+                (false, true) => Ordering::Less,
+                (true, false) => Ordering::Greater,
                 _ => Ordering::Equal,
             });
 
         self.wildcard_children
-            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
-                (Some(_), None) => Ordering::Less,
-                (None, Some(_)) => Ordering::Greater,
+            .sort_by(|a, b| match (a.constraints.is_empty(), b.constraints.is_empty()) {
+                (false, true) => Ordering::Less,
+                (true, false) => Ordering::Greater,
                 _ => Ordering::Equal,
             });
 
         self.end_wildcard_children
-            .sort_by(|a, b| match (&a.constraint, &b.constraint) {
-                (Some(_), None) => Ordering::Less,
-                (None, Some(_)) => Ordering::Greater,
+            .sort_by(|a, b| match (a.constraints.is_empty(), b.constraints.is_empty()) {
+                (false, true) => Ordering::Less,
+                (true, false) => Ordering::Greater,
                 _ => Ordering::Equal,
             });
 

@@ -1,22 +1,27 @@
 use crate::{errors::route::RouteError, node::NodeConstraint, parts::Parts};
+use std::collections::HashMap;
 
 pub struct RouteBuilder<'a> {
     pub path: &'a str,
-    pub constraints: Vec<(&'a str, NodeConstraint)>,
+    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
 }
 
 impl<'a> RouteBuilder<'a> {
     #[must_use]
-    pub const fn new(path: &'a str) -> Self {
+    pub fn new(path: &'a str) -> Self {
         Self {
             path,
-            constraints: vec![],
+            constraints: HashMap::new(),
         }
     }
 
     #[must_use]
     pub fn constraint(mut self, name: &'a str, value: NodeConstraint) -> Self {
-        self.constraints.push((name, value));
+        self.constraints
+            .entry(name.as_bytes())
+            .or_default()
+            .push(value);
+
         self
     }
 
@@ -32,7 +37,7 @@ impl<'a> RouteBuilder<'a> {
 pub struct Route<'a> {
     pub path: &'a str,
     pub parts: Parts<'a>,
-    pub constraints: Vec<(&'a str, NodeConstraint)>,
+    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
 }
 
 impl<'a> TryFrom<&'a str> for Route<'a> {
@@ -42,7 +47,7 @@ impl<'a> TryFrom<&'a str> for Route<'a> {
         Ok(Self {
             path,
             parts: Parts::new(path.as_bytes())?,
-            constraints: vec![],
+            constraints: HashMap::new(),
         })
     }
 }

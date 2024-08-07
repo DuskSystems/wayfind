@@ -30,25 +30,26 @@ impl<T: Display> Display for Node<T> {
                 .as_ref()
                 .map(|node_data| &node_data.value);
 
-            let constraint = node
-                .constraint
-                .as_ref()
-                .map(|c| format!(" {c:?}"));
+            let constraints = if node.constraints.is_empty() {
+                None
+            } else {
+                Some(format!(" {:?}", node.constraints))
+            };
 
             if is_root {
                 writeln!(f, "{key}")?;
             } else if is_last {
-                match (value, &constraint) {
-                    (Some(value), Some(constraint)) => writeln!(f, "{padding}╰─ {key} [{value}]{constraint}"),
+                match (value, &constraints) {
+                    (Some(value), Some(constraints)) => writeln!(f, "{padding}╰─ {key} [{value}]{constraints}"),
                     (Some(value), None) => writeln!(f, "{padding}╰─ {key} [{value}]"),
-                    (None, Some(constraint)) => writeln!(f, "{padding}╰─ {key}{constraint}"),
+                    (None, Some(constraints)) => writeln!(f, "{padding}╰─ {key}{constraints}"),
                     (None, None) => writeln!(f, "{padding}╰─ {key}"),
                 }?;
             } else {
-                match (value, &constraint) {
-                    (Some(value), Some(constraint)) => writeln!(f, "{padding}├─ {key} [{value}]{constraint}"),
+                match (value, &constraints) {
+                    (Some(value), Some(constraints)) => writeln!(f, "{padding}├─ {key} [{value}]{constraints}"),
                     (Some(value), None) => writeln!(f, "{padding}├─ {key} [{value}]"),
-                    (None, Some(constraint)) => writeln!(f, "{padding}├─ {key}{constraint}"),
+                    (None, Some(constraints)) => writeln!(f, "{padding}├─ {key}{constraints}"),
                     (None, None) => writeln!(f, "{padding}├─ {key}"),
                 }?;
             }

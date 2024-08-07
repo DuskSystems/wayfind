@@ -64,14 +64,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] Constraint::Regex: [a-f0-9]{32}
+    │  │       ╰─ <id> [8] [Constraint::Regex([a-f0-9]{32})]
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] Constraint::Regex: [0-9]+\.[0-9]+\.[0-9]+
+    │  │                │          ╰─ <version> [9] [Constraint::Regex([0-9]+\.[0-9]+\.[0-9]+)]
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> Constraint::Regex: [a-f0-9]{40}
+    │  │                          ╰─ <base> [Constraint::Regex([a-f0-9]{40})]
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] Constraint::Regex: [a-f0-9]{40}
+    │  │                                      ╰─ <head> [10] [Constraint::Regex([a-f0-9]{40})]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]
