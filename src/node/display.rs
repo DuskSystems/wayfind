@@ -13,15 +13,15 @@ impl<T: Display> Display for Node<T> {
             is_last: bool,
         ) -> std::fmt::Result {
             let key = match &node.kind {
-                NodeKind::Root => "$",
-                NodeKind::Static => &String::from_utf8_lossy(&node.prefix),
+                NodeKind::Root => "$".to_string(),
+                NodeKind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("<{name}>")
+                    format!("<{name}>")
                 }
                 NodeKind::Wildcard | NodeKind::EndWildcard => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    &format!("<{name}:*>")
+                    format!("<{name}:*>")
                 }
             };
 

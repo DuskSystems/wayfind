@@ -19,13 +19,12 @@ concurrency:
 env:
   SCCACHE_GHA_ENABLED: "true"
 
-defaults:
-  run:
-    shell: nix develop --command bash {0}
-
 jobs:
   ci:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: nix develop . --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,7 +43,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Initialize Nix shell
-        run: nix develop
+        run: nix develop .
 
       - name: Run the tasks
         run: |
@@ -59,9 +58,44 @@ jobs:
       - name: Run the benchmarks
         uses: CathalMullan/action@main
         with:
-          shell: nix develop --command bash {0}
+          shell: nix develop . --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
+
+      - name: Show SCCache stats
+        if: always()
+        run: sccache --show-stats
+
+  msrv:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: nix develop .#msrv --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v13
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Configure SCCache
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL);
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
+
+      - name: Initialize Nix shell
+        run: nix develop .#msrv
+
+      - name: Run the tasks
+        run: |
+          set -eufo pipefail
+          cargo check
+          cargo build
 
       - name: Show SCCache stats
         if: always()

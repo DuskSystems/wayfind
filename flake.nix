@@ -41,6 +41,7 @@
       };
 
       rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rust-toolchain-msrv = pkgs.rust-bin.stable."1.66.0".default;
       rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".default;
     in {
       devShells = {
@@ -65,6 +66,20 @@
             alejandra
             statix
             nil
+          ];
+        };
+
+        # nix develop .#msrv
+        msrv = pkgs.mkShell {
+          name = "wayfind-msrv-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            rust-toolchain-msrv
+            sccache
           ];
         };
 
