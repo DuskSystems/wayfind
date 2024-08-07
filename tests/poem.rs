@@ -5,7 +5,7 @@
 
 use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, router::Router};
+use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
 
 #[test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
@@ -112,15 +112,23 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert_with_constraints("/abc/<name>/def", 1, vec![("name", Regex::new(r"\d+")?)])?;
-    router.insert_with_constraints("/abc/def/<name>", 2, vec![("name", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints(
+        "/abc/<name>/def",
+        1,
+        vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
+    )?;
+    router.insert_with_constraints(
+        "/abc/def/<name>",
+        2,
+        vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
+    )?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] \d+
-           ╰─ <name> \d+
+           │     ╰─ <name> [2] Constraint::Regex: \d+
+           ╰─ <name> Constraint::Regex: \d+
                    ╰─ /def [1]
     "###);
 
@@ -141,7 +149,11 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router.insert("/a/b/<p:*>", 1).is_ok());
     assert!(router.insert("/a/b/<p2:*>", 2).is_err());
     assert!(router
-        .insert_with_constraints("/k/h/<name>", 1, vec![("name", Regex::new(r"\d+")?)],)
+        .insert_with_constraints(
+            "/k/h/<name>",
+            1,
+            vec![("name", NodeConstraint::Regex(Regex::new(r"\d+")?))],
+        )
         .is_ok());
 
     insta::assert_snapshot!(router, @"");
@@ -161,12 +173,20 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c/d", 7)?;
     router.insert("/a/<p1>/<p2>/c", 8)?;
     router.insert("/<p1:*>", 9)?;
-    router.insert_with_constraints("/abc/<param>/def", 10, vec![("param", Regex::new(r"\d+")?)])?;
-    router.insert_with_constraints("/kcd/<p1>", 11, vec![("p1", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints(
+        "/abc/<param>/def",
+        10,
+        vec![("param", NodeConstraint::Regex(Regex::new(r"\d+")?))],
+    )?;
+    router.insert_with_constraints(
+        "/kcd/<p1>",
+        11,
+        vec![("p1", NodeConstraint::Regex(Regex::new(r"\d+")?))],
+    )?;
     router.insert_with_constraints(
         "/<package>/-/<package_tgz>",
         12,
-        vec![("package_tgz", Regex::new(r".*tgz$")?)],
+        vec![("package_tgz", NodeConstraint::Regex(Regex::new(r".*tgz$")?))],
     )?;
 
     insta::assert_snapshot!(router, @r###"
@@ -179,7 +199,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> \d+
+       │  │      ├─ <param> Constraint::Regex: \d+
        │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
@@ -192,10 +212,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1> [11] \d+
+       │     ╰─ <p1> [11] Constraint::Regex: \d+
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] .*tgz$
+       │               ╰─ <package_tgz> [12] Constraint::Regex: .*tgz$
        ╰─ <p1:*> [9]
     "###);
 
@@ -324,13 +344,13 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    router.insert_with_constraints("/a/<id>", 4, vec![("id", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints("/a/<id>", 4, vec![("id", NodeConstraint::Regex(Regex::new(r"\d+")?))])?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] \d+
+         ├─ <id> [4] Constraint::Regex: \d+
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -352,7 +372,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] \d+
+         ├─ <id> [4] Constraint::Regex: \d+
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
