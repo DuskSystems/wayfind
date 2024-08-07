@@ -20,6 +20,17 @@ Real-world projects often need fancy routing capabilities, such as projects port
 
 The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
 
+## Parameters
+
+- Static: `/index.html`
+- Dynamic: `/calender/<year>-<month>-<day>`
+- Wildcard: `/v1/<namespace:*>/tags/list`
+
+## Constraints
+
+- Regex: `[a-z]+`
+- Function: `is_lowercase_alpha`
+
 ## Benchmarks
 
 All benchmarks ran on a MacOS M1 Pro laptop.

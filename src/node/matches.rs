@@ -249,6 +249,7 @@ impl<T> Node<T> {
 
                     true
                 }
+                NodeConstraint::Function(function) => function(segment),
             })
     }
 }

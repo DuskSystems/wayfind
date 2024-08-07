@@ -1,38 +1,84 @@
 #![allow(clippy::too_many_lines)]
 
-use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, router::Router};
+use wayfind::{assert_router_matches, node::NodeConstraint, router::Router};
+
+fn is_lowercase_alpha(bytes: &[u8]) -> bool {
+    bytes
+        .iter()
+        .all(|&b| b.is_ascii_lowercase())
+}
+
+fn is_png_or_jpg(bytes: &[u8]) -> bool {
+    let s = std::str::from_utf8(bytes).unwrap_or("");
+    s == "png" || s == "jpg"
+}
+
+fn is_four_digit_year(bytes: &[u8]) -> bool {
+    let s = std::str::from_utf8(bytes).unwrap_or("");
+    s.len() == 4 && s.chars().all(|c| c.is_ascii_digit())
+}
+
+fn is_pdf_or_docx(bytes: &[u8]) -> bool {
+    let s = std::str::from_utf8(bytes).unwrap_or("");
+    s == "pdf" || s == "docx"
+}
+
+fn is_lowercase_alpha_or_dash(bytes: &[u8]) -> bool {
+    bytes
+        .iter()
+        .all(|&b| b.is_ascii_lowercase() || b == b'-')
+}
+
+fn is_numeric(bytes: &[u8]) -> bool {
+    bytes
+        .iter()
+        .all(|&b| b.is_ascii_digit())
+}
 
 #[test]
-fn test_inline_regex() -> Result<(), Box<dyn Error>> {
+fn test_inline_functions() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     router.insert_with_constraints(
         "/user/<name>.<ext>",
         1,
-        vec![("name", Regex::new(r"[a-z]+")?), ("ext", Regex::new(r"png|jpg")?)],
+        vec![
+            ("name", NodeConstraint::Function(is_lowercase_alpha)),
+            ("ext", NodeConstraint::Function(is_png_or_jpg)),
+        ],
     )?;
 
     router.insert_with_constraints(
         "/file-<year>-doc.<ext>",
         2,
-        vec![("year", Regex::new(r"\d{4}")?), ("ext", Regex::new(r"pdf|docx")?)],
+        vec![
+            ("year", NodeConstraint::Function(is_four_digit_year)),
+            ("ext", NodeConstraint::Function(is_pdf_or_docx)),
+        ],
     )?;
 
-    router.insert_with_constraints("/<category>-items.html", 3, vec![("category", Regex::new(r"[a-z-]+")?)])?;
+    router.insert_with_constraints(
+        "/<category>-items.html",
+        3,
+        vec![("category", NodeConstraint::Function(is_lowercase_alpha_or_dash))],
+    )?;
 
-    router.insert_with_constraints("/report-<id>", 4, vec![("id", Regex::new(r"\d+")?)])?;
+    router.insert_with_constraints("/report-<id>", 4, vec![("id", NodeConstraint::Function(is_numeric))])?;
 
-    router.insert_with_constraints("/posts/<year>/<slug:*>", 5, vec![("year", Regex::new(r"\d{4}")?)])?;
+    router.insert_with_constraints(
+        "/posts/<year>/<slug:*>",
+        5,
+        vec![("year", NodeConstraint::Function(is_four_digit_year))],
+    )?;
 
     router.insert_with_constraints(
         "/products/<category>/<id>-<slug>",
         6,
         vec![
-            ("category", Regex::new(r"[a-z]+")?),
-            ("id", Regex::new(r"\d+")?),
-            ("slug", Regex::new(r"[a-z-]+")?),
+            ("category", NodeConstraint::Function(is_lowercase_alpha)),
+            ("id", NodeConstraint::Function(is_numeric)),
+            ("slug", NodeConstraint::Function(is_lowercase_alpha_or_dash)),
         ],
     )?;
 
@@ -40,27 +86,27 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> [a-z]+
+       │      ╰─ <name> Constraint::Function
        │              ╰─ .
-       │                 ╰─ <ext> [1] png|jpg
+       │                 ╰─ <ext> [1] Constraint::Function
        ├─ file-
-       │      ╰─ <year> \d{4}
+       │      ╰─ <year> Constraint::Function
        │              ╰─ -doc.
-       │                     ╰─ <ext> [2] pdf|docx
+       │                     ╰─ <ext> [2] Constraint::Function
        ├─ report-
-       │        ╰─ <id> [4] \d+
+       │        ╰─ <id> [4] Constraint::Function
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ <year> \d{4}
+       │  │      ╰─ <year> Constraint::Function
        │  │              ╰─ /
        │  │                 ╰─ <slug:*> [5]
        │  ╰─ roducts/
-       │            ╰─ <category> [a-z]+
+       │            ╰─ <category> Constraint::Function
        │                        ╰─ /
-       │                           ╰─ <id> \d+
+       │                           ╰─ <id> Constraint::Function
        │                                 ╰─ -
-       │                                    ╰─ <slug> [6] [a-z-]+
-       ╰─ <category> [a-z-]+
+       │                                    ╰─ <slug> [6] Constraint::Function
+       ╰─ <category> Constraint::Function
                    ╰─ -items.html [3]
     "###);
 

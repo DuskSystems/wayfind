@@ -1,5 +1,5 @@
 use regex::bytes::Regex;
-use wayfind::router::Router;
+use wayfind::{node::NodeConstraint, router::Router};
 
 #[test]
 fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,15 +24,19 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
     // Regex Segment
-    router.insert_with_constraints("/repos/<id>", 8, vec![("id", Regex::new(r"[a-f0-9]{32}")?)])?;
+    router.insert_with_constraints(
+        "/repos/<id>",
+        8,
+        vec![("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))],
+    )?;
 
     // Regex Inline
     router.insert_with_constraints(
         "/repos/<id>/archive/v<version>",
         9,
         vec![
-            ("id", Regex::new(r"[a-f0-9]{32}")?),
-            ("version", Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?),
+            ("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?)),
+            ("version", NodeConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?)),
         ],
     )?;
 
@@ -41,9 +45,9 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
         "/repos/<id>/compare/<base>..<head>",
         10,
         vec![
-            ("id", Regex::new(r"[a-f0-9]{32}")?),
-            ("base", Regex::new(r"[a-f0-9]{40}")?),
-            ("head", Regex::new(r"[a-f0-9]{40}")?),
+            ("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?)),
+            ("base", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?)),
+            ("head", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?)),
         ],
     )?;
 
@@ -61,14 +65,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] [a-f0-9]{32}
+    │  │       ╰─ <id> [8] Constraint::Regex: [a-f0-9]{32}
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] [0-9]+\.[0-9]+\.[0-9]+
+    │  │                │          ╰─ <version> [9] Constraint::Regex: [0-9]+\.[0-9]+\.[0-9]+
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> [a-f0-9]{40}
+    │  │                          ╰─ <base> Constraint::Regex: [a-f0-9]{40}
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] [a-f0-9]{40}
+    │  │                                      ╰─ <head> [10] Constraint::Regex: [a-f0-9]{40}
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]
