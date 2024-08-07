@@ -90,27 +90,27 @@ fn test_inline_functions() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> Constraint::Function
+       │      ╰─ <name> [Constraint::Function]
        │              ╰─ .
-       │                 ╰─ <ext> [1] Constraint::Function
+       │                 ╰─ <ext> [1] [Constraint::Function]
        ├─ file-
-       │      ╰─ <year> Constraint::Function
+       │      ╰─ <year> [Constraint::Function]
        │              ╰─ -doc.
-       │                     ╰─ <ext> [2] Constraint::Function
+       │                     ╰─ <ext> [2] [Constraint::Function]
        ├─ report-
-       │        ╰─ <id> [4] Constraint::Function
+       │        ╰─ <id> [4] [Constraint::Function]
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ <year> Constraint::Function
+       │  │      ╰─ <year> [Constraint::Function]
        │  │              ╰─ /
        │  │                 ╰─ <slug:*> [5]
        │  ╰─ roducts/
-       │            ╰─ <category> Constraint::Function
+       │            ╰─ <category> [Constraint::Function]
        │                        ╰─ /
-       │                           ╰─ <id> Constraint::Function
+       │                           ╰─ <id> [Constraint::Function]
        │                                 ╰─ -
-       │                                    ╰─ <slug> [6] Constraint::Function
-       ╰─ <category> Constraint::Function
+       │                                    ╰─ <slug> [6] [Constraint::Function]
+       ╰─ <category> [Constraint::Function]
                    ╰─ -items.html [3]
     "###);
 

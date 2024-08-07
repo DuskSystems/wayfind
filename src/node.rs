@@ -25,7 +25,7 @@ pub enum NodeConstraint {
 impl Debug for NodeConstraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Regex(regex) => write!(f, "Constraint::Regex: {}", regex.as_str()),
+            Self::Regex(regex) => write!(f, "Constraint::Regex({})", regex.as_str()),
             Self::Function(_) => write!(f, "Constraint::Function"),
         }
     }
@@ -55,7 +55,7 @@ pub struct Node<T> {
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
-    pub constraint: Option<NodeConstraint>,
+    pub constraints: Vec<NodeConstraint>,
 
     pub static_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,

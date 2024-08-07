@@ -21,7 +21,7 @@ impl<T> Router<T> {
 
                 prefix: vec![],
                 data: None,
-                constraint: None,
+                constraints: vec![],
 
                 static_children: vec![],
                 dynamic_children: vec![],

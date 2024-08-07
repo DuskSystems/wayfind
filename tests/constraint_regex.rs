@@ -58,27 +58,27 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> Constraint::Regex: [a-z]+
+       │      ╰─ <name> [Constraint::Regex([a-z]+)]
        │              ╰─ .
-       │                 ╰─ <ext> [1] Constraint::Regex: png|jpg
+       │                 ╰─ <ext> [1] [Constraint::Regex(png|jpg)]
        ├─ file-
-       │      ╰─ <year> Constraint::Regex: \d{4}
+       │      ╰─ <year> [Constraint::Regex(\d{4})]
        │              ╰─ -doc.
-       │                     ╰─ <ext> [2] Constraint::Regex: pdf|docx
+       │                     ╰─ <ext> [2] [Constraint::Regex(pdf|docx)]
        ├─ report-
-       │        ╰─ <id> [4] Constraint::Regex: \d+
+       │        ╰─ <id> [4] [Constraint::Regex(\d+)]
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ <year> Constraint::Regex: \d{4}
+       │  │      ╰─ <year> [Constraint::Regex(\d{4})]
        │  │              ╰─ /
        │  │                 ╰─ <slug:*> [5]
        │  ╰─ roducts/
-       │            ╰─ <category> Constraint::Regex: [a-z]+
+       │            ╰─ <category> [Constraint::Regex([a-z]+)]
        │                        ╰─ /
-       │                           ╰─ <id> Constraint::Regex: \d+
+       │                           ╰─ <id> [Constraint::Regex(\d+)]
        │                                 ╰─ -
-       │                                    ╰─ <slug> [6] Constraint::Regex: [a-z-]+
-       ╰─ <category> Constraint::Regex: [a-z-]+
+       │                                    ╰─ <slug> [6] [Constraint::Regex([a-z-]+)]
+       ╰─ <category> [Constraint::Regex([a-z-]+)]
                    ╰─ -items.html [3]
     "###);
 

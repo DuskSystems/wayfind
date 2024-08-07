@@ -131,8 +131,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] Constraint::Regex: \d+
-           ╰─ <name> Constraint::Regex: \d+
+           │     ╰─ <name> [2] [Constraint::Regex(\d+)]
+           ╰─ <name> [Constraint::Regex(\d+)]
                    ╰─ /def [1]
     "###);
 
@@ -210,7 +210,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> Constraint::Regex: \d+
+       │  │      ├─ <param> [Constraint::Regex(\d+)]
        │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
@@ -223,10 +223,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1> [11] Constraint::Regex: \d+
+       │     ╰─ <p1> [11] [Constraint::Regex(\d+)]
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] Constraint::Regex: .*tgz$
+       │               ╰─ <package_tgz> [12] [Constraint::Regex(.*tgz$)]
        ╰─ <p1:*> [9]
     "###);
 
@@ -366,7 +366,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] Constraint::Regex: \d+
+         ├─ <id> [4] [Constraint::Regex(\d+)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -388,7 +388,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] Constraint::Regex: \d+
+         ├─ <id> [4] [Constraint::Regex(\d+)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);

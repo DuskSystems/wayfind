@@ -92,7 +92,7 @@ impl<T> Node<T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(dynamic_child, segment) {
+                if !Self::check_constraints(dynamic_child, segment) {
                     continue;
                 }
 
@@ -130,7 +130,7 @@ impl<T> Node<T> {
                 .unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraint(dynamic_child, segment) {
+            if !Self::check_constraints(dynamic_child, segment) {
                 continue;
             }
 
@@ -183,7 +183,7 @@ impl<T> Node<T> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraint(wildcard_child, segment) {
+                if !Self::check_constraints(wildcard_child, segment) {
                     break;
                 }
 
@@ -215,7 +215,7 @@ impl<T> Node<T> {
         parameters: &mut SmallVec<[Parameter<'a>; 4]>,
     ) -> Option<&'a NodeData<T>> {
         for end_wildcard in &self.end_wildcard_children {
-            if !Self::check_constraint(end_wildcard, path) {
+            if !Self::check_constraints(end_wildcard, path) {
                 continue;
             }
 
@@ -230,10 +230,10 @@ impl<T> Node<T> {
         None
     }
 
-    fn check_constraint(node: &Self, segment: &[u8]) -> bool {
-        node.constraint
-            .as_ref()
-            .map_or(true, |constraint| match constraint {
+    fn check_constraints(node: &Self, segment: &[u8]) -> bool {
+        node.constraints
+            .iter()
+            .all(|constraint| match constraint {
                 NodeConstraint::Regex(regex) => {
                     let Some(captures) = regex.captures(segment) else {
                         return false;
@@ -243,11 +243,7 @@ impl<T> Node<T> {
                         return false;
                     };
 
-                    if !(matches.start() == 0 && matches.end() == segment.len()) {
-                        return false;
-                    }
-
-                    true
+                    matches.start() == 0 && matches.end() == segment.len()
                 }
                 NodeConstraint::Function(function) => function(segment),
             })
