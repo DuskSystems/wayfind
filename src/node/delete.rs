@@ -4,6 +4,7 @@ use crate::{
     parts::Part,
     route::Route,
 };
+use smallvec::SmallVec;
 
 impl<T> Node<T> {
     pub fn delete(&mut self, route: &mut Route<'_>) -> Result<(), DeleteError> {
@@ -89,7 +90,7 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+        constraints: &SmallVec<[NodeConstraint; 4]>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
@@ -115,7 +116,7 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+        constraints: &SmallVec<[NodeConstraint; 4]>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
@@ -137,7 +138,11 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraints: &[NodeConstraint]) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(
+        &mut self,
+        name: &[u8],
+        constraints: &SmallVec<[NodeConstraint; 4]>,
+    ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()

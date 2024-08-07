@@ -1,5 +1,6 @@
 use super::{Node, NodeConstraint, NodeData, NodeKind};
 use crate::{errors::insert::InsertError, parts::Part, route::Route};
+use smallvec::{smallvec, SmallVec};
 use std::cmp::Ordering;
 
 impl<T> Node<T> {
@@ -58,18 +59,18 @@ impl<T> Node<T> {
 
                     prefix: prefix.to_vec(),
                     data: None,
-                    constraints: vec![],
+                    constraints: smallvec![],
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: smallvec![],
+                    dynamic_children: smallvec![],
+                    wildcard_children: smallvec![],
+                    end_wildcard_children: smallvec![],
 
                     quick_dynamic: false,
                 };
 
                 new_child.insert(route, data)?;
-                new_child
+                Box::new(new_child)
             });
 
             return Ok(());
@@ -96,7 +97,7 @@ impl<T> Node<T> {
 
             prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
-            constraints: vec![],
+            constraints: smallvec![],
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -111,12 +112,12 @@ impl<T> Node<T> {
 
             prefix: prefix[common_prefix..].to_vec(),
             data: None,
-            constraints: vec![],
+            constraints: smallvec![],
 
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard_children: vec![],
+            static_children: smallvec![],
+            dynamic_children: smallvec![],
+            wildcard_children: smallvec![],
+            end_wildcard_children: smallvec![],
 
             quick_dynamic: false,
         };
@@ -124,10 +125,10 @@ impl<T> Node<T> {
         child.prefix = child.prefix[..common_prefix].to_vec();
 
         if prefix[common_prefix..].is_empty() {
-            child.static_children = vec![new_child_a];
+            child.static_children = smallvec![Box::new(new_child_a)];
             child.insert(route, data)?;
         } else {
-            child.static_children = vec![new_child_a, new_child_b];
+            child.static_children = smallvec![Box::new(new_child_a), Box::new(new_child_b)];
             child.static_children[1].insert(route, data)?;
         }
 
@@ -139,7 +140,7 @@ impl<T> Node<T> {
         route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraints: Vec<NodeConstraint>,
+        constraints: SmallVec<[NodeConstraint; 4]>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
@@ -156,16 +157,16 @@ impl<T> Node<T> {
                     data: None,
                     constraints,
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: smallvec![],
+                    dynamic_children: smallvec![],
+                    wildcard_children: smallvec![],
+                    end_wildcard_children: smallvec![],
 
                     quick_dynamic: false,
                 };
 
                 new_child.insert(route, data)?;
-                new_child
+                Box::new(new_child)
             });
         }
 
@@ -177,7 +178,7 @@ impl<T> Node<T> {
         route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraints: Vec<NodeConstraint>,
+        constraints: SmallVec<[NodeConstraint; 4]>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
@@ -194,16 +195,16 @@ impl<T> Node<T> {
                     data: None,
                     constraints,
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: smallvec![],
+                    dynamic_children: smallvec![],
+                    wildcard_children: smallvec![],
+                    end_wildcard_children: smallvec![],
 
                     quick_dynamic: false,
                 };
 
                 new_child.insert(route, data)?;
-                new_child
+                Box::new(new_child)
             });
         }
 
@@ -214,7 +215,7 @@ impl<T> Node<T> {
         &mut self,
         data: NodeData<T>,
         name: &[u8],
-        constraints: Vec<NodeConstraint>,
+        constraints: SmallVec<[NodeConstraint; 4]>,
     ) -> Result<(), InsertError> {
         if self
             .end_wildcard_children
@@ -224,20 +225,21 @@ impl<T> Node<T> {
             return Err(InsertError::DuplicatePath);
         }
 
-        self.end_wildcard_children.push(Self {
-            kind: NodeKind::EndWildcard,
+        self.end_wildcard_children
+            .push(Box::new(Self {
+                kind: NodeKind::EndWildcard,
 
-            prefix: name.to_vec(),
-            data: Some(data),
-            constraints,
+                prefix: name.to_vec(),
+                data: Some(data),
+                constraints,
 
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard_children: vec![],
+                static_children: smallvec![],
+                dynamic_children: smallvec![],
+                wildcard_children: smallvec![],
+                end_wildcard_children: smallvec![],
 
-            quick_dynamic: false,
-        });
+                quick_dynamic: false,
+            }));
 
         Ok(())
     }

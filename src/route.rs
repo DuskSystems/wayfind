@@ -1,9 +1,10 @@
 use crate::{errors::route::RouteError, node::NodeConstraint, parts::Parts};
+use smallvec::SmallVec;
 use std::collections::HashMap;
 
 pub struct RouteBuilder<'a> {
     pub path: &'a str,
-    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
+    pub constraints: HashMap<&'a [u8], SmallVec<[NodeConstraint; 4]>>,
 }
 
 impl<'a> RouteBuilder<'a> {
@@ -37,7 +38,7 @@ impl<'a> RouteBuilder<'a> {
 pub struct Route<'a> {
     pub path: &'a str,
     pub parts: Parts<'a>,
-    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
+    pub constraints: HashMap<&'a [u8], SmallVec<[NodeConstraint; 4]>>,
 }
 
 impl<'a> TryFrom<&'a str> for Route<'a> {

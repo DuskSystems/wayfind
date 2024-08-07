@@ -21,12 +21,12 @@ impl<T> Router<T> {
 
                 prefix: vec![],
                 data: None,
-                constraints: vec![],
+                constraints: smallvec![],
 
-                static_children: vec![],
-                dynamic_children: vec![],
-                wildcard_children: vec![],
-                end_wildcard_children: vec![],
+                static_children: smallvec![],
+                dynamic_children: smallvec![],
+                wildcard_children: smallvec![],
+                end_wildcard_children: smallvec![],
 
                 quick_dynamic: false,
             },

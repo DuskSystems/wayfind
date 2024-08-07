@@ -1,4 +1,5 @@
 use regex::bytes::Regex;
+use smallvec::SmallVec;
 use std::{fmt::Debug, sync::Arc};
 
 pub mod delete;
@@ -55,12 +56,12 @@ pub struct Node<T> {
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
-    pub constraints: Vec<NodeConstraint>,
+    pub constraints: SmallVec<[NodeConstraint; 4]>,
 
-    pub static_children: Vec<Node<T>>,
-    pub dynamic_children: Vec<Node<T>>,
-    pub wildcard_children: Vec<Node<T>>,
-    pub end_wildcard_children: Vec<Node<T>>,
+    pub static_children: SmallVec<[Box<Node<T>>; 4]>,
+    pub dynamic_children: SmallVec<[Box<Node<T>>; 4]>,
+    pub wildcard_children: SmallVec<[Box<Node<T>>; 4]>,
+    pub end_wildcard_children: SmallVec<[Box<Node<T>>; 4]>,
 
     // TODO: Come up with a better names.
     pub quick_dynamic: bool,
