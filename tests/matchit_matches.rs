@@ -1,7 +1,7 @@
 //! Tests sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/tests/match.rs>
 
-#![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+#![allow(clippy::too_many_lines)]
 
 use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};

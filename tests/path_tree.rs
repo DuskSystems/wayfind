@@ -1,7 +1,7 @@
 //! Tests sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/tests/tree.rs>
 
-#![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+#![allow(clippy::too_many_lines)]
 
 use std::error::Error;
 use wayfind::{assert_router_matches, router::Router};
