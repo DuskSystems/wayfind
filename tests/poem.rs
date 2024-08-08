@@ -3,9 +3,11 @@
 
 #![allow(clippy::too_many_lines)]
 
-use regex::bytes::Regex;
+use regex::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
+use wayfind::{
+    assert_router_matches, constraints::parameter::ParameterConstraint, route::RouteBuilder, router::Router,
+};
 
 #[test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
@@ -115,14 +117,14 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<name>/def")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("name", ParameterConstraint::Regex(Regex::new(r"\d+")?))
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/abc/def/<name>")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("name", ParameterConstraint::Regex(Regex::new(r"\d+")?))
             .build()?,
         2,
     )?;
@@ -131,8 +133,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] [Constraint::Regex(\d+)]
-           ╰─ <name> [Constraint::Regex(\d+)]
+           │     ╰─ <name> [2] [ParameterConstraint::Regex(\d+)]
+           ╰─ <name> [ParameterConstraint::Regex(\d+)]
                    ╰─ /def [1]
     "###);
 
@@ -155,7 +157,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router
         .insert(
             RouteBuilder::new("/k/h/<name>")
-                .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+                .parameter_constraint("name", ParameterConstraint::Regex(Regex::new(r"\d+")?))
                 .build()?,
             1,
         )
@@ -181,21 +183,21 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<param>/def")
-            .constraint("param", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("param", ParameterConstraint::Regex(Regex::new(r"\d+")?))
             .build()?,
         10,
     )?;
 
     router.insert(
         RouteBuilder::new("/kcd/<p1>")
-            .constraint("p1", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("p1", ParameterConstraint::Regex(Regex::new(r"\d+")?))
             .build()?,
         11,
     )?;
 
     router.insert(
         RouteBuilder::new("/<package>/-/<package_tgz>")
-            .constraint("package_tgz", NodeConstraint::Regex(Regex::new(r".*tgz$")?))
+            .parameter_constraint("package_tgz", ParameterConstraint::Regex(Regex::new(r".*tgz$")?))
             .build()?,
         12,
     )?;
@@ -210,7 +212,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> [Constraint::Regex(\d+)]
+       │  │      ├─ <param> [ParameterConstraint::Regex(\d+)]
        │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
@@ -223,10 +225,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1> [11] [Constraint::Regex(\d+)]
+       │     ╰─ <p1> [11] [ParameterConstraint::Regex(\d+)]
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] [Constraint::Regex(.*tgz$)]
+       │               ╰─ <package_tgz> [12] [ParameterConstraint::Regex(.*tgz$)]
        ╰─ <p1:*> [9]
     "###);
 
@@ -357,7 +359,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/a/<id>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"\d+")?))
             .build()?,
         4,
     )?;
@@ -366,7 +368,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] [Constraint::Regex(\d+)]
+         ├─ <id> [4] [ParameterConstraint::Regex(\d+)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -388,7 +390,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] [Constraint::Regex(\d+)]
+         ├─ <id> [4] [ParameterConstraint::Regex(\d+)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);

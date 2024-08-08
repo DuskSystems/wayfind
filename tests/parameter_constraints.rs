@@ -1,27 +1,28 @@
 #![allow(clippy::too_many_lines)]
 
-use regex::bytes::Regex;
+use regex::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
+use wayfind::{
+    assert_router_matches, constraints::parameter::ParameterConstraint, route::RouteBuilder, router::Router,
+};
 
-fn is_lowercase_alpha(bytes: &[u8]) -> bool {
-    bytes
-        .iter()
-        .all(|&b| b.is_ascii_lowercase())
+fn is_lowercase_alpha(segment: &str) -> bool {
+    segment
+        .chars()
+        .all(|c| c.is_ascii_lowercase())
 }
 
-fn is_length_between_3_and_10(bytes: &[u8]) -> bool {
-    (3..=10).contains(&bytes.len())
+fn is_length_between_3_and_10(segment: &str) -> bool {
+    (3..=10).contains(&segment.len())
 }
 
-fn is_png_or_jpg(bytes: &[u8]) -> bool {
-    let s = std::str::from_utf8(bytes).unwrap_or("");
-    s == "png" || s == "jpg"
+fn is_png_or_jpg(segment: &str) -> bool {
+    segment == "png" || segment == "jpg"
 }
 
-fn is_even_year(bytes: &[u8]) -> bool {
-    let s = std::str::from_utf8(bytes).unwrap_or("");
-    s.parse::<i32>()
+fn is_even_year(segment: &str) -> bool {
+    segment
+        .parse::<i32>()
         .map(|year| year % 2 == 0)
         .unwrap_or(false)
 }
@@ -32,29 +33,29 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/user/<name>/<id>")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"^[a-z]+$")?))
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"^.{3,10}$")?))
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"^\d+$")?))
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"^(?:[1-9]\d{3}|10000)$")?))
+            .parameter_constraint("name", ParameterConstraint::Regex(Regex::new(r"^[a-z]+$")?))
+            .parameter_constraint("name", ParameterConstraint::Regex(Regex::new(r"^.{3,10}$")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"^\d+$")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"^(?:[1-9]\d{3}|10000)$")?))
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/profile/<username>.<ext>")
-            .constraint("username", NodeConstraint::Function(is_lowercase_alpha))
-            .constraint("username", NodeConstraint::Function(is_length_between_3_and_10))
-            .constraint("ext", NodeConstraint::Function(is_png_or_jpg))
+            .parameter_constraint("username", ParameterConstraint::Function(is_lowercase_alpha))
+            .parameter_constraint("username", ParameterConstraint::Function(is_length_between_3_and_10))
+            .parameter_constraint("ext", ParameterConstraint::Function(is_png_or_jpg))
             .build()?,
         2,
     )?;
 
     router.insert(
         RouteBuilder::new("/posts/<year>/<slug>")
-            .constraint("year", NodeConstraint::Regex(Regex::new(r"^\d{4}$")?))
-            .constraint("year", NodeConstraint::Function(is_even_year))
-            .constraint("slug", NodeConstraint::Regex(Regex::new(r"^[a-z0-9-]+$")?))
-            .constraint("slug", NodeConstraint::Function(is_length_between_3_and_10))
+            .parameter_constraint("year", ParameterConstraint::Regex(Regex::new(r"^\d{4}$")?))
+            .parameter_constraint("year", ParameterConstraint::Function(is_even_year))
+            .parameter_constraint("slug", ParameterConstraint::Regex(Regex::new(r"^[a-z0-9-]+$")?))
+            .parameter_constraint("slug", ParameterConstraint::Function(is_length_between_3_and_10))
             .build()?,
         3,
     )?;
@@ -63,18 +64,18 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> [Constraint::Regex(^[a-z]+$), Constraint::Regex(^.{3,10}$)]
+       │      ╰─ <name> [ParameterConstraint::Regex(^[a-z]+$), ParameterConstraint::Regex(^.{3,10}$)]
        │              ╰─ /
-       │                 ╰─ <id> [1] [Constraint::Regex(^\d+$), Constraint::Regex(^(?:[1-9]\d{3}|10000)$)]
+       │                 ╰─ <id> [1] [ParameterConstraint::Regex(^\d+$), ParameterConstraint::Regex(^(?:[1-9]\d{3}|10000)$)]
        ╰─ p
           ├─ rofile/
-          │        ╰─ <username> [Constraint::Function, Constraint::Function]
+          │        ╰─ <username> [ParameterConstraint::Function, ParameterConstraint::Function]
           │                    ╰─ .
-          │                       ╰─ <ext> [2] [Constraint::Function]
+          │                       ╰─ <ext> [2] [ParameterConstraint::Function]
           ╰─ osts/
-                 ╰─ <year> [Constraint::Regex(^\d{4}$), Constraint::Function]
+                 ╰─ <year> [ParameterConstraint::Regex(^\d{4}$), ParameterConstraint::Function]
                          ╰─ /
-                            ╰─ <slug> [3] [Constraint::Regex(^[a-z0-9-]+$), Constraint::Function]
+                            ╰─ <slug> [3] [ParameterConstraint::Regex(^[a-z0-9-]+$), ParameterConstraint::Function]
     "###);
 
     assert_router_matches!(router, {

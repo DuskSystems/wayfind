@@ -1,4 +1,4 @@
-use super::{Node, NodeConstraint, NodeData};
+use super::{Node, NodeData, ParameterConstraint};
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
@@ -92,7 +92,7 @@ impl<T> Node<T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraints(dynamic_child, segment) {
+                if !Self::check_parameter_constraints(dynamic_child, segment) {
                     continue;
                 }
 
@@ -130,7 +130,7 @@ impl<T> Node<T> {
                 .unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraints(dynamic_child, segment) {
+            if !Self::check_parameter_constraints(dynamic_child, segment) {
                 continue;
             }
 
@@ -183,7 +183,7 @@ impl<T> Node<T> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraints(wildcard_child, segment) {
+                if !Self::check_parameter_constraints(wildcard_child, segment) {
                     break;
                 }
 
@@ -215,7 +215,7 @@ impl<T> Node<T> {
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for end_wildcard in &self.end_wildcard_children {
-            if !Self::check_constraints(end_wildcard, path) {
+            if !Self::check_parameter_constraints(end_wildcard, path) {
                 continue;
             }
 
@@ -230,11 +230,15 @@ impl<T> Node<T> {
         None
     }
 
-    fn check_constraints(node: &Self, segment: &[u8]) -> bool {
-        node.constraints
+    fn check_parameter_constraints(node: &Self, segment: &[u8]) -> bool {
+        let Ok(segment) = std::str::from_utf8(segment) else {
+            return false;
+        };
+
+        node.parameter_constraints
             .iter()
-            .all(|constraint| match constraint {
-                NodeConstraint::Regex(regex) => {
+            .all(|parameter_constraint| match parameter_constraint {
+                ParameterConstraint::Regex(regex) => {
                     let Some(captures) = regex.captures(segment) else {
                         return false;
                     };
@@ -245,7 +249,7 @@ impl<T> Node<T> {
 
                     matches.start() == 0 && matches.end() == segment.len()
                 }
-                NodeConstraint::Function(function) => function(segment),
+                ParameterConstraint::Function(function) => function(segment),
             })
     }
 }

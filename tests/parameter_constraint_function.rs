@@ -1,55 +1,89 @@
 #![allow(clippy::too_many_lines)]
 
-use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
+use wayfind::{
+    assert_router_matches, constraints::parameter::ParameterConstraint, route::RouteBuilder, router::Router,
+};
+
+fn is_lowercase_alpha(segment: &str) -> bool {
+    segment
+        .chars()
+        .all(|c| c.is_ascii_lowercase())
+}
+
+fn is_png_or_jpg(segment: &str) -> bool {
+    segment == "png" || segment == "jpg"
+}
+
+fn is_four_digit_year(segment: &str) -> bool {
+    segment.len() == 4
+        && segment
+            .chars()
+            .all(|c| c.is_ascii_digit())
+}
+
+fn is_pdf_or_docx(segment: &str) -> bool {
+    segment == "pdf" || segment == "docx"
+}
+
+fn is_lowercase_alpha_or_dash(segment: &str) -> bool {
+    segment
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c == '-')
+}
+
+fn is_numeric(segment: &str) -> bool {
+    segment
+        .chars()
+        .all(|c| c.is_ascii_digit())
+}
 
 #[test]
-fn test_inline_regex() -> Result<(), Box<dyn Error>> {
+fn test_inline_functions() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     router.insert(
         RouteBuilder::new("/user/<name>.<ext>")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"[a-z]+")?))
-            .constraint("ext", NodeConstraint::Regex(Regex::new(r"png|jpg")?))
+            .parameter_constraint("name", ParameterConstraint::Function(is_lowercase_alpha))
+            .parameter_constraint("ext", ParameterConstraint::Function(is_png_or_jpg))
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/file-<year>-doc.<ext>")
-            .constraint("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))
-            .constraint("ext", NodeConstraint::Regex(Regex::new(r"pdf|docx")?))
+            .parameter_constraint("year", ParameterConstraint::Function(is_four_digit_year))
+            .parameter_constraint("ext", ParameterConstraint::Function(is_pdf_or_docx))
             .build()?,
         2,
     )?;
 
     router.insert(
         RouteBuilder::new("/<category>-items.html")
-            .constraint("category", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))
+            .parameter_constraint("category", ParameterConstraint::Function(is_lowercase_alpha_or_dash))
             .build()?,
         3,
     )?;
 
     router.insert(
         RouteBuilder::new("/report-<id>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .parameter_constraint("id", ParameterConstraint::Function(is_numeric))
             .build()?,
         4,
     )?;
 
     router.insert(
         RouteBuilder::new("/posts/<year>/<slug:*>")
-            .constraint("year", NodeConstraint::Regex(Regex::new(r"\d{4}")?))
+            .parameter_constraint("year", ParameterConstraint::Function(is_four_digit_year))
             .build()?,
         5,
     )?;
 
     router.insert(
         RouteBuilder::new("/products/<category>/<id>-<slug>")
-            .constraint("category", NodeConstraint::Regex(Regex::new(r"[a-z]+")?))
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
-            .constraint("slug", NodeConstraint::Regex(Regex::new(r"[a-z-]+")?))
+            .parameter_constraint("category", ParameterConstraint::Function(is_lowercase_alpha))
+            .parameter_constraint("id", ParameterConstraint::Function(is_numeric))
+            .parameter_constraint("slug", ParameterConstraint::Function(is_lowercase_alpha_or_dash))
             .build()?,
         6,
     )?;
@@ -58,27 +92,27 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> [Constraint::Regex([a-z]+)]
+       │      ╰─ <name> [ParameterConstraint::Function]
        │              ╰─ .
-       │                 ╰─ <ext> [1] [Constraint::Regex(png|jpg)]
+       │                 ╰─ <ext> [1] [ParameterConstraint::Function]
        ├─ file-
-       │      ╰─ <year> [Constraint::Regex(\d{4})]
+       │      ╰─ <year> [ParameterConstraint::Function]
        │              ╰─ -doc.
-       │                     ╰─ <ext> [2] [Constraint::Regex(pdf|docx)]
+       │                     ╰─ <ext> [2] [ParameterConstraint::Function]
        ├─ report-
-       │        ╰─ <id> [4] [Constraint::Regex(\d+)]
+       │        ╰─ <id> [4] [ParameterConstraint::Function]
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ <year> [Constraint::Regex(\d{4})]
+       │  │      ╰─ <year> [ParameterConstraint::Function]
        │  │              ╰─ /
        │  │                 ╰─ <slug:*> [5]
        │  ╰─ roducts/
-       │            ╰─ <category> [Constraint::Regex([a-z]+)]
+       │            ╰─ <category> [ParameterConstraint::Function]
        │                        ╰─ /
-       │                           ╰─ <id> [Constraint::Regex(\d+)]
+       │                           ╰─ <id> [ParameterConstraint::Function]
        │                                 ╰─ -
-       │                                    ╰─ <slug> [6] [Constraint::Regex([a-z-]+)]
-       ╰─ <category> [Constraint::Regex([a-z-]+)]
+       │                                    ╰─ <slug> [6] [ParameterConstraint::Function]
+       ╰─ <category> [ParameterConstraint::Function]
                    ╰─ -items.html [3]
     "###);
 

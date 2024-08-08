@@ -1,6 +1,6 @@
 use crate::{
     errors::delete::DeleteError,
-    node::{Node, NodeConstraint},
+    node::{Node, ParameterConstraint},
     parts::Part,
     route::Route,
 };
@@ -11,28 +11,28 @@ impl<T> Node<T> {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(route, prefix),
                 Part::Dynamic { name } => {
-                    let constraints = route
-                        .constraints
+                    let parameter_constraints = route
+                        .parameter_constraints
                         .remove(name)
                         .unwrap_or_default();
 
-                    self.delete_dynamic(route, name, &constraints)
+                    self.delete_dynamic(route, name, &parameter_constraints)
                 }
                 Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraints = route
-                        .constraints
+                    let parameter_constraints = route
+                        .parameter_constraints
                         .remove(name)
                         .unwrap_or_default();
 
-                    self.delete_end_wildcard(name, &constraints)
+                    self.delete_end_wildcard(name, &parameter_constraints)
                 }
                 Part::Wildcard { name } => {
-                    let constraints = route
-                        .constraints
+                    let parameter_constraints = route
+                        .parameter_constraints
                         .remove(name)
                         .unwrap_or_default();
 
-                    self.delete_wildcard(route, name, &constraints)
+                    self.delete_wildcard(route, name, &parameter_constraints)
                 }
             };
 
@@ -89,12 +89,12 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+        parameter_constraints: &[ParameterConstraint],
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.parameter_constraints == *parameter_constraints)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.dynamic_children[index];
@@ -115,12 +115,12 @@ impl<T> Node<T> {
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+        parameter_constraints: &[ParameterConstraint],
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.parameter_constraints == *parameter_constraints)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.wildcard_children[index];
@@ -137,11 +137,15 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraints: &[NodeConstraint]) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(
+        &mut self,
+        name: &[u8],
+        parameter_constraints: &[ParameterConstraint],
+    ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.parameter_constraints == *parameter_constraints)
             .ok_or(DeleteError::NotFound)?;
 
         self.end_wildcard_children.remove(index);

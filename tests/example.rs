@@ -1,5 +1,5 @@
-use regex::bytes::Regex;
-use wayfind::{node::NodeConstraint, route::RouteBuilder, router::Router};
+use regex::Regex;
+use wayfind::{constraints::parameter::ParameterConstraint, route::RouteBuilder, router::Router};
 
 #[test]
 fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,7 +26,7 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Regex Segment
     router.insert(
         RouteBuilder::new("/repos/<id>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
             .build()?,
         8,
     )?;
@@ -34,8 +34,11 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Regex Inline
     router.insert(
         RouteBuilder::new("/repos/<id>/archive/v<version>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
-            .constraint("version", NodeConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .parameter_constraint(
+                "version",
+                ParameterConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?),
+            )
             .build()?,
         9,
     )?;
@@ -43,9 +46,9 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Multiple Regex Inline
     router.insert(
         RouteBuilder::new("/repos/<id>/compare/<base>..<head>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
-            .constraint("base", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
-            .constraint("head", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
+            .parameter_constraint("id", ParameterConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .parameter_constraint("base", ParameterConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
+            .parameter_constraint("head", ParameterConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
             .build()?,
         10,
     )?;
@@ -64,14 +67,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] [Constraint::Regex([a-f0-9]{32})]
+    │  │       ╰─ <id> [8] [ParameterConstraint::Regex([a-f0-9]{32})]
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] [Constraint::Regex([0-9]+\.[0-9]+\.[0-9]+)]
+    │  │                │          ╰─ <version> [9] [ParameterConstraint::Regex([0-9]+\.[0-9]+\.[0-9]+)]
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> [Constraint::Regex([a-f0-9]{40})]
+    │  │                          ╰─ <base> [ParameterConstraint::Regex([a-f0-9]{40})]
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] [Constraint::Regex([a-f0-9]{40})]
+    │  │                                      ╰─ <head> [10] [ParameterConstraint::Regex([a-f0-9]{40})]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]
