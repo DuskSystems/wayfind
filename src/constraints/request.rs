@@ -5,7 +5,7 @@ use std::fmt::Debug;
 pub enum RequestConstraint {
     MethodFunction(fn(&Method) -> bool),
     UriFunction(fn(&Uri) -> bool),
-    VersionFunction(fn(&Version) -> bool),
+    VersionFunction(fn(Version) -> bool),
     HeadersFunction(fn(&HeaderMap<HeaderValue>) -> bool),
 }
 

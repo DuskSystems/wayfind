@@ -1,5 +1,6 @@
-use super::{Node, NodeData, ParameterConstraint};
-use crate::matches::Parameter;
+use super::{Node, ParameterConstraint};
+use crate::{constraints::request::RequestConstraint, matches::Parameter};
+use http::Request;
 use smallvec::{smallvec, SmallVec};
 
 impl<T> Node<T> {
@@ -7,9 +8,9 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if path.is_empty() {
-            return self.data.as_ref();
+            return if self.data.is_some() { Some(self) } else { None };
         }
 
         if let Some(matches) = self.matches_static(path, parameters) {
@@ -35,7 +36,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -59,7 +60,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -77,7 +78,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -122,7 +123,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -153,7 +154,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -213,7 +214,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_parameter_constraints(end_wildcard, path) {
                 continue;
@@ -224,7 +225,11 @@ impl<T> Node<T> {
                 value: path,
             });
 
-            return end_wildcard.data.as_ref();
+            return if end_wildcard.data.is_some() {
+                Some(end_wildcard)
+            } else {
+                None
+            };
         }
 
         None
@@ -254,6 +259,21 @@ impl<T> Node<T> {
                     matches.start() == 0 && matches.end() == segment.len()
                 }
                 ParameterConstraint::Function(function) => function(segment),
+            })
+    }
+
+    pub fn check_request_constraints<R>(node: &Self, request: &Request<R>) -> bool {
+        if node.request_constraints.is_empty() {
+            return true;
+        }
+
+        node.request_constraints
+            .iter()
+            .all(|request_constraint| match request_constraint {
+                RequestConstraint::MethodFunction(function) => function(request.method()),
+                RequestConstraint::UriFunction(function) => function(request.uri()),
+                RequestConstraint::VersionFunction(function) => function(request.version()),
+                RequestConstraint::HeadersFunction(function) => function(request.headers()),
             })
     }
 }

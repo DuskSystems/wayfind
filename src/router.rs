@@ -58,21 +58,31 @@ impl<T> Router<T> {
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
-        let data = self
+        let node = self
             .root
             .matches(path.as_bytes(), &mut parameters)?;
 
-        Some(Match { data, parameters })
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 
     #[must_use]
     pub fn matches_request<'k, 'v, R>(&'k self, request: &'v Request<R>) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
-        let data = self
+        let node = self
             .root
             .matches(request.uri().path().as_bytes(), &mut parameters)?;
 
-        Some(Match { data, parameters })
+        if !Node::check_request_constraints(node, request) {
+            return None;
+        }
+
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 }
 
