@@ -1,5 +1,6 @@
 use super::{Node, ParameterConstraint};
-use crate::matches::Parameter;
+use crate::{constraints::request::RequestConstraint, matches::Parameter};
+use http::Request;
 use smallvec::{smallvec, SmallVec};
 
 impl<T, R> Node<T, R> {
@@ -234,7 +235,11 @@ impl<T, R> Node<T, R> {
         None
     }
 
-    fn check_parameter_constraints(node: &Self, segment: &[u8]) -> bool {
+    pub fn check_parameter_constraints(node: &Self, segment: &[u8]) -> bool {
+        if node.parameter_constraints.is_empty() {
+            return true;
+        }
+
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };
@@ -254,6 +259,18 @@ impl<T, R> Node<T, R> {
                     matches.start() == 0 && matches.end() == segment.len()
                 }
                 ParameterConstraint::Function(function) => function(segment),
+            })
+    }
+
+    pub fn check_request_constraints(node: &Self, request: &Request<R>) -> bool {
+        if node.request_constraints.is_empty() {
+            return true;
+        }
+
+        node.request_constraints
+            .iter()
+            .all(|request_constraints| match request_constraints {
+                RequestConstraint::Function(function) => function(request),
             })
     }
 }

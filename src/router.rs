@@ -4,6 +4,7 @@ use crate::{
     node::{Node, NodeData, NodeKind},
     route::IntoRoute,
 };
+use http::Request;
 use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
 
@@ -57,10 +58,26 @@ impl<T, R> Router<T, R> {
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
-
         let node = self
             .root
             .path_matches(path.as_bytes(), &mut parameters)?;
+
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
+    }
+
+    #[must_use]
+    pub fn matches_request<'k, 'v>(&'k self, request: &'v Request<R>) -> Option<Match<'k, 'v, T>> {
+        let mut parameters = smallvec![];
+        let node = self
+            .root
+            .path_matches(request.uri().path().as_bytes(), &mut parameters)?;
+
+        if !Node::check_request_constraints(node, request) {
+            return None;
+        }
 
         Some(Match {
             data: node.data.as_ref()?,
