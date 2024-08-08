@@ -40,7 +40,7 @@ fn is_numeric(segment: &str) -> bool {
 
 #[test]
 fn test_inline_functions() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
 
     router.insert(
         RouteBuilder::new("/user/<name>.<ext>")

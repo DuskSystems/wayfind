@@ -8,7 +8,7 @@ use wayfind::{errors::delete::DeleteError, router::Router};
 
 #[test]
 fn normalized() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/x/<foo>/bar", 0)?;
     router.insert("/x/<bar>/baz", 1)?;
     router.insert("/<foo>/<baz>/bax", 2)?;
@@ -85,7 +85,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/home", 0)?;
     router.insert("/home/<id>", 1)?;
 
@@ -110,7 +110,7 @@ fn test() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn blog() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/<page>", 0)?;
     router.insert("/posts/<year>/<month>/<post>", 1)?;
     router.insert("/posts/<year>/<month>/index", 2)?;
@@ -151,7 +151,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn catchall() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/foo/<catchall:*>", 0)?;
     router.insert("/bar", 1)?;
     router.insert("/bar/", 2)?;
@@ -205,7 +205,7 @@ fn catchall() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn overlapping_routes() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/home", 0)?;
     router.insert("/home/<id>", 1)?;
     router.insert("/users", 2)?;
@@ -612,7 +612,7 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn trailing_slash() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/<home>/", 0)?;
     router.insert("/foo", 1)?;
 
@@ -683,7 +683,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn remove_root() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/", 0)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -702,7 +702,7 @@ fn remove_root() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn check_escaped_params() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
     router.insert("/foo/<id>", 0)?;
     router.insert("/foo/<id>/bar", 1)?;
     router.insert("/bar/<user>/<id>", 2)?;

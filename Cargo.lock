@@ -2277,6 +2277,7 @@ dependencies = [
  "criterion",
  "divan",
  "gonzales",
+ "http 1.1.0",
  "insta",
  "matchit",
  "ntex-router",

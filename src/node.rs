@@ -1,4 +1,4 @@
-use crate::constraints::parameter::ParameterConstraint;
+use crate::constraints::{parameter::ParameterConstraint, request::RequestConstraint};
 use std::{fmt::Debug, sync::Arc};
 
 pub mod delete;
@@ -22,18 +22,19 @@ pub struct NodeData<T> {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<T> {
+pub struct Node<T, R> {
     pub kind: NodeKind,
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
 
     pub parameter_constraints: Vec<ParameterConstraint>,
+    pub request_constraints: Vec<RequestConstraint<R>>,
 
-    pub static_children: Vec<Node<T>>,
-    pub dynamic_children: Vec<Node<T>>,
-    pub wildcard_children: Vec<Node<T>>,
-    pub end_wildcard_children: Vec<Node<T>>,
+    pub static_children: Vec<Node<T, R>>,
+    pub dynamic_children: Vec<Node<T, R>>,
+    pub wildcard_children: Vec<Node<T, R>>,
+    pub end_wildcard_children: Vec<Node<T, R>>,
 
     // TODO: Come up with a better names.
     pub quick_dynamic: bool,

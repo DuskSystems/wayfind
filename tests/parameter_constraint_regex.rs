@@ -8,7 +8,7 @@ use wayfind::{
 
 #[test]
 fn test_inline_regex() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut router = Router::<_, ()>::new();
 
     router.insert(
         RouteBuilder::new("/user/<name>.<ext>")

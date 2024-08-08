@@ -2,7 +2,7 @@ use super::{Node, NodeData, ParameterConstraint};
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
-impl<T> Node<T> {
+impl<T, R> Node<T, R> {
     pub fn matches<'k, 'v>(
         &'k self,
         path: &'v [u8],

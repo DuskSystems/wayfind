@@ -2,12 +2,12 @@ use super::Node;
 use crate::node::NodeKind;
 use std::fmt::Display;
 
-impl<T: Display> Display for Node<T> {
+impl<T: Display, R> Display for Node<T, R> {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn debug_node<T: Display>(
+        fn debug_node<T: Display, R>(
             f: &mut std::fmt::Formatter,
-            node: &Node<T>,
+            node: &Node<T, R>,
             padding: &str,
             is_root: bool,
             is_last: bool,

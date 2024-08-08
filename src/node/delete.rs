@@ -5,8 +5,8 @@ use crate::{
     route::Route,
 };
 
-impl<T> Node<T> {
-    pub fn delete(&mut self, route: &mut Route<'_>) -> Result<(), DeleteError> {
+impl<T, R> Node<T, R> {
+    pub fn delete(&mut self, route: &mut Route<'_, R>) -> Result<(), DeleteError> {
         if let Some(segment) = route.parts.pop() {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(route, prefix),
@@ -51,7 +51,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn delete_static(&mut self, route: &mut Route<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, route: &mut Route<'_, R>, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -87,7 +87,7 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        route: &mut Route<'_>,
+        route: &mut Route<'_, R>,
         name: &[u8],
         parameter_constraints: &[ParameterConstraint],
     ) -> Result<(), DeleteError> {
@@ -113,7 +113,7 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut Route<'_>,
+        route: &mut Route<'_, R>,
         name: &[u8],
         parameter_constraints: &[ParameterConstraint],
     ) -> Result<(), DeleteError> {

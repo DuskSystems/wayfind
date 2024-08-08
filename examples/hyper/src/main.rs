@@ -24,7 +24,7 @@ type HandlerFn = Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'_, 'a>]) -> BoxFutu
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let mut router: Router<HandlerFn> = Router::new();
+    let mut router: Router<HandlerFn, ()> = Router::new();
     router.insert(
         "/",
         Arc::new(move |path, parameters| Box::pin(index_route(path, parameters))),

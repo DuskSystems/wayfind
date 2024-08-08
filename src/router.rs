@@ -8,11 +8,11 @@ use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Router<T> {
-    root: Node<T>,
+pub struct Router<T, R> {
+    root: Node<T, R>,
 }
 
-impl<T> Router<T> {
+impl<T, R> Router<T, R> {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -23,6 +23,7 @@ impl<T> Router<T> {
                 data: None,
 
                 parameter_constraints: vec![],
+                request_constraints: vec![],
 
                 static_children: vec![],
                 dynamic_children: vec![],
@@ -34,9 +35,9 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn insert<'a, R>(&mut self, route: R, value: T) -> Result<(), InsertError>
+    pub fn insert<'a, RR>(&mut self, route: RR, value: T) -> Result<(), InsertError>
     where
-        R: IntoRoute<'a>,
+        RR: IntoRoute<'a, R>,
     {
         let mut route = route.into_route()?;
         let path = Arc::from(route.path);
@@ -45,9 +46,9 @@ impl<T> Router<T> {
             .insert(&mut route, NodeData { path, value })
     }
 
-    pub fn delete<'a, R>(&mut self, route: R) -> Result<(), DeleteError>
+    pub fn delete<'a, RR>(&mut self, route: RR) -> Result<(), DeleteError>
     where
-        R: IntoRoute<'a>,
+        RR: IntoRoute<'a, R>,
     {
         let mut route = route.into_route()?;
         self.root.delete(&mut route)
@@ -64,13 +65,13 @@ impl<T> Router<T> {
     }
 }
 
-impl<T> Default for Router<T> {
+impl<T, R> Default for Router<T, R> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Display> Display for Router<T> {
+impl<T: Display, R> Display for Router<T, R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }
