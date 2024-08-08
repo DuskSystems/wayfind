@@ -57,11 +57,15 @@ impl<T, R> Router<T, R> {
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
-        let data = self
-            .root
-            .matches(path.as_bytes(), &mut parameters)?;
 
-        Some(Match { data, parameters })
+        let node = self
+            .root
+            .path_matches(path.as_bytes(), &mut parameters)?;
+
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 }
 

@@ -1,41 +1,41 @@
-use super::{Node, NodeData, ParameterConstraint};
+use super::{Node, ParameterConstraint};
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
 impl<T, R> Node<T, R> {
-    pub fn matches<'k, 'v>(
+    pub fn path_matches<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if path.is_empty() {
-            return self.data.as_ref();
+            return if self.data.is_some() { Some(self) } else { None };
         }
 
-        if let Some(matches) = self.matches_static(path, parameters) {
+        if let Some(matches) = self.path_matches_static(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_dynamic(path, parameters) {
+        if let Some(matches) = self.path_matches_dynamic(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_wildcard(path, parameters) {
+        if let Some(matches) = self.path_matches_wildcard(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_end_wildcard(path, parameters) {
+        if let Some(matches) = self.path_matches_end_wildcard(path, parameters) {
             return Some(matches);
         }
 
         None
     }
 
-    fn matches_static<'k, 'v>(
+    fn path_matches_static<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -46,8 +46,8 @@ impl<T, R> Node<T, R> {
                     .all(|(a, b)| a == b)
             {
                 let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node_data) = static_child.matches(remaining_path, parameters) {
-                    return Some(node_data);
+                if let Some(node) = static_child.path_matches(remaining_path, parameters) {
+                    return Some(node);
                 }
             }
         }
@@ -55,15 +55,15 @@ impl<T, R> Node<T, R> {
         None
     }
 
-    fn matches_dynamic<'k, 'v>(
+    fn path_matches_dynamic<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if self.quick_dynamic {
-            self.matches_dynamic_segment(path, parameters)
+            self.path_matches_dynamic_segment(path, parameters)
         } else {
-            self.matches_dynamic_inline(path, parameters)
+            self.path_matches_dynamic_inline(path, parameters)
         }
     }
 
@@ -73,11 +73,11 @@ impl<T, R> Node<T, R> {
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
-    fn matches_dynamic_inline<'k, 'v>(
+    fn path_matches_dynamic_inline<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -102,15 +102,15 @@ impl<T, R> Node<T, R> {
                     value: segment,
                 });
 
-                if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
-                    last_match = Some(node_data);
+                if let Some(node) = dynamic_child.path_matches(&path[consumed..], &mut current_parameters) {
+                    last_match = Some(node);
                     last_match_parameters = current_parameters;
                 }
             }
 
-            if let Some(node_data) = last_match {
+            if let Some(node) = last_match {
                 *parameters = last_match_parameters;
-                return Some(node_data);
+                return Some(node);
             }
         }
 
@@ -118,11 +118,11 @@ impl<T, R> Node<T, R> {
     }
 
     // Doesn't support inline dynamic sections, e.g. `<name>.<extension>`, only `/<segment>/`
-    fn matches_dynamic_segment<'k, 'v>(
+    fn path_matches_dynamic_segment<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -139,8 +139,8 @@ impl<T, R> Node<T, R> {
                 value: segment,
             });
 
-            if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters) {
-                return Some(node_data);
+            if let Some(node) = dynamic_child.path_matches(&path[segment_end..], parameters) {
+                return Some(node);
             }
 
             parameters.pop();
@@ -149,11 +149,11 @@ impl<T, R> Node<T, R> {
         None
     }
 
-    fn matches_wildcard<'k, 'v>(
+    fn path_matches_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -192,8 +192,8 @@ impl<T, R> Node<T, R> {
                     value: segment,
                 });
 
-                if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters) {
-                    return Some(node_data);
+                if let Some(node) = wildcard_child.path_matches(&remaining_path[segment_end..], parameters) {
+                    return Some(node);
                 }
 
                 parameters.pop();
@@ -209,11 +209,11 @@ impl<T, R> Node<T, R> {
         None
     }
 
-    fn matches_end_wildcard<'k, 'v>(
+    fn path_matches_end_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_parameter_constraints(end_wildcard, path) {
                 continue;
@@ -224,7 +224,11 @@ impl<T, R> Node<T, R> {
                 value: path,
             });
 
-            return end_wildcard.data.as_ref();
+            return if end_wildcard.data.is_some() {
+                Some(end_wildcard)
+            } else {
+                None
+            };
         }
 
         None
