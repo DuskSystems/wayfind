@@ -5,7 +5,7 @@ use wayfind::{assert_router_matches, router::Router};
 
 #[test]
 fn uncommon() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     // Japanese (Konnichiwa)
     router.insert("/こんにちは", 0)?;

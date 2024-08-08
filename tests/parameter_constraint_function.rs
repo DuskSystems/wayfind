@@ -40,7 +40,7 @@ fn is_numeric(segment: &str) -> bool {
 
 #[test]
 fn test_parameter_constaint_functions() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     router.insert(
         RouteBuilder::new("/user/<name>.<ext>")

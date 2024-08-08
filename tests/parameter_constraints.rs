@@ -29,7 +29,7 @@ fn is_even_year(segment: &str) -> bool {
 
 #[test]
 fn test_parameter_constraints() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     router.insert(
         RouteBuilder::new("/user/<name>/<id>")

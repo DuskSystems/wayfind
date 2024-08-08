@@ -1,8 +1,8 @@
 use super::{Node, NodeData, NodeKind, ParameterConstraint};
 use crate::{errors::insert::InsertError, parts::Part, route::Route};
 
-impl<T, R> Node<T, R> {
-    pub fn insert(&mut self, route: &mut Route<'_, R>, data: NodeData<T>) -> Result<(), InsertError> {
+impl<T> Node<T> {
+    pub fn insert(&mut self, route: &mut Route<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = route.parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(route, data, prefix)?,
@@ -46,7 +46,7 @@ impl<T, R> Node<T, R> {
         Ok(())
     }
 
-    fn insert_static(&mut self, route: &mut Route<'_, R>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
+    fn insert_static(&mut self, route: &mut Route<'_>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -142,7 +142,7 @@ impl<T, R> Node<T, R> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut Route<'_, R>,
+        route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
         parameter_constraints: Vec<ParameterConstraint>,
@@ -182,7 +182,7 @@ impl<T, R> Node<T, R> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut Route<'_, R>,
+        route: &mut Route<'_>,
         data: NodeData<T>,
         name: &[u8],
         parameter_constraints: Vec<ParameterConstraint>,

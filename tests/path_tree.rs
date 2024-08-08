@@ -8,7 +8,7 @@ use wayfind::{assert_router_matches, router::Router};
 
 #[test]
 fn statics() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/", 0)?;
     router.insert("/hi", 1)?;
     router.insert("/contact", 2)?;
@@ -96,7 +96,7 @@ fn statics() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcards() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/", 0)?;
     router.insert("/cmd/<tool>/<sub>", 1)?;
     router.insert("/cmd/<tool>/", 2)?;
@@ -236,7 +236,7 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn single_named_parameter() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/users/<id>", 0)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -272,7 +272,7 @@ fn single_named_parameter() -> Result<(), Box<dyn Error>> {
 #[test]
 #[ignore = "undecided on behaviour"]
 fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/users/<id>", 0)?;
     router.insert("/users/<user_id>", 1)?;
 
@@ -295,7 +295,7 @@ fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/a/b/c", "/a/b/c")?;
     router.insert("/a/c/d", "/a/c/d")?;
     router.insert("/a/c/a", "/a/c/a")?;
@@ -341,7 +341,7 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<lang>/<keyword>", true)?;
     router.insert("/<id>", true)?;
 
@@ -381,7 +381,7 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/src/<filepath:*>", "* files")?;
 
     insta::assert_snapshot!(router, @r###"
@@ -433,7 +433,7 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
 #[test]
 #[ignore = "wildcards not yet implemented"]
 fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/commit_<sha:*>", "* sha")?;
     router.insert("/commit/<sha>", "hex")?;
     router.insert("/commit/<sha0>/compare/<sha1>", "compare")?;
@@ -512,7 +512,7 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/a/b/c", "/a/b/c")?;
     router.insert("/a/c/d", "/a/c/d")?;
     router.insert("/a/c/a", "/a/c/a")?;
@@ -556,7 +556,7 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/", 1)?;
     router.insert("/<wildcard:*>", 2)?;
     router.insert("/users/<wildcard:*>", 3)?;
@@ -595,7 +595,7 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -643,7 +643,7 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/", 0)?;
     router.insert("/<wildcard:*>", 1)?;
     router.insert("/matchme/<slug>/", 2)?;
@@ -693,7 +693,7 @@ fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<usize, ()>::new();
+    let mut router = Router::<usize>::new();
     router.insert("/git/<org>/<repo>", 1)?;
     router.insert("/git/<wildcard:*>", 2)?;
 
@@ -729,7 +729,7 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn match_params() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<param>/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -765,7 +765,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<param>/<plus:*>", 1)?;
 
     assert_router_matches!(router, {
@@ -793,7 +793,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/api/v1/<param:?>", 1);
     //
     // assert_router_matches!(router, {
@@ -804,7 +804,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     //     "/api/xyz" => None
     // });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/v1/some/resource/name:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -820,7 +820,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/v1/some/resource/name:test" => None
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/v1/some/resource/<name>:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -842,7 +842,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/v1/some/resource/name:customVerb?/<param>/<wildcard:*>", 1);
     //
     // assert_router_matches!(router, {
@@ -851,7 +851,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     //     "/v1/some/resource/name:customVerb??/test" => None
     // });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -887,7 +887,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<param>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -910,7 +910,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1/Entity/1/2" => None
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<param>/<param2>", 3)?;
     router.insert("/api/v1/<param>-<param2>", 1)?;
     router.insert("/api/v1/<param>~<param2>", 2)?;
@@ -997,7 +997,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/const", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -1017,7 +1017,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1" => None
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/<param>/fixedEnd", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -1038,7 +1038,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/abc/def/fixedEnd" => None
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/shop/product/:<filter>/color:<color>/size:<size>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -1065,7 +1065,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/<param:?>", 1);
     //
     // assert_router_matches!(router, {
@@ -1074,7 +1074,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     //     "/" => None
     // });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/test<sign><param>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -1109,7 +1109,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/<param1><param2:?><param3>", 1);
     //
     // assert_router_matches!(router, {
@@ -1119,7 +1119,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/test<optional:?><mandatory>", 1);
     //
     // assert_router_matches!(router, {
@@ -1130,7 +1130,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/test<optional:?><optional2:?>", 1);
     //
     // assert_router_matches!(router, {
@@ -1141,7 +1141,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/foo<param:?>bar", 1);
     //
     // assert_router_matches!(router, {
@@ -1152,7 +1152,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'inline wildcard' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/foo<wildcard:*>bar", 1);
     //
     // assert_router_matches!(router, {
@@ -1165,7 +1165,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'one or more' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/foo<plus:+>bar", 1);
     //
     // assert_router_matches!(router, {
@@ -1178,7 +1178,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'inline wildcard' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/a<wildcard1:*>cde<wildcard2:*>g/", 1);
     //
     // assert_router_matches!(router, {
@@ -1193,7 +1193,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'inline wildcard' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/<wildcard1:*>v1<wildcard2:*>/proxy", 1);
     //
     // assert_router_matches!(router, {
@@ -1202,7 +1202,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     //     "/v1/" => None
     // });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/name<name>", 1)?;
     router.insert("/@<name>", 2)?;
     router.insert("/-<name>", 3)?;
@@ -1281,7 +1281,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/v1/<param>/abc/<wildcard:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -1308,7 +1308,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/api/<day>/<month:?>/<year:?>", 1);
     //
     // assert_router_matches!(router, {
@@ -1323,7 +1323,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'optional' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/api/<day>.<month:?>.<year:?>", 1);
     // router.insert("/api/<day>-<month:?>-<year:?>", 2);
     //
@@ -1341,7 +1341,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // NOTE: We don't support 'one or more' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/config/abc.json", 1);
     // router.insert("/config/<plus:+>.json", 2);
     // router.insert("/config/<wildcard:*>.json", 3);
@@ -1356,7 +1356,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     // });
 
     // FIXME: We don't support 'wildcard' logic.
-    // let mut router = Router::<_, ()>::new();
+    // let mut router = Router::new();
     // router.insert("/api/<wildcard:*>/<param:?>", 1);
     //
     // assert_router_matches!(router, {
@@ -1368,7 +1368,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     //     "/api/joker/batman/robin/1" => None
     // });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/<wildcard:*>/<param>", 1)?;
 
     assert_router_matches!(router, {
@@ -1401,7 +1401,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/" => None
     });
 
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/api/<wildcard:*>/<param>/<param2>", 1)?;
 
     assert_router_matches!(router, {
@@ -1462,7 +1462,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn basic() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/", 0)?;
     router.insert("/login", 1)?;
     router.insert("/signup", 2)?;
@@ -1620,7 +1620,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn github_tree() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     router.insert("/", 0)?;
     router.insert("/api", 1)?;
@@ -1989,7 +1989,7 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn cloneable() {
-    let router = Router::<usize, ()>::new();
+    let router = Router::<usize>::new();
     assert_eq!(
         <dyn std::any::Any>::type_id(&router),
         <dyn std::any::Any>::type_id(&router.clone())
@@ -1998,7 +1998,7 @@ fn cloneable() {
 
 #[test]
 fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<name>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -2023,7 +2023,7 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
 #[test]
 #[ignore = "we don't support 'one or more' or 'inline wildcard' logic"]
 fn test_dots_ext() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<name:+>.123", 2)?;
     router.insert("/<name:*>.123.456", 1)?;
 
@@ -2051,7 +2051,7 @@ fn test_dots_ext() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<name>.js", 2)?;
     router.insert("/<name>.js.gz", 1)?;
 

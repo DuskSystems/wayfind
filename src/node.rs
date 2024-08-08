@@ -22,25 +22,25 @@ pub struct NodeData<T> {
 }
 
 #[derive(Clone, Debug)]
-pub struct Node<T, R> {
+pub struct Node<T> {
     pub kind: NodeKind,
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
 
     pub parameter_constraints: Vec<ParameterConstraint>,
-    pub request_constraints: Vec<RequestConstraint<R>>,
+    pub request_constraints: Vec<RequestConstraint>,
 
-    pub static_children: Vec<Node<T, R>>,
-    pub dynamic_children: Vec<Node<T, R>>,
-    pub wildcard_children: Vec<Node<T, R>>,
-    pub end_wildcard_children: Vec<Node<T, R>>,
+    pub static_children: Vec<Node<T>>,
+    pub dynamic_children: Vec<Node<T>>,
+    pub wildcard_children: Vec<Node<T>>,
+    pub end_wildcard_children: Vec<Node<T>>,
 
     // TODO: Come up with a better names.
     pub quick_dynamic: bool,
 }
 
-impl<T, R> PartialEq for Node<T, R> {
+impl<T> PartialEq for Node<T> {
     fn eq(&self, other: &Self) -> bool {
         self.prefix == other.prefix
             && self.kind == other.kind
@@ -54,15 +54,15 @@ impl<T, R> PartialEq for Node<T, R> {
     }
 }
 
-impl<T, R> Eq for Node<T, R> {}
+impl<T> Eq for Node<T> {}
 
-impl<T, R> PartialOrd for Node<T, R> {
+impl<T> PartialOrd for Node<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T, R> Ord for Node<T, R> {
+impl<T> Ord for Node<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.kind
             .cmp(&other.kind)

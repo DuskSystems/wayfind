@@ -3,7 +3,7 @@ use wayfind::{constraints::parameter::ParameterConstraint, route::RouteBuilder, 
 
 #[test]
 fn example() -> Result<(), Box<dyn std::error::Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     // Static route
     router.insert("/", 1)?;

@@ -9,11 +9,11 @@ use smallvec::smallvec;
 use std::{fmt::Display, sync::Arc};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Router<T, R> {
-    root: Node<T, R>,
+pub struct Router<T> {
+    root: Node<T>,
 }
 
-impl<T, R> Router<T, R> {
+impl<T> Router<T> {
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -36,9 +36,9 @@ impl<T, R> Router<T, R> {
         }
     }
 
-    pub fn insert<'a, RR>(&mut self, route: RR, value: T) -> Result<(), InsertError>
+    pub fn insert<'a, R>(&mut self, route: R, value: T) -> Result<(), InsertError>
     where
-        RR: IntoRoute<'a, R>,
+        R: IntoRoute<'a>,
     {
         let mut route = route.into_route()?;
         let path = Arc::from(route.path);
@@ -47,9 +47,9 @@ impl<T, R> Router<T, R> {
             .insert(&mut route, NodeData { path, value })
     }
 
-    pub fn delete<'a, RR>(&mut self, route: RR) -> Result<(), DeleteError>
+    pub fn delete<'a, R>(&mut self, route: R) -> Result<(), DeleteError>
     where
-        RR: IntoRoute<'a, R>,
+        R: IntoRoute<'a>,
     {
         let mut route = route.into_route()?;
         self.root.delete(&mut route)
@@ -60,29 +60,29 @@ impl<T, R> Router<T, R> {
         let mut parameters = smallvec![];
         let data = self
             .root
-            .matches(path.as_bytes(), None, &mut parameters)?;
+            .matches(path.as_bytes(), &mut parameters)?;
 
         Some(Match { data, parameters })
     }
 
     #[must_use]
-    pub fn matches_request<'k, 'v>(&'k self, request: &'v Request<R>) -> Option<Match<'k, 'v, T>> {
+    pub fn matches_request<'k, 'v, R>(&'k self, request: &'v Request<R>) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
         let data = self
             .root
-            .matches(request.uri().path().as_bytes(), Some(request), &mut parameters)?;
+            .matches(request.uri().path().as_bytes(), &mut parameters)?;
 
         Some(Match { data, parameters })
     }
 }
 
-impl<T, R> Default for Router<T, R> {
+impl<T> Default for Router<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Display, R> Display for Router<T, R> {
+impl<T: Display> Display for Router<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }

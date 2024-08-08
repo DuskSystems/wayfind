@@ -71,8 +71,8 @@ pub struct ExpectedMatch<'k, 'v, T> {
     pub params: Vec<Parameter<'k, 'v>>,
 }
 
-pub fn assert_router_match<'a, T: PartialEq + Debug, R>(
-    router: &'a Router<T, R>,
+pub fn assert_router_match<'a, T: PartialEq + Debug>(
+    router: &'a Router<T>,
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
@@ -96,7 +96,7 @@ pub fn assert_router_match<'a, T: PartialEq + Debug, R>(
 
 #[allow(clippy::needless_pass_by_value)]
 pub fn assert_router_match_request<T: PartialEq + Debug, R>(
-    router: &Router<T, R>,
+    router: &Router<T>,
     request: Request<R>,
     expected: Option<ExpectedMatch<'_, '_, T>>,
 ) {

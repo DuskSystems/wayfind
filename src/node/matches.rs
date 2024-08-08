@@ -1,38 +1,30 @@
 use super::{Node, NodeData, ParameterConstraint};
-use crate::{constraints::request::RequestConstraint, matches::Parameter};
-use http::Request;
+use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
-impl<T, R> Node<T, R> {
+impl<T> Node<T> {
     pub fn matches<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         if path.is_empty() {
-            if let Some(request) = request {
-                if !Self::check_request_constraints(self, request) {
-                    return None;
-                }
-            }
-
             return self.data.as_ref();
         }
 
-        if let Some(matches) = self.matches_static(path, request, parameters) {
+        if let Some(matches) = self.matches_static(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_dynamic(path, request, parameters) {
+        if let Some(matches) = self.matches_dynamic(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_wildcard(path, request, parameters) {
+        if let Some(matches) = self.matches_wildcard(path, parameters) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_end_wildcard(path, request, parameters) {
+        if let Some(matches) = self.matches_end_wildcard(path, parameters) {
             return Some(matches);
         }
 
@@ -42,7 +34,6 @@ impl<T, R> Node<T, R> {
     fn matches_static<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for static_child in &self.static_children {
@@ -55,7 +46,7 @@ impl<T, R> Node<T, R> {
                     .all(|(a, b)| a == b)
             {
                 let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node) = static_child.matches(remaining_path, request, parameters) {
+                if let Some(node) = static_child.matches(remaining_path, parameters) {
                     return Some(node);
                 }
             }
@@ -67,13 +58,12 @@ impl<T, R> Node<T, R> {
     fn matches_dynamic<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         if self.quick_dynamic {
-            self.matches_dynamic_segment(path, request, parameters)
+            self.matches_dynamic_segment(path, parameters)
         } else {
-            self.matches_dynamic_inline(path, request, parameters)
+            self.matches_dynamic_inline(path, parameters)
         }
     }
 
@@ -86,7 +76,6 @@ impl<T, R> Node<T, R> {
     fn matches_dynamic_inline<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
@@ -113,7 +102,7 @@ impl<T, R> Node<T, R> {
                     value: segment,
                 });
 
-                if let Some(node) = dynamic_child.matches(&path[consumed..], request, &mut current_parameters) {
+                if let Some(node) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
                     last_match = Some(node);
                     last_match_parameters = current_parameters;
                 }
@@ -132,7 +121,6 @@ impl<T, R> Node<T, R> {
     fn matches_dynamic_segment<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for dynamic_child in &self.dynamic_children {
@@ -151,7 +139,7 @@ impl<T, R> Node<T, R> {
                 value: segment,
             });
 
-            if let Some(node) = dynamic_child.matches(&path[segment_end..], request, parameters) {
+            if let Some(node) = dynamic_child.matches(&path[segment_end..], parameters) {
                 return Some(node);
             }
 
@@ -164,7 +152,6 @@ impl<T, R> Node<T, R> {
     fn matches_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for wildcard_child in &self.wildcard_children {
@@ -205,7 +192,7 @@ impl<T, R> Node<T, R> {
                     value: segment,
                 });
 
-                if let Some(node) = wildcard_child.matches(&remaining_path[segment_end..], request, parameters) {
+                if let Some(node) = wildcard_child.matches(&remaining_path[segment_end..], parameters) {
                     return Some(node);
                 }
 
@@ -225,7 +212,6 @@ impl<T, R> Node<T, R> {
     fn matches_end_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        request: Option<&Request<R>>,
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
     ) -> Option<&'k NodeData<T>> {
         for end_wildcard in &self.end_wildcard_children {
@@ -237,12 +223,6 @@ impl<T, R> Node<T, R> {
                 key: &end_wildcard.prefix,
                 value: path,
             });
-
-            if let Some(request) = request {
-                if !Self::check_request_constraints(self, request) {
-                    return None;
-                }
-            }
 
             return end_wildcard.data.as_ref();
         }
@@ -274,18 +254,6 @@ impl<T, R> Node<T, R> {
                     matches.start() == 0 && matches.end() == segment.len()
                 }
                 ParameterConstraint::Function(function) => function(segment),
-            })
-    }
-
-    pub fn check_request_constraints(node: &Self, request: &Request<R>) -> bool {
-        if node.request_constraints.is_empty() {
-            return true;
-        }
-
-        node.request_constraints
-            .iter()
-            .all(|request_constraints| match request_constraints {
-                RequestConstraint::Function(function) => function(request),
             })
     }
 }

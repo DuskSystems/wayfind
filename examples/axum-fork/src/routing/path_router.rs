@@ -394,7 +394,7 @@ impl<S, const IS_FALLBACK: bool> Clone for PathRouter<S, IS_FALLBACK> {
 /// Wrapper around `matchit::Router` that supports merging two `Router`s.
 #[derive(Clone, Default)]
 struct Node {
-    inner: Router<RouteId, ()>,
+    inner: Router<RouteId>,
     route_id_to_path: HashMap<RouteId, Arc<str>>,
     path_to_route_id: HashMap<Arc<str>, RouteId>,
 }

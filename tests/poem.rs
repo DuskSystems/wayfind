@@ -11,7 +11,7 @@ use wayfind::{
 
 #[test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/abc", 1)?;
     router.insert("/abcdef", 2)?;
     router.insert("/abcdefgh", 3)?;
@@ -28,7 +28,7 @@ fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/abcd", 1)?;
     router.insert("/ab1234", 2)?;
     router.insert("/ab1256", 3)?;
@@ -49,7 +49,7 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_insert_static_child_3() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/abc", 1)?;
     router.insert("/ab", 2)?;
 
@@ -64,7 +64,7 @@ fn test_insert_static_child_3() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_insert_param_child() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/abc/<p1>", 1)?;
     router.insert("/abc/<p1>/p2", 2)?;
     router.insert("/abc/<p1>/<p3>", 3)?;
@@ -83,7 +83,7 @@ fn test_insert_param_child() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/abc/<p1:*>", 1)?;
     router.insert("/ab/de", 2)?;
 
@@ -100,7 +100,7 @@ fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("<p1:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -113,7 +113,7 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
 
     router.insert(
         RouteBuilder::new("/abc/<name>/def")
@@ -144,7 +144,7 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 #[test]
 #[ignore = "todo"]
 fn test_add_result() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     assert!(router.insert("/a/b", 1).is_ok());
     assert!(router.insert("/a/b", 2).is_err());
     assert!(router.insert("/a/b/<p>/d", 1).is_ok());
@@ -170,7 +170,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_matches() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/ab/def", 1)?;
     router.insert("/abc/def", 2)?;
     router.insert("/abc/<p1>", 3)?;
@@ -316,7 +316,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_match_priority() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/a/bc", 1)?;
     router.insert("/a/<path:*>", 2)?;
 
@@ -407,7 +407,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/a/<path:*>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -473,7 +473,7 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_issue_275() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/<id1>/a", 1)?;
     router.insert("/<id2>/b", 2)?;
 
@@ -508,7 +508,7 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::<_, ()>::new();
+    let mut router = Router::new();
     router.insert("/a/<id>", 1)?;
 
     insta::assert_snapshot!(router, @r###"
