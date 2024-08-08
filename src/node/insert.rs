@@ -1,6 +1,5 @@
 use super::{Node, NodeData, NodeKind, ParameterConstraint};
 use crate::{errors::insert::InsertError, parts::Part, route::Route};
-use std::cmp::Ordering;
 
 impl<T, R> Node<T, R> {
     pub fn insert(&mut self, route: &mut Route<'_, R>, data: NodeData<T>) -> Result<(), InsertError> {
@@ -38,6 +37,7 @@ impl<T, R> Node<T, R> {
             }
 
             self.data = Some(data);
+            self.request_constraints = std::mem::take(&mut route.request_constraints);
         }
 
         self.update_quicks();
@@ -100,7 +100,7 @@ impl<T, R> Node<T, R> {
             data: child.data.take(),
 
             parameter_constraints: vec![],
-            request_constraints: vec![],
+            request_constraints: std::mem::take(&mut child.request_constraints),
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -298,32 +298,13 @@ impl<T, R> Node<T, R> {
         }
     }
 
-    // FIXME: Need to decide an order for sorting.
     fn sort_children(&mut self) {
-        self.dynamic_children.sort_by(|a, b| {
-            match (a.parameter_constraints.is_empty(), b.parameter_constraints.is_empty()) {
-                (false, true) => Ordering::Less,
-                (true, false) => Ordering::Greater,
-                _ => Ordering::Equal,
-            }
-        });
+        self.parameter_constraints.sort();
 
-        self.wildcard_children.sort_by(|a, b| {
-            match (a.parameter_constraints.is_empty(), b.parameter_constraints.is_empty()) {
-                (false, true) => Ordering::Less,
-                (true, false) => Ordering::Greater,
-                _ => Ordering::Equal,
-            }
-        });
-
-        self.end_wildcard_children
-            .sort_by(
-                |a, b| match (a.parameter_constraints.is_empty(), b.parameter_constraints.is_empty()) {
-                    (false, true) => Ordering::Less,
-                    (true, false) => Ordering::Greater,
-                    _ => Ordering::Equal,
-                },
-            );
+        self.static_children.sort();
+        self.dynamic_children.sort();
+        self.wildcard_children.sort();
+        self.end_wildcard_children.sort();
 
         for child in &mut self.static_children {
             child.sort_children();

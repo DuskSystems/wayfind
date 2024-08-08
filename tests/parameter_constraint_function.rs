@@ -39,7 +39,7 @@ fn is_numeric(segment: &str) -> bool {
 }
 
 #[test]
-fn test_inline_functions() -> Result<(), Box<dyn Error>> {
+fn test_parameter_constaint_functions() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<_, ()>::new();
 
     router.insert(
@@ -91,16 +91,10 @@ fn test_inline_functions() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ user/
-       │      ╰─ <name> [ParameterConstraint::Function]
-       │              ╰─ .
-       │                 ╰─ <ext> [1] [ParameterConstraint::Function]
        ├─ file-
        │      ╰─ <year> [ParameterConstraint::Function]
        │              ╰─ -doc.
        │                     ╰─ <ext> [2] [ParameterConstraint::Function]
-       ├─ report-
-       │        ╰─ <id> [4] [ParameterConstraint::Function]
        ├─ p
        │  ├─ osts/
        │  │      ╰─ <year> [ParameterConstraint::Function]
@@ -112,6 +106,12 @@ fn test_inline_functions() -> Result<(), Box<dyn Error>> {
        │                           ╰─ <id> [ParameterConstraint::Function]
        │                                 ╰─ -
        │                                    ╰─ <slug> [6] [ParameterConstraint::Function]
+       ├─ report-
+       │        ╰─ <id> [4] [ParameterConstraint::Function]
+       ├─ user/
+       │      ╰─ <name> [ParameterConstraint::Function]
+       │              ╰─ .
+       │                 ╰─ <ext> [1] [ParameterConstraint::Function]
        ╰─ <category> [ParameterConstraint::Function]
                    ╰─ -items.html [3]
     "###);

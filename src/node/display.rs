@@ -31,30 +31,34 @@ impl<T: Display, R> Display for Node<T, R> {
                 .map(|node_data| &node_data.value);
 
             let parameter_constraints = if node.parameter_constraints.is_empty() {
-                None
+                String::new()
             } else {
-                Some(format!(" {:?}", node.parameter_constraints))
+                format!(" {:?}", node.parameter_constraints)
+            };
+
+            let request_constraints = if node.request_constraints.is_empty() {
+                String::new()
+            } else {
+                format!(" {:?}", node.request_constraints)
             };
 
             if is_root {
                 writeln!(f, "{key}")?;
             } else if is_last {
-                match (value, &parameter_constraints) {
-                    (Some(value), Some(parameter_constraints)) => {
-                        writeln!(f, "{padding}╰─ {key} [{value}]{parameter_constraints}")
-                    }
-                    (Some(value), None) => writeln!(f, "{padding}╰─ {key} [{value}]"),
-                    (None, Some(parameter_constraints)) => writeln!(f, "{padding}╰─ {key}{parameter_constraints}"),
-                    (None, None) => writeln!(f, "{padding}╰─ {key}"),
+                match value {
+                    Some(value) => writeln!(
+                        f,
+                        "{padding}╰─ {key} [{value}]{parameter_constraints}{request_constraints}"
+                    ),
+                    None => writeln!(f, "{padding}╰─ {key}{parameter_constraints}{request_constraints}"),
                 }?;
             } else {
-                match (value, &parameter_constraints) {
-                    (Some(value), Some(parameter_constraints)) => {
-                        writeln!(f, "{padding}├─ {key} [{value}]{parameter_constraints}")
-                    }
-                    (Some(value), None) => writeln!(f, "{padding}├─ {key} [{value}]"),
-                    (None, Some(parameter_constraints)) => writeln!(f, "{padding}├─ {key}{parameter_constraints}"),
-                    (None, None) => writeln!(f, "{padding}├─ {key}"),
+                match value {
+                    Some(value) => writeln!(
+                        f,
+                        "{padding}├─ {key} [{value}]{parameter_constraints}{request_constraints}"
+                    ),
+                    None => writeln!(f, "{padding}├─ {key}{parameter_constraints}{request_constraints}"),
                 }?;
             }
 

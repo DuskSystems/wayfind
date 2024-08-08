@@ -59,8 +59,6 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ├─ / [1]
-    │  ├─ users/
-    │  │       ╰─ <username> [2]
     │  ├─ avatars/
     │  │         ╰─ <username>
     │  │                     ╰─ .
@@ -75,6 +73,8 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                          ╰─ <base> [ParameterConstraint::Regex([a-f0-9]{40})]
     │  │                                  ╰─ ..
     │  │                                      ╰─ <head> [10] [ParameterConstraint::Regex([a-f0-9]{40})]
+    │  ├─ users/
+    │  │       ╰─ <username> [2]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

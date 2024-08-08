@@ -25,16 +25,16 @@ fn statics() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
-       ├─ hi [1]
+       ├─ a [5]
+       │  ╰─ b [6]
        ├─ c [4]
        │  ╰─ o [3]
        │     ╰─ ntact [2]
-       ├─ a [5]
-       │  ╰─ b [6]
        ├─ doc/ [7]
        │     ╰─ go
-       │         ├─ _faq.html [8]
-       │         ╰─ 1.html [9]
+       │         ├─ 1.html [9]
+       │         ╰─ _faq.html [8]
+       ├─ hi [1]
        ╰─ �
             ├─ � [10]
             ╰─ � [11]
@@ -127,33 +127,33 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
        │     ╰─ <tool>
        │             ╰─ / [2]
        │                ╰─ <sub> [1]
-       ├─ s
-       │  ├─ rc
-       │  │   ├─ /
-       │  │   │  ╰─ <filepath:*> [4]
-       │  │   ╰─ 1/ [5]
-       │  │       ╰─ <filepath:*> [6]
-       │  ╰─ earch/ [8]
-       │          ├─ invalid [10]
-       │          ╰─ <query> [9]
-       ├─ user_
-       │      ├─ x [13]
-       │      ╰─ <name> [11]
-       │              ╰─ /about [12]
+       ├─ doc/ [15]
+       │     ╰─ rust
+       │           ├─ 1.html [17]
+       │           ╰─ _faq.html [16]
        ├─ files/
        │       ╰─ <dir>
        │              ╰─ /
        │                 ╰─ <filepath:*> [14]
-       ├─ doc/ [15]
-       │     ╰─ rust
-       │           ├─ _faq.html [16]
-       │           ╰─ 1.html [17]
-       ╰─ info/
-              ╰─ <user>
-                      ╰─ /p
-                          ├─ ublic [18]
-                          ╰─ roject/
-                                   ╰─ <project> [19]
+       ├─ info/
+       │      ╰─ <user>
+       │              ╰─ /p
+       │                  ├─ roject/
+       │                  │        ╰─ <project> [19]
+       │                  ╰─ ublic [18]
+       ├─ s
+       │  ├─ earch/ [8]
+       │  │       ├─ invalid [10]
+       │  │       ╰─ <query> [9]
+       │  ╰─ rc
+       │      ├─ /
+       │      │  ╰─ <filepath:*> [4]
+       │      ╰─ 1/ [5]
+       │          ╰─ <filepath:*> [6]
+       ╰─ user_
+              ├─ x [13]
+              ╰─ <name> [11]
+                      ╰─ /about [12]
     "###);
 
     assert_router_matches!(router, {
@@ -307,8 +307,8 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
        ├─ a/
        │   ├─ b/c [/a/b/c]
        │   ╰─ c/
-       │       ├─ d [/a/c/d]
-       │       ╰─ a [/a/c/a]
+       │       ├─ a [/a/c/a]
+       │       ╰─ d [/a/c/d]
        ╰─ <id>
              ╰─ /c/e [/<id>/c/e]
     "###);
@@ -348,10 +348,10 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ <lang>
-       │       ╰─ /
-       │          ╰─ <keyword> [true]
-       ╰─ <id> [true]
+       ├─ <id> [true]
+       ╰─ <lang>
+               ╰─ /
+                  ╰─ <keyword> [true]
     "###);
 
     assert_router_matches!(router, {
@@ -523,8 +523,8 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ b/c [/a/b/c]
          ├─ c/
-         │   ├─ d [/a/c/d]
-         │   ╰─ a [/a/c/a]
+         │   ├─ a [/a/c/a]
+         │   ╰─ d [/a/c/d]
          ╰─ <c:*> [/a/*c]
     "###);
 
@@ -922,18 +922,18 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /api/v1/
               ╰─ <param>
-                       ├─ /
-                       │  ╰─ <param2> [3]
                        ├─ -
                        │  ╰─ <param2> [1]
-                       ├─ ~
-                       │  ╰─ <param2> [2]
                        ├─ .
                        │  ╰─ <param2> [4]
+                       ├─ /
+                       │  ╰─ <param2> [3]
+                       ├─ :
+                       │  ╰─ <param2> [6]
                        ├─ _
                        │  ╰─ <param2> [5]
-                       ╰─ :
-                          ╰─ <param2> [6]
+                       ╰─ ~
+                          ╰─ <param2> [2]
     "###);
 
     assert_router_matches!(router, {
@@ -1214,18 +1214,18 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ name
-       │     ╰─ <name> [1]
-       ├─ @
-       │  ╰─ <name> [2]
        ├─ -
        │  ╰─ <name> [3]
        ├─ .
        │  ╰─ <name> [4]
-       ├─ ~
-       │  ╰─ <name> [5]
+       ├─ @
+       │  ╰─ <name> [2]
        ├─ _
        │  ╰─ <name> [6]
+       ├─ name
+       │     ╰─ <name> [1]
+       ├─ ~
+       │  ╰─ <name> [5]
        ╰─ <name> [7]
     "###);
 
@@ -1481,41 +1481,41 @@ fn basic() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
-       ├─ login [1]
-       ├─ s
-       │  ├─ ignup [2]
-       │  ╰─ ettings [3]
-       │           ╰─ /
-       │              ╰─ <page> [4]
-       ├─ public/
-       │        ╰─ <any:*> [7]
        ├─ api/
        │     ╰─ <plus:*> [13]
-       ├─ <user> [5]
-       │       ╰─ /
-       │          ╰─ <repo> [6]
-       ╰─ <org>
-              ╰─ /
-                 ╰─ <repo>
-                         ╰─ /
-                            ├─ releases/download/
-                            │                   ╰─ <tag>
-                            │                          ╰─ /
-                            │                             ╰─ <filename>
-                            │                                         ╰─ .
-                            │                                            ╰─ <ext> [8]
-                            ├─ tags/
-                            │      ╰─ <day>
-                            │             ╰─ -
-                            │                ╰─ <month>
-                            │                         ╰─ -
-                            │                            ╰─ <year> [9]
-                            ├─ actions/
-                            │         ╰─ <name>
-                            │                 ╰─ :
-                            │                    ╰─ <verb> [10]
-                            ├─ <page> [11]
-                            ╰─ <path:*> [12]
+       ├─ login [1]
+       ├─ public/
+       │        ╰─ <any:*> [7]
+       ├─ s
+       │  ├─ ettings [3]
+       │  │        ╰─ /
+       │  │           ╰─ <page> [4]
+       │  ╰─ ignup [2]
+       ├─ <org>
+       │      ╰─ /
+       │         ╰─ <repo>
+       │                 ╰─ /
+       │                    ├─ actions/
+       │                    │         ╰─ <name>
+       │                    │                 ╰─ :
+       │                    │                    ╰─ <verb> [10]
+       │                    ├─ releases/download/
+       │                    │                   ╰─ <tag>
+       │                    │                          ╰─ /
+       │                    │                             ╰─ <filename>
+       │                    │                                         ╰─ .
+       │                    │                                            ╰─ <ext> [8]
+       │                    ├─ tags/
+       │                    │      ╰─ <day>
+       │                    │             ╰─ -
+       │                    │                ╰─ <month>
+       │                    │                         ╰─ -
+       │                    │                            ╰─ <year> [9]
+       │                    ├─ <page> [11]
+       │                    ╰─ <path:*> [12]
+       ╰─ <user> [5]
+               ╰─ /
+                  ╰─ <repo> [6]
     "###);
 
     assert_router_matches!(router, {
@@ -1754,177 +1754,177 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [0]
-       ├─ a
-       │  ├─ pi [1]
-       │  ╰─ bout [2]
-       │        ╰─ /
-       │           ├─ careers [200]
-       │           ├─ press [201]
-       │           ╰─ diversity [202]
-       ├─ login [3]
-       ├─ s
-       │  ├─ ignup [4]
-       │  ├─ ponsors [10]
-       │  │        ╰─ /
-       │  │           ├─ explore [100]
-       │  │           ├─ accounts [101]
-       │  │           ╰─ <repo> [102]
-       │  │                   ╰─ /
-       │  │                      ├─ issues/
-       │  │                      │        ╰─ <path:*> [106]
-       │  │                      ├─ <user> [103]
-       │  │                      ├─ <plus:*>
-       │  │                      │         ╰─ /
-       │  │                      │            ├─ <file> [107]
-       │  │                      │            ╰─ <filename>
-       │  │                      │                        ╰─ .
-       │  │                      │                           ╰─ <ext> [108]
-       │  │                      ╰─ <plus:*> [104]
-       │  ╰─ e
-       │     ├─ arch [15]
-       │     ╰─ ttings [20]
-       │             ╰─ /
-       │                ├─ a
-       │                │  ├─ dmin [2000]
-       │                │  ├─ pp
-       │                │  │   ├─ earance [2001]
-       │                │  │   ╰─ s [2023]
-       │                │  ╰─ ccessibility [2002]
-       │                ├─ notifications [2003]
-       │                ├─ b
-       │                │  ├─ illing [2004]
-       │                │  │       ╰─ /plans [2005]
-       │                │  ╰─ locked_users [2009]
-       │                ├─ s
-       │                │  ├─ ecurity [2006]
-       │                │  │        ├─ _analysis [2018]
-       │                │  │        ╰─ -log [2021]
-       │                │  ╰─ ponsors-log [2022]
-       │                ├─ keys [2007]
-       │                ├─ organizations [2008]
-       │                ├─ in
-       │                │   ├─ teraction_limits [2010]
-       │                │   ╰─ stallations [2019]
-       │                ├─ co
-       │                │   ├─ de
-       │                │   │   ├─ _review_limits [2011]
-       │                │   │   ╰─ spaces [2013]
-       │                │   ╰─ pilot [2015]
-       │                ├─ re
-       │                │   ├─ p
-       │                │   │  ├─ ositories [2012]
-       │                │   │  ╰─ lies [2017]
-       │                │   ╰─ minders [2020]
-       │                ├─ de
-       │                │   ├─ leted_packages [2014]
-       │                │   ╰─ velopers [2024]
-       │                ├─ pages [2016]
-       │                ╰─ tokens [2025]
-       ├─ p
-       │  ├─ ricing [5]
-       │  ╰─ ulls [16]
-       ├─ features [6]
-       │         ╰─ /
-       │            ├─ actions [600]
-       │            ├─ packages [601]
-       │            ├─ security [602]
-       │            ├─ co
-       │            │   ├─ de
-       │            │   │   ├─ spaces [603]
-       │            │   │   ╰─ -review [605]
-       │            │   ╰─ pilot [604]
-       │            ├─ issues [606]
-       │            ╰─ discussions [607]
-       ├─ e
-       │  ├─ nterprise [7]
-       │  ╰─ xplore [19]
-       ├─ t
-       │  ├─ eam [8]
-       │  ├─ opics [12]
-       │  ╰─ rending [13]
-       ├─ c
-       │  ├─ ustomer-stories [9]
-       │  ╰─ ollections [14]
-       ├─ readme [11]
-       ├─ issues [17]
-       ├─ marketplace [18]
        ├─ 404 [21]
        ├─ 50
        │   ├─ 0 [22]
        │   ╰─ 3 [23]
+       ├─ a
+       │  ├─ bout [2]
+       │  │     ╰─ /
+       │  │        ├─ careers [200]
+       │  │        ├─ diversity [202]
+       │  │        ╰─ press [201]
+       │  ╰─ pi [1]
+       ├─ c
+       │  ├─ ollections [14]
+       │  ╰─ ustomer-stories [9]
+       ├─ e
+       │  ├─ nterprise [7]
+       │  ╰─ xplore [19]
+       ├─ features [6]
+       │         ╰─ /
+       │            ├─ actions [600]
+       │            ├─ co
+       │            │   ├─ de
+       │            │   │   ├─ -review [605]
+       │            │   │   ╰─ spaces [603]
+       │            │   ╰─ pilot [604]
+       │            ├─ discussions [607]
+       │            ├─ issues [606]
+       │            ├─ packages [601]
+       │            ╰─ security [602]
+       ├─ issues [17]
+       ├─ login [3]
+       ├─ marketplace [18]
        ├─ new [2504]
        │    ╰─ /import [2505]
        ├─ organizations/
        │               ├─ new [2506]
        │               ╰─ plan [2507]
+       ├─ p
+       │  ├─ ricing [5]
+       │  ╰─ ulls [16]
+       ├─ readme [11]
+       ├─ s
+       │  ├─ e
+       │  │  ├─ arch [15]
+       │  │  ╰─ ttings [20]
+       │  │          ╰─ /
+       │  │             ├─ a
+       │  │             │  ├─ ccessibility [2002]
+       │  │             │  ├─ dmin [2000]
+       │  │             │  ╰─ pp
+       │  │             │      ├─ earance [2001]
+       │  │             │      ╰─ s [2023]
+       │  │             ├─ b
+       │  │             │  ├─ illing [2004]
+       │  │             │  │       ╰─ /plans [2005]
+       │  │             │  ╰─ locked_users [2009]
+       │  │             ├─ co
+       │  │             │   ├─ de
+       │  │             │   │   ├─ _review_limits [2011]
+       │  │             │   │   ╰─ spaces [2013]
+       │  │             │   ╰─ pilot [2015]
+       │  │             ├─ de
+       │  │             │   ├─ leted_packages [2014]
+       │  │             │   ╰─ velopers [2024]
+       │  │             ├─ in
+       │  │             │   ├─ stallations [2019]
+       │  │             │   ╰─ teraction_limits [2010]
+       │  │             ├─ keys [2007]
+       │  │             ├─ notifications [2003]
+       │  │             ├─ organizations [2008]
+       │  │             ├─ pages [2016]
+       │  │             ├─ re
+       │  │             │   ├─ minders [2020]
+       │  │             │   ╰─ p
+       │  │             │      ├─ lies [2017]
+       │  │             │      ╰─ ositories [2012]
+       │  │             ├─ s
+       │  │             │  ├─ ecurity [2006]
+       │  │             │  │        ├─ -log [2021]
+       │  │             │  │        ╰─ _analysis [2018]
+       │  │             │  ╰─ ponsors-log [2022]
+       │  │             ╰─ tokens [2025]
+       │  ├─ ignup [4]
+       │  ╰─ ponsors [10]
+       │           ╰─ /
+       │              ├─ accounts [101]
+       │              ├─ explore [100]
+       │              ╰─ <repo> [102]
+       │                      ╰─ /
+       │                         ├─ issues/
+       │                         │        ╰─ <path:*> [106]
+       │                         ├─ <user> [103]
+       │                         ├─ <plus:*>
+       │                         │         ╰─ /
+       │                         │            ├─ <file> [107]
+       │                         │            ╰─ <filename>
+       │                         │                        ╰─ .
+       │                         │                           ╰─ <ext> [108]
+       │                         ╰─ <plus:*> [104]
+       ├─ t
+       │  ├─ eam [8]
+       │  ├─ opics [12]
+       │  ╰─ rending [13]
        ╰─ <org> [24]
               ╰─ /
                  ╰─ <repo> [2400]
                          ╰─ /
+                            ├─ actions [2440]
+                            │        ╰─ /
+                            │           ├─ runs/
+                            │           │      ╰─ <id> [2442]
+                            │           ╰─ workflows/
+                            │                       ╰─ <id> [2441]
+                            ├─ com
+                            │    ├─ m
+                            │    │  ├─ it/
+                            │    │  │    ╰─ <id> [2503]
+                            │    │  ╰─ unity [2490]
+                            │    ╰─ pare [2422]
+                            ├─ discussions [2430]
+                            │            ╰─ /
+                            │               ╰─ <id> [2431]
+                            ├─ graphs/co
+                            │          ├─ de-frequency [2482]
+                            │          ├─ mmit-activity [2481]
+                            │          ╰─ ntributors [2480]
                             ├─ issues [2410]
                             │       ╰─ /
                             │          ├─ new [2412]
                             │          ╰─ <id> [2411]
-                            ├─ pul
-                            │    ├─ l
-                            │    │  ├─ s [2420]
-                            │    │  ╰─ /
-                            │    │     ╰─ <id> [2421]
-                            │    ╰─ se [2470]
-                            ├─ com
-                            │    ├─ pare [2422]
-                            │    ╰─ m
-                            │       ├─ unity [2490]
-                            │       ╰─ it/
-                            │            ╰─ <id> [2503]
-                            ├─ discussions [2430]
-                            │            ╰─ /
-                            │               ╰─ <id> [2431]
-                            ├─ actions [2440]
-                            │        ╰─ /
-                            │           ├─ workflows/
-                            │           │           ╰─ <id> [2441]
-                            │           ╰─ runs/
-                            │                  ╰─ <id> [2442]
-                            ├─ w
-                            │  ├─ iki [2450]
-                            │  │    ╰─ /
-                            │  │       ╰─ <id> [2451]
-                            │  ╰─ atchers [2497]
-                            ├─ s
-                            │  ├─ ecurity [2460]
-                            │  │        ╰─ /
-                            │  │           ├─ policy [2461]
-                            │  │           ╰─ advisories [2462]
-                            │  ╰─ targazers [2495]
-                            │             ╰─ /yoou_know [2496]
-                            ├─ graphs/co
-                            │          ├─ ntributors [2480]
-                            │          ├─ mmit-activity [2481]
-                            │          ╰─ de-frequency [2482]
                             ├─ network [2491]
                             │        ╰─ /
                             │           ├─ dependen
                             │           │         ├─ cies [2492]
                             │           │         ╰─ ts [2493]
                             │           ╰─ members [2494]
+                            ├─ pul
+                            │    ├─ l
+                            │    │  ├─ /
+                            │    │  │  ╰─ <id> [2421]
+                            │    │  ╰─ s [2420]
+                            │    ╰─ se [2470]
                             ├─ releases [2498]
                             │         ╰─ /
-                            │            ├─ tag/
-                            │            │     ╰─ <id> [2499]
                             │            ├─ download/
                             │            │          ╰─ <tag>
                             │            │                 ╰─ /
                             │            │                    ╰─ <filename>
                             │            │                                ╰─ .
                             │            │                                   ╰─ <ext> [3002]
+                            │            ├─ tag/
+                            │            │     ╰─ <id> [2499]
                             │            ╰─ <path:*> [3001]
+                            ├─ s
+                            │  ├─ ecurity [2460]
+                            │  │        ╰─ /
+                            │  │           ├─ advisories [2462]
+                            │  │           ╰─ policy [2461]
+                            │  ╰─ targazers [2495]
+                            │             ╰─ /yoou_know [2496]
                             ├─ t
                             │  ├─ ags [2500]
                             │  │    ╰─ /
                             │  │       ╰─ <id> [2501]
                             │  ╰─ ree/
                             │        ╰─ <id> [2502]
+                            ├─ w
+                            │  ├─ atchers [2497]
+                            │  ╰─ iki [2450]
+                            │       ╰─ /
+                            │          ╰─ <id> [2451]
                             ╰─ <path:*> [3000]
     "###);
 

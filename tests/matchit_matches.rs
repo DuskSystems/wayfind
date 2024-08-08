@@ -16,8 +16,8 @@ fn partial_overlap() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /foo
-          ├─ _bar [Welcome!]
-          ╰─ /bar [Welcome!]
+          ├─ /bar [Welcome!]
+          ╰─ _bar [Welcome!]
     "###);
 
     assert_router_matches!(router, {
@@ -231,11 +231,6 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ x/
-       │   ├─ <foo>
-       │   │      ╰─ /bar [1]
-       │   ╰─ <bar>
-       │          ╰─ /baz [2]
        ├─ s [9]
        │  ╰─ /s [10]
        │      ╰─ /
@@ -245,13 +240,15 @@ fn normalized() -> Result<(), Box<dyn Error>> {
        │         │    ╰─ /x [13]
        │         ╰─ <y>
        │              ╰─ /d [14]
-       ├─ <foo>
+       ├─ x/
+       │   ├─ <bar>
+       │   │      ╰─ /baz [2]
+       │   ╰─ <foo>
+       │          ╰─ /bar [1]
+       ├─ <bar>
        │      ╰─ /
-       │         ├─ baz/bax [7]
-       │         ├─ <baz>
-       │         │      ╰─ /bax [3]
-       │         ╰─ <bar>
-       │                ╰─ /baz [4]
+       │         ╰─ <bay>
+       │                ╰─ /bay [8]
        ├─ <fod>
        │      ╰─ /
        │         ├─ baz/bax/foo [6]
@@ -259,10 +256,13 @@ fn normalized() -> Result<(), Box<dyn Error>> {
        │                ╰─ /
        │                   ╰─ <bax>
        │                          ╰─ /foo [5]
-       ╰─ <bar>
+       ╰─ <foo>
               ╰─ /
-                 ╰─ <bay>
-                        ╰─ /bay [8]
+                 ├─ baz/bax [7]
+                 ├─ <bar>
+                 │      ╰─ /baz [4]
+                 ╰─ <baz>
+                        ╰─ /bax [3]
     "###);
 
     assert_router_matches!(router, {
@@ -383,6 +383,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
+       ├─ favicon.ico [6]
        ├─ posts/
        │       ╰─ <year>
        │               ╰─ /
@@ -393,7 +394,6 @@ fn blog() -> Result<(), Box<dyn Error>> {
        │                              ╰─ <post> [2]
        ├─ static/
        │        ╰─ <path:*> [5]
-       ├─ favicon.ico [6]
        ╰─ <page> [1]
     "###);
 
@@ -459,19 +459,19 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ secret/
-       │        ├─ 978 [3]
-       │        ╰─ <id>
-       │              ╰─ /path [2]
        ├─ other/
        │       ├─ an_object/
        │       │           ╰─ <id> [5]
-       │       ├─ static/path [6]
        │       ├─ long/static/path/ [7]
+       │       ├─ static/path [6]
        │       ╰─ <object>
        │                 ╰─ /
        │                    ╰─ <id>
        │                          ╰─ / [4]
+       ├─ secret/
+       │        ├─ 978 [3]
+       │        ╰─ <id>
+       │              ╰─ /path [2]
        ╰─ <object>
                  ╰─ /
                     ╰─ <id> [1]
@@ -538,11 +538,11 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo/
-       │     ╰─ <catchall:*> [1]
-       ╰─ bar [2]
-            ╰─ / [3]
-               ╰─ <catchall:*> [4]
+       ├─ bar [2]
+       │    ╰─ / [3]
+       │       ╰─ <catchall:*> [4]
+       ╰─ foo/
+             ╰─ <catchall:*> [1]
     "###);
 
     assert_router_matches!(router, {
@@ -592,13 +592,13 @@ fn overlap() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [8]
-       ├─ foo [1]
        ├─ ba
        │   ├─ r [2]
        │   ╰─ z [4]
        │      ╰─ / [5]
        │         ├─ x [6]
        │         ╰─ <xxx> [7]
+       ├─ foo [1]
        ├─ xxx/ [10]
        │     ╰─ <x:*> [9]
        ╰─ <bar:*> [3]
@@ -801,19 +801,19 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ secret/
-       │        ├─ 978/ [3]
-       │        ╰─ <id>
-       │              ╰─ /path [2]
        ├─ other/
        │       ├─ an_object/
        │       │           ╰─ <id> [5]
-       │       ├─ static/path [6]
        │       ├─ long/static/path/ [7]
+       │       ├─ static/path [6]
        │       ╰─ <object>
        │                 ╰─ /
        │                    ╰─ <id>
        │                          ╰─ / [4]
+       ├─ secret/
+       │        ├─ 978/ [3]
+       │        ╰─ <id>
+       │              ╰─ /path [2]
        ╰─ <object>
                  ╰─ /
                     ╰─ <id> [1]
@@ -926,20 +926,6 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ hi [1]
-       ├─ b/ [2]
-       ├─ s
-       │  ├─ earch/
-       │  │       ╰─ <query> [3]
-       │  ╰─ rc/
-       │       ╰─ <filepath:*> [5]
-       ├─ cmd/
-       │     ╰─ <tool>
-       │             ╰─ / [4]
-       ├─ x [6]
-       │  ╰─ /y [7]
-       ├─ y/ [8]
-       │   ╰─ z [9]
        ├─ 0/
        │   ╰─ <id> [10]
        │         ╰─ /1 [11]
@@ -948,8 +934,8 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
        │         ╰─ / [12]
        │            ╰─ 2 [13]
        ├─ a
-       │  ├─ a [14]
        │  ├─ / [15]
+       │  ├─ a [14]
        │  ├─ dmin [16]
        │  │     ╰─ /
        │  │        ├─ static [17]
@@ -957,28 +943,42 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
        │  │                    ╰─ /
        │  │                       ╰─ <page> [19]
        │  ╰─ pi/
-       │       ├─ hello/
-       │       │       ╰─ <name>
-       │       │               ╰─ /bar/ [27]
        │       ├─ ba
        │       │   ├─ r/
        │       │   │   ╰─ <name> [28]
        │       │   ╰─ z/foo [29]
        │       │          ╰─ /bar [30]
+       │       ├─ hello/
+       │       │       ╰─ <name>
+       │       │               ╰─ /bar/ [27]
        │       ╰─ <page>
        │               ╰─ /
        │                  ╰─ <name> [26]
+       ├─ b/ [2]
+       ├─ cmd/
+       │     ╰─ <tool>
+       │             ╰─ / [4]
        ├─ doc [20]
        │    ╰─ /rust
-       │           ├─ _faq.html [21]
-       │           ╰─ 1.26.html [22]
+       │           ├─ 1.26.html [22]
+       │           ╰─ _faq.html [21]
+       ├─ foo/
+       │     ╰─ <p> [31]
+       ├─ hi [1]
        ├─ no/
        │    ├─ a [23]
        │    │  ╰─ /b/
        │    │       ╰─ <other:*> [25]
        │    ╰─ b [24]
-       ╰─ foo/
-             ╰─ <p> [31]
+       ├─ s
+       │  ├─ earch/
+       │  │       ╰─ <query> [3]
+       │  ╰─ rc/
+       │       ╰─ <filepath:*> [5]
+       ├─ x [6]
+       │  ╰─ /y [7]
+       ╰─ y/ [8]
+           ╰─ z [9]
     "###);
 
     assert_router_matches!(router, {
@@ -1056,8 +1056,8 @@ fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo [1]
        ├─ bar [2]
+       ├─ foo [1]
        ╰─ <baz> [3]
     "###);
 
@@ -1262,16 +1262,16 @@ fn basic() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ├─ /
-    │  ├─ hi [1]
+    │  ├─ a [5]
+    │  │  ╰─ b [6]
     │  ├─ c [4]
     │  │  ╰─ o [3]
     │  │     ╰─ ntact [2]
-    │  ├─ a [5]
-    │  │  ╰─ b [6]
     │  ├─ doc/ [7]
     │  │     ╰─ rust
-    │  │           ├─ _faq.html [8]
-    │  │           ╰─ 1.26.html [9]
+    │  │           ├─ 1.26.html [9]
+    │  │           ╰─ _faq.html [8]
+    │  ├─ hi [1]
     │  ╰─ sd
     │      ├─ !here [12]
     │      ├─ $here [13]
@@ -1428,50 +1428,6 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [1]
-       ├─ c
-       │  ├─ md/
-       │  │    ├─ whoami [4]
-       │  │    │       ╰─ /root [5]
-       │  │    │              ╰─ / [6]
-       │  │    ├─ <tool>
-       │  │    │       ╰─ / [2]
-       │  │    ╰─ <tool2>
-       │  │             ╰─ /
-       │  │                ╰─ <sub> [3]
-       │  ╰─ 1/
-       │      ╰─ <dd>
-       │            ╰─ /e [27]
-       │                ╰─ 1 [28]
-       ├─ s
-       │  ├─ rc [7]
-       │  │   ╰─ / [8]
-       │  │      ╰─ <filepath:*> [9]
-       │  ├─ earch/ [10]
-       │  │       ├─ actix-we [12]
-       │  │       ├─ google [13]
-       │  │       ╰─ <query> [11]
-       │  ╰─ omething/
-       │             ├─ secondthing/test [37]
-       │             ╰─ <paramname>
-       │                          ╰─ /thirdthing [36]
-       ├─ user_
-       │      ╰─ <name> [14]
-       │              ╰─ /about [15]
-       ├─ files/
-       │       ╰─ <dir>
-       │              ╰─ /
-       │                 ╰─ <filepath:*> [16]
-       ├─ doc/ [17]
-       │     ╰─ rust
-       │           ├─ _faq.html [18]
-       │           ╰─ 1.26.html [19]
-       ├─ info/
-       │      ╰─ <user>
-       │              ╰─ /p
-       │                  ├─ ublic [20]
-       │                  ╰─ roject/
-       │                           ├─ rustlang [22]
-       │                           ╰─ <project> [21]
        ├─ a
        │  ├─ a/
        │  │   ╰─ <xx:*> [23]
@@ -1479,43 +1435,87 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
        │      ├─ hello
        │      │      ╰─ <xx:*> [25]
        │      ╰─ <xx:*> [24]
+       ├─ c
+       │  ├─ 1/
+       │  │   ╰─ <dd>
+       │  │         ╰─ /e [27]
+       │  │             ╰─ 1 [28]
+       │  ╰─ md/
+       │       ├─ whoami [4]
+       │       │       ╰─ /root [5]
+       │       │              ╰─ / [6]
+       │       ├─ <tool>
+       │       │       ╰─ / [2]
+       │       ╰─ <tool2>
+       │                ╰─ /
+       │                   ╰─ <sub> [3]
+       ├─ doc/ [17]
+       │     ╰─ rust
+       │           ├─ 1.26.html [19]
+       │           ╰─ _faq.html [18]
+       ├─ files/
+       │       ╰─ <dir>
+       │              ╰─ /
+       │                 ╰─ <filepath:*> [16]
        ├─ get/
-       │     ├─ test/abc/ [34]
        │     ├─ abc [38]
        │     │    ╰─ /
        │     │       ├─ 123
-       │     │       │    ├─ ab
-       │     │       │    │   ├─ c [40]
-       │     │       │    │   │  ╰─ /
-       │     │       │    │   │     ├─ xxx8 [42]
-       │     │       │    │   │     │     ╰─ /
-       │     │       │    │   │     │        ├─ 1234 [44]
-       │     │       │    │   │     │        │     ╰─ /
-       │     │       │    │   │     │        │        ├─ ffas [46]
-       │     │       │    │   │     │        │        ├─ kkdd/
-       │     │       │    │   │     │        │        │      ├─ 12c [48]
-       │     │       │    │   │     │        │        │      ╰─ <param> [49]
-       │     │       │    │   │     │        │        ╰─ <param> [47]
-       │     │       │    │   │     │        ╰─ <param> [45]
-       │     │       │    │   │     ╰─ <param> [43]
-       │     │       │    │   ├─ d
-       │     │       │    │   │  ├─ /
-       │     │       │    │   │  │  ╰─ <param> [51]
-       │     │       │    │   │  ╰─ dd/
-       │     │       │    │   │       ╰─ <param> [52]
-       │     │       │    │   ├─ g/
-       │     │       │    │   │   ╰─ <param> [54]
-       │     │       │    │   ╰─ f
-       │     │       │    │      ├─ /
-       │     │       │    │      │  ╰─ <param> [55]
-       │     │       │    │      ╰─ ff/
-       │     │       │    │           ╰─ <param> [56]
-       │     │       │    ╰─ /
-       │     │       │       ╰─ <param> [53]
+       │     │       │    ├─ /
+       │     │       │    │  ╰─ <param> [53]
+       │     │       │    ╰─ ab
+       │     │       │        ├─ c [40]
+       │     │       │        │  ╰─ /
+       │     │       │        │     ├─ xxx8 [42]
+       │     │       │        │     │     ╰─ /
+       │     │       │        │     │        ├─ 1234 [44]
+       │     │       │        │     │        │     ╰─ /
+       │     │       │        │     │        │        ├─ ffas [46]
+       │     │       │        │     │        │        ├─ kkdd/
+       │     │       │        │     │        │        │      ├─ 12c [48]
+       │     │       │        │     │        │        │      ╰─ <param> [49]
+       │     │       │        │     │        │        ╰─ <param> [47]
+       │     │       │        │     │        ╰─ <param> [45]
+       │     │       │        │     ╰─ <param> [43]
+       │     │       │        ├─ d
+       │     │       │        │  ├─ /
+       │     │       │        │  │  ╰─ <param> [51]
+       │     │       │        │  ╰─ dd/
+       │     │       │        │       ╰─ <param> [52]
+       │     │       │        ├─ f
+       │     │       │        │  ├─ /
+       │     │       │        │  │  ╰─ <param> [55]
+       │     │       │        │  ╰─ ff/
+       │     │       │        │       ╰─ <param> [56]
+       │     │       │        ╰─ g/
+       │     │       │            ╰─ <param> [54]
        │     │       ╰─ <param> [41]
        │     │                ╰─ /test [50]
+       │     ├─ test/abc/ [34]
        │     ╰─ <param> [39]
        │              ╰─ /abc/ [35]
+       ├─ info/
+       │      ╰─ <user>
+       │              ╰─ /p
+       │                  ├─ roject/
+       │                  │        ├─ rustlang [22]
+       │                  │        ╰─ <project> [21]
+       │                  ╰─ ublic [20]
+       ├─ s
+       │  ├─ earch/ [10]
+       │  │       ├─ actix-we [12]
+       │  │       ├─ google [13]
+       │  │       ╰─ <query> [11]
+       │  ├─ omething/
+       │  │          ├─ secondthing/test [37]
+       │  │          ╰─ <paramname>
+       │  │                       ╰─ /thirdthing [36]
+       │  ╰─ rc [7]
+       │      ╰─ / [8]
+       │         ╰─ <filepath:*> [9]
+       ├─ user_
+       │      ╰─ <name> [14]
+       │              ╰─ /about [15]
        ╰─ <cc> [26]
              ╰─ /
                 ├─ cc [29]

@@ -37,11 +37,11 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /ab
-         ├─ cd [1]
-         ╰─ 12
-             ├─ 34 [2]
-             ╰─ 56 [3]
-                 ╰─ 78 [4]
+         ├─ 12
+         │   ├─ 34 [2]
+         │   ╰─ 56 [3]
+         │       ╰─ 78 [4]
+         ╰─ cd [1]
     "###);
 
     Ok(())
@@ -90,9 +90,9 @@ fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /ab
-         ├─ c/
-         │   ╰─ <p1:*> [1]
-         ╰─ /de [2]
+         ├─ /de [2]
+         ╰─ c/
+             ╰─ <p1:*> [1]
     "###);
 
     Ok(())
@@ -206,24 +206,24 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ a
-       │  ├─ b
-       │  │  ├─ /def [1]
-       │  │  ╰─ c/
-       │  │      ├─ def [2]
-       │  │      │    ╰─ /
-       │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> [ParameterConstraint::Regex(\d+)]
-       │  │      │        ╰─ /def [10]
-       │  │      ╰─ <p1> [3]
-       │  │            ╰─ /
-       │  │               ├─ def [4]
-       │  │               ╰─ <p2> [5]
-       │  ╰─ /
-       │     ├─ b/c/d [7]
-       │     ╰─ <p1>
-       │           ╰─ /
-       │              ╰─ <p2>
-       │                    ╰─ /c [8]
+       │  ├─ /
+       │  │  ├─ b/c/d [7]
+       │  │  ╰─ <p1>
+       │  │        ╰─ /
+       │  │           ╰─ <p2>
+       │  │                 ╰─ /c [8]
+       │  ╰─ b
+       │     ├─ /def [1]
+       │     ╰─ c/
+       │         ├─ def [2]
+       │         │    ╰─ /
+       │         │       ╰─ <p1:*> [6]
+       │         ├─ <param> [ParameterConstraint::Regex(\d+)]
+       │         │        ╰─ /def [10]
+       │         ╰─ <p1> [3]
+       │               ╰─ /
+       │                  ├─ def [4]
+       │                  ╰─ <p2> [5]
        ├─ kcd/
        │     ╰─ <p1> [11] [ParameterConstraint::Regex(\d+)]
        ├─ <package>
@@ -388,8 +388,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /a/
-         ├─ bc [1]
          ├─ 123 [5]
+         ├─ bc [1]
          ├─ <id> [4] [ParameterConstraint::Regex(\d+)]
          ├─ <id> [3]
          ╰─ <path:*> [2]

@@ -7,7 +7,7 @@ use wayfind::{
 };
 
 #[test]
-fn test_inline_regex() -> Result<(), Box<dyn Error>> {
+fn test_parameter_constaint_regex() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<_, ()>::new();
 
     router.insert(
@@ -59,16 +59,10 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ user/
-       │      ╰─ <name> [ParameterConstraint::Regex([a-z]+)]
-       │              ╰─ .
-       │                 ╰─ <ext> [1] [ParameterConstraint::Regex(png|jpg)]
        ├─ file-
        │      ╰─ <year> [ParameterConstraint::Regex(\d{4})]
        │              ╰─ -doc.
        │                     ╰─ <ext> [2] [ParameterConstraint::Regex(pdf|docx)]
-       ├─ report-
-       │        ╰─ <id> [4] [ParameterConstraint::Regex(\d+)]
        ├─ p
        │  ├─ osts/
        │  │      ╰─ <year> [ParameterConstraint::Regex(\d{4})]
@@ -80,6 +74,12 @@ fn test_inline_regex() -> Result<(), Box<dyn Error>> {
        │                           ╰─ <id> [ParameterConstraint::Regex(\d+)]
        │                                 ╰─ -
        │                                    ╰─ <slug> [6] [ParameterConstraint::Regex([a-z-]+)]
+       ├─ report-
+       │        ╰─ <id> [4] [ParameterConstraint::Regex(\d+)]
+       ├─ user/
+       │      ╰─ <name> [ParameterConstraint::Regex([a-z]+)]
+       │              ╰─ .
+       │                 ╰─ <ext> [1] [ParameterConstraint::Regex(png|jpg)]
        ╰─ <category> [ParameterConstraint::Regex([a-z-]+)]
                    ╰─ -items.html [3]
     "###);

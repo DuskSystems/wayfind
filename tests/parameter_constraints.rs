@@ -28,7 +28,7 @@ fn is_even_year(segment: &str) -> bool {
 }
 
 #[test]
-fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
+fn test_parameter_constraints() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<_, ()>::new();
 
     router.insert(
@@ -63,19 +63,19 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ user/
-       │      ╰─ <name> [ParameterConstraint::Regex(^[a-z]+$), ParameterConstraint::Regex(^.{3,10}$)]
-       │              ╰─ /
-       │                 ╰─ <id> [1] [ParameterConstraint::Regex(^\d+$), ParameterConstraint::Regex(^(?:[1-9]\d{3}|10000)$)]
-       ╰─ p
-          ├─ rofile/
-          │        ╰─ <username> [ParameterConstraint::Function, ParameterConstraint::Function]
-          │                    ╰─ .
-          │                       ╰─ <ext> [2] [ParameterConstraint::Function]
-          ╰─ osts/
-                 ╰─ <year> [ParameterConstraint::Regex(^\d{4}$), ParameterConstraint::Function]
-                         ╰─ /
-                            ╰─ <slug> [3] [ParameterConstraint::Regex(^[a-z0-9-]+$), ParameterConstraint::Function]
+       ├─ p
+       │  ├─ osts/
+       │  │      ╰─ <year> [ParameterConstraint::Function, ParameterConstraint::Regex(^\d{4}$)]
+       │  │              ╰─ /
+       │  │                 ╰─ <slug> [3] [ParameterConstraint::Function, ParameterConstraint::Regex(^[a-z0-9-]+$)]
+       │  ╰─ rofile/
+       │           ╰─ <username> [ParameterConstraint::Function, ParameterConstraint::Function]
+       │                       ╰─ .
+       │                          ╰─ <ext> [2] [ParameterConstraint::Function]
+       ╰─ user/
+              ╰─ <name> [ParameterConstraint::Regex(^[a-z]+$), ParameterConstraint::Regex(^.{3,10}$)]
+                      ╰─ /
+                         ╰─ <id> [1] [ParameterConstraint::Regex(^\d+$), ParameterConstraint::Regex(^(?:[1-9]\d{3}|10000)$)]
     "###);
 
     assert_router_matches!(router, {
