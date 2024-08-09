@@ -56,7 +56,7 @@ jobs:
           cargo codspeed build
           cargo llvm-cov --codecov --output-path codecov.json
 
-      - name: Upload benchmarks results to CodSpeed
+      - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
         with:
           shell: nix develop . --command bash {0}
