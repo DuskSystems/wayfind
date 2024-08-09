@@ -85,14 +85,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] [Constraint]
+    │  │       ╰─ <id> [8] [NodeConstraint(<function>)]
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] [Constraint]
+    │  │                │          ╰─ <version> [9] [NodeConstraint(<function>)]
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> [Constraint]
+    │  │                          ╰─ <base> [NodeConstraint(<function>)]
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] [Constraint]
+    │  │                                      ╰─ <head> [10] [NodeConstraint(<function>)]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

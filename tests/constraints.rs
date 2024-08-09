@@ -88,18 +88,18 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ user/
-       │      ╰─ <name> [Constraint, Constraint]
+       │      ╰─ <name> [NodeConstraint(<function>), NodeConstraint(<function>)]
        │              ╰─ /
-       │                 ╰─ <id> [1] [Constraint, Constraint]
+       │                 ╰─ <id> [1] [NodeConstraint(<function>), NodeConstraint(<function>)]
        ╰─ p
           ├─ rofile/
-          │        ╰─ <username> [Constraint, Constraint]
+          │        ╰─ <username> [NodeConstraint(<function>), NodeConstraint(<function>)]
           │                    ╰─ .
-          │                       ╰─ <ext> [2] [Constraint]
+          │                       ╰─ <ext> [2] [NodeConstraint(<function>)]
           ╰─ osts/
-                 ╰─ <year> [Constraint, Constraint]
+                 ╰─ <year> [NodeConstraint(<function>), NodeConstraint(<function>)]
                          ╰─ /
-                            ╰─ <slug> [3] [Constraint, Constraint]
+                            ╰─ <slug> [3] [NodeConstraint(<function>), NodeConstraint(<function>)]
     "###);
 
     assert_router_matches!(router, {

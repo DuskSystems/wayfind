@@ -33,14 +33,7 @@ impl<T: Display> Display for Node<T> {
             let constraints = if node.constraints.is_empty() {
                 String::new()
             } else {
-                format!(
-                    " [{}]",
-                    node.constraints
-                        .iter()
-                        .map(|_| "Constraint".to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )
+                format!(" {:?}", node.constraints)
             };
 
             if is_root {

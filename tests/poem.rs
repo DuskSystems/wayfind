@@ -142,8 +142,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] [Constraint]
-           ╰─ <name> [Constraint]
+           │     ╰─ <name> [2] [NodeConstraint(<function>)]
+           ╰─ <name> [NodeConstraint(<function>)]
                    ╰─ /def [1]
     "###);
 
@@ -221,7 +221,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> [Constraint]
+       │  │      ├─ <param> [NodeConstraint(<function>)]
        │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
@@ -234,10 +234,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1> [11] [Constraint]
+       │     ╰─ <p1> [11] [NodeConstraint(<function>)]
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] [Constraint]
+       │               ╰─ <package_tgz> [12] [NodeConstraint(<function>)]
        ╰─ <p1:*> [9]
     "###);
 
@@ -377,7 +377,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] [Constraint]
+         ├─ <id> [4] [NodeConstraint(<function>)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -399,7 +399,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] [Constraint]
+         ├─ <id> [4] [NodeConstraint(<function>)]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
