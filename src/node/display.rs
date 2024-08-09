@@ -31,27 +31,17 @@ impl<T: Display> Display for Node<T> {
                 .map(|node_data| &node_data.value);
 
             let constraints = if node.constraints.is_empty() {
-                None
+                String::new()
             } else {
-                Some(format!(" {:?}", node.constraints))
+                format!(" {:?}", node.constraints)
             };
 
             if is_root {
                 writeln!(f, "{key}")?;
-            } else if is_last {
-                match (value, &constraints) {
-                    (Some(value), Some(constraints)) => writeln!(f, "{padding}╰─ {key} [{value}]{constraints}"),
-                    (Some(value), None) => writeln!(f, "{padding}╰─ {key} [{value}]"),
-                    (None, Some(constraints)) => writeln!(f, "{padding}╰─ {key}{constraints}"),
-                    (None, None) => writeln!(f, "{padding}╰─ {key}"),
-                }?;
             } else {
-                match (value, &constraints) {
-                    (Some(value), Some(constraints)) => writeln!(f, "{padding}├─ {key} [{value}]{constraints}"),
-                    (Some(value), None) => writeln!(f, "{padding}├─ {key} [{value}]"),
-                    (None, Some(constraints)) => writeln!(f, "{padding}├─ {key}{constraints}"),
-                    (None, None) => writeln!(f, "{padding}├─ {key}"),
-                }?;
+                let branch = if is_last { "╰─" } else { "├─" };
+                let value = value.map_or(String::new(), |v| format!(" [{v}]"));
+                writeln!(f, "{padding}{branch} {key}{value}{constraints}")?;
             }
 
             // Ensure we align children correctly

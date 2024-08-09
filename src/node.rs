@@ -1,5 +1,7 @@
-use regex::bytes::Regex;
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 pub mod delete;
 pub mod display;
@@ -16,28 +18,17 @@ pub enum NodeKind {
 }
 
 #[derive(Clone)]
-pub enum NodeConstraint {
-    Regex(Regex),
-    // TODO: Consider casting this to a &str ahead of time?
-    Function(fn(&[u8]) -> bool),
-}
+pub struct NodeConstraint(pub fn(&str) -> bool);
 
 impl Debug for NodeConstraint {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Regex(regex) => write!(f, "Constraint::Regex({})", regex.as_str()),
-            Self::Function(_) => write!(f, "Constraint::Function"),
-        }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NodeConstraint(<function>)")
     }
 }
 
 impl PartialEq for NodeConstraint {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Regex(left), Self::Regex(right)) => left.as_str() == right.as_str(),
-            (Self::Function(left), Self::Function(right)) => std::ptr::eq(left, right),
-            _ => false,
-        }
+        std::ptr::eq(self.0 as *const (), other.0 as *const ())
     }
 }
 
