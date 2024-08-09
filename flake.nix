@@ -52,21 +52,27 @@
           RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
           CARGO_INCREMENTAL = "0";
 
-          buildInputs = with pkgs; [
-            # Rust
-            rust-toolchain
-            sccache
-            cargo-codspeed
-            cargo-insta
+          buildInputs = with pkgs;
+            [
+              # Rust
+              rust-toolchain
+              sccache
+              cargo-codspeed
+              cargo-insta
 
-            # Benchmarking
-            gnuplot
+              # Benchmarking
+              gnuplot
 
-            # Nix
-            alejandra
-            statix
-            nil
-          ];
+              # Nix
+              alejandra
+              statix
+              nil
+            ]
+            ++ lib.optionals pkgs.stdenv.isLinux [
+              # Rust
+              # NOTE: https://github.com/NixOS/nixpkgs/pull/260725
+              cargo-llvm-cov
+            ];
         };
 
         # nix develop .#msrv

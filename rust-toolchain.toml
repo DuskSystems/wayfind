@@ -8,4 +8,5 @@ components = [
   "rust-src",
   "rust-std",
   "rust-analyzer",
+  "llvm-tools-preview",
 ]
