@@ -1,5 +1,26 @@
-use regex::bytes::Regex;
-use wayfind::{node::NodeConstraint, route::RouteBuilder, router::Router};
+use wayfind::{route::RouteBuilder, router::Router};
+
+fn is_hex_32(segment: &str) -> bool {
+    segment.len() == 32
+        && segment
+            .chars()
+            .all(|c| c.is_ascii_hexdigit())
+}
+
+fn is_semver(segment: &str) -> bool {
+    let parts: Vec<&str> = segment.split('.').collect();
+    parts.len() == 3
+        && parts
+            .iter()
+            .all(|part| part.parse::<u32>().is_ok())
+}
+
+fn is_hex_40(segment: &str) -> bool {
+    segment.len() == 40
+        && segment
+            .chars()
+            .all(|c| c.is_ascii_hexdigit())
+}
 
 #[test]
 fn example() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,29 +44,29 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Multiple Wildcard Segments
     router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
 
-    // Regex Segment
+    // Constraint
     router.insert(
         RouteBuilder::new("/repos/<id>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
+            .constraint("id", is_hex_32)
             .build()?,
         8,
     )?;
 
-    // Regex Inline
+    // Multiple Constraints
     router.insert(
         RouteBuilder::new("/repos/<id>/archive/v<version>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
-            .constraint("version", NodeConstraint::Regex(Regex::new(r"[0-9]+\.[0-9]+\.[0-9]+")?))
+            .constraint("id", is_hex_32)
+            .constraint("version", is_semver)
             .build()?,
         9,
     )?;
 
-    // Multiple Regex Inline
+    // Multiple Constraints Inline
     router.insert(
         RouteBuilder::new("/repos/<id>/compare/<base>..<head>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{32}")?))
-            .constraint("base", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
-            .constraint("head", NodeConstraint::Regex(Regex::new(r"[a-f0-9]{40}")?))
+            .constraint("id", is_hex_32)
+            .constraint("base", is_hex_40)
+            .constraint("head", is_hex_40)
             .build()?,
         10,
     )?;
@@ -64,14 +85,14 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] [Constraint::Regex([a-f0-9]{32})]
+    │  │       ╰─ <id> [8] [Constraint]
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] [Constraint::Regex([0-9]+\.[0-9]+\.[0-9]+)]
+    │  │                │          ╰─ <version> [9] [Constraint]
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> [Constraint::Regex([a-f0-9]{40})]
+    │  │                          ╰─ <base> [Constraint]
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] [Constraint::Regex([a-f0-9]{40})]
+    │  │                                      ╰─ <head> [10] [Constraint]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

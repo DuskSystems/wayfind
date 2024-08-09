@@ -1,4 +1,4 @@
-use super::{Node, NodeConstraint, NodeData};
+use super::{Node, NodeData};
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
@@ -231,21 +231,16 @@ impl<T> Node<T> {
     }
 
     fn check_constraints(node: &Self, segment: &[u8]) -> bool {
+        if node.constraints.is_empty() {
+            return true;
+        }
+
+        let Ok(segment) = std::str::from_utf8(segment) else {
+            return false;
+        };
+
         node.constraints
             .iter()
-            .all(|constraint| match constraint {
-                NodeConstraint::Regex(regex) => {
-                    let Some(captures) = regex.captures(segment) else {
-                        return false;
-                    };
-
-                    let Some(matches) = captures.get(0) else {
-                        return false;
-                    };
-
-                    matches.start() == 0 && matches.end() == segment.len()
-                }
-                NodeConstraint::Function(function) => function(segment),
-            })
+            .all(|function| function(segment))
     }
 }

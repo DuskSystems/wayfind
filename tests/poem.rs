@@ -3,9 +3,20 @@
 
 #![allow(clippy::too_many_lines)]
 
-use regex::bytes::Regex;
 use std::error::Error;
-use wayfind::{assert_router_matches, node::NodeConstraint, route::RouteBuilder, router::Router};
+use wayfind::{assert_router_matches, route::RouteBuilder, router::Router};
+
+fn is_digit_string(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment
+            .chars()
+            .all(|c| c.is_ascii_digit())
+}
+
+fn ends_with_tgz(segment: &str) -> bool {
+    #[allow(clippy::case_sensitive_file_extension_comparisons)]
+    segment.ends_with(".tgz")
+}
 
 #[test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
@@ -115,14 +126,14 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<name>/def")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("name", is_digit_string)
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/abc/def/<name>")
-            .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("name", is_digit_string)
             .build()?,
         2,
     )?;
@@ -131,8 +142,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] [Constraint::Regex(\d+)]
-           ╰─ <name> [Constraint::Regex(\d+)]
+           │     ╰─ <name> [2] [Constraint]
+           ╰─ <name> [Constraint]
                    ╰─ /def [1]
     "###);
 
@@ -155,7 +166,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router
         .insert(
             RouteBuilder::new("/k/h/<name>")
-                .constraint("name", NodeConstraint::Regex(Regex::new(r"\d+")?))
+                .constraint("name", is_digit_string)
                 .build()?,
             1,
         )
@@ -181,21 +192,21 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<param>/def")
-            .constraint("param", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("param", is_digit_string)
             .build()?,
         10,
     )?;
 
     router.insert(
         RouteBuilder::new("/kcd/<p1>")
-            .constraint("p1", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("p1", is_digit_string)
             .build()?,
         11,
     )?;
 
     router.insert(
         RouteBuilder::new("/<package>/-/<package_tgz>")
-            .constraint("package_tgz", NodeConstraint::Regex(Regex::new(r".*tgz$")?))
+            .constraint("package_tgz", ends_with_tgz)
             .build()?,
         12,
     )?;
@@ -210,7 +221,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │      ├─ def [2]
        │  │      │    ╰─ /
        │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> [Constraint::Regex(\d+)]
+       │  │      ├─ <param> [Constraint]
        │  │      │        ╰─ /def [10]
        │  │      ╰─ <p1> [3]
        │  │            ╰─ /
@@ -223,10 +234,10 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │              ╰─ <p2>
        │                    ╰─ /c [8]
        ├─ kcd/
-       │     ╰─ <p1> [11] [Constraint::Regex(\d+)]
+       │     ╰─ <p1> [11] [Constraint]
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] [Constraint::Regex(.*tgz$)]
+       │               ╰─ <package_tgz> [12] [Constraint]
        ╰─ <p1:*> [9]
     "###);
 
@@ -357,7 +368,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/a/<id>")
-            .constraint("id", NodeConstraint::Regex(Regex::new(r"\d+")?))
+            .constraint("id", is_digit_string)
             .build()?,
         4,
     )?;
@@ -366,7 +377,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] [Constraint::Regex(\d+)]
+         ├─ <id> [4] [Constraint]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -388,7 +399,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     ╰─ /a/
          ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] [Constraint::Regex(\d+)]
+         ├─ <id> [4] [Constraint]
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
