@@ -16,11 +16,11 @@ impl<'a> RouteBuilder<'a> {
     }
 
     #[must_use]
-    pub fn constraint(mut self, name: &'a str, value: NodeConstraint) -> Self {
+    pub fn constraint(mut self, name: &'a str, value: fn(&str) -> bool) -> Self {
         self.constraints
             .entry(name.as_bytes())
             .or_default()
-            .push(value);
+            .push(NodeConstraint(value));
 
         self
     }

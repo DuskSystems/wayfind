@@ -241,6 +241,6 @@ impl<T> Node<T> {
 
         node.constraints
             .iter()
-            .all(|function| function(segment))
+            .all(|function| function.0(segment))
     }
 }
