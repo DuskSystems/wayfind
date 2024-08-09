@@ -20,69 +20,60 @@ Real-world projects often need fancy routing capabilities, such as projects port
 
 The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
 
-## Parameters
-
-- Static: `/index.html`
-- Dynamic: `/calender/<year>-<month>-<day>`
-- Wildcard: `/v1/<namespace:*>/tags/list`
-
-## Constraints
-
-- Regex: `[a-z]+`
-- Function: `is_lowercase_alpha`
-
 ## Benchmarks
 
 All benchmarks ran on a MacOS M1 Pro laptop.
 
-Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind) for a more accurate set of timings.
+Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
 ### [`matchit` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
+> In a router of 130 routes, match 4 paths.
+
 ```
 matchit benchmarks/wayfind
-  time: [177.92 ns 178.21 ns 178.58 ns]
+  time: [187.94 ns 188.34 ns 188.83 ns]
 
 matchit benchmarks/actix-router
-  time: [20.811 µs 21.040 µs 21.435 µs]
+  time: [20.865 µs 20.934 µs 21.005 µs]
 
 matchit benchmarks/gonzales
-  time: [128.86 ns 128.98 ns 129.15 ns]
+  time: [129.49 ns 129.75 ns 130.04 ns]
 
 matchit benchmarks/matchit
-  time: [180.75 ns 180.95 ns 181.21 ns]
+  time: [180.83 ns 181.24 ns 181.68 ns]
 
 matchit benchmarks/ntex-router
-  time: [1.5571 µs 1.5602 µs 1.5640 µs]
+  time: [1.5656 µs 1.5695 µs 1.5738 µs]
 
 matchit benchmarks/path-table
-  time: [532.16 ns 533.23 ns 534.50 ns]
+  time: [527.84 ns 534.22 ns 547.03 ns]
 
 matchit benchmarks/path-tree
-  time: [327.58 ns 328.18 ns 328.91 ns]
+  time: [316.98 ns 317.53 ns 318.10 ns]
 
 matchit benchmarks/regex
-  time: [1.1405 µs 1.1442 µs 1.1481 µs]
+  time: [1.1470 µs 1.1500 µs 1.1534 µs]
 
 matchit benchmarks/route-recognizer
-  time: [4.3165 µs 4.3230 µs 4.3299 µs]
+  time: [4.3378 µs 4.4165 µs 4.5313 µs]
 
 matchit benchmarks/routefinder
-  time: [6.2712 µs 6.2829 µs 6.2969 µs]
+  time: [6.0553 µs 6.0686 µs 6.0839 µs]
 
 matchit benchmarks/xitca-router
-  time: [355.19 ns 355.78 ns 356.46 ns]
+  time: [352.52 ns 353.23 ns 354.07 ns]
 
 matchit allocations
 ├─ wayfind           alloc:
 │                      654
-│                      100.9 KB
+│                      97.43 KB
 │                    dealloc:
 │                      654
 │                      100.9 KB
 │                    grow:
 │                      80
-│                      19.74 KB
+│                      19.13 KB
 │
 ├─ actix-router      alloc:
 │                      31187
@@ -193,39 +184,41 @@ matchit allocations
 
 ### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
 
+> In a router of 320 routes, match 80 paths.
+
 ```
 path-tree benchmarks/wayfind
-  time: [3.0148 µs 3.0200 µs 3.0256 µs]
+  time: [3.2152 µs 3.2230 µs 3.2327 µs]
 
 path-tree benchmarks/actix-router
-  time: [173.24 µs 173.70 µs 174.22 µs]
+  time: [174.12 µs 174.68 µs 175.26 µs]
 
 path-tree benchmarks/gonzales
-  time: [5.8082 µs 5.8474 µs 5.8877 µs]
+  time: [5.7948 µs 5.8332 µs 5.8714 µs]
 
 path-tree benchmarks/matchit
-  time: [4.8001 µs 4.8139 µs 4.8322 µs]
+  time: [4.8233 µs 4.8351 µs 4.8491 µs]
 
 path-tree benchmarks/ntex-router
-  time: [27.171 µs 27.204 µs 27.245 µs]
+  time: [26.562 µs 26.630 µs 26.705 µs]
 
 path-tree benchmarks/path-table
-  time: [10.323 µs 10.345 µs 10.371 µs]
+  time: [10.259 µs 10.292 µs 10.329 µs]
 
 path-tree benchmarks/path-tree
-  time: [5.5324 µs 5.5452 µs 5.5584 µs]
+  time: [5.3023 µs 5.3153 µs 5.3295 µs]
 
 path-tree benchmarks/regex
-  time: [41.077 µs 41.219 µs 41.389 µs]
+  time: [41.462 µs 41.606 µs 41.778 µs]
 
 path-tree benchmarks/route-recognizer
-  time: [85.506 µs 85.607 µs 85.733 µs]
+  time: [85.986 µs 86.163 µs 86.368 µs]
 
 path-tree benchmarks/routefinder
-  time: [91.992 µs 92.100 µs 92.234 µs]
+  time: [92.163 µs 92.331 µs 92.534 µs]
 
 path-tree benchmarks/xitca-router
-  time: [7.2957 µs 7.3110 µs 7.3296 µs]
+  time: [7.3373 µs 7.3539 µs 7.3741 µs]
 
 path-tree allocations
 ├─ wayfind           alloc:

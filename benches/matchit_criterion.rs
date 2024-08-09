@@ -11,7 +11,7 @@ pub mod matchit_routes;
 fn benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("matchit benchmarks");
 
-    group.bench_function("wayfind", |bencher| {
+    group.bench_function("matchit benchmarks/wayfind", |bencher| {
         let mut wayfind = wayfind::router::Router::new();
         for route in routes!(chevrons) {
             wayfind.insert(route, true).unwrap();
@@ -24,7 +24,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("actix-router", |bencher| {
+    group.bench_function("matchit benchmarks/actix-router", |bencher| {
         let mut actix = actix_router::Router::<bool>::build();
         for route in routes!(brackets) {
             actix.path(route, true);
@@ -39,7 +39,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("gonzales", |bencher| {
+    group.bench_function("matchit benchmarks/gonzales", |bencher| {
         let gonzales = gonzales::RouterBuilder::new().build(routes!(brackets));
 
         bencher.iter(|| {
@@ -49,7 +49,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("matchit", |bencher| {
+    group.bench_function("matchit benchmarks/matchit", |bencher| {
         let mut matchit = matchit::Router::new();
         for route in routes!(brackets) {
             matchit.insert(route, true).unwrap();
@@ -62,7 +62,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("ntex-router", |bencher| {
+    group.bench_function("matchit benchmarks/ntex-router", |bencher| {
         let mut ntex = ntex_router::Router::<bool>::build();
         for route in routes!(brackets) {
             ntex.path(route, true);
@@ -77,7 +77,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("path-table", |bencher| {
+    group.bench_function("matchit benchmarks/path-table", |bencher| {
         let mut table = path_table::PathTable::new();
         for route in routes!(brackets) {
             *table.setup(route) = true;
@@ -90,7 +90,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("path-tree", |bencher| {
+    group.bench_function("matchit benchmarks/path-tree", |bencher| {
         let mut path_tree = path_tree::PathTree::new();
         for route in routes!(colon) {
             let _ = path_tree.insert(route, true);
@@ -103,7 +103,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("regex", |bencher| {
+    group.bench_function("matchit benchmarks/regex", |bencher| {
         let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
 
         bencher.iter(|| {
@@ -113,7 +113,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("route-recognizer", |bencher| {
+    group.bench_function("matchit benchmarks/route-recognizer", |bencher| {
         let mut route_recognizer = route_recognizer::Router::new();
         for route in routes!(colon) {
             route_recognizer.add(route, true);
@@ -128,7 +128,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("routefinder", |bencher| {
+    group.bench_function("matchit benchmarks/routefinder", |bencher| {
         let mut routefinder = routefinder::Router::new();
         for route in routes!(colon) {
             routefinder.add(route, true).unwrap();
@@ -141,7 +141,7 @@ fn benchmark(criterion: &mut Criterion) {
         });
     });
 
-    group.bench_function("xitca-router", |bencher| {
+    group.bench_function("matchit benchmarks/xitca-router", |bencher| {
         let mut xitca = xitca_router::Router::new();
         for route in routes!(colon) {
             xitca.insert(route, true).unwrap();
