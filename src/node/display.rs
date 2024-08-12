@@ -28,20 +28,18 @@ impl<T: Display> Display for Node<T> {
             let value = node
                 .data
                 .as_ref()
-                .map(|node_data| &node_data.value);
+                .map_or(String::new(), |node_data| format!(" [{}]", node_data.value));
 
-            let constraints = if node.constraints.is_empty() {
-                String::new()
-            } else {
-                format!(" {:?}", node.constraints)
-            };
+            let constraint = node
+                .constraint
+                .as_ref()
+                .map_or(String::new(), |c| format!(" ({c:?})"));
 
             if is_root {
                 writeln!(f, "{key}")?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                let value = value.map_or(String::new(), |v| format!(" [{v}]"));
-                writeln!(f, "{padding}{branch} {key}{value}{constraints}")?;
+                writeln!(f, "{padding}{branch} {key}{value}{constraint}")?;
             }
 
             // Ensure we align children correctly

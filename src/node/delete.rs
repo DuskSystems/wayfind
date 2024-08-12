@@ -11,28 +11,16 @@ impl<T> Node<T> {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(route, prefix),
                 Part::Dynamic { name } => {
-                    let constraints = route
-                        .constraints
-                        .remove(name)
-                        .unwrap_or_default();
-
-                    self.delete_dynamic(route, name, &constraints)
+                    let constraint = route.constraints.remove(name);
+                    self.delete_dynamic(route, name, constraint)
                 }
                 Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraints = route
-                        .constraints
-                        .remove(name)
-                        .unwrap_or_default();
-
-                    self.delete_end_wildcard(name, &constraints)
+                    let constraint = route.constraints.remove(name);
+                    self.delete_end_wildcard(name, constraint)
                 }
                 Part::Wildcard { name } => {
-                    let constraints = route
-                        .constraints
-                        .remove(name)
-                        .unwrap_or_default();
-
-                    self.delete_wildcard(route, name, &constraints)
+                    let constraint = route.constraints.remove(name);
+                    self.delete_wildcard(route, name, constraint)
                 }
             };
 
@@ -85,16 +73,18 @@ impl<T> Node<T> {
         result
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_dynamic(
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+
+        constraint: Option<NodeConstraint>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.dynamic_children[index];
@@ -111,16 +101,17 @@ impl<T> Node<T> {
         result
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_wildcard(
         &mut self,
         route: &mut Route<'_>,
         name: &[u8],
-        constraints: &[NodeConstraint],
+        constraint: Option<NodeConstraint>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.wildcard_children[index];
@@ -137,11 +128,12 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraints: &[NodeConstraint]) -> Result<(), DeleteError> {
+    #[allow(clippy::needless_pass_by_value)]
+    fn delete_end_wildcard(&mut self, name: &[u8], constraint: Option<NodeConstraint>) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraints == *constraints)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or(DeleteError::NotFound)?;
 
         self.end_wildcard_children.remove(index);

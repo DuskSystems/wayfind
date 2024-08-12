@@ -9,7 +9,7 @@ use std::{fmt::Display, sync::Arc};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
-    root: Node<T>,
+    pub root: Node<T>,
 }
 
 impl<T> Router<T> {
@@ -21,7 +21,7 @@ impl<T> Router<T> {
 
                 prefix: vec![],
                 data: None,
-                constraints: vec![],
+                constraint: None,
 
                 static_children: vec![],
                 dynamic_children: vec![],
@@ -55,11 +55,14 @@ impl<T> Router<T> {
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = smallvec![];
-        let data = self
+        let node = self
             .root
             .matches(path.as_bytes(), &mut parameters)?;
 
-        Some(Match { data, parameters })
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 }
 

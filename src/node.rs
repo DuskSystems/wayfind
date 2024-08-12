@@ -17,18 +17,26 @@ pub enum NodeKind {
     EndWildcard,
 }
 
+pub trait Constraint {
+    fn name() -> &'static str;
+    fn check(segment: &str) -> bool;
+}
+
 #[derive(Clone)]
-pub struct NodeConstraint(pub fn(&str) -> bool);
+pub struct NodeConstraint {
+    pub name: &'static str,
+    pub check: fn(&str) -> bool,
+}
 
 impl Debug for NodeConstraint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "NodeConstraint(<function>)")
+        write!(f, "{}", self.name)
     }
 }
 
 impl PartialEq for NodeConstraint {
     fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self.0 as *const (), other.0 as *const ())
+        self.name == other.name && std::ptr::eq(self.check as *const (), other.check as *const ())
     }
 }
 
@@ -46,7 +54,7 @@ pub struct Node<T> {
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
-    pub constraints: Vec<NodeConstraint>,
+    pub constraint: Option<NodeConstraint>,
 
     pub static_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,

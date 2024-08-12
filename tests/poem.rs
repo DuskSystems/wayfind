@@ -4,18 +4,32 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, route::RouteBuilder, router::Router};
+use wayfind::{assert_router_matches, node::Constraint, route::RouteBuilder, router::Router};
 
-fn is_digit_string(segment: &str) -> bool {
-    !segment.is_empty()
-        && segment
-            .chars()
-            .all(|c| c.is_ascii_digit())
+struct DigitString;
+impl Constraint for DigitString {
+    fn name() -> &'static str {
+        "digit_string"
+    }
+
+    fn check(segment: &str) -> bool {
+        !segment.is_empty()
+            && segment
+                .chars()
+                .all(|c| c.is_ascii_digit())
+    }
 }
 
-fn ends_with_tgz(segment: &str) -> bool {
-    #[allow(clippy::case_sensitive_file_extension_comparisons)]
-    segment.ends_with(".tgz")
+struct EndsWithTgz;
+impl Constraint for EndsWithTgz {
+    fn name() -> &'static str {
+        "ends_with_tgz"
+    }
+
+    fn check(segment: &str) -> bool {
+        #[allow(clippy::case_sensitive_file_extension_comparisons)]
+        segment.ends_with(".tgz")
+    }
 }
 
 #[test]
@@ -46,11 +60,11 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /ab
-         ├─ cd [1]
-         ╰─ 12
-             ├─ 34 [2]
-             ╰─ 56 [3]
-                 ╰─ 78 [4]
+         ├─ 12
+         │   ├─ 34 [2]
+         │   ╰─ 56 [3]
+         │       ╰─ 78 [4]
+         ╰─ cd [1]
     "###);
 
     Ok(())
@@ -99,9 +113,9 @@ fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /ab
-         ├─ c/
-         │   ╰─ <p1:*> [1]
-         ╰─ /de [2]
+         ├─ /de [2]
+         ╰─ c/
+             ╰─ <p1:*> [1]
     "###);
 
     Ok(())
@@ -126,14 +140,14 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<name>/def")
-            .constraint("name", is_digit_string)
+            .constraint::<DigitString>("name")
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/abc/def/<name>")
-            .constraint("name", is_digit_string)
+            .constraint::<DigitString>("name")
             .build()?,
         2,
     )?;
@@ -142,8 +156,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /abc/
            ├─ def/
-           │     ╰─ <name> [2] [NodeConstraint(<function>)]
-           ╰─ <name> [NodeConstraint(<function>)]
+           │     ╰─ <name> [2] (digit_string)
+           ╰─ <name> (digit_string)
                    ╰─ /def [1]
     "###);
 
@@ -166,7 +180,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router
         .insert(
             RouteBuilder::new("/k/h/<name>")
-                .constraint("name", is_digit_string)
+                .constraint::<DigitString>("name")
                 .build()?,
             1,
         )
@@ -192,21 +206,21 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/abc/<param>/def")
-            .constraint("param", is_digit_string)
+            .constraint::<DigitString>("param")
             .build()?,
         10,
     )?;
 
     router.insert(
         RouteBuilder::new("/kcd/<p1>")
-            .constraint("p1", is_digit_string)
+            .constraint::<DigitString>("p1")
             .build()?,
         11,
     )?;
 
     router.insert(
         RouteBuilder::new("/<package>/-/<package_tgz>")
-            .constraint("package_tgz", ends_with_tgz)
+            .constraint::<EndsWithTgz>("package_tgz")
             .build()?,
         12,
     )?;
@@ -215,29 +229,29 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ├─ a
-       │  ├─ b
-       │  │  ├─ /def [1]
-       │  │  ╰─ c/
-       │  │      ├─ def [2]
-       │  │      │    ╰─ /
-       │  │      │       ╰─ <p1:*> [6]
-       │  │      ├─ <param> [NodeConstraint(<function>)]
-       │  │      │        ╰─ /def [10]
-       │  │      ╰─ <p1> [3]
-       │  │            ╰─ /
-       │  │               ├─ def [4]
-       │  │               ╰─ <p2> [5]
-       │  ╰─ /
-       │     ├─ b/c/d [7]
-       │     ╰─ <p1>
-       │           ╰─ /
-       │              ╰─ <p2>
-       │                    ╰─ /c [8]
+       │  ├─ /
+       │  │  ├─ b/c/d [7]
+       │  │  ╰─ <p1>
+       │  │        ╰─ /
+       │  │           ╰─ <p2>
+       │  │                 ╰─ /c [8]
+       │  ╰─ b
+       │     ├─ /def [1]
+       │     ╰─ c/
+       │         ├─ def [2]
+       │         │    ╰─ /
+       │         │       ╰─ <p1:*> [6]
+       │         ├─ <param> (digit_string)
+       │         │        ╰─ /def [10]
+       │         ╰─ <p1> [3]
+       │               ╰─ /
+       │                  ├─ def [4]
+       │                  ╰─ <p2> [5]
        ├─ kcd/
-       │     ╰─ <p1> [11] [NodeConstraint(<function>)]
+       │     ╰─ <p1> [11] (digit_string)
        ├─ <package>
        │          ╰─ /-/
-       │               ╰─ <package_tgz> [12] [NodeConstraint(<function>)]
+       │               ╰─ <package_tgz> [12] (ends_with_tgz)
        ╰─ <p1:*> [9]
     "###);
 
@@ -368,7 +382,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/a/<id>")
-            .constraint("id", is_digit_string)
+            .constraint::<DigitString>("id")
             .build()?,
         4,
     )?;
@@ -377,7 +391,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /a/
          ├─ bc [1]
-         ├─ <id> [4] [NodeConstraint(<function>)]
+         ├─ <id> [4] (digit_string)
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
@@ -397,9 +411,9 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /a/
-         ├─ bc [1]
          ├─ 123 [5]
-         ├─ <id> [4] [NodeConstraint(<function>)]
+         ├─ bc [1]
+         ├─ <id> [4] (digit_string)
          ├─ <id> [3]
          ╰─ <path:*> [2]
     "###);
