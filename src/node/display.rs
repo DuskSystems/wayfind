@@ -12,16 +12,27 @@ impl<T: Display> Display for Node<T> {
             is_root: bool,
             is_last: bool,
         ) -> std::fmt::Result {
+            let constraint = node
+                .constraint
+                .as_ref()
+                .map(|c| format!("{c:?}"));
+
             let key = match &node.kind {
                 NodeKind::Root => "$".to_string(),
                 NodeKind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    format!("<{name}>")
+                    constraint.map_or_else(
+                        || format!("{{{name}}}"),
+                        |constraint| format!("{{{name}:{constraint}}}"),
+                    )
                 }
                 NodeKind::Wildcard | NodeKind::EndWildcard => {
                     let name = String::from_utf8_lossy(&node.prefix);
-                    format!("<{name}:*>")
+                    constraint.map_or_else(
+                        || format!("{{*{name}}}"),
+                        |constraint| format!("{{*{name}:{constraint}}}"),
+                    )
                 }
             };
 
@@ -30,16 +41,11 @@ impl<T: Display> Display for Node<T> {
                 .as_ref()
                 .map_or(String::new(), |node_data| format!(" [{}]", node_data.value));
 
-            let constraint = node
-                .constraint
-                .as_ref()
-                .map_or(String::new(), |c| format!(" ({c:?})"));
-
             if is_root {
                 writeln!(f, "{key}")?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                writeln!(f, "{padding}{branch} {key}{value}{constraint}")?;
+                writeln!(f, "{padding}{branch} {key}{value}")?;
             }
 
             // Ensure we align children correctly

@@ -16,7 +16,7 @@ fn main() {
 #[divan::bench(name = "wayfind")]
 fn wayfind() {
     let mut wayfind = wayfind::router::Router::new();
-    for (index, route) in routes!(chevrons).iter().enumerate() {
+    for (index, route) in routes!(brackets).iter().enumerate() {
         wayfind.insert(*route, index).unwrap();
     }
 

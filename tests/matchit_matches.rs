@@ -46,13 +46,13 @@ fn partial_overlap() -> Result<(), Box<dyn Error>> {
 fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/path/foo", "foo")?;
-    router.insert("/path/<rest:*>", "wildcard")?;
+    router.insert("/path/{*rest}", "wildcard")?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /path/
             ├─ foo [foo]
-            ╰─ <rest:*> [wildcard]
+            ╰─ {*rest} [wildcard]
     "###);
 
     assert_router_matches!(router, {
@@ -61,14 +61,14 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
             value: "foo"
         }
         "/path/bar" => {
-            path: "/path/<rest:*>",
+            path: "/path/{*rest}",
             value: "wildcard",
             params: {
                 "rest" => "bar"
             }
         }
         "/path/foo/" => {
-            path: "/path/<rest:*>",
+            path: "/path/{*rest}",
             value: "wildcard",
             params: {
                 "rest" => "foo/"
@@ -77,34 +77,34 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     });
 
     let mut router = Router::new();
-    router.insert("/path/foo/<arg>", "foo")?;
-    router.insert("/path/<rest:*>", "wildcard")?;
+    router.insert("/path/foo/{arg}", "foo")?;
+    router.insert("/path/{*rest}", "wildcard")?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /path/
             ├─ foo/
-            │     ╰─ <arg> [foo]
-            ╰─ <rest:*> [wildcard]
+            │     ╰─ {arg} [foo]
+            ╰─ {*rest} [wildcard]
     "###);
 
     assert_router_matches!(router, {
         "/path/foo/myarg" => {
-            path: "/path/foo/<arg>",
+            path: "/path/foo/{arg}",
             value: "foo",
             params: {
                 "arg" => "myarg"
             }
         }
         "/path/foo/myarg/" => {
-            path: "/path/<rest:*>",
+            path: "/path/{*rest}",
             value: "wildcard",
             params: {
                 "rest" => "foo/myarg/"
             }
         }
         "/path/foo/myarg/bar/baz" => {
-            path: "/path/<rest:*>",
+            path: "/path/{*rest}",
             value: "wildcard",
             params: {
                 "rest" => "foo/myarg/bar/baz"
@@ -119,30 +119,30 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
 #[test]
 fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<object>/<id>", "object with id")?;
-    router.insert("/secret/<id>/path", "secret with id and path")?;
+    router.insert("/{object}/{id}", "object with id")?;
+    router.insert("/secret/{id}/path", "secret with id and path")?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /
-       ├─ secret/
-       │        ╰─ <id>
-       │              ╰─ /path [secret with id and path]
-       ╰─ <object>
-                 ╰─ /
-                    ╰─ <id> [object with id]
-    "###);
+   $
+   ╰─ /
+      ├─ secret/
+      │        ╰─ {id}
+      │              ╰─ /path [secret with id and path]
+      ╰─ {object}
+                ╰─ /
+                   ╰─ {id} [object with id]
+   "###);
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
-            path: "/secret/<id>/path",
+            path: "/secret/{id}/path",
             value: "secret with id and path",
             params: {
                 "id" => "978"
             }
         }
         "/something/978" => {
-            path: "/<object>/<id>",
+            path: "/{object}/{id}",
             value: "object with id",
             params: {
                 "object" => "something",
@@ -150,7 +150,7 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
             }
         }
         "/secret/978" => {
-            path: "/<object>/<id>",
+            path: "/{object}/{id}",
             value: "object with id",
             params: {
                 "object" => "secret",
@@ -166,40 +166,40 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
 #[test]
 fn bare_catchall() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("<foo:*>", 1)?;
-    router.insert("foo/<bar:*>", 2)?;
+    router.insert("{*foo}", 1)?;
+    router.insert("foo/{*bar}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ├─ foo/
-    │     ╰─ <bar:*> [2]
-    ╰─ <foo:*> [1]
+    │     ╰─ {*bar} [2]
+    ╰─ {*foo} [1]
     "###);
 
     assert_router_matches!(router, {
         "x/y" => {
-            path: "<foo:*>",
+            path: "{*foo}",
             value: 1,
             params: {
                 "foo" => "x/y"
             }
         }
         "/x/y" => {
-            path: "<foo:*>",
+            path: "{*foo}",
             value: 1,
             params: {
                 "foo" => "/x/y"
             }
         }
         "/foo/x/y" => {
-            path: "<foo:*>",
+            path: "{*foo}",
             value: 1,
             params: {
                 "foo" => "/foo/x/y"
             }
         }
         "foo/x/y" => {
-            path: "foo/<bar:*>",
+            path: "foo/{*bar}",
             value: 2,
             params: {
                 "bar" => "x/y"
@@ -213,20 +213,20 @@ fn bare_catchall() -> Result<(), Box<dyn Error>> {
 #[test]
 fn normalized() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/x/<foo>/bar", 1)?;
-    router.insert("/x/<bar>/baz", 2)?;
-    router.insert("/<foo>/<baz>/bax", 3)?;
-    router.insert("/<foo>/<bar>/baz", 4)?;
-    router.insert("/<fod>/<baz>/<bax>/foo", 5)?;
-    router.insert("/<fod>/baz/bax/foo", 6)?;
-    router.insert("/<foo>/baz/bax", 7)?;
-    router.insert("/<bar>/<bay>/bay", 8)?;
+    router.insert("/x/{foo}/bar", 1)?;
+    router.insert("/x/{bar}/baz", 2)?;
+    router.insert("/{foo}/{baz}/bax", 3)?;
+    router.insert("/{foo}/{bar}/baz", 4)?;
+    router.insert("/{fod}/{baz}/{bax}/foo", 5)?;
+    router.insert("/{fod}/baz/bax/foo", 6)?;
+    router.insert("/{foo}/baz/bax", 7)?;
+    router.insert("/{bar}/{bay}/bay", 8)?;
     router.insert("/s", 9)?;
     router.insert("/s/s", 10)?;
     router.insert("/s/s/s", 11)?;
     router.insert("/s/s/s/s", 12)?;
-    router.insert("/s/s/<s>/x", 13)?;
-    router.insert("/s/s/<y>/d", 14)?;
+    router.insert("/s/s/{s}/x", 13)?;
+    router.insert("/s/s/{y}/d", 14)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -236,52 +236,52 @@ fn normalized() -> Result<(), Box<dyn Error>> {
        │      ╰─ /
        │         ├─ s [11]
        │         │  ╰─ /s [12]
-       │         ├─ <s>
+       │         ├─ {s}
        │         │    ╰─ /x [13]
-       │         ╰─ <y>
+       │         ╰─ {y}
        │              ╰─ /d [14]
        ├─ x/
-       │   ├─ <bar>
+       │   ├─ {bar}
        │   │      ╰─ /baz [2]
-       │   ╰─ <foo>
+       │   ╰─ {foo}
        │          ╰─ /bar [1]
-       ├─ <bar>
+       ├─ {bar}
        │      ╰─ /
-       │         ╰─ <bay>
+       │         ╰─ {bay}
        │                ╰─ /bay [8]
-       ├─ <fod>
+       ├─ {fod}
        │      ╰─ /
        │         ├─ baz/bax/foo [6]
-       │         ╰─ <baz>
+       │         ╰─ {baz}
        │                ╰─ /
-       │                   ╰─ <bax>
+       │                   ╰─ {bax}
        │                          ╰─ /foo [5]
-       ╰─ <foo>
+       ╰─ {foo}
               ╰─ /
                  ├─ baz/bax [7]
-                 ├─ <bar>
+                 ├─ {bar}
                  │      ╰─ /baz [4]
-                 ╰─ <baz>
+                 ╰─ {baz}
                         ╰─ /bax [3]
     "###);
 
     assert_router_matches!(router, {
         "/x/foo/bar" => {
-            path: "/x/<foo>/bar",
+            path: "/x/{foo}/bar",
             value: 1,
             params: {
                 "foo" => "foo"
             }
         }
         "/x/foo/baz" => {
-            path: "/x/<bar>/baz",
+            path: "/x/{bar}/baz",
             value: 2,
             params: {
                 "bar" => "foo"
             }
         }
         "/y/foo/baz" => {
-            path: "/<foo>/<bar>/baz",
+            path: "/{foo}/{bar}/baz",
             value: 4,
             params: {
                 "foo" => "y",
@@ -289,7 +289,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             }
         }
         "/y/foo/bax" => {
-            path: "/<foo>/<baz>/bax",
+            path: "/{foo}/{baz}/bax",
             value: 3,
             params: {
                 "foo" => "y",
@@ -297,7 +297,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             }
         }
         "/y/baz/baz" => {
-            path: "/<foo>/<bar>/baz",
+            path: "/{foo}/{bar}/baz",
             value: 4,
             params: {
                 "foo" => "y",
@@ -305,14 +305,14 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             }
         }
         "/y/baz/bax/foo" => {
-            path: "/<fod>/baz/bax/foo",
+            path: "/{fod}/baz/bax/foo",
             value: 6,
             params: {
                 "fod" => "y"
             }
         }
         "/y/baz/b/foo" => {
-            path: "/<fod>/<baz>/<bax>/foo",
+            path: "/{fod}/{baz}/{bax}/foo",
             value: 5,
             params: {
                 "fod" => "y",
@@ -321,14 +321,14 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             }
         }
         "/y/baz/bax" => {
-            path: "/<foo>/baz/bax",
+            path: "/{foo}/baz/bax",
             value: 7,
             params: {
                 "foo" => "y"
             }
         }
         "/z/bar/bay" => {
-            path: "/<bar>/<bay>/bay",
+            path: "/{bar}/{bay}/bay",
             value: 8,
             params: {
                 "bar" => "z",
@@ -352,14 +352,14 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             value: 12
         }
         "/s/s/s/x" => {
-            path: "/s/s/<s>/x",
+            path: "/s/s/{s}/x",
             value: 13,
             params: {
                 "s" => "s"
             }
         }
         "/s/s/s/d" => {
-            path: "/s/s/<y>/d",
+            path: "/s/s/{y}/d",
             value: 14,
             params: {
                 "y" => "s"
@@ -373,11 +373,11 @@ fn normalized() -> Result<(), Box<dyn Error>> {
 #[test]
 fn blog() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<page>", 1)?;
-    router.insert("/posts/<year>/<month>/<post>", 2)?;
-    router.insert("/posts/<year>/<month>/index", 3)?;
-    router.insert("/posts/<year>/top", 4)?;
-    router.insert("/static/<path:*>", 5)?;
+    router.insert("/{page}", 1)?;
+    router.insert("/posts/{year}/{month}/{post}", 2)?;
+    router.insert("/posts/{year}/{month}/index", 3)?;
+    router.insert("/posts/{year}/top", 4)?;
+    router.insert("/static/{*path}", 5)?;
     router.insert("/favicon.ico", 6)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -385,28 +385,28 @@ fn blog() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ favicon.ico [6]
        ├─ posts/
-       │       ╰─ <year>
+       │       ╰─ {year}
        │               ╰─ /
        │                  ├─ top [4]
-       │                  ╰─ <month>
+       │                  ╰─ {month}
        │                           ╰─ /
        │                              ├─ index [3]
-       │                              ╰─ <post> [2]
+       │                              ╰─ {post} [2]
        ├─ static/
-       │        ╰─ <path:*> [5]
-       ╰─ <page> [1]
+       │        ╰─ {*path} [5]
+       ╰─ {page} [1]
     "###);
 
     assert_router_matches!(router, {
         "/about" => {
-            path: "/<page>",
+            path: "/{page}",
             value: 1,
             params: {
                 "page" => "about"
             }
         }
         "/posts/2021/01/rust" => {
-            path: "/posts/<year>/<month>/<post>",
+            path: "/posts/{year}/{month}/{post}",
             value: 2,
             params: {
                 "year" => "2021",
@@ -415,7 +415,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
             }
         }
         "/posts/2021/01/index" => {
-            path: "/posts/<year>/<month>/index",
+            path: "/posts/{year}/{month}/index",
             value: 3,
             params: {
                 "year" => "2021",
@@ -423,14 +423,14 @@ fn blog() -> Result<(), Box<dyn Error>> {
             }
         }
         "/posts/2021/top" => {
-            path: "/posts/<year>/top",
+            path: "/posts/{year}/top",
             value: 4,
             params: {
                 "year" => "2021"
             }
         }
         "/static/foo.png" => {
-            path: "/static/<path:*>",
+            path: "/static/{*path}",
             value: 5,
             params: {
                 "path" => "foo.png"
@@ -448,45 +448,45 @@ fn blog() -> Result<(), Box<dyn Error>> {
 #[test]
 fn double_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<object>/<id>", 1)?;
-    router.insert("/secret/<id>/path", 2)?;
+    router.insert("/{object}/{id}", 1)?;
+    router.insert("/secret/{id}/path", 2)?;
     router.insert("/secret/978", 3)?;
-    router.insert("/other/<object>/<id>/", 4)?;
-    router.insert("/other/an_object/<id>", 5)?;
+    router.insert("/other/{object}/{id}/", 4)?;
+    router.insert("/other/an_object/{id}", 5)?;
     router.insert("/other/static/path", 6)?;
     router.insert("/other/long/static/path/", 7)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /
-       ├─ other/
-       │       ├─ an_object/
-       │       │           ╰─ <id> [5]
-       │       ├─ long/static/path/ [7]
-       │       ├─ static/path [6]
-       │       ╰─ <object>
-       │                 ╰─ /
-       │                    ╰─ <id>
-       │                          ╰─ / [4]
-       ├─ secret/
-       │        ├─ 978 [3]
-       │        ╰─ <id>
-       │              ╰─ /path [2]
-       ╰─ <object>
-                 ╰─ /
-                    ╰─ <id> [1]
-    "###);
+   $
+   ╰─ /
+      ├─ other/
+      │       ├─ an_object/
+      │       │           ╰─ {id} [5]
+      │       ├─ long/static/path/ [7]
+      │       ├─ static/path [6]
+      │       ╰─ {object}
+      │                 ╰─ /
+      │                    ╰─ {id}
+      │                          ╰─ / [4]
+      ├─ secret/
+      │        ├─ 978 [3]
+      │        ╰─ {id}
+      │              ╰─ /path [2]
+      ╰─ {object}
+                ╰─ /
+                   ╰─ {id} [1]
+   "###);
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
-            path: "/secret/<id>/path",
+            path: "/secret/{id}/path",
             value: 2,
             params: {
                 "id" => "978"
             }
         }
         "/some_object/978" => {
-            path: "/<object>/<id>",
+            path: "/{object}/{id}",
             value: 1,
             params: {
                 "object" => "some_object",
@@ -499,7 +499,7 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
         }
         "/super_secret/978/" => None
         "/other/object/1/" => {
-            path: "/other/<object>/<id>/",
+            path: "/other/{object}/{id}/",
             value: 4,
             params: {
                 "object" => "object",
@@ -508,7 +508,7 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
         }
         "/other/object/1/2" => None
         "/other/an_object/1" => {
-            path: "/other/an_object/<id>",
+            path: "/other/an_object/{id}",
             value: 5,
             params: {
                 "id" => "1"
@@ -530,26 +530,26 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
 #[test]
 fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<catchall:*>", 1)?;
+    router.insert("/foo/{*catchall}", 1)?;
     router.insert("/bar", 2)?;
     router.insert("/bar/", 3)?;
-    router.insert("/bar/<catchall:*>", 4)?;
+    router.insert("/bar/{*catchall}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ bar [2]
        │    ╰─ / [3]
-       │       ╰─ <catchall:*> [4]
+       │       ╰─ {*catchall} [4]
        ╰─ foo/
-             ╰─ <catchall:*> [1]
+             ╰─ {*catchall} [1]
     "###);
 
     assert_router_matches!(router, {
         "/foo" => None
         "/foo/" => None
         "/foo/x" => {
-            path: "/foo/<catchall:*>",
+            path: "/foo/{*catchall}",
             value: 1,
             params: {
                 "catchall" => "x"
@@ -564,7 +564,7 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
             value: 3
         }
         "/bar/x" => {
-            path: "/bar/<catchall:*>",
+            path: "/bar/{*catchall}",
             value: 4,
             params: {
                 "catchall" => "x"
@@ -580,13 +580,13 @@ fn overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo", 1)?;
     router.insert("/bar", 2)?;
-    router.insert("/<bar:*>", 3)?;
+    router.insert("/{*bar}", 3)?;
     router.insert("/baz", 4)?;
     router.insert("/baz/", 5)?;
     router.insert("/baz/x", 6)?;
-    router.insert("/baz/<xxx>", 7)?;
+    router.insert("/baz/{xxx}", 7)?;
     router.insert("/", 8)?;
-    router.insert("/xxx/<x:*>", 9)?;
+    router.insert("/xxx/{*x}", 9)?;
     router.insert("/xxx/", 10)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -597,11 +597,11 @@ fn overlap() -> Result<(), Box<dyn Error>> {
        │   ╰─ z [4]
        │      ╰─ / [5]
        │         ├─ x [6]
-       │         ╰─ <xxx> [7]
+       │         ╰─ {xxx} [7]
        ├─ foo [1]
        ├─ xxx/ [10]
-       │     ╰─ <x:*> [9]
-       ╰─ <bar:*> [3]
+       │     ╰─ {*x} [9]
+       ╰─ {*bar} [3]
     "###);
 
     assert_router_matches!(router, {
@@ -626,7 +626,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
             value: 6
         }
         "/???" => {
-            path: "/<bar:*>",
+            path: "/{*bar}",
             value: 3,
             params: {
                 "bar" => "???"
@@ -638,7 +638,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
         }
         "" => None
         "/xxx/y" => {
-            path: "/xxx/<x:*>",
+            path: "/xxx/{*x}",
             value: 9,
             params: {
                 "x" => "y"
@@ -649,7 +649,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
             value: 10
         }
         "/xxx" => {
-            path: "/<bar:*>",
+            path: "/{*bar}",
             value: 3,
             params: {
                 "bar" => "xxx"
@@ -663,19 +663,19 @@ fn overlap() -> Result<(), Box<dyn Error>> {
 #[test]
 fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<object>/<id>", 1)?;
+    router.insert("/foo/{object}/{id}", 1)?;
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978/", 3)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /foo/
-           ├─ bar/baz [2]
-           ├─ secret/978/ [3]
-           ╰─ <object>
-                     ╰─ /
-                        ╰─ <id> [1]
-    "###);
+   $
+   ╰─ /foo/
+          ├─ bar/baz [2]
+          ├─ secret/978/ [3]
+          ╰─ {object}
+                    ╰─ /
+                       ╰─ {id} [1]
+   "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
@@ -683,7 +683,7 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
             value: 3
         }
         "/foo/secret/978" => {
-            path: "/foo/<object>/<id>",
+            path: "/foo/{object}/{id}",
             value: 1,
             params: {
                 "object" => "secret",
@@ -698,19 +698,19 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
 #[test]
 fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<object>/<id>", 1)?;
+    router.insert("/foo/{object}/{id}", 1)?;
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978", 3)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /foo/
-           ├─ bar/baz [2]
-           ├─ secret/978 [3]
-           ╰─ <object>
-                     ╰─ /
-                        ╰─ <id> [1]
-    "###);
+   $
+   ╰─ /foo/
+          ├─ bar/baz [2]
+          ├─ secret/978 [3]
+          ╰─ {object}
+                    ╰─ /
+                       ╰─ {id} [1]
+   "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => None
@@ -726,7 +726,7 @@ fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
 #[test]
 fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<bar:*>", 1)?;
+    router.insert("/foo/{*bar}", 1)?;
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978/", 3)?;
 
@@ -735,12 +735,12 @@ fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     ╰─ /foo/
            ├─ bar/baz [2]
            ├─ secret/978/ [3]
-           ╰─ <bar:*> [1]
+           ╰─ {*bar} [1]
     "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978" => {
-            path: "/foo/<bar:*>",
+            path: "/foo/{*bar}",
             value: 1,
             params: {
                 "bar" => "secret/978"
@@ -758,7 +758,7 @@ fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
 #[test]
 fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<bar:*>", 1)?;
+    router.insert("/foo/{*bar}", 1)?;
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978", 3)?;
 
@@ -767,12 +767,12 @@ fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     ╰─ /foo/
            ├─ bar/baz [2]
            ├─ secret/978 [3]
-           ╰─ <bar:*> [1]
+           ╰─ {*bar} [1]
     "###);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
-            path: "/foo/<bar:*>",
+            path: "/foo/{*bar}",
             value: 1,
             params: {
                 "bar" => "secret/978/"
@@ -790,11 +790,11 @@ fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
 #[test]
 fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<object>/<id>", 1)?;
-    router.insert("/secret/<id>/path", 2)?;
+    router.insert("/{object}/{id}", 1)?;
+    router.insert("/secret/{id}/path", 2)?;
     router.insert("/secret/978/", 3)?;
-    router.insert("/other/<object>/<id>/", 4)?;
-    router.insert("/other/an_object/<id>", 5)?;
+    router.insert("/other/{object}/{id}/", 4)?;
+    router.insert("/other/an_object/{id}", 5)?;
     router.insert("/other/static/path", 6)?;
     router.insert("/other/long/static/path/", 7)?;
 
@@ -803,20 +803,20 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ other/
        │       ├─ an_object/
-       │       │           ╰─ <id> [5]
+       │       │           ╰─ {id} [5]
        │       ├─ long/static/path/ [7]
        │       ├─ static/path [6]
-       │       ╰─ <object>
+       │       ╰─ {object}
        │                 ╰─ /
-       │                    ╰─ <id>
+       │                    ╰─ {id}
        │                          ╰─ / [4]
        ├─ secret/
        │        ├─ 978/ [3]
-       │        ╰─ <id>
+       │        ╰─ {id}
        │              ╰─ /path [2]
-       ╰─ <object>
+       ╰─ {object}
                  ╰─ /
-                    ╰─ <id> [1]
+                    ╰─ {id} [1]
     "###);
 
     assert_router_matches!(router, {
@@ -826,7 +826,7 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
         "/other/object/1" => None
         "/other/object/1/2" => None
         "/other/an_object/1/" => {
-            path: "/other/<object>/<id>/",
+            path: "/other/{object}/{id}/",
             value: 4,
             params: {
                 "object" => "an_object",
@@ -834,7 +834,7 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
             }
         }
         "/other/static/path/" => {
-            path: "/other/<object>/<id>/",
+            path: "/other/{object}/{id}/",
             value: 4,
             params: {
                 "object" => "static",
@@ -851,29 +851,29 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
 #[test]
 fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/<x>/baz/", 1)?;
-    router.insert("/foo/<x>/baz", 2)?;
+    router.insert("/foo/{x}/baz/", 1)?;
+    router.insert("/foo/{x}/baz", 2)?;
     router.insert("/foo/bar/bar", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /foo/
            ├─ bar/bar [3]
-           ╰─ <x>
+           ╰─ {x}
                 ╰─ /baz [2]
                       ╰─ / [1]
     "###);
 
     assert_router_matches!(router, {
         "/foo/x/baz/" => {
-            path: "/foo/<x>/baz/",
+            path: "/foo/{x}/baz/",
             value: 1,
             params: {
                 "x" => "x"
             }
         }
         "/foo/x/baz" => {
-            path: "/foo/<x>/baz",
+            path: "/foo/{x}/baz",
             value: 2,
             params: {
                 "x" => "x"
@@ -893,44 +893,44 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hi", 1)?;
     router.insert("/b/", 2)?;
-    router.insert("/search/<query>", 3)?;
-    router.insert("/cmd/<tool>/", 4)?;
-    router.insert("/src/<filepath:*>", 5)?;
+    router.insert("/search/{query}", 3)?;
+    router.insert("/cmd/{tool}/", 4)?;
+    router.insert("/src/{*filepath}", 5)?;
     router.insert("/x", 6)?;
     router.insert("/x/y", 7)?;
     router.insert("/y/", 8)?;
     router.insert("/y/z", 9)?;
-    router.insert("/0/<id>", 10)?;
-    router.insert("/0/<id>/1", 11)?;
-    router.insert("/1/<id>/", 12)?;
-    router.insert("/1/<id>/2", 13)?;
+    router.insert("/0/{id}", 10)?;
+    router.insert("/0/{id}/1", 11)?;
+    router.insert("/1/{id}/", 12)?;
+    router.insert("/1/{id}/2", 13)?;
     router.insert("/aa", 14)?;
     router.insert("/a/", 15)?;
     router.insert("/admin", 16)?;
     router.insert("/admin/static", 17)?;
-    router.insert("/admin/<category>", 18)?;
-    router.insert("/admin/<category>/<page>", 19)?;
+    router.insert("/admin/{category}", 18)?;
+    router.insert("/admin/{category}/{page}", 19)?;
     router.insert("/doc", 20)?;
     router.insert("/doc/rust_faq.html", 21)?;
     router.insert("/doc/rust1.26.html", 22)?;
     router.insert("/no/a", 23)?;
     router.insert("/no/b", 24)?;
-    router.insert("/no/a/b/<other:*>", 25)?;
-    router.insert("/api/<page>/<name>", 26)?;
-    router.insert("/api/hello/<name>/bar/", 27)?;
-    router.insert("/api/bar/<name>", 28)?;
+    router.insert("/no/a/b/{*other}", 25)?;
+    router.insert("/api/{page}/{name}", 26)?;
+    router.insert("/api/hello/{name}/bar/", 27)?;
+    router.insert("/api/bar/{name}", 28)?;
     router.insert("/api/baz/foo", 29)?;
     router.insert("/api/baz/foo/bar", 30)?;
-    router.insert("/foo/<p>", 31)?;
+    router.insert("/foo/{p}", 31)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ 0/
-       │   ╰─ <id> [10]
+       │   ╰─ {id} [10]
        │         ╰─ /1 [11]
        ├─ 1/
-       │   ╰─ <id>
+       │   ╰─ {id}
        │         ╰─ / [12]
        │            ╰─ 2 [13]
        ├─ a
@@ -939,42 +939,42 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
        │  ├─ dmin [16]
        │  │     ╰─ /
        │  │        ├─ static [17]
-       │  │        ╰─ <category> [18]
+       │  │        ╰─ {category} [18]
        │  │                    ╰─ /
-       │  │                       ╰─ <page> [19]
+       │  │                       ╰─ {page} [19]
        │  ╰─ pi/
        │       ├─ ba
        │       │   ├─ r/
-       │       │   │   ╰─ <name> [28]
+       │       │   │   ╰─ {name} [28]
        │       │   ╰─ z/foo [29]
        │       │          ╰─ /bar [30]
        │       ├─ hello/
-       │       │       ╰─ <name>
+       │       │       ╰─ {name}
        │       │               ╰─ /bar/ [27]
-       │       ╰─ <page>
+       │       ╰─ {page}
        │               ╰─ /
-       │                  ╰─ <name> [26]
+       │                  ╰─ {name} [26]
        ├─ b/ [2]
        ├─ cmd/
-       │     ╰─ <tool>
+       │     ╰─ {tool}
        │             ╰─ / [4]
        ├─ doc [20]
        │    ╰─ /rust
        │           ├─ 1.26.html [22]
        │           ╰─ _faq.html [21]
        ├─ foo/
-       │     ╰─ <p> [31]
+       │     ╰─ {p} [31]
        ├─ hi [1]
        ├─ no/
        │    ├─ a [23]
        │    │  ╰─ /b/
-       │    │       ╰─ <other:*> [25]
+       │    │       ╰─ {*other} [25]
        │    ╰─ b [24]
        ├─ s
        │  ├─ earch/
-       │  │       ╰─ <query> [3]
+       │  │       ╰─ {query} [3]
        │  ╰─ rc/
-       │       ╰─ <filepath:*> [5]
+       │       ╰─ {*filepath} [5]
        ├─ x [6]
        │  ╰─ /y [7]
        ╰─ y/ [8]
@@ -1025,18 +1025,18 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
 #[test]
 fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/a/<b>/<c>", 1)?;
-    router.insert("/a/b/<c>/d/", 2)?;
+    router.insert("/a/{b}/{c}", 1)?;
+    router.insert("/a/b/{c}/d/", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /a/
          ├─ b/
-         │   ╰─ <c>
+         │   ╰─ {c}
          │        ╰─ /d/ [2]
-         ╰─ <b>
+         ╰─ {b}
               ╰─ /
-                 ╰─ <c> [1]
+                 ╰─ {c} [1]
     "###);
 
     assert_router_matches!(router, {
@@ -1051,14 +1051,14 @@ fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo", 1)?;
     router.insert("/bar", 2)?;
-    router.insert("/<baz>", 3)?;
+    router.insert("/{baz}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ bar [2]
        ├─ foo [1]
-       ╰─ <baz> [3]
+       ╰─ {baz} [3]
     "###);
 
     assert_router_matches!(router, {
@@ -1071,27 +1071,27 @@ fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
 #[test]
 fn catchall_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/yyy/<x:*>", 1)?;
-    router.insert("/yyy<x:*>", 2)?;
+    router.insert("/yyy/{*x}", 1)?;
+    router.insert("/yyy{*x}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /yyy
           ├─ /
-          │  ╰─ <x:*> [1]
-          ╰─ <x:*> [2]
+          │  ╰─ {*x} [1]
+          ╰─ {*x} [2]
     "###);
 
     assert_router_matches!(router, {
         "/yyy/y" => {
-            path: "/yyy/<x:*>",
+            path: "/yyy/{*x}",
             value: 1,
             params: {
                 "x" => "y"
             }
         }
         "/yyy/" => {
-            path: "/yyy<x:*>",
+            path: "/yyy{*x}",
             value: 2,
             params: {
                 "x" => "/"
@@ -1116,12 +1116,12 @@ fn escaped() -> Result<(), Box<dyn Error>> {
     router.insert("/{ba{{r}", 8)?;
     router.insert("/{ba{{r}/", 9)?;
     router.insert("/{ba{{r}/x", 10)?;
-    router.insert("/baz/<xxx>", 11)?;
-    router.insert("/baz/<xxx>/xy{{", 12)?;
-    router.insert("/baz/<xxx>/}}xy{{{{", 13)?;
-    router.insert("/{{/<x>", 14)?;
+    router.insert("/baz/{xxx}", 11)?;
+    router.insert("/baz/{xxx}/xy{{", 12)?;
+    router.insert("/baz/{xxx}/}}xy{{{{", 13)?;
+    router.insert("/{{/{x}", 14)?;
     router.insert("/xxx/", 15)?;
-    router.insert("/xxx/<x>}{{}}}}{{}}{{{{}}y}", 16)?;
+    router.insert("/xxx/{x}{{}}}}{{}}{{{{}}y}", 16)?;
 
     insta::assert_snapshot!(router, @"");
 
@@ -1183,14 +1183,14 @@ fn escaped() -> Result<(), Box<dyn Error>> {
             }
         }
         "/baz/x" => {
-            path: "/baz/<xxx>",
+            path: "/baz/{xxx}",
             value: 11,
             params: {
                 "xxx" => "x"
             }
         }
         "/baz/x/xy{" => {
-            path: "/baz/<xxx>/xy{{",
+            path: "/baz/{xxx}/xy{{",
             value: 12,
             params: {
                 "xxx" => "x"
@@ -1198,14 +1198,14 @@ fn escaped() -> Result<(), Box<dyn Error>> {
         }
         "/baz/x/xy{{" => None
         "/baz/x/}xy{{" => {
-            path: "/baz/<xxx>/}}xy{{{{",
+            path: "/baz/{xxx}/}}xy{{{{",
             value: 13,
             params: {
                 "xxx" => "x"
             }
         }
         "/{/{{" => {
-            path: "/{{/<x>",
+            path: "/{{/{x}",
             value: 14,
             params: {
                 "x" => "{{"
@@ -1223,7 +1223,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
             value: 15
         }
         "/xxx/foo" => {
-            path: "/xxx/<x>}{{}}}}{{}}{{{{}}y}",
+            path: "/xxx/{x}{{}}}}{{}}{{{{}}y}",
             value: 16,
             params: {
                 "x}{}}{}{{}y" => "foo"
@@ -1369,100 +1369,100 @@ fn basic() -> Result<(), Box<dyn Error>> {
 fn wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
-    router.insert("/cmd/<tool>/", 2)?;
-    router.insert("/cmd/<tool2>/<sub>", 3)?;
+    router.insert("/cmd/{tool}/", 2)?;
+    router.insert("/cmd/{tool2}/{sub}", 3)?;
     router.insert("/cmd/whoami", 4)?;
     router.insert("/cmd/whoami/root", 5)?;
     router.insert("/cmd/whoami/root/", 6)?;
     router.insert("/src", 7)?;
     router.insert("/src/", 8)?;
-    router.insert("/src/<filepath:*>", 9)?;
+    router.insert("/src/{*filepath}", 9)?;
     router.insert("/search/", 10)?;
-    router.insert("/search/<query>", 11)?;
+    router.insert("/search/{query}", 11)?;
     router.insert("/search/actix-we", 12)?;
     router.insert("/search/google", 13)?;
-    router.insert("/user_<name>", 14)?;
-    router.insert("/user_<name>/about", 15)?;
-    router.insert("/files/<dir>/<filepath:*>", 16)?;
+    router.insert("/user_{name}", 14)?;
+    router.insert("/user_{name}/about", 15)?;
+    router.insert("/files/{dir}/{*filepath}", 16)?;
     router.insert("/doc/", 17)?;
     router.insert("/doc/rust_faq.html", 18)?;
     router.insert("/doc/rust1.26.html", 19)?;
-    router.insert("/info/<user>/public", 20)?;
-    router.insert("/info/<user>/project/<project>", 21)?;
-    router.insert("/info/<user>/project/rustlang", 22)?;
-    router.insert("/aa/<xx:*>", 23)?;
-    router.insert("/ab/<xx:*>", 24)?;
-    router.insert("/ab/hello<xx:*>", 25)?;
-    router.insert("/<cc>", 26)?;
-    router.insert("/c1/<dd>/e", 27)?;
-    router.insert("/c1/<dd>/e1", 28)?;
-    router.insert("/<cc>/cc", 29)?;
-    router.insert("/<cc>/<dd>/ee", 30)?;
-    router.insert("/<cc>/<dd>/<ee>/ff", 31)?;
-    router.insert("/<cc>/<dd>/<ee>/<ff>/gg", 32)?;
-    router.insert("/<cc>/<dd>/<ee>/<ff>/<gg>/hh", 33)?;
+    router.insert("/info/{user}/public", 20)?;
+    router.insert("/info/{user}/project/{project}", 21)?;
+    router.insert("/info/{user}/project/rustlang", 22)?;
+    router.insert("/aa/{*xx}", 23)?;
+    router.insert("/ab/{*xx}", 24)?;
+    router.insert("/ab/hello{*xx}", 25)?;
+    router.insert("/{cc}", 26)?;
+    router.insert("/c1/{dd}/e", 27)?;
+    router.insert("/c1/{dd}/e1", 28)?;
+    router.insert("/{cc}/cc", 29)?;
+    router.insert("/{cc}/{dd}/ee", 30)?;
+    router.insert("/{cc}/{dd}/{ee}/ff", 31)?;
+    router.insert("/{cc}/{dd}/{ee}/{ff}/gg", 32)?;
+    router.insert("/{cc}/{dd}/{ee}/{ff}/{gg}/hh", 33)?;
     router.insert("/get/test/abc/", 34)?;
-    router.insert("/get/<param>/abc/", 35)?;
-    router.insert("/something/<paramname>/thirdthing", 36)?;
+    router.insert("/get/{param}/abc/", 35)?;
+    router.insert("/something/{paramname}/thirdthing", 36)?;
     router.insert("/something/secondthing/test", 37)?;
     router.insert("/get/abc", 38)?;
-    router.insert("/get/<param>", 39)?;
+    router.insert("/get/{param}", 39)?;
     router.insert("/get/abc/123abc", 40)?;
-    router.insert("/get/abc/<param>", 41)?;
+    router.insert("/get/abc/{param}", 41)?;
     router.insert("/get/abc/123abc/xxx8", 42)?;
-    router.insert("/get/abc/123abc/<param>", 43)?;
+    router.insert("/get/abc/123abc/{param}", 43)?;
     router.insert("/get/abc/123abc/xxx8/1234", 44)?;
-    router.insert("/get/abc/123abc/xxx8/<param>", 45)?;
+    router.insert("/get/abc/123abc/xxx8/{param}", 45)?;
     router.insert("/get/abc/123abc/xxx8/1234/ffas", 46)?;
-    router.insert("/get/abc/123abc/xxx8/1234/<param>", 47)?;
+    router.insert("/get/abc/123abc/xxx8/1234/{param}", 47)?;
     router.insert("/get/abc/123abc/xxx8/1234/kkdd/12c", 48)?;
-    router.insert("/get/abc/123abc/xxx8/1234/kkdd/<param>", 49)?;
-    router.insert("/get/abc/<param>/test", 50)?;
-    router.insert("/get/abc/123abd/<param>", 51)?;
-    router.insert("/get/abc/123abddd/<param>", 52)?;
-    router.insert("/get/abc/123/<param>", 53)?;
-    router.insert("/get/abc/123abg/<param>", 54)?;
-    router.insert("/get/abc/123abf/<param>", 55)?;
-    router.insert("/get/abc/123abfff/<param>", 56)?;
+    router.insert("/get/abc/123abc/xxx8/1234/kkdd/{param}", 49)?;
+    router.insert("/get/abc/{param}/test", 50)?;
+    router.insert("/get/abc/123abd/{param}", 51)?;
+    router.insert("/get/abc/123abddd/{param}", 52)?;
+    router.insert("/get/abc/123/{param}", 53)?;
+    router.insert("/get/abc/123abg/{param}", 54)?;
+    router.insert("/get/abc/123abf/{param}", 55)?;
+    router.insert("/get/abc/123abfff/{param}", 56)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ / [1]
        ├─ a
        │  ├─ a/
-       │  │   ╰─ <xx:*> [23]
+       │  │   ╰─ {*xx} [23]
        │  ╰─ b/
        │      ├─ hello
-       │      │      ╰─ <xx:*> [25]
-       │      ╰─ <xx:*> [24]
+       │      │      ╰─ {*xx} [25]
+       │      ╰─ {*xx} [24]
        ├─ c
        │  ├─ 1/
-       │  │   ╰─ <dd>
+       │  │   ╰─ {dd}
        │  │         ╰─ /e [27]
        │  │             ╰─ 1 [28]
        │  ╰─ md/
        │       ├─ whoami [4]
        │       │       ╰─ /root [5]
        │       │              ╰─ / [6]
-       │       ├─ <tool>
+       │       ├─ {tool}
        │       │       ╰─ / [2]
-       │       ╰─ <tool2>
+       │       ╰─ {tool2}
        │                ╰─ /
-       │                   ╰─ <sub> [3]
+       │                   ╰─ {sub} [3]
        ├─ doc/ [17]
        │     ╰─ rust
        │           ├─ 1.26.html [19]
        │           ╰─ _faq.html [18]
        ├─ files/
-       │       ╰─ <dir>
+       │       ╰─ {dir}
        │              ╰─ /
-       │                 ╰─ <filepath:*> [16]
+       │                 ╰─ {*filepath} [16]
        ├─ get/
        │     ├─ abc [38]
        │     │    ╰─ /
        │     │       ├─ 123
        │     │       │    ├─ /
-       │     │       │    │  ╰─ <param> [53]
+       │     │       │    │  ╰─ {param} [53]
        │     │       │    ╰─ ab
        │     │       │        ├─ c [40]
        │     │       │        │  ╰─ /
@@ -1473,62 +1473,62 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
        │     │       │        │     │        │        ├─ ffas [46]
        │     │       │        │     │        │        ├─ kkdd/
        │     │       │        │     │        │        │      ├─ 12c [48]
-       │     │       │        │     │        │        │      ╰─ <param> [49]
-       │     │       │        │     │        │        ╰─ <param> [47]
-       │     │       │        │     │        ╰─ <param> [45]
-       │     │       │        │     ╰─ <param> [43]
+       │     │       │        │     │        │        │      ╰─ {param} [49]
+       │     │       │        │     │        │        ╰─ {param} [47]
+       │     │       │        │     │        ╰─ {param} [45]
+       │     │       │        │     ╰─ {param} [43]
        │     │       │        ├─ d
        │     │       │        │  ├─ /
-       │     │       │        │  │  ╰─ <param> [51]
+       │     │       │        │  │  ╰─ {param} [51]
        │     │       │        │  ╰─ dd/
-       │     │       │        │       ╰─ <param> [52]
+       │     │       │        │       ╰─ {param} [52]
        │     │       │        ├─ f
        │     │       │        │  ├─ /
-       │     │       │        │  │  ╰─ <param> [55]
+       │     │       │        │  │  ╰─ {param} [55]
        │     │       │        │  ╰─ ff/
-       │     │       │        │       ╰─ <param> [56]
+       │     │       │        │       ╰─ {param} [56]
        │     │       │        ╰─ g/
-       │     │       │            ╰─ <param> [54]
-       │     │       ╰─ <param> [41]
+       │     │       │            ╰─ {param} [54]
+       │     │       ╰─ {param} [41]
        │     │                ╰─ /test [50]
        │     ├─ test/abc/ [34]
-       │     ╰─ <param> [39]
+       │     ╰─ {param} [39]
        │              ╰─ /abc/ [35]
        ├─ info/
-       │      ╰─ <user>
+       │      ╰─ {user}
        │              ╰─ /p
        │                  ├─ roject/
        │                  │        ├─ rustlang [22]
-       │                  │        ╰─ <project> [21]
+       │                  │        ╰─ {project} [21]
        │                  ╰─ ublic [20]
        ├─ s
        │  ├─ earch/ [10]
        │  │       ├─ actix-we [12]
        │  │       ├─ google [13]
-       │  │       ╰─ <query> [11]
+       │  │       ╰─ {query} [11]
        │  ├─ omething/
        │  │          ├─ secondthing/test [37]
-       │  │          ╰─ <paramname>
+       │  │          ╰─ {paramname}
        │  │                       ╰─ /thirdthing [36]
        │  ╰─ rc [7]
        │      ╰─ / [8]
-       │         ╰─ <filepath:*> [9]
+       │         ╰─ {*filepath} [9]
        ├─ user_
-       │      ╰─ <name> [14]
+       │      ╰─ {name} [14]
        │              ╰─ /about [15]
-       ╰─ <cc> [26]
+       ╰─ {cc} [26]
              ╰─ /
                 ├─ cc [29]
-                ╰─ <dd>
+                ╰─ {dd}
                       ╰─ /
                          ├─ ee [30]
-                         ╰─ <ee>
+                         ╰─ {ee}
                                ╰─ /
                                   ├─ ff [31]
-                                  ╰─ <ff>
+                                  ╰─ {ff}
                                         ╰─ /
                                            ├─ gg [32]
-                                           ╰─ <gg>
+                                           ╰─ {gg}
                                                  ╰─ /hh [33]
     "###);
 
@@ -1539,14 +1539,14 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/cmd/test" => None
         "/cmd/test/" => {
-            path: "/cmd/<tool>/",
+            path: "/cmd/{tool}/",
             value: 2,
             params: {
                 "tool" => "test"
             }
         }
         "/cmd/test/3" => {
-            path: "/cmd/<tool2>/<sub>",
+            path: "/cmd/{tool2}/{sub}",
             value: 3,
             params: {
                 "tool2" => "test",
@@ -1555,7 +1555,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/cmd/who" => None
         "/cmd/who/" => {
-            path: "/cmd/<tool>/",
+            path: "/cmd/{tool}/",
             value: 2,
             params: {
                 "tool" => "who"
@@ -1566,14 +1566,14 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 4
         }
         "/cmd/whoami/" => {
-            path: "/cmd/<tool>/",
+            path: "/cmd/{tool}/",
             value: 2,
             params: {
                 "tool" => "whoami"
             }
         }
         "/cmd/whoami/r" => {
-            path: "/cmd/<tool2>/<sub>",
+            path: "/cmd/{tool2}/{sub}",
             value: 3,
             params: {
                 "tool2" => "whoami",
@@ -1598,7 +1598,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 8
         }
         "/src/some/file.png" => {
-            path: "/src/<filepath:*>",
+            path: "/src/{*filepath}",
             value: 9,
             params: {
                 "filepath" => "some/file.png"
@@ -1609,7 +1609,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 10
         }
         "/search/actix" => {
-            path: "/search/<query>",
+            path: "/search/{query}",
             value: 11,
             params: {
                 "query" => "actix"
@@ -1620,7 +1620,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 12
         }
         "/search/someth!ng+in+ünìcodé" => {
-            path: "/search/<query>",
+            path: "/search/{query}",
             value: 11,
             params: {
                 "query" => "someth!ng+in+ünìcodé"
@@ -1628,21 +1628,21 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/search/someth!ng+in+ünìcodé/" => None
         "/user_rustacean" => {
-            path: "/user_<name>",
+            path: "/user_{name}",
             value: 14,
             params: {
                 "name" => "rustacean"
             }
         }
         "/user_rustacean/about" => {
-            path: "/user_<name>/about",
+            path: "/user_{name}/about",
             value: 15,
             params: {
                 "name" => "rustacean"
             }
         }
         "/files/js/inc/framework.js" => {
-            path: "/files/<dir>/<filepath:*>",
+            path: "/files/{dir}/{*filepath}",
             value: 16,
             params: {
                 "dir" => "js",
@@ -1650,14 +1650,14 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/info/gordon/public" => {
-            path: "/info/<user>/public",
+            path: "/info/{user}/public",
             value: 20,
             params: {
                 "user" => "gordon"
             }
         }
         "/info/gordon/project/rust" => {
-            path: "/info/<user>/project/<project>",
+            path: "/info/{user}/project/{project}",
             value: 21,
             params: {
                 "user" => "gordon",
@@ -1665,7 +1665,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/info/gordon/project/rustlang" => {
-            path: "/info/<user>/project/rustlang",
+            path: "/info/{user}/project/rustlang",
             value: 22,
             params: {
                 "user" => "gordon"
@@ -1673,154 +1673,154 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/aa/" => None
         "/aa/aa" => {
-            path: "/aa/<xx:*>",
+            path: "/aa/{*xx}",
             value: 23,
             params: {
                 "xx" => "aa"
             }
         }
         "/ab/ab" => {
-            path: "/ab/<xx:*>",
+            path: "/ab/{*xx}",
             value: 24,
             params: {
                 "xx" => "ab"
             }
         }
         "/ab/hello-world" => {
-            path: "/ab/hello<xx:*>",
+            path: "/ab/hello{*xx}",
             value: 25,
             params: {
                 "xx" => "-world"
             }
         }
         "/a" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "a"
             }
         }
         "/all" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "all"
             }
         }
         "/d" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "d"
             }
         }
         "/ad" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "ad"
             }
         }
         "/dd" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "dd"
             }
         }
         "/dddaa" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "dddaa"
             }
         }
         "/aa" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "aa"
             }
         }
         "/aaa" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "aaa"
             }
         }
         "/aaa/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "aaa"
             }
         }
         "/a" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "a"
             }
         }
         "/ab" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "ab"
             }
         }
         "/abb/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "abb"
             }
         }
         "/allxxxx" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "allxxxx"
             }
         }
         "/alldd" => {
-            path: "/<cc>",
+            path: "/{cc}",
             value: 26,
             params: {
                 "cc" => "alldd"
             }
         }
         "/all/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "all"
             }
         }
         "/a/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "a"
             }
         }
         "/c1/d/e" => {
-            path: "/c1/<dd>/e",
+            path: "/c1/{dd}/e",
             value: 27,
             params: {
                 "dd" => "d"
             }
         }
         "/c1/d/e1" => {
-            path: "/c1/<dd>/e1",
+            path: "/c1/{dd}/e1",
             value: 28,
             params: {
                 "dd" => "d"
             }
         }
         "/c1/d/ee" => {
-            path: "/<cc>/<dd>/ee",
+            path: "/{cc}/{dd}/ee",
             value: 30,
             params: {
                 "cc" => "c1",
@@ -1828,28 +1828,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/cc/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "cc"
             }
         }
         "/ccc/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "ccc"
             }
         }
         "/deedwjfs/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "deedwjfs"
             }
         }
         "/acllcc/cc" => {
-            path: "/<cc>/cc",
+            path: "/{cc}/cc",
             value: 29,
             params: {
                 "cc" => "acllcc"
@@ -1860,56 +1860,56 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 34
         }
         "/get/te/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "te"
             }
         }
         "/get/testaa/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "testaa"
             }
         }
         "/get/xx/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "xx"
             }
         }
         "/get/tt/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "tt"
             }
         }
         "/get/a/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "a"
             }
         }
         "/get/t/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "t"
             }
         }
         "/get/aa/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "aa"
             }
         }
         "/get/abas/abc/" => {
-            path: "/get/<param>/abc/",
+            path: "/get/{param}/abc/",
             value: 35,
             params: {
                 "param" => "abas"
@@ -1920,35 +1920,35 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 37
         }
         "/something/abcdad/thirdthing" => {
-            path: "/something/<paramname>/thirdthing",
+            path: "/something/{paramname}/thirdthing",
             value: 36,
             params: {
                 "paramname" => "abcdad"
             }
         }
         "/something/secondthingaaaa/thirdthing" => {
-            path: "/something/<paramname>/thirdthing",
+            path: "/something/{paramname}/thirdthing",
             value: 36,
             params: {
                 "paramname" => "secondthingaaaa"
             }
         }
         "/something/se/thirdthing" => {
-            path: "/something/<paramname>/thirdthing",
+            path: "/something/{paramname}/thirdthing",
             value: 36,
             params: {
                 "paramname" => "se"
             }
         }
         "/something/s/thirdthing" => {
-            path: "/something/<paramname>/thirdthing",
+            path: "/something/{paramname}/thirdthing",
             value: 36,
             params: {
                 "paramname" => "s"
             }
         }
         "/c/d/ee" => {
-            path: "/<cc>/<dd>/ee",
+            path: "/{cc}/{dd}/ee",
             value: 30,
             params: {
                 "cc" => "c",
@@ -1956,7 +1956,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/c/d/e/ff" => {
-            path: "/<cc>/<dd>/<ee>/ff",
+            path: "/{cc}/{dd}/{ee}/ff",
             value: 31,
             params: {
                 "cc" => "c",
@@ -1965,7 +1965,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/c/d/e/f/gg" => {
-            path: "/<cc>/<dd>/<ee>/<ff>/gg",
+            path: "/{cc}/{dd}/{ee}/{ff}/gg",
             value: 32,
             params: {
                 "cc" => "c",
@@ -1975,7 +1975,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/c/d/e/f/g/hh" => {
-            path: "/<cc>/<dd>/<ee>/<ff>/<gg>/hh",
+            path: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
             value: 33,
             params: {
                 "cc" => "c",
@@ -1986,7 +1986,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/cc/dd/ee/ff/gg/hh" => {
-            path: "/<cc>/<dd>/<ee>/<ff>/<gg>/hh",
+            path: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
             value: 33,
             params: {
                 "cc" => "cc",
@@ -2001,28 +2001,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 38
         }
         "/get/a" => {
-            path: "/get/<param>",
+            path: "/get/{param}",
             value: 39,
             params: {
                 "param" => "a"
             }
         }
         "/get/abz" => {
-            path: "/get/<param>",
+            path: "/get/{param}",
             value: 39,
             params: {
                 "param" => "abz"
             }
         }
         "/get/12a" => {
-            path: "/get/<param>",
+            path: "/get/{param}",
             value: 39,
             params: {
                 "param" => "12a"
             }
         }
         "/get/abcd" => {
-            path: "/get/<param>",
+            path: "/get/{param}",
             value: 39,
             params: {
                 "param" => "abcd"
@@ -2033,28 +2033,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 40
         }
         "/get/abc/12" => {
-            path: "/get/abc/<param>",
+            path: "/get/abc/{param}",
             value: 41,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123a" => {
-            path: "/get/abc/<param>",
+            path: "/get/abc/{param}",
             value: 41,
             params: {
                 "param" => "123a"
             }
         }
         "/get/abc/xyz" => {
-            path: "/get/abc/<param>",
+            path: "/get/abc/{param}",
             value: 41,
             params: {
                 "param" => "xyz"
             }
         }
         "/get/abc/123abcddxx" => {
-            path: "/get/abc/<param>",
+            path: "/get/abc/{param}",
             value: 41,
             params: {
                 "param" => "123abcddxx"
@@ -2065,28 +2065,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 42
         }
         "/get/abc/123abc/x" => {
-            path: "/get/abc/123abc/<param>",
+            path: "/get/abc/123abc/{param}",
             value: 43,
             params: {
                 "param" => "x"
             }
         }
         "/get/abc/123abc/xxx" => {
-            path: "/get/abc/123abc/<param>",
+            path: "/get/abc/123abc/{param}",
             value: 43,
             params: {
                 "param" => "xxx"
             }
         }
         "/get/abc/123abc/abc" => {
-            path: "/get/abc/123abc/<param>",
+            path: "/get/abc/123abc/{param}",
             value: 43,
             params: {
                 "param" => "abc"
             }
         }
         "/get/abc/123abc/xxx8xxas" => {
-            path: "/get/abc/123abc/<param>",
+            path: "/get/abc/123abc/{param}",
             value: 43,
             params: {
                 "param" => "xxx8xxas"
@@ -2097,28 +2097,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 44
         }
         "/get/abc/123abc/xxx8/1" => {
-            path: "/get/abc/123abc/xxx8/<param>",
+            path: "/get/abc/123abc/xxx8/{param}",
             value: 45,
             params: {
                 "param" => "1"
             }
         }
         "/get/abc/123abc/xxx8/123" => {
-            path: "/get/abc/123abc/xxx8/<param>",
+            path: "/get/abc/123abc/xxx8/{param}",
             value: 45,
             params: {
                 "param" => "123"
             }
         }
         "/get/abc/123abc/xxx8/78k" => {
-            path: "/get/abc/123abc/xxx8/<param>",
+            path: "/get/abc/123abc/xxx8/{param}",
             value: 45,
             params: {
                 "param" => "78k"
             }
         }
         "/get/abc/123abc/xxx8/1234xxxd" => {
-            path: "/get/abc/123abc/xxx8/<param>",
+            path: "/get/abc/123abc/xxx8/{param}",
             value: 45,
             params: {
                 "param" => "1234xxxd"
@@ -2129,28 +2129,28 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 46
         }
         "/get/abc/123abc/xxx8/1234/f" => {
-            path: "/get/abc/123abc/xxx8/1234/<param>",
+            path: "/get/abc/123abc/xxx8/1234/{param}",
             value: 47,
             params: {
                 "param" => "f"
             }
         }
         "/get/abc/123abc/xxx8/1234/ffa" => {
-            path: "/get/abc/123abc/xxx8/1234/<param>",
+            path: "/get/abc/123abc/xxx8/1234/{param}",
             value: 47,
             params: {
                 "param" => "ffa"
             }
         }
         "/get/abc/123abc/xxx8/1234/kka" => {
-            path: "/get/abc/123abc/xxx8/1234/<param>",
+            path: "/get/abc/123abc/xxx8/1234/{param}",
             value: 47,
             params: {
                 "param" => "kka"
             }
         }
         "/get/abc/123abc/xxx8/1234/ffas321" => {
-            path: "/get/abc/123abc/xxx8/1234/<param>",
+            path: "/get/abc/123abc/xxx8/1234/{param}",
             value: 47,
             params: {
                 "param" => "ffas321"
@@ -2161,126 +2161,119 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             value: 48
         }
         "/get/abc/123abc/xxx8/1234/kkdd/1" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/<param>",
+            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
             value: 49,
             params: {
                 "param" => "1"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/12" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/<param>",
-            value: 49,
-            params: {
-                "param" => "12"
-            }
-        }
-        "/get/abc/123abc/xxx8/1234/kkdd/12" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/<param>",
+            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
             value: 49,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/34" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/<param>",
+            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
             value: 49,
             params: {
                 "param" => "34"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/12c2e3" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/<param>",
+            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
             value: 49,
             params: {
                 "param" => "12c2e3"
             }
         }
         "/get/abc/12/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123abdd/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123abdd"
             }
         }
         "/get/abc/123abdddf/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123abdddf"
             }
         }
         "/get/abc/123ab/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123ab"
             }
         }
         "/get/abc/123abgg/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123abgg"
             }
         }
         "/get/abc/123abff/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123abff"
             }
         }
         "/get/abc/123abffff/test" => {
-            path: "/get/abc/<param>/test",
+            path: "/get/abc/{param}/test",
             value: 50,
             params: {
                 "param" => "123abffff"
             }
         }
         "/get/abc/123abd/test" => {
-            path: "/get/abc/123abd/<param>",
+            path: "/get/abc/123abd/{param}",
             value: 51,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123abddd/test" => {
-            path: "/get/abc/123abddd/<param>",
+            path: "/get/abc/123abddd/{param}",
             value: 52,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123/test22" => {
-            path: "/get/abc/123/<param>",
+            path: "/get/abc/123/{param}",
             value: 53,
             params: {
                 "param" => "test22"
             }
         }
         "/get/abc/123abg/test" => {
-            path: "/get/abc/123abg/<param>",
+            path: "/get/abc/123abg/{param}",
             value: 54,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123abf/testss" => {
-            path: "/get/abc/123abf/<param>",
+            path: "/get/abc/123abf/{param}",
             value: 55,
             params: {
                 "param" => "testss"
             }
         }
         "/get/abc/123abfff/te" => {
-            path: "/get/abc/123abfff/<param>",
+            path: "/get/abc/123abfff/{param}",
             value: 56,
             params: {
                 "param" => "te"

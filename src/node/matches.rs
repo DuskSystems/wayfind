@@ -67,9 +67,9 @@ impl<T> Node<T> {
         }
     }
 
-    // Dynamic with support for inline dynamic sections, e.g. `<name>.<extension>`
+    // Dynamic with support for inline dynamic sections, e.g. `{name}.{extension}`
     // NOTE: Parameters are greedy in nature:
-    //   Route: `<name>.<extension>`
+    //   Route: `{name}.{extension}`
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
@@ -117,7 +117,7 @@ impl<T> Node<T> {
         None
     }
 
-    // Doesn't support inline dynamic sections, e.g. `<name>.<extension>`, only `/<segment>/`
+    // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
     fn matches_dynamic_segment<'k, 'v>(
         &'k self,
         path: &'v [u8],

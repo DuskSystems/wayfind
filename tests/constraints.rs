@@ -73,7 +73,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     router.insert(
-        RouteBuilder::new("/user/<name>/<id>")
+        RouteBuilder::new("/user/{name}/{id}")
             .constraint::<LengthBetween3And10>("name")
             .constraint::<Year1000To10000>("id")
             .build()?,
@@ -81,7 +81,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     )?;
 
     router.insert(
-        RouteBuilder::new("/profile/<username>.<ext>")
+        RouteBuilder::new("/profile/{username}.{ext}")
             .constraint::<LengthBetween3And10>("username")
             .constraint::<PngOrJpg>("ext")
             .build()?,
@@ -89,7 +89,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     )?;
 
     router.insert(
-        RouteBuilder::new("/posts/<year>/<slug>")
+        RouteBuilder::new("/posts/{year}/{slug}")
             .constraint::<EvenYear>("year")
             .constraint::<ValidSlug>("slug")
             .build()?,
@@ -101,22 +101,22 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ <year> (even_year)
-       │  │              ╰─ /
-       │  │                 ╰─ <slug> [3] (valid_slug)
+       │  │      ╰─ {year:even_year}
+       │  │                        ╰─ /
+       │  │                           ╰─ {slug:valid_slug} [3]
        │  ╰─ rofile/
-       │           ╰─ <username> (length_3_to_10)
-       │                       ╰─ .
-       │                          ╰─ <ext> [2] (png_or_jpg)
+       │           ╰─ {username:length_3_to_10}
+       │                                      ╰─ .
+       │                                         ╰─ {ext:png_or_jpg} [2]
        ╰─ user/
-              ╰─ <name> (length_3_to_10)
-                      ╰─ /
-                         ╰─ <id> [1] (year_1000_to_10000)
+              ╰─ {name:length_3_to_10}
+                                     ╰─ /
+                                        ╰─ {id:year_1000_to_10000} [1]
     "###);
 
     assert_router_matches!(router, {
         "/user/john/1234" => {
-            path: "/user/<name>/<id>",
+            path: "/user/{name}/{id}",
             value: 1,
             params: {
                 "name" => "john",
@@ -124,7 +124,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
             }
         }
         "/user/johndoe/10000" => {
-            path: "/user/<name>/<id>",
+            path: "/user/{name}/{id}",
             value: 1,
             params: {
                 "name" => "johndoe",
@@ -137,7 +137,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
         "/user/john/10001" => None
 
         "/profile/alice.png" => {
-            path: "/profile/<username>.<ext>",
+            path: "/profile/{username}.{ext}",
             value: 2,
             params: {
                 "username" => "alice",
@@ -145,7 +145,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
             }
         }
         "/profile/bob.jpg" => {
-            path: "/profile/<username>.<ext>",
+            path: "/profile/{username}.{ext}",
             value: 2,
             params: {
                 "username" => "bob",
@@ -157,7 +157,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
         "/profile/alice.gif" => None
 
         "/posts/2022/hello" => {
-            path: "/posts/<year>/<slug>",
+            path: "/posts/{year}/{slug}",
             value: 3,
             params: {
                 "year" => "2022",
@@ -165,7 +165,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
             }
         }
         "/posts/2024/test-123" => {
-            path: "/posts/<year>/<slug>",
+            path: "/posts/{year}/{slug}",
             value: 3,
             params: {
                 "year" => "2024",
