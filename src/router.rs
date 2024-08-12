@@ -12,7 +12,7 @@ use std::{
     sync::Arc,
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct Router<T> {
     root: Node<T>,
     constraints: HashMap<Vec<u8>, fn(&str) -> bool>,
