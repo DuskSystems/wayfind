@@ -4,13 +4,11 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, node::Constraint, router::Router};
+use wayfind::{assert_router_matches, constraint::Constraint, router::Router};
 
 struct DigitString;
 impl Constraint for DigitString {
-    fn name() -> &'static str {
-        "digit_string"
-    }
+    const NAME: &'static str = "digit_string";
 
     fn check(segment: &str) -> bool {
         !segment.is_empty()
@@ -22,9 +20,7 @@ impl Constraint for DigitString {
 
 struct EndsWithTgz;
 impl Constraint for EndsWithTgz {
-    fn name() -> &'static str {
-        "ends_with_tgz"
-    }
+    const NAME: &'static str = "ends_with_tgz";
 
     fn check(segment: &str) -> bool {
         #[allow(clippy::case_sensitive_file_extension_comparisons)]

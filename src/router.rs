@@ -1,7 +1,8 @@
 use crate::{
+    constraint::{Constraint, NodeConstraint},
     errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     matches::Match,
-    node::{Constraint, Node, NodeConstraint, NodeData, NodeKind},
+    node::{Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
 use smallvec::smallvec;
@@ -42,11 +43,11 @@ impl<T> Router<T> {
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
         match self
             .constraints
-            .entry(C::name().as_bytes().to_vec())
+            .entry(C::NAME.as_bytes().to_vec())
         {
             Entry::Vacant(entry) => {
                 entry.insert(NodeConstraint {
-                    name: C::name(),
+                    name: C::NAME,
                     check: C::check,
                 });
 

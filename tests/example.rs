@@ -1,11 +1,9 @@
 use std::error::Error;
-use wayfind::{node::Constraint, router::Router};
+use wayfind::{constraint::Constraint, router::Router};
 
 struct Hex32;
 impl Constraint for Hex32 {
-    fn name() -> &'static str {
-        "hex32"
-    }
+    const NAME: &'static str = "hex32";
 
     fn check(segment: &str) -> bool {
         segment.len() == 32
@@ -17,9 +15,7 @@ impl Constraint for Hex32 {
 
 struct Semver;
 impl Constraint for Semver {
-    fn name() -> &'static str {
-        "semver"
-    }
+    const NAME: &'static str = "semver";
 
     fn check(segment: &str) -> bool {
         let parts: Vec<&str> = segment.split('.').collect();
@@ -32,9 +28,7 @@ impl Constraint for Semver {
 
 struct Hex40;
 impl Constraint for Hex40 {
-    fn name() -> &'static str {
-        "hex40"
-    }
+    const NAME: &'static str = "hex40";
 
     fn check(segment: &str) -> bool {
         segment.len() == 40

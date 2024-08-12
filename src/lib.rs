@@ -1,3 +1,4 @@
+pub mod constraint;
 pub mod errors;
 pub mod matches;
 pub mod node;

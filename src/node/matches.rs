@@ -1,5 +1,5 @@
-use super::{Node, NodeConstraint};
-use crate::matches::Parameter;
+use super::Node;
+use crate::{constraint::NodeConstraint, matches::Parameter};
 use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 

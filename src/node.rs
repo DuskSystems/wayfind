@@ -1,7 +1,4 @@
-use std::{
-    fmt::{self, Debug},
-    sync::Arc,
-};
+use std::{fmt::Debug, sync::Arc};
 
 pub mod delete;
 pub mod display;
@@ -16,31 +13,6 @@ pub enum NodeKind {
     Wildcard,
     EndWildcard,
 }
-
-pub trait Constraint {
-    fn name() -> &'static str;
-    fn check(segment: &str) -> bool;
-}
-
-#[derive(Clone)]
-pub struct NodeConstraint {
-    pub name: &'static str,
-    pub check: fn(&str) -> bool,
-}
-
-impl Debug for NodeConstraint {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
-
-impl PartialEq for NodeConstraint {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && std::ptr::eq(self.check as *const (), other.check as *const ())
-    }
-}
-
-impl Eq for NodeConstraint {}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData<T> {

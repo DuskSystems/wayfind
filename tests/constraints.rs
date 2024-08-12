@@ -1,13 +1,11 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, node::Constraint, router::Router};
+use wayfind::{assert_router_matches, constraint::Constraint, router::Router};
 
 struct LengthBetween3And10;
 impl Constraint for LengthBetween3And10 {
-    fn name() -> &'static str {
-        "length_3_to_10"
-    }
+    const NAME: &'static str = "length_3_to_10";
 
     fn check(segment: &str) -> bool {
         (3..=10).contains(&segment.len())
@@ -16,9 +14,7 @@ impl Constraint for LengthBetween3And10 {
 
 struct Year1000To10000;
 impl Constraint for Year1000To10000 {
-    fn name() -> &'static str {
-        "year_1000_to_10000"
-    }
+    const NAME: &'static str = "year_1000_to_10000";
 
     fn check(segment: &str) -> bool {
         segment
@@ -30,9 +26,7 @@ impl Constraint for Year1000To10000 {
 
 struct PngOrJpg;
 impl Constraint for PngOrJpg {
-    fn name() -> &'static str {
-        "png_or_jpg"
-    }
+    const NAME: &'static str = "png_or_jpg";
 
     fn check(segment: &str) -> bool {
         segment == "png" || segment == "jpg"
@@ -41,9 +35,7 @@ impl Constraint for PngOrJpg {
 
 struct EvenYear;
 impl Constraint for EvenYear {
-    fn name() -> &'static str {
-        "even_year"
-    }
+    const NAME: &'static str = "even_year";
 
     fn check(segment: &str) -> bool {
         segment
@@ -55,9 +47,7 @@ impl Constraint for EvenYear {
 
 struct ValidSlug;
 impl Constraint for ValidSlug {
-    fn name() -> &'static str {
-        "valid_slug"
-    }
+    const NAME: &'static str = "valid_slug";
 
     fn check(segment: &str) -> bool {
         !segment.is_empty()
