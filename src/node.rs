@@ -54,7 +54,7 @@ pub struct Node<T> {
 
     pub prefix: Vec<u8>,
     pub data: Option<NodeData<T>>,
-    pub constraint: Option<NodeConstraint>,
+    pub constraint: Option<Arc<str>>,
 
     pub static_children: Vec<Node<T>>,
     pub dynamic_children: Vec<Node<T>>,

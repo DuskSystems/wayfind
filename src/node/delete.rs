@@ -1,27 +1,18 @@
 use crate::{
     errors::delete::DeleteError,
-    node::{Node, NodeConstraint},
-    parts::Part,
-    route::Route,
+    node::Node,
+    parts::{Part, Parts},
 };
+use std::sync::Arc;
 
 impl<T> Node<T> {
-    pub fn delete(&mut self, route: &mut Route<'_>) -> Result<(), DeleteError> {
-        if let Some(segment) = route.parts.pop() {
+    pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
+        if let Some(segment) = parts.pop() {
             let result = match segment {
-                Part::Static { prefix } => self.delete_static(route, prefix),
-                Part::Dynamic { name } => {
-                    let constraint = route.constraints.remove(name);
-                    self.delete_dynamic(route, name, &constraint)
-                }
-                Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraint = route.constraints.remove(name);
-                    self.delete_end_wildcard(name, &constraint)
-                }
-                Part::Wildcard { name } => {
-                    let constraint = route.constraints.remove(name);
-                    self.delete_wildcard(route, name, &constraint)
-                }
+                Part::Static { prefix } => self.delete_static(parts, prefix),
+                Part::Dynamic { name, constraint } => self.delete_dynamic(parts, name, &constraint),
+                Part::Wildcard { name, constraint } if parts.is_empty() => self.delete_end_wildcard(name, &constraint),
+                Part::Wildcard { name, constraint } => self.delete_wildcard(parts, name, &constraint),
             };
 
             if result.is_ok() {
@@ -39,7 +30,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn delete_static(&mut self, route: &mut Route<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, parts: &mut Parts<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -57,9 +48,9 @@ impl<T> Node<T> {
         let remaining_prefix = &prefix[child.prefix.len()..];
 
         let result = if remaining_prefix.is_empty() {
-            child.delete(route)
+            child.delete(parts)
         } else {
-            child.delete_static(route, remaining_prefix)
+            child.delete_static(parts, remaining_prefix)
         };
 
         if result.is_ok() {
@@ -75,9 +66,9 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        route: &mut Route<'_>,
+        parts: &mut Parts<'_>,
         name: &[u8],
-        constraint: &Option<NodeConstraint>,
+        constraint: &Option<Arc<str>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
@@ -86,7 +77,7 @@ impl<T> Node<T> {
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.dynamic_children[index];
-        let result = child.delete(route);
+        let result = child.delete(parts);
 
         if result.is_ok() {
             child.optimize();
@@ -101,9 +92,9 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut Route<'_>,
+        parts: &mut Parts<'_>,
         name: &[u8],
-        constraint: &Option<NodeConstraint>,
+        constraint: &Option<Arc<str>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
@@ -112,7 +103,7 @@ impl<T> Node<T> {
             .ok_or(DeleteError::NotFound)?;
 
         let child = &mut self.wildcard_children[index];
-        let result = child.delete(route);
+        let result = child.delete(parts);
 
         if result.is_ok() {
             child.optimize();
@@ -125,7 +116,7 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<NodeConstraint>) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<Arc<str>>) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()

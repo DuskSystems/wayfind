@@ -1,15 +1,16 @@
 use crate::{
     errors::{delete::DeleteError, insert::InsertError},
     matches::Match,
-    node::{Node, NodeData, NodeKind},
-    route::IntoRoute,
+    node::{Constraint, Node, NodeConstraint, NodeData, NodeKind},
+    parts::Parts,
 };
 use smallvec::smallvec;
-use std::{fmt::Display, sync::Arc};
+use std::{collections::HashMap, error::Error, fmt::Display, sync::Arc};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
-    pub root: Node<T>,
+    root: Node<T>,
+    constraints: HashMap<Arc<str>, NodeConstraint>,
 }
 
 impl<T> Router<T> {
@@ -30,26 +31,36 @@ impl<T> Router<T> {
 
                 quick_dynamic: false,
             },
+            constraints: HashMap::new(),
         }
     }
 
-    pub fn insert<'a, R>(&mut self, route: R, value: T) -> Result<(), InsertError>
-    where
-        R: IntoRoute<'a>,
-    {
-        let mut route = route.into_route()?;
-        let path = Arc::from(route.path);
+    // FIXME: Error for duplicates?
+    pub fn constraint<C: Constraint>(&mut self) -> Result<(), Box<dyn Error>> {
+        self.constraints.insert(
+            Arc::from(C::name()),
+            NodeConstraint {
+                name: C::name(),
+                check: C::check,
+            },
+        );
 
-        self.root
-            .insert(&mut route, NodeData { path, value })
+        Ok(())
     }
 
-    pub fn delete<'a, R>(&mut self, route: R) -> Result<(), DeleteError>
-    where
-        R: IntoRoute<'a>,
-    {
-        let mut route = route.into_route()?;
-        self.root.delete(&mut route)
+    pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
+        let path = Arc::from(route);
+        let mut parts = Parts::new(route.as_bytes())?;
+
+        // TODO: Check all constraints are valid up-front?
+
+        self.root
+            .insert(&mut parts, NodeData { path, value })
+    }
+
+    pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
+        let mut parts = Parts::new(route.as_bytes())?;
+        self.root.delete(&mut parts)
     }
 
     #[must_use]
@@ -57,7 +68,7 @@ impl<T> Router<T> {
         let mut parameters = smallvec![];
         let node = self
             .root
-            .matches(path.as_bytes(), &mut parameters)?;
+            .matches(path.as_bytes(), &mut parameters, &self.constraints)?;
 
         Some(Match {
             data: node.data.as_ref()?,

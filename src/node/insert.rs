@@ -1,23 +1,23 @@
-use super::{Node, NodeConstraint, NodeData, NodeKind};
-use crate::{errors::insert::InsertError, parts::Part, route::Route};
-use std::cmp::Ordering;
+use super::{Node, NodeData, NodeKind};
+use crate::{
+    errors::insert::InsertError,
+    parts::{Part, Parts},
+};
+use std::{cmp::Ordering, sync::Arc};
 
 impl<T> Node<T> {
-    pub fn insert(&mut self, route: &mut Route<'_>, data: NodeData<T>) -> Result<(), InsertError> {
-        if let Some(segment) = route.parts.pop() {
+    pub fn insert(&mut self, parts: &mut Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
+        if let Some(segment) = parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(route, data, prefix)?,
-                Part::Dynamic { name } => {
-                    let constraint = route.constraints.remove(name);
-                    self.insert_dynamic(route, data, name, constraint)?;
+                Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
+                Part::Dynamic { name, constraint } => {
+                    self.insert_dynamic(parts, data, name, constraint)?;
                 }
-                Part::Wildcard { name } if route.parts.is_empty() => {
-                    let constraint = route.constraints.remove(name);
+                Part::Wildcard { name, constraint } if parts.is_empty() => {
                     self.insert_end_wildcard(data, name, constraint)?;
                 }
-                Part::Wildcard { name } => {
-                    let constraint = route.constraints.remove(name);
-                    self.insert_wildcard(route, data, name, constraint)?;
+                Part::Wildcard { name, constraint } => {
+                    self.insert_wildcard(parts, data, name, constraint)?;
                 }
             };
         } else {
@@ -34,7 +34,7 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_static(&mut self, route: &mut Route<'_>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
+    fn insert_static(&mut self, parts: &mut Parts<'_>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -56,7 +56,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(route, data)?;
+                new_child.insert(parts, data)?;
                 new_child
             });
 
@@ -71,9 +71,9 @@ impl<T> Node<T> {
 
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(route, data)?;
+                child.insert(parts, data)?;
             } else {
-                child.insert_static(route, data, &prefix[common_prefix..])?;
+                child.insert_static(parts, data, &prefix[common_prefix..])?;
             }
 
             return Ok(());
@@ -113,10 +113,10 @@ impl<T> Node<T> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
-            child.insert(route, data)?;
+            child.insert(parts, data)?;
         } else {
             child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(route, data)?;
+            child.static_children[1].insert(parts, data)?;
         }
 
         Ok(())
@@ -124,17 +124,17 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut Route<'_>,
+        parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraint: Option<Arc<str>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
-            child.insert(route, data)?;
+            child.insert(parts, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
@@ -152,7 +152,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(route, data)?;
+                new_child.insert(parts, data)?;
                 new_child
             });
         }
@@ -162,17 +162,17 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut Route<'_>,
+        parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraint: Option<Arc<str>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
-            child.insert(route, data)?;
+            child.insert(parts, data)?;
         } else {
             self.wildcard_children.push({
                 let mut new_child = Self {
@@ -190,7 +190,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(route, data)?;
+                new_child.insert(parts, data)?;
                 new_child
             });
         }
@@ -202,7 +202,7 @@ impl<T> Node<T> {
         &mut self,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<NodeConstraint>,
+        constraint: Option<Arc<str>>,
     ) -> Result<(), InsertError> {
         if self
             .end_wildcard_children

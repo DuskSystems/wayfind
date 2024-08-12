@@ -1,30 +1,32 @@
-use super::Node;
+use super::{Node, NodeConstraint};
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
+use std::{collections::HashMap, sync::Arc};
 
 impl<T> Node<T> {
     pub fn matches<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         if path.is_empty() {
             return if self.data.is_some() { Some(self) } else { None };
         }
 
-        if let Some(matches) = self.matches_static(path, parameters) {
+        if let Some(matches) = self.matches_static(path, parameters, constraints) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_dynamic(path, parameters) {
+        if let Some(matches) = self.matches_dynamic(path, parameters, constraints) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_wildcard(path, parameters) {
+        if let Some(matches) = self.matches_wildcard(path, parameters, constraints) {
             return Some(matches);
         }
 
-        if let Some(matches) = self.matches_end_wildcard(path, parameters) {
+        if let Some(matches) = self.matches_end_wildcard(path, parameters, constraints) {
             return Some(matches);
         }
 
@@ -35,6 +37,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
@@ -46,7 +49,7 @@ impl<T> Node<T> {
                     .all(|(a, b)| a == b)
             {
                 let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node_data) = static_child.matches(remaining_path, parameters) {
+                if let Some(node_data) = static_child.matches(remaining_path, parameters, constraints) {
                     return Some(node_data);
                 }
             }
@@ -59,11 +62,12 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         if self.quick_dynamic {
-            self.matches_dynamic_segment(path, parameters)
+            self.matches_dynamic_segment(path, parameters, constraints)
         } else {
-            self.matches_dynamic_inline(path, parameters)
+            self.matches_dynamic_inline(path, parameters, constraints)
         }
     }
 
@@ -77,6 +81,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
@@ -92,7 +97,7 @@ impl<T> Node<T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(dynamic_child, segment) {
+                if !Self::check_constraint(dynamic_child, segment, constraints) {
                     continue;
                 }
 
@@ -102,7 +107,8 @@ impl<T> Node<T> {
                     value: segment,
                 });
 
-                if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters) {
+                if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters, constraints)
+                {
                     last_match = Some(node_data);
                     last_match_parameters = current_parameters;
                 }
@@ -122,6 +128,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
@@ -130,7 +137,7 @@ impl<T> Node<T> {
                 .unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraint(dynamic_child, segment) {
+            if !Self::check_constraint(dynamic_child, segment, constraints) {
                 continue;
             }
 
@@ -139,7 +146,7 @@ impl<T> Node<T> {
                 value: segment,
             });
 
-            if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters) {
+            if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters, constraints) {
                 return Some(node_data);
             }
 
@@ -153,6 +160,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
@@ -183,7 +191,7 @@ impl<T> Node<T> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraint(wildcard_child, segment) {
+                if !Self::check_constraint(wildcard_child, segment, constraints) {
                     break;
                 }
 
@@ -192,7 +200,8 @@ impl<T> Node<T> {
                     value: segment,
                 });
 
-                if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters) {
+                if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters, constraints)
+                {
                     return Some(node_data);
                 }
 
@@ -213,9 +222,10 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        constraints: &HashMap<Arc<str>, NodeConstraint>,
     ) -> Option<&'k Self> {
         for end_wildcard in &self.end_wildcard_children {
-            if !Self::check_constraint(end_wildcard, path) {
+            if !Self::check_constraint(end_wildcard, path, constraints) {
                 continue;
             }
 
@@ -234,11 +244,17 @@ impl<T> Node<T> {
         None
     }
 
-    fn check_constraint(node: &Self, segment: &[u8]) -> bool {
-        let Some(constraint) = &node.constraint else {
+    fn check_constraint(node: &Self, segment: &[u8], constraints: &HashMap<Arc<str>, NodeConstraint>) -> bool {
+        let Some(name) = &node.constraint else {
             return true;
         };
 
+        let Some(constraint) = constraints.get(name) else {
+            // FIXME: Should be an error? Or unreachable
+            return false;
+        };
+
+        // FIXME: Is the above lookup more expensive? Which should come first.
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };

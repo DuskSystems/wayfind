@@ -1,11 +1,21 @@
 use crate::errors::route::RouteError;
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Part<'a> {
-    Static { prefix: &'a [u8] },
-    Dynamic { name: &'a [u8] },
-    Wildcard { name: &'a [u8] },
+    Static {
+        prefix: &'a [u8],
+    },
+
+    Dynamic {
+        name: &'a [u8],
+        constraint: Option<Arc<str>>,
+    },
+
+    Wildcard {
+        name: &'a [u8],
+        constraint: Option<Arc<str>>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -18,11 +28,14 @@ impl<'a> Parts<'a> {
 
         while index < path.len() {
             if path[index] == b'{' {
-                let name = Self::parse_parameter(path, &mut index);
+                let (name, constraint) = Self::parse_parameter(path, &mut index);
                 if name.starts_with(b"*") {
-                    parts.push(Part::Wildcard { name: &name[1..] });
+                    parts.push(Part::Wildcard {
+                        name: &name[1..],
+                        constraint,
+                    });
                 } else {
-                    parts.push(Part::Dynamic { name });
+                    parts.push(Part::Dynamic { name, constraint });
                 }
             } else {
                 let prefix = Self::parse_static(path, &mut index);
@@ -59,21 +72,39 @@ impl<'a> Parts<'a> {
         &path[start..*index]
     }
 
-    fn parse_parameter(path: &'a [u8], index: &mut usize) -> &'a [u8] {
+    fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<Arc<str>>) {
         // Consume opening '{'
         *index += 1;
         let start = *index;
 
-        // Consume until we see a '}'
-        while *index < path.len() && path[*index] != b'}' {
+        // Consume until we see a '}' or ':'
+        while *index < path.len() && path[*index] != b'}' && path[*index] != b':' {
             *index += 1;
         }
 
+        let name_end = *index;
+        let constraint = if path[*index] == b':' {
+            // Consume ':'
+            *index += 1;
+            let constraint_start = *index;
+
+            // Consume until we see a '}'
+            while *index < path.len() && path[*index] != b'}' {
+                *index += 1;
+            }
+
+            // FIXME: Handle error here
+            std::str::from_utf8(&path[constraint_start..*index])
+                .ok()
+                .map(Arc::from)
+        } else {
+            None
+        };
+
         // Consume closing '}'
-        let end = *index;
         *index += 1;
 
-        &path[start..end]
+        (&path[start..name_end], constraint)
     }
 }
 
@@ -91,7 +122,10 @@ mod tests {
         assert_eq!(
             Parts::new(b"/{name}"),
             Ok(Parts(vec![
-                Part::Dynamic { name: b"name" },
+                Part::Dynamic {
+                    name: b"name",
+                    constraint: None
+                },
                 Part::Static { prefix: b"/" },
             ]))
         );
@@ -102,7 +136,29 @@ mod tests {
         assert_eq!(
             Parts::new(b"/{*path}"),
             Ok(Parts(vec![
-                Part::Wildcard { name: b"path" },
+                Part::Wildcard {
+                    name: b"path",
+                    constraint: None
+                },
+                Part::Static { prefix: b"/" },
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_parts_constraint() {
+        assert_eq!(
+            Parts::new(b"/{name:alpha}/{id:numeric}"),
+            Ok(Parts(vec![
+                Part::Dynamic {
+                    name: b"id",
+                    constraint: Some("numeric".into())
+                },
+                Part::Static { prefix: b"/" },
+                Part::Dynamic {
+                    name: b"name",
+                    constraint: Some("alpha".into())
+                },
                 Part::Static { prefix: b"/" },
             ]))
         );
