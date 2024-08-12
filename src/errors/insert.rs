@@ -5,6 +5,7 @@ use std::{error::Error, fmt::Display};
 pub enum InsertError {
     RouteError(RouteError),
     DuplicatePath,
+    UnknownConstraint,
 }
 
 impl Error for InsertError {}
@@ -14,6 +15,7 @@ impl Display for InsertError {
         match self {
             Self::RouteError(error) => error.fmt(f),
             Self::DuplicatePath => write!(f, "Duplicate Path"),
+            Self::UnknownConstraint => write!(f, "Unknown Constraint"),
         }
     }
 }

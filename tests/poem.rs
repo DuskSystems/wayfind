@@ -4,13 +4,11 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, node::Constraint, route::RouteBuilder, router::Router};
+use wayfind::{assert_router_matches, constraints::Constraint, router::Router};
 
 struct DigitString;
 impl Constraint for DigitString {
-    fn name() -> &'static str {
-        "digit_string"
-    }
+    const NAME: &'static str = "digit_string";
 
     fn check(segment: &str) -> bool {
         !segment.is_empty()
@@ -22,9 +20,7 @@ impl Constraint for DigitString {
 
 struct EndsWithTgz;
 impl Constraint for EndsWithTgz {
-    fn name() -> &'static str {
-        "ends_with_tgz"
-    }
+    const NAME: &'static str = "ends_with_tgz";
 
     fn check(segment: &str) -> bool {
         #[allow(clippy::case_sensitive_file_extension_comparisons)]
@@ -138,19 +134,10 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.insert(
-        RouteBuilder::new("/abc/{name}/def")
-            .constraint::<DigitString>("name")
-            .build()?,
-        1,
-    )?;
+    router.constraint::<DigitString>()?;
 
-    router.insert(
-        RouteBuilder::new("/abc/def/{name}")
-            .constraint::<DigitString>("name")
-            .build()?,
-        2,
-    )?;
+    router.insert("/abc/{name:digit_string}/def", 1)?;
+    router.insert("/abc/def/{name:digit_string}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -168,6 +155,8 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 #[ignore = "todo"]
 fn test_add_result() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.constraint::<DigitString>()?;
+
     assert!(router.insert("/a/b", 1).is_ok());
     assert!(router.insert("/a/b", 2).is_err());
     assert!(router.insert("/a/b/{p}/d", 1).is_ok());
@@ -178,12 +167,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router.insert("/a/b/{*p}", 1).is_ok());
     assert!(router.insert("/a/b/{*p2}", 2).is_err());
     assert!(router
-        .insert(
-            RouteBuilder::new("/k/h/{name}")
-                .constraint::<DigitString>("name")
-                .build()?,
-            1,
-        )
+        .insert("/k/h/{name:digit_string}", 1)
         .is_ok());
 
     insta::assert_snapshot!(router, @"");
@@ -194,6 +178,9 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_matches() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.constraint::<DigitString>()?;
+    router.constraint::<EndsWithTgz>()?;
+
     router.insert("/ab/def", 1)?;
     router.insert("/abc/def", 2)?;
     router.insert("/abc/{p1}", 3)?;
@@ -203,27 +190,9 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b/c/d", 7)?;
     router.insert("/a/{p1}/{p2}/c", 8)?;
     router.insert("/{*p1}", 9)?;
-
-    router.insert(
-        RouteBuilder::new("/abc/{param}/def")
-            .constraint::<DigitString>("param")
-            .build()?,
-        10,
-    )?;
-
-    router.insert(
-        RouteBuilder::new("/kcd/{p1}")
-            .constraint::<DigitString>("p1")
-            .build()?,
-        11,
-    )?;
-
-    router.insert(
-        RouteBuilder::new("/{package}/-/{package_tgz}")
-            .constraint::<EndsWithTgz>("package_tgz")
-            .build()?,
-        12,
-    )?;
+    router.insert("/abc/{param:digit_string}/def", 10)?;
+    router.insert("/kcd/{p1:digit_string}", 11)?;
+    router.insert("/{package}/-/{package_tgz:ends_with_tgz}", 12)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -311,21 +280,21 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: poem would match "/{*p1}"
         "/" => None
         "/abc/123/def" => {
-            path: "/abc/{param}/def",
+            path: "/abc/{param:digit_string}/def",
             value: 10,
             params: {
                 "param" => "123"
             }
         }
         "/kcd/567" => {
-            path: "/kcd/{p1}",
+            path: "/kcd/{p1:digit_string}",
             value: 11,
             params: {
                 "p1" => "567"
             }
         }
         "/is-number/-/is-number-7.0.0.tgz" => {
-            path: "/{package}/-/{package_tgz}",
+            path: "/{package}/-/{package_tgz:ends_with_tgz}",
             value: 12,
             params: {
                 "package" => "is-number",
@@ -380,12 +349,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    router.insert(
-        RouteBuilder::new("/a/{id}")
-            .constraint::<DigitString>("id")
-            .build()?,
-        4,
-    )?;
+    router.constraint::<DigitString>()?;
+    router.insert("/a/{id:digit_string}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -398,7 +363,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/{id}",
+            path: "/a/{id:digit_string}",
             value: 4,
             params: {
                 "id" => "123"

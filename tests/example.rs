@@ -1,10 +1,9 @@
-use wayfind::{node::Constraint, route::RouteBuilder, router::Router};
+use std::error::Error;
+use wayfind::{constraints::Constraint, router::Router};
 
 struct Hex32;
 impl Constraint for Hex32 {
-    fn name() -> &'static str {
-        "hex32"
-    }
+    const NAME: &'static str = "hex32";
 
     fn check(segment: &str) -> bool {
         segment.len() == 32
@@ -16,9 +15,7 @@ impl Constraint for Hex32 {
 
 struct Semver;
 impl Constraint for Semver {
-    fn name() -> &'static str {
-        "semver"
-    }
+    const NAME: &'static str = "semver";
 
     fn check(segment: &str) -> bool {
         let parts: Vec<&str> = segment.split('.').collect();
@@ -31,9 +28,7 @@ impl Constraint for Semver {
 
 struct Hex40;
 impl Constraint for Hex40 {
-    fn name() -> &'static str {
-        "hex40"
-    }
+    const NAME: &'static str = "hex40";
 
     fn check(segment: &str) -> bool {
         segment.len() == 40
@@ -44,8 +39,12 @@ impl Constraint for Hex40 {
 }
 
 #[test]
-fn example() -> Result<(), Box<dyn std::error::Error>> {
+fn example() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+
+    router.constraint::<Hex32>()?;
+    router.constraint::<Semver>()?;
+    router.constraint::<Hex40>()?;
 
     // Static route
     router.insert("/", 1)?;
@@ -66,31 +65,13 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     router.insert("/{*namespace}/{repository}/{*file}", 6)?;
 
     // Constraint
-    router.insert(
-        RouteBuilder::new("/repos/{id}")
-            .constraint::<Hex32>("id")
-            .build()?,
-        8,
-    )?;
+    router.insert("/repos/{id:hex32}", 8)?;
 
     // Multiple Constraints
-    router.insert(
-        RouteBuilder::new("/repos/{id}/archive/v{version}")
-            .constraint::<Hex32>("id")
-            .constraint::<Semver>("version")
-            .build()?,
-        9,
-    )?;
+    router.insert("/repos/{id:hex32}/archive/v{version:semver}", 9)?;
 
     // Multiple Constraints Inline
-    router.insert(
-        RouteBuilder::new("/repos/{id}/compare/{base}..{head}")
-            .constraint::<Hex32>("id")
-            .constraint::<Hex40>("base")
-            .constraint::<Hex40>("head")
-            .build()?,
-        10,
-    )?;
+    router.insert("/repos/{id:hex32}/compare/{base:hex40}..{head:hex40}", 10)?;
 
     // Catch All
     router.insert("{*catch_all}", 11)?;

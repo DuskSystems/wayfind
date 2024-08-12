@@ -1818,21 +1818,21 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
 #[ignore = "we don't support 'one or more' or 'inline wildcard' logic"]
 fn test_dots_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name:+}.123", 2)?;
-    router.insert("/{name:*}.123.456", 1)?;
+    router.insert("/{+name}.123", 2)?;
+    router.insert("/{*name}.123.456", 1)?;
 
     insta::assert_snapshot!(router, @"");
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
-            path: "/{name:+}.123",
+            path: "/{+name}.123",
             value: 2,
             params: {
                 "name" => "abc.xyz"
             }
         }
         "/abc.xyz.123.456" => {
-            path: "/{name:*}.123.456",
+            path: "/{*name}.123.456",
             value: 1,
             params: {
                 "name" => "abc.xyz"

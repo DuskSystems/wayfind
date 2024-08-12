@@ -402,7 +402,7 @@ struct Node {
 impl Node {
     fn insert(&mut self, path: impl Into<String>, val: RouteId) -> Result<(), InsertError> {
         let path = path.into();
-        self.inner.insert(&*path, val)?;
+        self.inner.insert(&path, val)?;
 
         let shared_path: Arc<str> = path.into();
         self.route_id_to_path
