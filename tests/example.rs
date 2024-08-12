@@ -51,23 +51,23 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     router.insert("/", 1)?;
 
     // Dynamic Segment
-    router.insert("/users/<username>", 2)?;
+    router.insert("/users/{username}", 2)?;
 
     // Dynamic Inline
-    router.insert("/avatars/<username>.png", 3)?;
+    router.insert("/avatars/{username}.png", 3)?;
 
     // Multiple Dynamic Inline
-    router.insert("/avatars/<username>.<extension>", 4)?;
+    router.insert("/avatars/{username}.{extension}", 4)?;
 
     // Wildcard Segment
-    router.insert("/<namespace:*>/<repository>", 5)?;
+    router.insert("/{*namespace}/{repository}", 5)?;
 
     // Multiple Wildcard Segments
-    router.insert("/<namespace:*>/<repository>/<file:*>", 6)?;
+    router.insert("/{*namespace}/{repository}/{*file}", 6)?;
 
     // Constraint
     router.insert(
-        RouteBuilder::new("/repos/<id>")
+        RouteBuilder::new("/repos/{id}")
             .constraint::<Hex32>("id")
             .build()?,
         8,
@@ -75,7 +75,7 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
 
     // Multiple Constraints
     router.insert(
-        RouteBuilder::new("/repos/<id>/archive/v<version>")
+        RouteBuilder::new("/repos/{id}/archive/v{version}")
             .constraint::<Hex32>("id")
             .constraint::<Semver>("version")
             .build()?,
@@ -84,7 +84,7 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
 
     // Multiple Constraints Inline
     router.insert(
-        RouteBuilder::new("/repos/<id>/compare/<base>..<head>")
+        RouteBuilder::new("/repos/{id}/compare/{base}..{head}")
             .constraint::<Hex32>("id")
             .constraint::<Hex40>("base")
             .constraint::<Hex40>("head")
@@ -93,33 +93,33 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     // Catch All
-    router.insert("<catch_all:*>", 11)?;
+    router.insert("{*catch_all}", 11)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ├─ / [1]
     │  ├─ avatars/
-    │  │         ╰─ <username>
+    │  │         ╰─ {username}
     │  │                     ╰─ .
     │  │                        ├─ png [3]
-    │  │                        ╰─ <extension> [4]
+    │  │                        ╰─ {extension} [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] (hex32)
-    │  │             ╰─ /
-    │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] (semver)
-    │  │                ╰─ compare/
-    │  │                          ╰─ <base> (hex40)
-    │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] (hex40)
+    │  │       ╰─ {id:hex32} [8]
+    │  │                   ╰─ /
+    │  │                      ├─ archive/v
+    │  │                      │          ╰─ {version:semver} [9]
+    │  │                      ╰─ compare/
+    │  │                                ╰─ {base:hex40}
+    │  │                                              ╰─ ..
+    │  │                                                  ╰─ {head:hex40} [10]
     │  ├─ users/
-    │  │       ╰─ <username> [2]
-    │  ╰─ <namespace:*>
-    │                 ╰─ /
-    │                    ╰─ <repository> [5]
-    │                                  ╰─ /
-    │                                     ╰─ <file:*> [6]
-    ╰─ <catch_all:*> [11]
+    │  │       ╰─ {username} [2]
+    │  ╰─ {*namespace}
+    │                ╰─ /
+    │                   ╰─ {repository} [5]
+    │                                 ╰─ /
+    │                                    ╰─ {*file} [6]
+    ╰─ {*catch_all} [11]
     "###);
 
     Ok(())

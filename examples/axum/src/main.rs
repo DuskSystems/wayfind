@@ -9,8 +9,8 @@ use wayfind_axum::{extract::Path, routing::get, Json, Router};
 async fn main() -> Result<(), anyhow::Error> {
     let app = Router::new()
         .route("/", get(index_route))
-        .route("/hello/<name>", get(hello_route))
-        .route("/<catch_all:*>", get(not_found));
+        .route("/hello/{name}", get(hello_route))
+        .route("/{*catch_all}", get(not_found));
 
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1337);
     let listener = TcpListener::bind(&socket).await?;

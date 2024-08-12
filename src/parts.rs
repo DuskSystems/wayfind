@@ -17,14 +17,10 @@ impl<'a> Parts<'a> {
         let mut index = 0;
 
         while index < path.len() {
-            if path[index] == b'<' {
-                let (name, value) = Self::parse_parameter(path, &mut index);
-                if let Some(value) = value {
-                    if value == b"*" {
-                        parts.push(Part::Wildcard { name });
-                    } else {
-                        return Err(RouteError::InvalidPath);
-                    }
+            if path[index] == b'{' {
+                let name = Self::parse_parameter(path, &mut index);
+                if name.starts_with(b"*") {
+                    parts.push(Part::Wildcard { name: &name[1..] });
                 } else {
                     parts.push(Part::Dynamic { name });
                 }
@@ -51,9 +47,9 @@ impl<'a> Parts<'a> {
     fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
         let start = *index;
 
-        // Consume up until the next '<'
+        // Consume up until the next '{'
         while *index < path.len() {
-            if path[*index] == b'<' {
+            if path[*index] == b'{' {
                 break;
             }
 
@@ -63,40 +59,21 @@ impl<'a> Parts<'a> {
         &path[start..*index]
     }
 
-    fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<&'a [u8]>) {
-        // Consume opening '<'
+    fn parse_parameter(path: &'a [u8], index: &mut usize) -> &'a [u8] {
+        // Consume opening '{'
         *index += 1;
         let start = *index;
 
-        // Consume until we see a '>'
-        let mut colon = None;
-        while *index < path.len() {
-            if path[*index] == b'>' {
-                break;
-            }
-
-            if path[*index] == b':' && colon.is_none() {
-                colon = Some(*index);
-            }
-
+        // Consume until we see a '}'
+        while *index < path.len() && path[*index] != b'}' {
             *index += 1;
         }
 
-        // Consume closing '>'
+        // Consume closing '}'
         let end = *index;
         *index += 1;
 
-        colon.map_or_else(
-            || {
-                let name = &path[start..end];
-                (name, None)
-            },
-            |colon| {
-                let name = &path[start..colon];
-                let value = &path[colon + 1..end];
-                (name, Some(value))
-            },
-        )
+        &path[start..end]
     }
 }
 
@@ -112,7 +89,7 @@ mod tests {
     #[test]
     fn test_parts_dynamic() {
         assert_eq!(
-            Parts::new(b"/<name>"),
+            Parts::new(b"/{name}"),
             Ok(Parts(vec![
                 Part::Dynamic { name: b"name" },
                 Part::Static { prefix: b"/" },
@@ -123,7 +100,7 @@ mod tests {
     #[test]
     fn test_parts_wildcard() {
         assert_eq!(
-            Parts::new(b"/<path:*>"),
+            Parts::new(b"/{*path}"),
             Ok(Parts(vec![
                 Part::Wildcard { name: b"path" },
                 Part::Static { prefix: b"/" },

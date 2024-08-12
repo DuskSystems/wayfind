@@ -30,11 +30,11 @@ async fn main() -> Result<(), anyhow::Error> {
         Arc::new(move |path, parameters| Box::pin(index_route(path, parameters))),
     )?;
     router.insert(
-        "/hello/<name>",
+        "/hello/{name}",
         Arc::new(move |path, parameters| Box::pin(hello_route(path, parameters))),
     )?;
     router.insert(
-        "<catch_all:*>",
+        "{*catch_all}",
         Arc::new(move |path, parameters| Box::pin(not_found(path, parameters))),
     )?;
 
