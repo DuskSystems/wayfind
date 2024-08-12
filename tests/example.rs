@@ -1,5 +1,5 @@
 use std::error::Error;
-use wayfind::{constraint::Constraint, router::Router};
+use wayfind::{constraints::Constraint, router::Router};
 
 struct Hex32;
 impl Constraint for Hex32 {

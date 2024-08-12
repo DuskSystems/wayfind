@@ -4,7 +4,7 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, constraint::Constraint, router::Router};
+use wayfind::{assert_router_matches, constraints::Constraint, router::Router};
 
 struct DigitString;
 impl Constraint for DigitString {

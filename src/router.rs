@@ -1,5 +1,5 @@
 use crate::{
-    constraint::{Constraint, NodeConstraint},
+    constraints::Constraint,
     errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     matches::Match,
     node::{Node, NodeData, NodeKind},
@@ -15,29 +15,42 @@ use std::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
     root: Node<T>,
-    constraints: HashMap<Vec<u8>, NodeConstraint>,
+    constraints: HashMap<Vec<u8>, fn(&str) -> bool>,
 }
 
 impl<T> Router<T> {
     #[must_use]
     pub fn new() -> Self {
-        Self {
+        let mut router = Self {
             root: Node {
                 kind: NodeKind::Root,
-
                 prefix: vec![],
                 data: None,
                 constraint: None,
-
                 static_children: vec![],
                 dynamic_children: vec![],
                 wildcard_children: vec![],
                 end_wildcard_children: vec![],
-
                 quick_dynamic: false,
             },
             constraints: HashMap::new(),
-        }
+        };
+
+        // TODO: Make these defaults optional.
+        // TODO: Support more default constraints.
+        router.constraint::<u8>().unwrap();
+        router.constraint::<u16>().unwrap();
+        router.constraint::<u32>().unwrap();
+        router.constraint::<u64>().unwrap();
+        router.constraint::<u128>().unwrap();
+
+        router.constraint::<i8>().unwrap();
+        router.constraint::<i16>().unwrap();
+        router.constraint::<i32>().unwrap();
+        router.constraint::<i64>().unwrap();
+        router.constraint::<i128>().unwrap();
+
+        router
     }
 
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
@@ -46,11 +59,7 @@ impl<T> Router<T> {
             .entry(C::NAME.as_bytes().to_vec())
         {
             Entry::Vacant(entry) => {
-                entry.insert(NodeConstraint {
-                    name: C::NAME,
-                    check: C::check,
-                });
-
+                entry.insert(C::check);
                 Ok(())
             }
             Entry::Occupied(_) => Err(ConstraintError::DuplicateName),
