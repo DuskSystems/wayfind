@@ -1,25 +1,46 @@
-use wayfind::{route::RouteBuilder, router::Router};
+use wayfind::{node::Constraint, route::RouteBuilder, router::Router};
 
-fn is_hex_32(segment: &str) -> bool {
-    segment.len() == 32
-        && segment
-            .chars()
-            .all(|c| c.is_ascii_hexdigit())
+struct Hex32;
+impl Constraint for Hex32 {
+    fn name() -> &'static str {
+        "hex32"
+    }
+
+    fn check(segment: &str) -> bool {
+        segment.len() == 32
+            && segment
+                .chars()
+                .all(|c| c.is_ascii_hexdigit())
+    }
 }
 
-fn is_semver(segment: &str) -> bool {
-    let parts: Vec<&str> = segment.split('.').collect();
-    parts.len() == 3
-        && parts
-            .iter()
-            .all(|part| part.parse::<u32>().is_ok())
+struct Semver;
+impl Constraint for Semver {
+    fn name() -> &'static str {
+        "semver"
+    }
+
+    fn check(segment: &str) -> bool {
+        let parts: Vec<&str> = segment.split('.').collect();
+        parts.len() == 3
+            && parts
+                .iter()
+                .all(|part| part.parse::<u32>().is_ok())
+    }
 }
 
-fn is_hex_40(segment: &str) -> bool {
-    segment.len() == 40
-        && segment
-            .chars()
-            .all(|c| c.is_ascii_hexdigit())
+struct Hex40;
+impl Constraint for Hex40 {
+    fn name() -> &'static str {
+        "hex40"
+    }
+
+    fn check(segment: &str) -> bool {
+        segment.len() == 40
+            && segment
+                .chars()
+                .all(|c| c.is_ascii_hexdigit())
+    }
 }
 
 #[test]
@@ -47,7 +68,7 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Constraint
     router.insert(
         RouteBuilder::new("/repos/<id>")
-            .constraint("id", is_hex_32)
+            .constraint::<Hex32>("id")
             .build()?,
         8,
     )?;
@@ -55,8 +76,8 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Multiple Constraints
     router.insert(
         RouteBuilder::new("/repos/<id>/archive/v<version>")
-            .constraint("id", is_hex_32)
-            .constraint("version", is_semver)
+            .constraint::<Hex32>("id")
+            .constraint::<Semver>("version")
             .build()?,
         9,
     )?;
@@ -64,9 +85,9 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     // Multiple Constraints Inline
     router.insert(
         RouteBuilder::new("/repos/<id>/compare/<base>..<head>")
-            .constraint("id", is_hex_32)
-            .constraint("base", is_hex_40)
-            .constraint("head", is_hex_40)
+            .constraint::<Hex32>("id")
+            .constraint::<Hex40>("base")
+            .constraint::<Hex40>("head")
             .build()?,
         10,
     )?;
@@ -77,22 +98,22 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ├─ / [1]
-    │  ├─ users/
-    │  │       ╰─ <username> [2]
     │  ├─ avatars/
     │  │         ╰─ <username>
     │  │                     ╰─ .
     │  │                        ├─ png [3]
     │  │                        ╰─ <extension> [4]
     │  ├─ repos/
-    │  │       ╰─ <id> [8] [NodeConstraint(<function>)]
+    │  │       ╰─ <id> [8] (hex32)
     │  │             ╰─ /
     │  │                ├─ archive/v
-    │  │                │          ╰─ <version> [9] [NodeConstraint(<function>)]
+    │  │                │          ╰─ <version> [9] (semver)
     │  │                ╰─ compare/
-    │  │                          ╰─ <base> [NodeConstraint(<function>)]
+    │  │                          ╰─ <base> (hex40)
     │  │                                  ╰─ ..
-    │  │                                      ╰─ <head> [10] [NodeConstraint(<function>)]
+    │  │                                      ╰─ <head> [10] (hex40)
+    │  ├─ users/
+    │  │       ╰─ <username> [2]
     │  ╰─ <namespace:*>
     │                 ╰─ /
     │                    ╰─ <repository> [5]

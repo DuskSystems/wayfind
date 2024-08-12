@@ -1,4 +1,4 @@
-use super::{Node, NodeData};
+use super::Node;
 use crate::matches::Parameter;
 use smallvec::{smallvec, SmallVec};
 
@@ -7,9 +7,9 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if path.is_empty() {
-            return self.data.as_ref();
+            return if self.data.is_some() { Some(self) } else { None };
         }
 
         if let Some(matches) = self.matches_static(path, parameters) {
@@ -35,7 +35,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -59,7 +59,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         if self.quick_dynamic {
             self.matches_dynamic_segment(path, parameters)
         } else {
@@ -77,7 +77,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -92,7 +92,7 @@ impl<T> Node<T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraints(dynamic_child, segment) {
+                if !Self::check_constraint(dynamic_child, segment) {
                     continue;
                 }
 
@@ -122,7 +122,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path
                 .iter()
@@ -130,7 +130,7 @@ impl<T> Node<T> {
                 .unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraints(dynamic_child, segment) {
+            if !Self::check_constraint(dynamic_child, segment) {
                 continue;
             }
 
@@ -153,7 +153,7 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -183,7 +183,7 @@ impl<T> Node<T> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraints(wildcard_child, segment) {
+                if !Self::check_constraint(wildcard_child, segment) {
                     break;
                 }
 
@@ -213,9 +213,9 @@ impl<T> Node<T> {
         &'k self,
         path: &'v [u8],
         parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
-    ) -> Option<&'k NodeData<T>> {
+    ) -> Option<&'k Self> {
         for end_wildcard in &self.end_wildcard_children {
-            if !Self::check_constraints(end_wildcard, path) {
+            if !Self::check_constraint(end_wildcard, path) {
                 continue;
             }
 
@@ -224,23 +224,25 @@ impl<T> Node<T> {
                 value: path,
             });
 
-            return end_wildcard.data.as_ref();
+            return if end_wildcard.data.is_some() {
+                Some(end_wildcard)
+            } else {
+                None
+            };
         }
 
         None
     }
 
-    fn check_constraints(node: &Self, segment: &[u8]) -> bool {
-        if node.constraints.is_empty() {
+    fn check_constraint(node: &Self, segment: &[u8]) -> bool {
+        let Some(constraint) = &node.constraint else {
             return true;
-        }
+        };
 
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };
 
-        node.constraints
-            .iter()
-            .all(|function| function.0(segment))
+        (constraint.check)(segment)
     }
 }

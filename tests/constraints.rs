@@ -1,54 +1,71 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, route::RouteBuilder, router::Router};
+use wayfind::{assert_router_matches, node::Constraint, route::RouteBuilder, router::Router};
 
-fn is_lowercase_alpha(segment: &str) -> bool {
-    segment
-        .chars()
-        .all(|c| c.is_ascii_lowercase())
+struct LengthBetween3And10;
+impl Constraint for LengthBetween3And10 {
+    fn name() -> &'static str {
+        "length_3_to_10"
+    }
+
+    fn check(segment: &str) -> bool {
+        (3..=10).contains(&segment.len())
+    }
 }
 
-fn is_length_between_3_and_10(segment: &str) -> bool {
-    (3..=10).contains(&segment.len())
+struct Year1000To10000;
+impl Constraint for Year1000To10000 {
+    fn name() -> &'static str {
+        "year_1000_to_10000"
+    }
+
+    fn check(segment: &str) -> bool {
+        segment
+            .parse::<u32>()
+            .map(|num| (1000..=10000).contains(&num))
+            .unwrap_or(false)
+    }
 }
 
-fn is_digit(segment: &str) -> bool {
-    segment
-        .chars()
-        .all(|c| c.is_ascii_digit())
+struct PngOrJpg;
+impl Constraint for PngOrJpg {
+    fn name() -> &'static str {
+        "png_or_jpg"
+    }
+
+    fn check(segment: &str) -> bool {
+        segment == "png" || segment == "jpg"
+    }
 }
 
-fn is_year_1000_to_10000(segment: &str) -> bool {
-    segment
-        .parse::<u32>()
-        .map(|num| (1000..=10000).contains(&num))
-        .unwrap_or(false)
+struct EvenYear;
+impl Constraint for EvenYear {
+    fn name() -> &'static str {
+        "even_year"
+    }
+
+    fn check(segment: &str) -> bool {
+        segment
+            .parse::<i32>()
+            .map(|year| year % 2 == 0)
+            .unwrap_or(false)
+    }
 }
 
-fn is_png_or_jpg(segment: &str) -> bool {
-    segment == "png" || segment == "jpg"
-}
+struct ValidSlug;
+impl Constraint for ValidSlug {
+    fn name() -> &'static str {
+        "valid_slug"
+    }
 
-fn is_even_year(segment: &str) -> bool {
-    segment
-        .parse::<i32>()
-        .map(|year| year % 2 == 0)
-        .unwrap_or(false)
-}
-
-fn is_year_4_digits(segment: &str) -> bool {
-    segment.len() == 4
-        && segment
-            .chars()
-            .all(|c| c.is_ascii_digit())
-}
-
-fn is_valid_slug(segment: &str) -> bool {
-    !segment.is_empty()
-        && segment
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    fn check(segment: &str) -> bool {
+        !segment.is_empty()
+            && (3..=10).contains(&segment.len())
+            && segment
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+    }
 }
 
 #[test]
@@ -57,29 +74,24 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
 
     router.insert(
         RouteBuilder::new("/user/<name>/<id>")
-            .constraint("name", is_lowercase_alpha)
-            .constraint("name", is_length_between_3_and_10)
-            .constraint("id", is_digit)
-            .constraint("id", is_year_1000_to_10000)
+            .constraint::<LengthBetween3And10>("name")
+            .constraint::<Year1000To10000>("id")
             .build()?,
         1,
     )?;
 
     router.insert(
         RouteBuilder::new("/profile/<username>.<ext>")
-            .constraint("username", is_lowercase_alpha)
-            .constraint("username", is_length_between_3_and_10)
-            .constraint("ext", is_png_or_jpg)
+            .constraint::<LengthBetween3And10>("username")
+            .constraint::<PngOrJpg>("ext")
             .build()?,
         2,
     )?;
 
     router.insert(
         RouteBuilder::new("/posts/<year>/<slug>")
-            .constraint("year", is_year_4_digits)
-            .constraint("year", is_even_year)
-            .constraint("slug", is_valid_slug)
-            .constraint("slug", is_length_between_3_and_10)
+            .constraint::<EvenYear>("year")
+            .constraint::<ValidSlug>("slug")
             .build()?,
         3,
     )?;
@@ -87,19 +99,19 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ user/
-       │      ╰─ <name> [NodeConstraint(<function>), NodeConstraint(<function>)]
-       │              ╰─ /
-       │                 ╰─ <id> [1] [NodeConstraint(<function>), NodeConstraint(<function>)]
-       ╰─ p
-          ├─ rofile/
-          │        ╰─ <username> [NodeConstraint(<function>), NodeConstraint(<function>)]
-          │                    ╰─ .
-          │                       ╰─ <ext> [2] [NodeConstraint(<function>)]
-          ╰─ osts/
-                 ╰─ <year> [NodeConstraint(<function>), NodeConstraint(<function>)]
-                         ╰─ /
-                            ╰─ <slug> [3] [NodeConstraint(<function>), NodeConstraint(<function>)]
+       ├─ p
+       │  ├─ osts/
+       │  │      ╰─ <year> (even_year)
+       │  │              ╰─ /
+       │  │                 ╰─ <slug> [3] (valid_slug)
+       │  ╰─ rofile/
+       │           ╰─ <username> (length_3_to_10)
+       │                       ╰─ .
+       │                          ╰─ <ext> [2] (png_or_jpg)
+       ╰─ user/
+              ╰─ <name> (length_3_to_10)
+                      ╰─ /
+                         ╰─ <id> [1] (year_1000_to_10000)
     "###);
 
     assert_router_matches!(router, {

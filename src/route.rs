@@ -1,9 +1,13 @@
-use crate::{errors::route::RouteError, node::NodeConstraint, parts::Parts};
+use crate::{
+    errors::route::RouteError,
+    node::{Constraint, NodeConstraint},
+    parts::Parts,
+};
 use std::collections::HashMap;
 
 pub struct RouteBuilder<'a> {
     pub path: &'a str,
-    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
+    pub constraints: HashMap<&'a [u8], NodeConstraint>,
 }
 
 impl<'a> RouteBuilder<'a> {
@@ -16,12 +20,14 @@ impl<'a> RouteBuilder<'a> {
     }
 
     #[must_use]
-    pub fn constraint(mut self, name: &'a str, value: fn(&str) -> bool) -> Self {
-        self.constraints
-            .entry(name.as_bytes())
-            .or_default()
-            .push(NodeConstraint(value));
-
+    pub fn constraint<C: Constraint>(mut self, param: &'a str) -> Self {
+        self.constraints.insert(
+            param.as_bytes(),
+            NodeConstraint {
+                name: C::name(),
+                check: C::check,
+            },
+        );
         self
     }
 
@@ -37,19 +43,7 @@ impl<'a> RouteBuilder<'a> {
 pub struct Route<'a> {
     pub path: &'a str,
     pub parts: Parts<'a>,
-    pub constraints: HashMap<&'a [u8], Vec<NodeConstraint>>,
-}
-
-impl<'a> TryFrom<&'a str> for Route<'a> {
-    type Error = RouteError;
-
-    fn try_from(path: &'a str) -> Result<Self, Self::Error> {
-        Ok(Self {
-            path,
-            parts: Parts::new(path.as_bytes())?,
-            constraints: HashMap::new(),
-        })
-    }
+    pub constraints: HashMap<&'a [u8], NodeConstraint>,
 }
 
 pub trait IntoRoute<'a> {
@@ -64,6 +58,6 @@ impl<'a> IntoRoute<'a> for Route<'a> {
 
 impl<'a> IntoRoute<'a> for &'a str {
     fn into_route(self) -> Result<Route<'a>, RouteError> {
-        Route::try_from(self)
+        RouteBuilder::new(self).build()
     }
 }
