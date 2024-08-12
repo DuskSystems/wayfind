@@ -250,11 +250,10 @@ impl<T> Node<T> {
         };
 
         let Some(constraint) = constraints.get(name) else {
-            // FIXME: Should be an error? Or unreachable
-            return false;
+            // FIXME: Should be an error?
+            unreachable!();
         };
 
-        // FIXME: Is the above lookup more expensive? Which should come first.
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };

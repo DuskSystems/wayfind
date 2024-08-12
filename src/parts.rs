@@ -19,7 +19,7 @@ pub enum Part<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a>(Vec<Part<'a>>);
+pub struct Parts<'a>(pub Vec<Part<'a>>);
 
 impl<'a> Parts<'a> {
     pub fn new(path: &'a [u8]) -> Result<Self, RouteError> {

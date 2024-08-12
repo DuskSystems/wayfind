@@ -1,11 +1,15 @@
 use crate::{
-    errors::{delete::DeleteError, insert::InsertError},
+    errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     matches::Match,
     node::{Constraint, Node, NodeConstraint, NodeData, NodeKind},
-    parts::Parts,
+    parts::{Part, Parts},
 };
 use smallvec::smallvec;
-use std::{collections::HashMap, error::Error, fmt::Display, sync::Arc};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fmt::Display,
+    sync::Arc,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
@@ -35,24 +39,42 @@ impl<T> Router<T> {
         }
     }
 
-    // FIXME: Error for duplicates?
-    pub fn constraint<C: Constraint>(&mut self) -> Result<(), Box<dyn Error>> {
-        self.constraints.insert(
-            C::name().as_bytes().to_vec(),
-            NodeConstraint {
-                name: C::name(),
-                check: C::check,
-            },
-        );
+    pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
+        match self
+            .constraints
+            .entry(C::name().as_bytes().to_vec())
+        {
+            Entry::Vacant(entry) => {
+                entry.insert(NodeConstraint {
+                    name: C::name(),
+                    check: C::check,
+                });
 
-        Ok(())
+                Ok(())
+            }
+            Entry::Occupied(_) => Err(ConstraintError::DuplicateName),
+        }
     }
 
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
         let path = Arc::from(route);
         let mut parts = Parts::new(route.as_bytes())?;
 
-        // TODO: Check all constraints are valid up-front?
+        for part in &parts.0 {
+            match part {
+                Part::Dynamic {
+                    constraint: Some(name), ..
+                }
+                | Part::Wildcard {
+                    constraint: Some(name), ..
+                } => {
+                    if !self.constraints.contains_key(name) {
+                        return Err(InsertError::UnknownConstraint);
+                    }
+                }
+                _ => (),
+            }
+        }
 
         self.root
             .insert(&mut parts, NodeData { path, value })

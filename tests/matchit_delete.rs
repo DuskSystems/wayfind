@@ -115,7 +115,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     router.insert("/posts/{year}/{month}/{post}", 1)?;
     router.insert("/posts/{year}/{month}/index", 2)?;
     router.insert("/posts/{year}/top", 3)?;
-    router.insert("/static/{path:*}", 4)?;
+    router.insert("/static/{*path}", 4)?;
     router.insert("/favicon.ico", 5)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -131,7 +131,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
        │                              ├─ index [2]
        │                              ╰─ {post} [1]
        ├─ static/
-       │        ╰─ {path:*} [4]
+       │        ╰─ {*path} [4]
        ╰─ {page} [0]
     "###);
 
@@ -139,7 +139,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     assert_eq!(router.delete("/posts/{year}/{month}/{post}"), Ok(()));
     assert_eq!(router.delete("/posts/{year}/{month}/index"), Ok(()));
     assert_eq!(router.delete("/posts/{year}/top"), Ok(()));
-    assert_eq!(router.delete("/static/{path:*}"), Ok(()));
+    assert_eq!(router.delete("/static/{*path}"), Ok(()));
     assert_eq!(router.delete("/favicon.ico"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
@@ -152,22 +152,22 @@ fn blog() -> Result<(), Box<dyn Error>> {
 #[test]
 fn catchall() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/foo/{catchall:*}", 0)?;
+    router.insert("/foo/{*catchall}", 0)?;
     router.insert("/bar", 1)?;
     router.insert("/bar/", 2)?;
-    router.insert("/bar/{catchall:*}", 3)?;
+    router.insert("/bar/{*catchall}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ bar [1]
        │    ╰─ / [2]
-       │       ╰─ {catchall:*} [3]
+       │       ╰─ {*catchall} [3]
        ╰─ foo/
-             ╰─ {catchall:*} [0]
+             ╰─ {*catchall} [0]
     "###);
 
-    assert_eq!(router.delete("/foo/{catchall:*}"), Ok(()));
+    assert_eq!(router.delete("/foo/{*catchall}"), Ok(()));
     assert_eq!(router.delete("/bar/"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
@@ -175,29 +175,29 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ╰─ bar [1]
             ╰─ /
-               ╰─ {catchall:*} [3]
+               ╰─ {*catchall} [3]
     "###);
 
-    router.insert("/foo/{catchall:*}", 4)?;
+    router.insert("/foo/{*catchall}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ bar [1]
        │    ╰─ /
-       │       ╰─ {catchall:*} [3]
+       │       ╰─ {*catchall} [3]
        ╰─ foo/
-             ╰─ {catchall:*} [4]
+             ╰─ {*catchall} [4]
     "###);
 
-    assert_eq!(router.delete("/bar/{catchall:*}"), Ok(()));
+    assert_eq!(router.delete("/bar/{*catchall}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
        ├─ bar [1]
        ╰─ foo/
-             ╰─ {catchall:*} [4]
+             ╰─ {*catchall} [4]
     "###);
 
     Ok(())
