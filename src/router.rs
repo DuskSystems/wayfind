@@ -10,7 +10,7 @@ use std::{collections::HashMap, error::Error, fmt::Display, sync::Arc};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Router<T> {
     root: Node<T>,
-    constraints: HashMap<Arc<str>, NodeConstraint>,
+    constraints: HashMap<Vec<u8>, NodeConstraint>,
 }
 
 impl<T> Router<T> {
@@ -38,7 +38,7 @@ impl<T> Router<T> {
     // FIXME: Error for duplicates?
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), Box<dyn Error>> {
         self.constraints.insert(
-            Arc::from(C::name()),
+            C::name().as_bytes().to_vec(),
             NodeConstraint {
                 name: C::name(),
                 check: C::check,

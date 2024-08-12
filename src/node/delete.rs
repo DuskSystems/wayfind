@@ -3,7 +3,6 @@ use crate::{
     node::Node,
     parts::{Part, Parts},
 };
-use std::sync::Arc;
 
 impl<T> Node<T> {
     pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
@@ -68,7 +67,7 @@ impl<T> Node<T> {
         &mut self,
         parts: &mut Parts<'_>,
         name: &[u8],
-        constraint: &Option<Arc<str>>,
+        constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
@@ -94,7 +93,7 @@ impl<T> Node<T> {
         &mut self,
         parts: &mut Parts<'_>,
         name: &[u8],
-        constraint: &Option<Arc<str>>,
+        constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
@@ -116,7 +115,7 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<Arc<str>>) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<Vec<u8>>) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()

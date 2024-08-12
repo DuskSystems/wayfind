@@ -15,7 +15,7 @@ impl<T: Display> Display for Node<T> {
             let constraint = node
                 .constraint
                 .as_ref()
-                .map(|c| format!("{c}"));
+                .map(|c| format!("{}", String::from_utf8_lossy(c)));
 
             let key = match &node.kind {
                 NodeKind::Root => "$".to_string(),

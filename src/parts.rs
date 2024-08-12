@@ -1,5 +1,5 @@
 use crate::errors::route::RouteError;
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Part<'a> {
@@ -9,12 +9,12 @@ pub enum Part<'a> {
 
     Dynamic {
         name: &'a [u8],
-        constraint: Option<Arc<str>>,
+        constraint: Option<Vec<u8>>,
     },
 
     Wildcard {
         name: &'a [u8],
-        constraint: Option<Arc<str>>,
+        constraint: Option<Vec<u8>>,
     },
 }
 
@@ -72,7 +72,7 @@ impl<'a> Parts<'a> {
         &path[start..*index]
     }
 
-    fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<Arc<str>>) {
+    fn parse_parameter(path: &'a [u8], index: &mut usize) -> (&'a [u8], Option<Vec<u8>>) {
         // Consume opening '{'
         *index += 1;
         let start = *index;
@@ -93,10 +93,7 @@ impl<'a> Parts<'a> {
                 *index += 1;
             }
 
-            // FIXME: Handle error here
-            std::str::from_utf8(&path[constraint_start..*index])
-                .ok()
-                .map(Arc::from)
+            Some(path[constraint_start..*index].to_vec())
         } else {
             None
         };

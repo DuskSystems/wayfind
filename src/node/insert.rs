@@ -3,7 +3,7 @@ use crate::{
     errors::insert::InsertError,
     parts::{Part, Parts},
 };
-use std::{cmp::Ordering, sync::Arc};
+use std::cmp::Ordering;
 
 impl<T> Node<T> {
     pub fn insert(&mut self, parts: &mut Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
@@ -127,7 +127,7 @@ impl<T> Node<T> {
         parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<Arc<str>>,
+        constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
@@ -165,7 +165,7 @@ impl<T> Node<T> {
         parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<Arc<str>>,
+        constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
@@ -202,7 +202,7 @@ impl<T> Node<T> {
         &mut self,
         data: NodeData<T>,
         name: &[u8],
-        constraint: Option<Arc<str>>,
+        constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
         if self
             .end_wildcard_children
