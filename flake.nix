@@ -59,6 +59,7 @@
               sccache
               cargo-codspeed
               cargo-insta
+              cargo-nextest
 
               # Benchmarking
               gnuplot
