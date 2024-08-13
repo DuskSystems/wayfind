@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        shell: nix develop . --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Initialize Nix shell
-        run: nix develop .
+        run: nix develop .#ci
 
       - name: Run the tasks
         run: |
@@ -52,15 +52,13 @@ jobs:
           cargo clippy
           cargo check --workspace
           cargo build --workspace
-          cargo insta test
           cargo codspeed build
-          cargo nextest run
-          cargo llvm-cov --codecov --output-path codecov.json
+          cargo llvm-cov nextest --all-targets --codecov --output-path target/nextest/default/codecov.json
 
       - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
         with:
-          shell: nix develop . --command bash {0}
+          shell: nix develop .#ci --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
 
@@ -74,12 +72,12 @@ jobs:
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: codecov.json
+          files: target/nextest/default/codecov.json
           fail_ci_if_error: true
           token: "${{ secrets.CODECOV_TOKEN }}"
 
       - name: Show SCCache stats
-        if: always()
+        if: always() && !cancelled()
         run: sccache --show-stats
 
   msrv:
@@ -114,5 +112,5 @@ jobs:
           cargo build
 
       - name: Show SCCache stats
-        if: always()
+        if: always() && !cancelled()
         run: sccache --show-stats

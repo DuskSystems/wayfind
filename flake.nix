@@ -76,6 +76,28 @@
             ];
         };
 
+        # nix develop .#ci
+        ci = pkgs.mkShell {
+          name = "wayfind-ci-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs;
+            [
+              # Rust
+              rust-toolchain
+              sccache
+              cargo-codspeed
+              cargo-nextest
+            ]
+            ++ lib.optionals pkgs.stdenv.isLinux [
+              # Rust
+              # NOTE: https://github.com/NixOS/nixpkgs/pull/260725
+              cargo-llvm-cov
+            ];
+        };
+
         # nix develop .#msrv
         msrv = pkgs.mkShell {
           name = "wayfind-msrv-shell";
