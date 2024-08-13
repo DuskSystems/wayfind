@@ -54,6 +54,7 @@ jobs:
           cargo build --workspace
           cargo insta test
           cargo codspeed build
+          cargo nextest run
           cargo llvm-cov --codecov --output-path codecov.json
 
       - name: Upload benchmark results to CodSpeed
@@ -62,6 +63,13 @@ jobs:
           shell: nix develop . --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
+
+      - name: Upload test results to Codecov
+        uses: codecov/test-results-action@v1
+        with:
+          files: target/nextest/default/junit.xml
+          fail_ci_if_error: true
+          token: "${{ secrets.CODECOV_TOKEN }}"
 
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
