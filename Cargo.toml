@@ -64,10 +64,6 @@ categories.workspace = true
 [lints]
 workspace = true
 
-[dependencies]
-smallvec = "1.13"
-regex = "1.10"
-
 [dev-dependencies]
 # Snapshots
 # NOTE: Keep in sync with `cargo-insta` Nix package.

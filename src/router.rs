@@ -5,10 +5,10 @@ use crate::{
     node::{Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
-use smallvec::smallvec;
 use std::{
     collections::{hash_map::Entry, HashMap},
     fmt::Display,
+    net::{Ipv4Addr, Ipv6Addr},
     sync::Arc,
 };
 
@@ -39,20 +39,27 @@ impl<T> Router<T> {
             constraints: HashMap::new(),
         };
 
-        // TODO: Make these defaults optional.
-        // TODO: Support more default constraints.
-
         router.constraint::<u8>().unwrap();
         router.constraint::<u16>().unwrap();
         router.constraint::<u32>().unwrap();
         router.constraint::<u64>().unwrap();
         router.constraint::<u128>().unwrap();
+        router.constraint::<usize>().unwrap();
 
         router.constraint::<i8>().unwrap();
         router.constraint::<i16>().unwrap();
         router.constraint::<i32>().unwrap();
         router.constraint::<i64>().unwrap();
         router.constraint::<i128>().unwrap();
+        router.constraint::<isize>().unwrap();
+
+        router.constraint::<f32>().unwrap();
+        router.constraint::<f64>().unwrap();
+
+        router.constraint::<bool>().unwrap();
+
+        router.constraint::<Ipv4Addr>().unwrap();
+        router.constraint::<Ipv6Addr>().unwrap();
 
         router
     }
@@ -75,18 +82,16 @@ impl<T> Router<T> {
         let mut parts = Parts::new(route.as_bytes())?;
 
         for part in &parts.0 {
-            match part {
-                Part::Dynamic {
-                    constraint: Some(name), ..
+            if let Part::Dynamic {
+                constraint: Some(name), ..
+            }
+            | Part::Wildcard {
+                constraint: Some(name), ..
+            } = part
+            {
+                if !self.constraints.contains_key(name) {
+                    return Err(InsertError::UnknownConstraint);
                 }
-                | Part::Wildcard {
-                    constraint: Some(name), ..
-                } => {
-                    if !self.constraints.contains_key(name) {
-                        return Err(InsertError::UnknownConstraint);
-                    }
-                }
-                _ => (),
             }
         }
 
@@ -101,7 +106,7 @@ impl<T> Router<T> {
 
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
-        let mut parameters = smallvec![];
+        let mut parameters = vec![];
         let node = self
             .root
             .matches(path.as_bytes(), &mut parameters, &self.constraints)?;
