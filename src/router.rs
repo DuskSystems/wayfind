@@ -5,7 +5,6 @@ use crate::{
     node::{Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
-use smallvec::smallvec;
 use std::{
     collections::{hash_map::Entry, HashMap},
     fmt::Display,
@@ -107,7 +106,7 @@ impl<T> Router<T> {
 
     #[must_use]
     pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
-        let mut parameters = smallvec![];
+        let mut parameters = vec![];
         let node = self
             .root
             .matches(path.as_bytes(), &mut parameters, &self.constraints)?;

@@ -1,13 +1,12 @@
 use super::Node;
 use crate::matches::Parameter;
-use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 
 impl<T> Node<T> {
     pub fn matches<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         if path.is_empty() {
@@ -36,7 +35,7 @@ impl<T> Node<T> {
     fn matches_static<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for static_child in &self.static_children {
@@ -61,7 +60,7 @@ impl<T> Node<T> {
     fn matches_dynamic<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         if self.quick_dynamic {
@@ -80,14 +79,14 @@ impl<T> Node<T> {
     fn matches_dynamic_inline<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
             let mut last_match = None;
-            let mut last_match_parameters = smallvec![];
+            let mut last_match_parameters = vec![];
 
             while consumed < path.len() {
                 if path[consumed] == b'/' {
@@ -127,7 +126,7 @@ impl<T> Node<T> {
     fn matches_dynamic_segment<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
@@ -159,7 +158,7 @@ impl<T> Node<T> {
     fn matches_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for wildcard_child in &self.wildcard_children {
@@ -221,7 +220,7 @@ impl<T> Node<T> {
     fn matches_end_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+        parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for end_wildcard in &self.end_wildcard_children {

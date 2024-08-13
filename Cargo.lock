@@ -2286,7 +2286,6 @@ dependencies = [
  "regex",
  "route-recognizer",
  "routefinder",
- "smallvec",
  "xitca-router",
 ]
 

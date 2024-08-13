@@ -7,6 +7,9 @@
 
 A speedy, flexible router for Rust.
 
+- Zero dependencies.
+- No unsafe code.
+
 > [!WARNING]
 > Currently in a pre-alpha state.
 
@@ -136,7 +139,7 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 ```
 matchit benchmarks/wayfind
-  time: [211.02 ns 211.48 ns 212.09 ns]
+  time: [260.22 ns 261.07 ns 262.01 ns]
 
 matchit benchmarks/actix-router
   time: [20.786 µs 20.837 µs 20.893 µs]
@@ -170,11 +173,11 @@ matchit benchmarks/xitca-router
 
 matchit allocations
 ├─ wayfind           alloc:
-│                      675
-│                      111.9 KB
+│                      678
+│                      112.3 KB
 │                    dealloc:
-│                      675
-│                      136.8 KB
+│                      678
+│                      137.2 KB
 │                    grow:
 │                      80
 │                      24.89 KB
@@ -292,7 +295,7 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 ```
 path-tree benchmarks/wayfind
-  time: [3.2011 µs 3.2080 µs 3.2160 µs]
+  time: [4.4622 µs 4.4692 µs 4.4767 µs]
 
 path-tree benchmarks/actix-router
   time: [172.47 µs 172.87 µs 173.32 µs]
@@ -326,11 +329,11 @@ path-tree benchmarks/xitca-router
 
 path-tree allocations
 ├─ wayfind           alloc:
-│                      1640
-│                      290.9 KB
+│                      1698
+│                      298.3 KB
 │                    dealloc:
-│                      1640
-│                      345.7 KB
+│                      1698
+│                      353.1 KB
 │                    grow:
 │                      195
 │                      54.81 KB
