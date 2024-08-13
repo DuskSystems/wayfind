@@ -34,8 +34,8 @@
           (import rust-overlay)
 
           (self: super: {
-            cargo-codspeed = pkgs.callPackage nix/pkgs/cargo-codspeed {};
-            cargo-insta = pkgs.callPackage nix/pkgs/cargo-insta {};
+            cargo-codspeed = pkgs.callPackage ./nix/pkgs/cargo-codspeed {};
+            cargo-insta = pkgs.callPackage ./nix/pkgs/cargo-insta {};
           })
         ];
       };

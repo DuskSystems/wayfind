@@ -4,7 +4,10 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, constraints::Constraint, router::Router};
+use wayfind::{constraints::Constraint, router::Router};
+
+#[path = "./common.rs"]
+mod common;
 
 struct DigitString;
 impl Constraint for DigitString {

@@ -1,8 +1,8 @@
-use crate::{
+use std::{fmt::Debug, sync::Arc};
+use wayfind::{
     matches::{Match, Parameter},
     router::Router,
 };
-use std::{fmt::Debug, sync::Arc};
 
 #[macro_export]
 macro_rules! assert_router_matches {
@@ -11,7 +11,7 @@ macro_rules! assert_router_matches {
     }) => {
         $({
             let expected = assert_router_matches!(@parse_expected $expected);
-            $crate::testing::assert_router_match(&$router, $input, expected);
+            $crate::common::assert_router_match(&$router, $input, expected);
         })+
     };
 
@@ -22,13 +22,16 @@ macro_rules! assert_router_matches {
             $($param_key:expr => $param_value:expr),+
         })?
     }) => {
-        Some($crate::testing::ExpectedMatch {
+        Some($crate::common::ExpectedMatch {
             path: std::sync::Arc::from($path),
             value: $value,
             params: vec![
                 $(
-                    $( $crate::matches::Parameter {
+                    $( wayfind::matches::Parameter {
+                        #[allow(clippy::string_lit_as_bytes)]
                         key: $param_key.as_bytes(),
+
+                        #[allow(clippy::string_lit_as_bytes)]
                         value: $param_value.as_bytes(),
                     } ),+
                 )?

@@ -4,7 +4,10 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{assert_router_matches, router::Router};
+use wayfind::router::Router;
+
+#[path = "./common.rs"]
+mod common;
 
 #[test]
 fn statics() -> Result<(), Box<dyn Error>> {
