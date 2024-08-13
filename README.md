@@ -136,48 +136,48 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 ```
 matchit benchmarks/wayfind
-  time: [205.06 ns 205.32 ns 205.66 ns]
+  time: [211.02 ns 211.48 ns 212.09 ns]
 
 matchit benchmarks/actix-router
-  time: [21.087 µs 21.264 µs 21.440 µs]
+  time: [20.786 µs 20.837 µs 20.893 µs]
 
 matchit benchmarks/gonzales
-  time: [129.58 ns 130.01 ns 130.50 ns]
+  time: [129.14 ns 129.48 ns 129.91 ns]
 
 matchit benchmarks/matchit
-  time: [180.11 ns 180.46 ns 180.94 ns]
+  time: [182.83 ns 183.13 ns 183.49 ns]
 
 matchit benchmarks/ntex-router
-  time: [1.5558 µs 1.5605 µs 1.5656 µs]
+  time: [1.5853 µs 1.5912 µs 1.5989 µs]
 
 matchit benchmarks/path-table
-  time: [539.10 ns 540.01 ns 541.06 ns]
+  time: [529.85 ns 530.70 ns 531.72 ns]
 
 matchit benchmarks/path-tree
-  time: [312.92 ns 313.57 ns 314.35 ns]
+  time: [329.50 ns 330.75 ns 332.26 ns]
 
 matchit benchmarks/regex
-  time: [1.1500 µs 1.1621 µs 1.1833 µs]
+  time: [1.1410 µs 1.1435 µs 1.1463 µs]
 
 matchit benchmarks/route-recognizer
-  time: [4.3255 µs 4.3450 µs 4.3664 µs]
+  time: [4.3062 µs 4.3145 µs 4.3262 µs]
 
 matchit benchmarks/routefinder
-  time: [6.0104 µs 6.0235 µs 6.0387 µs]
+  time: [6.1499 µs 6.1597 µs 6.1705 µs]
 
 matchit benchmarks/xitca-router
-  time: [352.04 ns 352.75 ns 353.61 ns]
+  time: [354.24 ns 359.52 ns 368.46 ns]
 
 matchit allocations
 ├─ wayfind           alloc:
-│                      654
-│                      97.43 KB
+│                      675
+│                      111.9 KB
 │                    dealloc:
-│                      654
-│                      116.5 KB
+│                      675
+│                      136.8 KB
 │                    grow:
 │                      80
-│                      19.13 KB
+│                      24.89 KB
 │
 ├─ actix-router      alloc:
 │                      31187
@@ -292,48 +292,48 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 ```
 path-tree benchmarks/wayfind
-  time: [3.1300 µs 3.1345 µs 3.1398 µs]
+  time: [3.2011 µs 3.2080 µs 3.2160 µs]
 
 path-tree benchmarks/actix-router
-  time: [175.08 µs 177.90 µs 183.39 µs]
+  time: [172.47 µs 172.87 µs 173.32 µs]
 
 path-tree benchmarks/gonzales
-  time: [5.7293 µs 5.7671 µs 5.8043 µs]
+  time: [5.8191 µs 5.8533 µs 5.8853 µs]
 
 path-tree benchmarks/matchit
-  time: [4.8003 µs 4.8068 µs 4.8146 µs]
+  time: [4.8825 µs 4.8900 µs 4.8984 µs]
 
 path-tree benchmarks/ntex-router
-  time: [26.451 µs 26.509 µs 26.582 µs]
+  time: [26.971 µs 27.024 µs 27.094 µs]
 
 path-tree benchmarks/path-table
-  time: [10.299 µs 10.323 µs 10.351 µs]
+  time: [10.264 µs 10.278 µs 10.295 µs]
 
 path-tree benchmarks/path-tree
-  time: [5.2089 µs 5.2175 µs 5.2274 µs]
+  time: [5.2534 µs 5.2783 µs 5.3049 µs]
 
 path-tree benchmarks/regex
-  time: [41.535 µs 41.685 µs 41.874 µs]
+  time: [41.216 µs 41.356 µs 41.530 µs]
 
 path-tree benchmarks/route-recognizer
-  time: [86.125 µs 86.327 µs 86.578 µs]
+  time: [86.208 µs 86.399 µs 86.667 µs]
 
 path-tree benchmarks/routefinder
-  time: [91.673 µs 91.784 µs 91.906 µs]
+  time: [92.274 µs 92.413 µs 92.586 µs]
 
 path-tree benchmarks/xitca-router
-  time: [7.3105 µs 7.3279 µs 7.3501 µs]
+  time: [7.3530 µs 7.3689 µs 7.3873 µs]
 
 path-tree allocations
 ├─ wayfind           alloc:
-│                      1619
-│                      258.5 KB
+│                      1640
+│                      290.9 KB
 │                    dealloc:
-│                      1619
-│                      298.1 KB
+│                      1640
+│                      345.7 KB
 │                    grow:
 │                      195
-│                      39.55 KB
+│                      54.81 KB
 │
 ├─ actix-router      alloc:
 │                      78390
@@ -444,3 +444,4 @@ path-tree allocations
 - [poem](https://github.com/poem-web/poem): Initial experimentations started out as a Poem router fork
 - [matchit](https://github.com/ibraheemdev/matchit): Performance leader among pre-existing routers
 - [path-tree](https://github.com/viz-rs/path-tree): Extensive testing and router display feature
+- [ASP.NET Core](https://github.com/dotnet/AspNetCore): Constraints-based approach to routing
