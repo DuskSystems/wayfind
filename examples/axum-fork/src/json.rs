@@ -129,10 +129,7 @@ fn json_content_type(headers: &HeaderMap) -> bool {
     };
 
     let is_json_content_type = mime.type_() == "application"
-        && (mime.subtype() == "json"
-            || mime
-                .suffix()
-                .map_or(false, |name| name == "json"));
+        && (mime.subtype() == "json" || mime.suffix().map_or(false, |name| name == "json"));
 
     is_json_content_type
 }
@@ -228,10 +225,7 @@ mod tests {
         let app = Router::new().route("/", post(|input: Json<Input>| async { input.0.foo }));
 
         let client = TestClient::new(app);
-        let res = client
-            .post("/")
-            .json(&json!({ "foo": "bar" }))
-            .await;
+        let res = client.post("/").json(&json!({ "foo": "bar" })).await;
         let body = res.text().await;
 
         assert_eq!(body, "bar");
@@ -247,10 +241,7 @@ mod tests {
         let app = Router::new().route("/", post(|input: Json<Input>| async { input.0.foo }));
 
         let client = TestClient::new(app);
-        let res = client
-            .post("/")
-            .body(r#"{ "foo": "bar" }"#)
-            .await;
+        let res = client.post("/").body(r#"{ "foo": "bar" }"#).await;
 
         let status = res.status();
 

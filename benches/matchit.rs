@@ -121,9 +121,7 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                route_recognizer
-                    .recognize(route)
-                    .unwrap();
+                route_recognizer.recognize(route).unwrap();
             }
         });
     });

@@ -349,8 +349,7 @@ impl Future for ResponseFuture {
 
 impl fmt::Debug for ResponseFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ResponseFuture")
-            .finish()
+        f.debug_struct("ResponseFuture").finish()
     }
 }
 
@@ -395,8 +394,7 @@ mod tests {
     #[crate::test]
     async fn works() {
         async fn add_header<B>(mut req: Request<B>) -> Request<B> {
-            req.headers_mut()
-                .insert("x-foo", "foo".parse().unwrap());
+            req.headers_mut().insert("x-foo", "foo".parse().unwrap());
             req
         }
 

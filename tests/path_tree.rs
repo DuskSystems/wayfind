@@ -1546,7 +1546,10 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
 
     router.insert("/{org}/{repo}/{*path}", 3000)?;
     router.insert("/{org}/{repo}/releases/{*path}", 3001)?;
-    router.insert("/{org}/{repo}/releases/download/{tag}/{filename}.{ext}", 3002)?;
+    router.insert(
+        "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
+        3002,
+    )?;
 
     insta::assert_snapshot!(router, @r###"
     $

@@ -54,7 +54,12 @@ impl TestMakeWriter {
     fn new() -> (Self, Handle) {
         let write = Arc::new(AxumMutex::new(Some(Vec::<u8>::new())));
 
-        (Self { write: write.clone() }, Handle { write })
+        (
+            Self {
+                write: write.clone(),
+            },
+            Handle { write },
+        )
     }
 }
 
@@ -76,7 +81,10 @@ impl<'a> io::Write for Writer<'a> {
                 vec.extend(buf);
                 Ok(len)
             }
-            None => Err(io::Error::new(io::ErrorKind::Other, "inner writer has been taken")),
+            None => Err(io::Error::new(
+                io::ErrorKind::Other,
+                "inner writer has been taken",
+            )),
         }
     }
 
@@ -91,12 +99,7 @@ struct Handle {
 
 impl Handle {
     fn take(self) -> String {
-        let vec = self
-            .write
-            .lock()
-            .unwrap()
-            .take()
-            .unwrap();
+        let vec = self.write.lock().unwrap().take().unwrap();
         String::from_utf8(vec).unwrap()
     }
 }

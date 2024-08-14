@@ -160,8 +160,7 @@ where
     }
 
     fn call(&mut self, mut req: Request<ResBody>) -> Self::Future {
-        req.extensions_mut()
-            .insert(self.value.clone());
+        req.extensions_mut().insert(self.value.clone());
         self.inner.call(req)
     }
 }

@@ -14,10 +14,7 @@ impl Constraint for DigitString {
     const NAME: &'static str = "digit_string";
 
     fn check(segment: &str) -> bool {
-        !segment.is_empty()
-            && segment
-                .chars()
-                .all(|c| c.is_ascii_digit())
+        !segment.is_empty() && segment.chars().all(|c| c.is_ascii_digit())
     }
 }
 
@@ -169,9 +166,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     assert!(router.insert("/a/{*p}", 2).is_err());
     assert!(router.insert("/a/b/{*p}", 1).is_ok());
     assert!(router.insert("/a/b/{*p2}", 2).is_err());
-    assert!(router
-        .insert("/k/h/{name:digit_string}", 1)
-        .is_ok());
+    assert!(router.insert("/k/h/{name:digit_string}", 1).is_ok());
 
     insta::assert_snapshot!(router, @"");
 

@@ -88,11 +88,7 @@ impl<T: Display> Display for Node<T> {
 
             // Recursively print wildcard children
             let wildcard_count = node.wildcard_children.len();
-            for (index, child) in node
-                .wildcard_children
-                .iter()
-                .enumerate()
-            {
+            for (index, child) in node.wildcard_children.iter().enumerate() {
                 let is_last = if has_end_wildcard {
                     false
                 } else {
@@ -104,11 +100,7 @@ impl<T: Display> Display for Node<T> {
 
             // Recursively print end wildcard children
             let end_wildcard_count = node.end_wildcard_children.len();
-            for (index, child) in node
-                .end_wildcard_children
-                .iter()
-                .enumerate()
-            {
+            for (index, child) in node.end_wildcard_children.iter().enumerate() {
                 let is_last = index == (end_wildcard_count - 1);
                 debug_node(f, child, &new_prefix, false, is_last)?;
             }

@@ -42,10 +42,7 @@ impl<S, E> BoxedIntoRoute<S, E> {
     }
 
     pub(crate) fn into_route(self, state: S) -> Route<E> {
-        self.0
-            .into_inner()
-            .unwrap()
-            .into_route(state)
+        self.0.into_inner().unwrap().into_route(state)
     }
 }
 

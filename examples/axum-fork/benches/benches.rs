@@ -23,34 +23,28 @@ fn main() {
         .path("/a/b/c")
         .run(|| Router::new().route("/a/b/c", get(|| async { "Hello, World!" })));
 
-    benchmark("basic-merge")
-        .path("/a/b/c")
-        .run(|| {
-            let inner = Router::new().route("/a/b/c", get(|| async { "Hello, World!" }));
-            Router::new().merge(inner)
-        });
+    benchmark("basic-merge").path("/a/b/c").run(|| {
+        let inner = Router::new().route("/a/b/c", get(|| async { "Hello, World!" }));
+        Router::new().merge(inner)
+    });
 
-    benchmark("basic-nest")
-        .path("/a/b/c")
-        .run(|| {
-            let c = Router::new().route("/c", get(|| async { "Hello, World!" }));
-            let b = Router::new().nest("/b", c);
-            Router::new().nest("/a", b)
-        });
+    benchmark("basic-nest").path("/a/b/c").run(|| {
+        let c = Router::new().route("/c", get(|| async { "Hello, World!" }));
+        let b = Router::new().nest("/b", c);
+        Router::new().nest("/a", b)
+    });
 
-    benchmark("routing")
-        .path("/foo/bar/baz")
-        .run(|| {
-            let mut app = Router::new();
-            for a in 0..10 {
-                for b in 0..10 {
-                    for c in 0..10 {
-                        app = app.route(&format!("/foo-{a}/bar-{b}/baz-{c}"), get(|| async {}));
-                    }
+    benchmark("routing").path("/foo/bar/baz").run(|| {
+        let mut app = Router::new();
+        for a in 0..10 {
+            for b in 0..10 {
+                for c in 0..10 {
+                    app = app.route(&format!("/foo-{a}/bar-{b}/baz-{c}"), get(|| async {}));
                 }
             }
-            app.route("/foo/bar/baz", get(|| async {}))
-        });
+        }
+        app.route("/foo/bar/baz", get(|| async {}))
+    });
 
     benchmark("receive-json")
         .method("post")
@@ -225,7 +219,12 @@ impl BenchmarkBuilder {
 fn install_rewrk() {
     println!("installing rewrk");
     let mut cmd = Command::new("cargo");
-    cmd.args(["install", "rewrk", "--git", "https://github.com/ChillFish8/rewrk.git"]);
+    cmd.args([
+        "install",
+        "rewrk",
+        "--git",
+        "https://github.com/ChillFish8/rewrk.git",
+    ]);
     let status = cmd
         .status()
         .unwrap_or_else(|_| panic!("failed to install rewrk"));
@@ -239,8 +238,9 @@ fn ensure_rewrk_is_installed() {
     cmd.arg("--help");
     cmd.stdout(Stdio::null());
     cmd.stderr(Stdio::null());
-    cmd.status()
-        .unwrap_or_else(|_| panic!("rewrk is not installed. See https://github.com/lnx-search/rewrk"));
+    cmd.status().unwrap_or_else(|_| {
+        panic!("rewrk is not installed. See https://github.com/lnx-search/rewrk")
+    });
 }
 
 fn on_ci() -> bool {

@@ -102,9 +102,7 @@ pub(crate) fn set_matched_path_for_request(
 
     if matched_path.ends_with(NEST_TAIL_PARAM_CAPTURE) {
         extensions.insert(MatchedNestedPath(matched_path));
-        debug_assert!(extensions
-            .remove::<MatchedPath>()
-            .is_none());
+        debug_assert!(extensions.remove::<MatchedPath>().is_none());
     } else {
         extensions.insert(MatchedPath(matched_path));
         extensions.remove::<MatchedNestedPath>();
@@ -144,7 +142,10 @@ mod tests {
 
     #[crate::test]
     async fn extracting_on_handler() {
-        let app = Router::new().route("/:a", get(|path: MatchedPath| async move { path.as_str().to_owned() }));
+        let app = Router::new().route(
+            "/:a",
+            get(|path: MatchedPath| async move { path.as_str().to_owned() }),
+        );
 
         let client = TestClient::new(app);
 
@@ -156,7 +157,10 @@ mod tests {
     async fn extracting_on_handler_in_nested_router() {
         let app = Router::new().nest(
             "/:a",
-            Router::new().route("/:b", get(|path: MatchedPath| async move { path.as_str().to_owned() })),
+            Router::new().route(
+                "/:b",
+                get(|path: MatchedPath| async move { path.as_str().to_owned() }),
+            ),
         );
 
         let client = TestClient::new(app);
@@ -171,7 +175,10 @@ mod tests {
             "/:a",
             Router::new().nest(
                 "/:b",
-                Router::new().route("/:c", get(|path: MatchedPath| async move { path.as_str().to_owned() })),
+                Router::new().route(
+                    "/:c",
+                    get(|path: MatchedPath| async move { path.as_str().to_owned() }),
+                ),
             ),
         );
 
@@ -183,7 +190,10 @@ mod tests {
 
     #[crate::test]
     async fn cannot_extract_nested_matched_path_in_middleware() {
-        async fn extract_matched_path<B>(matched_path: Option<MatchedPath>, req: Request<B>) -> Request<B> {
+        async fn extract_matched_path<B>(
+            matched_path: Option<MatchedPath>,
+            req: Request<B>,
+        ) -> Request<B> {
             assert!(matched_path.is_none());
             req
         }
@@ -200,7 +210,10 @@ mod tests {
 
     #[crate::test]
     async fn can_extract_nested_matched_path_in_middleware_using_nest() {
-        async fn extract_matched_path<B>(matched_path: Option<MatchedPath>, req: Request<B>) -> Request<B> {
+        async fn extract_matched_path<B>(
+            matched_path: Option<MatchedPath>,
+            req: Request<B>,
+        ) -> Request<B> {
             assert_eq!(matched_path.unwrap().as_str(), "/:a/:b");
             req
         }
@@ -218,10 +231,7 @@ mod tests {
     #[crate::test]
     async fn cannot_extract_nested_matched_path_in_middleware_via_extension() {
         async fn assert_no_matched_path<B>(req: Request<B>) -> Request<B> {
-            assert!(req
-                .extensions()
-                .get::<MatchedPath>()
-                .is_none());
+            assert!(req.extensions().get::<MatchedPath>().is_none());
             req
         }
 
@@ -238,10 +248,7 @@ mod tests {
     #[tokio::test]
     async fn can_extract_nested_matched_path_in_middleware_via_extension_using_nest() {
         async fn assert_matched_path<B>(req: Request<B>) -> Request<B> {
-            assert!(req
-                .extensions()
-                .get::<MatchedPath>()
-                .is_some());
+            assert!(req.extensions().get::<MatchedPath>().is_some());
             req
         }
 
@@ -278,10 +285,7 @@ mod tests {
     #[crate::test]
     async fn can_extract_nested_matched_path_in_middleware_on_nested_router_via_extension() {
         async fn extract_matched_path<B>(req: Request<B>) -> Request<B> {
-            let matched_path = req
-                .extensions()
-                .get::<MatchedPath>()
-                .unwrap();
+            let matched_path = req.extensions().get::<MatchedPath>().unwrap();
             assert_eq!(matched_path.as_str(), "/:a/:b");
             req
         }
@@ -337,10 +341,7 @@ mod tests {
     async fn cant_extract_in_fallback() {
         async fn handler(path: Option<MatchedPath>, req: Request) {
             assert!(path.is_none());
-            assert!(req
-                .extensions()
-                .get::<MatchedPath>()
-                .is_none());
+            assert!(req.extensions().get::<MatchedPath>().is_none());
         }
 
         let app = Router::new().fallback(handler);

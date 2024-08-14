@@ -6,8 +6,8 @@ use tower_service::Service;
 use wayfind::{errors::insert::InsertError, matches::Match, router::Router};
 
 use super::{
-    future::RouteFuture, not_found::NotFound, strip_prefix::StripPrefix, url_params, Endpoint, MethodRouter, Route,
-    RouteId, FALLBACK_PARAM_PATH, NEST_TAIL_PARAM,
+    future::RouteFuture, not_found::NotFound, strip_prefix::StripPrefix, url_params, Endpoint,
+    MethodRouter, Route, RouteId, FALLBACK_PARAM_PATH, NEST_TAIL_PARAM,
 };
 
 pub(super) struct PathRouter<S, const IS_FALLBACK: bool> {
@@ -36,7 +36,11 @@ impl<S, const IS_FALLBACK: bool> PathRouter<S, IS_FALLBACK>
 where
     S: Clone + Send + Sync + 'static,
 {
-    pub(super) fn route(&mut self, path: &str, method_router: MethodRouter<S>) -> Result<(), Cow<'static, str>> {
+    pub(super) fn route(
+        &mut self,
+        path: &str,
+        method_router: MethodRouter<S>,
+    ) -> Result<(), Cow<'static, str>> {
         fn validate_path(path: &str) -> Result<(), &'static str> {
             if path.is_empty() {
                 return Err("Paths must start with a `/`. Use \"/\" for root routes");
@@ -53,11 +57,8 @@ where
             .node
             .path_to_route_id
             .get(path)
-            .and_then(|route_id| {
-                self.routes
-                    .get(route_id)
-                    .map(|svc| (*route_id, svc))
-            }) {
+            .and_then(|route_id| self.routes.get(route_id).map(|svc| (*route_id, svc)))
+        {
             // if we're adding a new `MethodRouter` to a route that already has one just
             // merge them. This makes `.route("/", get(_)).route("/", post(_))` work
             let service = Endpoint::MethodRouter(
@@ -78,7 +79,11 @@ where
         Ok(())
     }
 
-    pub(super) fn route_service<T>(&mut self, path: &str, service: T) -> Result<(), Cow<'static, str>>
+    pub(super) fn route_service<T>(
+        &mut self,
+        path: &str,
+        service: T,
+    ) -> Result<(), Cow<'static, str>>
     where
         T: Service<Request, Error = Infallible> + Clone + Send + 'static,
         T::Response: IntoResponse,
@@ -87,7 +92,11 @@ where
         self.route_endpoint(path, Endpoint::Route(Route::new(service)))
     }
 
-    pub(super) fn route_endpoint(&mut self, path: &str, endpoint: Endpoint<S>) -> Result<(), Cow<'static, str>> {
+    pub(super) fn route_endpoint(
+        &mut self,
+        path: &str,
+        endpoint: Endpoint<S>,
+    ) -> Result<(), Cow<'static, str>> {
         if path.is_empty() {
             return Err("Paths must start with a `/`. Use \"/\" for root routes".into());
         } else if !path.starts_with('/') {
@@ -102,7 +111,8 @@ where
     }
 
     fn set_node(&mut self, path: &str, id: RouteId) -> Result<(), String> {
-        let mut node = Arc::try_unwrap(Arc::clone(&self.node)).unwrap_or_else(|node| (*node).clone());
+        let mut node =
+            Arc::try_unwrap(Arc::clone(&self.node)).unwrap_or_else(|node| (*node).clone());
         if let Err(err) = node.insert(path, id) {
             return Err(format!("Invalid route {path:?}: {err}"));
         }
@@ -110,7 +120,10 @@ where
         Ok(())
     }
 
-    pub(super) fn merge(&mut self, other: PathRouter<S, IS_FALLBACK>) -> Result<(), Cow<'static, str>> {
+    pub(super) fn merge(
+        &mut self,
+        other: PathRouter<S, IS_FALLBACK>,
+    ) -> Result<(), Cow<'static, str>> {
         let PathRouter {
             routes,
             node,
@@ -168,7 +181,10 @@ where
 
             let path = path_for_nested_route(prefix, inner_path);
 
-            let layer = (StripPrefix::layer(prefix), SetNestedPath::layer(path_to_nest_at));
+            let layer = (
+                StripPrefix::layer(prefix),
+                SetNestedPath::layer(path_to_nest_at),
+            );
             match endpoint.layer(layer) {
                 Endpoint::MethodRouter(method_router) => {
                     self.route(&path, method_router)?;
@@ -182,7 +198,11 @@ where
         Ok(())
     }
 
-    pub(super) fn nest_service<T>(&mut self, path_to_nest_at: &str, svc: T) -> Result<(), Cow<'static, str>>
+    pub(super) fn nest_service<T>(
+        &mut self,
+        path_to_nest_at: &str,
+        svc: T,
+    ) -> Result<(), Cow<'static, str>>
     where
         T: Service<Request, Error = Infallible> + Clone + Send + 'static,
         T::Response: IntoResponse,
@@ -197,7 +217,10 @@ where
             format!("{path}/*{NEST_TAIL_PARAM}")
         };
 
-        let layer = (StripPrefix::layer(prefix), SetNestedPath::layer(path_to_nest_at));
+        let layer = (
+            StripPrefix::layer(prefix),
+            SetNestedPath::layer(path_to_nest_at),
+        );
         let endpoint = Endpoint::Route(Route::new(layer.layer(svc)));
 
         self.route_endpoint(&path, endpoint.clone())?;
@@ -292,19 +315,18 @@ where
         }
     }
 
-    pub(super) fn call_with_state(&self, mut req: Request, state: S) -> Result<RouteFuture<Infallible>, (Request, S)> {
+    pub(super) fn call_with_state(
+        &self,
+        mut req: Request,
+        state: S,
+    ) -> Result<RouteFuture<Infallible>, (Request, S)> {
         #[cfg(feature = "original-uri")]
         {
             use crate::extract::OriginalUri;
 
-            if req
-                .extensions()
-                .get::<OriginalUri>()
-                .is_none()
-            {
+            if req.extensions().get::<OriginalUri>().is_none() {
                 let original_uri = OriginalUri(req.uri().clone());
-                req.extensions_mut()
-                    .insert(original_uri);
+                req.extensions_mut().insert(original_uri);
             }
         }
 
@@ -330,7 +352,9 @@ where
                     .expect("no route for id. This is a bug in axum. Please file an issue");
 
                 match endpoint {
-                    Endpoint::MethodRouter(method_router) => Ok(method_router.call_with_state(req, state)),
+                    Endpoint::MethodRouter(method_router) => {
+                        Ok(method_router.call_with_state(req, state))
+                    }
                     Endpoint::Route(route) => Ok(route.clone().call(req)),
                 }
             }
@@ -405,10 +429,8 @@ impl Node {
         self.inner.insert(&path, val)?;
 
         let shared_path: Arc<str> = path.into();
-        self.route_id_to_path
-            .insert(val, shared_path.clone());
-        self.path_to_route_id
-            .insert(shared_path, val);
+        self.route_id_to_path.insert(val, shared_path.clone());
+        self.path_to_route_id.insert(shared_path, val);
 
         Ok(())
     }

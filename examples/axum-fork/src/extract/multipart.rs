@@ -136,9 +136,7 @@ impl<'a> Field<'a> {
 
     /// Get the [content type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) of the field.
     pub fn content_type(&self) -> Option<&str> {
-        self.inner
-            .content_type()
-            .map(|m| m.as_ref())
+        self.inner.content_type().map(|m| m.as_ref())
     }
 
     /// Get a map of headers as [`HeaderMap`].
@@ -156,10 +154,7 @@ impl<'a> Field<'a> {
 
     /// Get the full field data as text.
     pub async fn text(self) -> Result<String, MultipartError> {
-        self.inner
-            .text()
-            .await
-            .map_err(MultipartError::from_multer)
+        self.inner.text().await.map_err(MultipartError::from_multer)
     }
 
     /// Stream a chunk of the field data.
@@ -280,16 +275,17 @@ impl std::error::Error for MultipartError {
 impl IntoResponse for MultipartError {
     fn into_response(self) -> Response {
         let body = self.body_text();
-        axum_core::__log_rejection!(rejection_type = Self, body_text = body, status = self.status(),);
+        axum_core::__log_rejection!(
+            rejection_type = Self,
+            body_text = body,
+            status = self.status(),
+        );
         (self.status(), body).into_response()
     }
 }
 
 fn parse_boundary(headers: &HeaderMap) -> Option<String> {
-    let content_type = headers
-        .get(CONTENT_TYPE)?
-        .to_str()
-        .ok()?;
+    let content_type = headers.get(CONTENT_TYPE)?.to_str().ok()?;
     multer::parse_boundary(content_type).ok()
 }
 
@@ -324,22 +320,14 @@ mod tests {
         const CONTENT_TYPE: &str = "text/html; charset=utf-8";
 
         async fn handle(mut multipart: Multipart) -> impl IntoResponse {
-            let field = multipart
-                .next_field()
-                .await
-                .unwrap()
-                .unwrap();
+            let field = multipart.next_field().await.unwrap().unwrap();
 
             assert_eq!(field.file_name().unwrap(), FILE_NAME);
             assert_eq!(field.content_type().unwrap(), CONTENT_TYPE);
             assert_eq!(field.headers()["foo"], "bar");
             assert_eq!(field.bytes().await.unwrap(), BYTES);
 
-            assert!(multipart
-                .next_field()
-                .await
-                .unwrap()
-                .is_none());
+            assert!(multipart.next_field().await.unwrap().is_none());
         }
 
         let app = Router::new().route("/", post(handle));
@@ -386,7 +374,8 @@ mod tests {
 
         let client = TestClient::new(app);
 
-        let form = reqwest::multipart::Form::new().part("file", reqwest::multipart::Part::bytes(BYTES));
+        let form =
+            reqwest::multipart::Form::new().part("file", reqwest::multipart::Part::bytes(BYTES));
 
         let res = client.post("/").multipart(form).await;
         assert_eq!(res.status(), StatusCode::PAYLOAD_TOO_LARGE);

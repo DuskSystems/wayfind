@@ -32,7 +32,9 @@ impl<S> LayeredFuture<S>
 where
     S: Service<Request>,
 {
-    pub(super) fn new(inner: Map<Oneshot<S, Request>, fn(Result<S::Response, S::Error>) -> Response>) -> Self {
+    pub(super) fn new(
+        inner: Map<Oneshot<S, Request>, fn(Result<S::Response, S::Error>) -> Response>,
+    ) -> Self {
         Self { inner }
     }
 }

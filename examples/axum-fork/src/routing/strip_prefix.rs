@@ -106,22 +106,13 @@ fn strip_prefix(uri: &Uri, prefix: &str) -> Option<Uri> {
     // if the prefix matches it will always do so up until a `/`, it cannot match only
     // part of a segment. Therefore this will always be at a char boundary and `split_at` wont
     // panic
-    let after_prefix = uri
-        .path()
-        .split_at(matching_prefix_length?)
-        .1;
+    let after_prefix = uri.path().split_at(matching_prefix_length?).1;
 
     let new_path_and_query = match (after_prefix.starts_with('/'), path_and_query.query()) {
         (true, None) => after_prefix.parse().unwrap(),
-        (true, Some(query)) => format!("{after_prefix}?{query}")
-            .parse()
-            .unwrap(),
-        (false, None) => format!("/{after_prefix}")
-            .parse()
-            .unwrap(),
-        (false, Some(query)) => format!("/{after_prefix}?{query}")
-            .parse()
-            .unwrap(),
+        (true, Some(query)) => format!("{after_prefix}?{query}").parse().unwrap(),
+        (false, None) => format!("/{after_prefix}").parse().unwrap(),
+        (false, Some(query)) => format!("/{after_prefix}?{query}").parse().unwrap(),
     };
 
     let mut parts = uri.clone().into_parts();
@@ -147,19 +138,14 @@ where
     I: Iterator,
     I2: Iterator<Item = I::Item>,
 {
-    let a = a
-        .map(Some)
-        .chain(std::iter::repeat_with(|| None));
-    let b = b
-        .map(Some)
-        .chain(std::iter::repeat_with(|| None));
-    a.zip(b)
-        .map_while(|(a, b)| match (a, b) {
-            (Some(a), Some(b)) => Some(Item::Both(a, b)),
-            (Some(a), None) => Some(Item::First(a)),
-            (None, Some(b)) => Some(Item::Second(b)),
-            (None, None) => None,
-        })
+    let a = a.map(Some).chain(std::iter::repeat_with(|| None));
+    let b = b.map(Some).chain(std::iter::repeat_with(|| None));
+    a.zip(b).map_while(|(a, b)| match (a, b) {
+        (Some(a), Some(b)) => Some(Item::Both(a, b)),
+        (Some(a), None) => Some(Item::First(a)),
+        (None, Some(b)) => Some(Item::Second(b)),
+        (None, None) => None,
+    })
 }
 
 #[derive(Debug)]
@@ -194,9 +180,19 @@ mod tests {
 
     test!(empty, uri = "/", prefix = "/", expected = Some("/"),);
 
-    test!(single_segment, uri = "/a", prefix = "/a", expected = Some("/"),);
+    test!(
+        single_segment,
+        uri = "/a",
+        prefix = "/a",
+        expected = Some("/"),
+    );
 
-    test!(single_segment_root_uri, uri = "/", prefix = "/a", expected = None,);
+    test!(
+        single_segment_root_uri,
+        uri = "/",
+        prefix = "/a",
+        expected = None,
+    );
 
     // the prefix is empty, so removing it should have no effect
     test!(
@@ -206,7 +202,12 @@ mod tests {
         expected = Some("/a"),
     );
 
-    test!(single_segment_no_match, uri = "/a", prefix = "/b", expected = None,);
+    test!(
+        single_segment_no_match,
+        uri = "/a",
+        prefix = "/b",
+        expected = None,
+    );
 
     test!(
         single_segment_trailing_slash,
@@ -229,13 +230,33 @@ mod tests {
         expected = Some("/"),
     );
 
-    test!(multi_segment, uri = "/a/b", prefix = "/a", expected = Some("/b"),);
+    test!(
+        multi_segment,
+        uri = "/a/b",
+        prefix = "/a",
+        expected = Some("/b"),
+    );
 
-    test!(multi_segment_2, uri = "/b/a", prefix = "/a", expected = None,);
+    test!(
+        multi_segment_2,
+        uri = "/b/a",
+        prefix = "/a",
+        expected = None,
+    );
 
-    test!(multi_segment_3, uri = "/a", prefix = "/a/b", expected = None,);
+    test!(
+        multi_segment_3,
+        uri = "/a",
+        prefix = "/a/b",
+        expected = None,
+    );
 
-    test!(multi_segment_4, uri = "/a/b", prefix = "/b", expected = None,);
+    test!(
+        multi_segment_4,
+        uri = "/a/b",
+        prefix = "/b",
+        expected = None,
+    );
 
     test!(
         multi_segment_trailing_slash,
@@ -260,31 +281,81 @@ mod tests {
 
     test!(param_0, uri = "/", prefix = "/:param", expected = Some("/"),);
 
-    test!(param_1, uri = "/a", prefix = "/:param", expected = Some("/"),);
+    test!(
+        param_1,
+        uri = "/a",
+        prefix = "/:param",
+        expected = Some("/"),
+    );
 
-    test!(param_2, uri = "/a/b", prefix = "/:param", expected = Some("/b"),);
+    test!(
+        param_2,
+        uri = "/a/b",
+        prefix = "/:param",
+        expected = Some("/b"),
+    );
 
-    test!(param_3, uri = "/b/a", prefix = "/:param", expected = Some("/a"),);
+    test!(
+        param_3,
+        uri = "/b/a",
+        prefix = "/:param",
+        expected = Some("/a"),
+    );
 
-    test!(param_4, uri = "/a/b", prefix = "/a/:param", expected = Some("/"),);
+    test!(
+        param_4,
+        uri = "/a/b",
+        prefix = "/a/:param",
+        expected = Some("/"),
+    );
 
     test!(param_5, uri = "/b/a", prefix = "/a/:param", expected = None,);
 
     test!(param_6, uri = "/a/b", prefix = "/:param/a", expected = None,);
 
-    test!(param_7, uri = "/b/a", prefix = "/:param/a", expected = Some("/"),);
+    test!(
+        param_7,
+        uri = "/b/a",
+        prefix = "/:param/a",
+        expected = Some("/"),
+    );
 
-    test!(param_8, uri = "/a/b/c", prefix = "/a/:param/c", expected = Some("/"),);
+    test!(
+        param_8,
+        uri = "/a/b/c",
+        prefix = "/a/:param/c",
+        expected = Some("/"),
+    );
 
-    test!(param_9, uri = "/c/b/a", prefix = "/a/:param/c", expected = None,);
+    test!(
+        param_9,
+        uri = "/c/b/a",
+        prefix = "/a/:param/c",
+        expected = None,
+    );
 
-    test!(param_10, uri = "/a/", prefix = "/:param", expected = Some("/"),);
+    test!(
+        param_10,
+        uri = "/a/",
+        prefix = "/:param",
+        expected = Some("/"),
+    );
 
     test!(param_11, uri = "/a", prefix = "/:param/", expected = None,);
 
-    test!(param_12, uri = "/a/", prefix = "/:param/", expected = Some("/"),);
+    test!(
+        param_12,
+        uri = "/a/",
+        prefix = "/:param/",
+        expected = Some("/"),
+    );
 
-    test!(param_13, uri = "/a/a", prefix = "/a/", expected = Some("/a"),);
+    test!(
+        param_13,
+        uri = "/a/a",
+        prefix = "/a/",
+        expected = Some("/a"),
+    );
 
     #[quickcheck]
     fn does_not_panic(uri_and_prefix: UriAndPrefix) -> bool {

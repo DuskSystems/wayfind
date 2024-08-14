@@ -320,7 +320,9 @@ impl<F> WebSocketUpgrade<F> {
             };
             let upgraded = TokioIo::new(upgraded);
 
-            let socket = WebSocketStream::from_raw_socket(upgraded, protocol::Role::Server, Some(config)).await;
+            let socket =
+                WebSocketStream::from_raw_socket(upgraded, protocol::Role::Server, Some(config))
+                    .await;
             let socket = WebSocket {
                 inner: socket,
                 protocol,
@@ -337,7 +339,10 @@ impl<F> WebSocketUpgrade<F> {
             .status(StatusCode::SWITCHING_PROTOCOLS)
             .header(header::CONNECTION, UPGRADE)
             .header(header::UPGRADE, WEBSOCKET)
-            .header(header::SEC_WEBSOCKET_ACCEPT, sign(self.sec_websocket_key.as_bytes()));
+            .header(
+                header::SEC_WEBSOCKET_ACCEPT,
+                sign(self.sec_websocket_key.as_bytes()),
+            );
 
         if let Some(protocol) = self.protocol {
             builder = builder.header(header::SEC_WEBSOCKET_PROTOCOL, protocol);
@@ -411,10 +416,7 @@ where
             .remove::<hyper::upgrade::OnUpgrade>()
             .ok_or(ConnectionNotUpgradable)?;
 
-        let sec_websocket_protocol = parts
-            .headers
-            .get(header::SEC_WEBSOCKET_PROTOCOL)
-            .cloned();
+        let sec_websocket_protocol = parts.headers.get(header::SEC_WEBSOCKET_PROTOCOL).cloned();
 
         Ok(Self {
             config: Default::default(),
@@ -429,9 +431,7 @@ where
 
 fn header_eq(headers: &HeaderMap, key: HeaderName, value: &'static str) -> bool {
     if let Some(header) = headers.get(&key) {
-        header
-            .as_bytes()
-            .eq_ignore_ascii_case(value.as_bytes())
+        header.as_bytes().eq_ignore_ascii_case(value.as_bytes())
     } else {
         false
     }
@@ -445,9 +445,7 @@ fn header_contains(headers: &HeaderMap, key: HeaderName, value: &'static str) ->
     };
 
     if let Ok(header) = std::str::from_utf8(header.as_bytes()) {
-        header
-            .to_ascii_lowercase()
-            .contains(value)
+        header.to_ascii_lowercase().contains(value)
     } else {
         false
     }
@@ -480,10 +478,7 @@ impl WebSocket {
 
     /// Gracefully close this WebSocket.
     pub async fn close(mut self) -> Result<(), Error> {
-        self.inner
-            .close(None)
-            .await
-            .map_err(Error::new)
+        self.inner.close(None).await.map_err(Error::new)
     }
 
     /// Return the selected WebSocket subprotocol, if one has been chosen.
@@ -514,9 +509,7 @@ impl Sink<Message> for WebSocket {
     type Error = Error;
 
     fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Pin::new(&mut self.inner)
-            .poll_ready(cx)
-            .map_err(Error::new)
+        Pin::new(&mut self.inner).poll_ready(cx).map_err(Error::new)
     }
 
     fn start_send(mut self: Pin<&mut Self>, item: Message) -> Result<(), Self::Error> {
@@ -526,15 +519,11 @@ impl Sink<Message> for WebSocket {
     }
 
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Pin::new(&mut self.inner)
-            .poll_flush(cx)
-            .map_err(Error::new)
+        Pin::new(&mut self.inner).poll_flush(cx).map_err(Error::new)
     }
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Pin::new(&mut self.inner)
-            .poll_close(cx)
-            .map_err(Error::new)
+        Pin::new(&mut self.inner).poll_close(cx).map_err(Error::new)
     }
 }
 
@@ -894,7 +883,10 @@ mod tests {
 
     #[crate::test]
     async fn integration_test() {
-        let app = Router::new().route("/echo", get(|ws: WebSocketUpgrade| ready(ws.on_upgrade(handle_socket))));
+        let app = Router::new().route(
+            "/echo",
+            get(|ws: WebSocketUpgrade| ready(ws.on_upgrade(handle_socket))),
+        );
 
         async fn handle_socket(mut socket: WebSocket) {
             while let Some(Ok(msg)) = socket.recv().await {
@@ -917,10 +909,7 @@ mod tests {
             .unwrap();
 
         let input = tungstenite::Message::Text("foobar".to_owned());
-        socket
-            .send(input.clone())
-            .await
-            .unwrap();
+        socket.send(input.clone()).await.unwrap();
         let output = socket.next().await.unwrap().unwrap();
         assert_eq!(input, output);
 
@@ -929,6 +918,9 @@ mod tests {
             .await
             .unwrap();
         let output = socket.next().await.unwrap().unwrap();
-        assert_eq!(output, tungstenite::Message::Pong("ping".to_owned().into_bytes()));
+        assert_eq!(
+            output,
+            tungstenite::Message::Pong("ping".to_owned().into_bytes())
+        );
     }
 }

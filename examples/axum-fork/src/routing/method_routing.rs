@@ -455,9 +455,7 @@ where
     T: 'static,
     S: Clone + Send + Sync + 'static,
 {
-    MethodRouter::new()
-        .fallback(handler)
-        .skip_allow_header()
+    MethodRouter::new().fallback(handler).skip_allow_header()
 }
 
 /// A [`Service`] that accepts requests based on a [`MethodFilter`] and
@@ -965,7 +963,9 @@ where
                 (pick, MethodEndpoint::None) | (MethodEndpoint::None, pick) => pick,
                 _ => {
                     if let Some(path) = path {
-                        panic!("Overlapping method route. Handler for `{name} {path}` already exists");
+                        panic!(
+                            "Overlapping method route. Handler for `{name} {path}` already exists"
+                        );
                     } else {
                         panic!(
                             "Overlapping method route. Cannot merge two method routes that both \
@@ -990,9 +990,7 @@ where
             .merge(other.fallback)
             .expect("Cannot merge two `MethodRouter`s that both have a fallback");
 
-        self.allow_header = self
-            .allow_header
-            .merge(other.allow_header);
+        self.allow_header = self.allow_header.merge(other.allow_header);
 
         self
     }
@@ -1075,9 +1073,7 @@ where
         call!(req, method, DELETE, delete);
         call!(req, method, TRACE, trace);
 
-        let future = fallback
-            .clone()
-            .call_with_state(req, state);
+        let future = fallback.clone().call_with_state(req, state);
 
         match allow_header {
             AllowHeader::None => future.allow_header(Bytes::new()),
@@ -1169,7 +1165,9 @@ where
         match self {
             MethodEndpoint::None => MethodEndpoint::None,
             MethodEndpoint::Route(route) => MethodEndpoint::Route(route),
-            MethodEndpoint::BoxedHandler(handler) => MethodEndpoint::Route(handler.into_route(state.clone())),
+            MethodEndpoint::BoxedHandler(handler) => {
+                MethodEndpoint::Route(handler.into_route(state.clone()))
+            }
         }
     }
 }
@@ -1254,7 +1252,9 @@ mod tests {
     use http_body_util::BodyExt;
     use std::time::Duration;
     use tower::ServiceExt;
-    use tower_http::{services::fs::ServeDir, timeout::TimeoutLayer, validate_request::ValidateRequestHeaderLayer};
+    use tower_http::{
+        services::fs::ServeDir, timeout::TimeoutLayer, validate_request::ValidateRequestHeaderLayer,
+    };
 
     #[crate::test]
     async fn method_not_allowed_by_default() {
@@ -1295,9 +1295,7 @@ mod tests {
 
     #[crate::test]
     async fn head_takes_precedence_over_get() {
-        let mut svc = MethodRouter::new()
-            .head(created)
-            .get(ok);
+        let mut svc = MethodRouter::new().head(created).get(ok);
         let (status, _, body) = call(Method::HEAD, &mut svc).await;
         assert_eq!(status, StatusCode::CREATED);
         assert!(body.is_empty());
@@ -1358,12 +1356,8 @@ mod tests {
                 .layer(TimeoutLayer::new(Duration::from_secs(10))),
         );
 
-        let listener = tokio::net::TcpListener::bind("0.0.0.0:0")
-            .await
-            .unwrap();
-        crate::serve(listener, app)
-            .await
-            .unwrap();
+        let listener = tokio::net::TcpListener::bind("0.0.0.0:0").await.unwrap();
+        crate::serve(listener, app).await.unwrap();
     }
 
     #[crate::test]
@@ -1436,9 +1430,7 @@ mod tests {
             }
         }
 
-        let mut svc = MethodRouter::new()
-            .get(ok)
-            .fallback(fallback);
+        let mut svc = MethodRouter::new().get(ok).fallback(fallback);
 
         let (status, _, _) = call(Method::GET, &mut svc).await;
         assert_eq!(status, StatusCode::OK);
@@ -1463,13 +1455,17 @@ mod tests {
     }
 
     #[crate::test]
-    #[should_panic(expected = "Overlapping method route. Cannot add two method routes that both handle `GET`")]
+    #[should_panic(
+        expected = "Overlapping method route. Cannot add two method routes that both handle `GET`"
+    )]
     async fn handler_overlaps() {
         let _: MethodRouter<()> = get(ok).get(ok);
     }
 
     #[crate::test]
-    #[should_panic(expected = "Overlapping method route. Cannot add two method routes that both handle `POST`")]
+    #[should_panic(
+        expected = "Overlapping method route. Cannot add two method routes that both handle `POST`"
+    )]
     async fn service_overlaps() {
         let _: MethodRouter<()> = post_service(ok.into_service()).post_service(ok.into_service());
     }
@@ -1543,14 +1539,8 @@ mod tests {
             .unwrap()
             .into_response();
         let (parts, body) = response.into_parts();
-        let body = String::from_utf8(
-            BodyExt::collect(body)
-                .await
-                .unwrap()
-                .to_bytes()
-                .to_vec(),
-        )
-        .unwrap();
+        let body =
+            String::from_utf8(BodyExt::collect(body).await.unwrap().to_bytes().to_vec()).unwrap();
         (parts.status, parts.headers, body)
     }
 

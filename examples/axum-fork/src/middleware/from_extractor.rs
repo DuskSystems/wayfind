@@ -224,7 +224,9 @@ where
         });
 
         ResponseFuture {
-            state: State::Extracting { future: extract_future },
+            state: State::Extracting {
+                future: extract_future,
+            },
             svc: Some(self.inner.clone()),
         }
     }
@@ -276,10 +278,7 @@ where
 
                     match extracted {
                         Ok(_) => {
-                            let mut svc = this
-                                .svc
-                                .take()
-                                .expect("future polled after completion");
+                            let mut svc = this.svc.take().expect("future polled after completion");
                             let future = svc.call(req);
                             State::Call { future }
                         }
@@ -324,7 +323,10 @@ mod tests {
         {
             type Rejection = StatusCode;
 
-            async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+            async fn from_request_parts(
+                parts: &mut Parts,
+                state: &S,
+            ) -> Result<Self, Self::Rejection> {
                 let Secret(secret) = Secret::from_ref(state);
                 if let Some(auth) = parts
                     .headers
@@ -372,7 +374,10 @@ mod tests {
         {
             type Rejection = std::convert::Infallible;
 
-            async fn from_request_parts(_parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+            async fn from_request_parts(
+                _parts: &mut Parts,
+                _state: &S,
+            ) -> Result<Self, Self::Rejection> {
                 unimplemented!()
             }
         }

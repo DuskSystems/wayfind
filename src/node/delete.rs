@@ -10,8 +10,12 @@ impl<T> Node<T> {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(parts, prefix),
                 Part::Dynamic { name, constraint } => self.delete_dynamic(parts, name, &constraint),
-                Part::Wildcard { name, constraint } if parts.is_empty() => self.delete_end_wildcard(name, &constraint),
-                Part::Wildcard { name, constraint } => self.delete_wildcard(parts, name, &constraint),
+                Part::Wildcard { name, constraint } if parts.is_empty() => {
+                    self.delete_end_wildcard(name, &constraint)
+                }
+                Part::Wildcard { name, constraint } => {
+                    self.delete_wildcard(parts, name, &constraint)
+                }
             };
 
             if result.is_ok() {
@@ -35,11 +39,7 @@ impl<T> Node<T> {
             .iter()
             .position(|child| {
                 prefix.len() >= child.prefix.len()
-                    && child
-                        .prefix
-                        .iter()
-                        .zip(prefix)
-                        .all(|(a, b)| a == b)
+                    && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
             .ok_or(DeleteError::NotFound)?;
 
@@ -115,7 +115,11 @@ impl<T> Node<T> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &[u8], constraint: &Option<Vec<u8>>) -> Result<(), DeleteError> {
+    fn delete_end_wildcard(
+        &mut self,
+        name: &[u8],
+        constraint: &Option<Vec<u8>>,
+    ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
@@ -127,29 +131,25 @@ impl<T> Node<T> {
     }
 
     fn optimize(&mut self) {
-        self.static_children
-            .retain_mut(|child| {
-                child.optimize();
-                !child.is_empty()
-            });
+        self.static_children.retain_mut(|child| {
+            child.optimize();
+            !child.is_empty()
+        });
 
-        self.dynamic_children
-            .retain_mut(|child| {
-                child.optimize();
-                !child.is_empty()
-            });
+        self.dynamic_children.retain_mut(|child| {
+            child.optimize();
+            !child.is_empty()
+        });
 
-        self.wildcard_children
-            .retain_mut(|child| {
-                child.optimize();
-                !child.is_empty()
-            });
+        self.wildcard_children.retain_mut(|child| {
+            child.optimize();
+            !child.is_empty()
+        });
 
-        self.end_wildcard_children
-            .retain_mut(|child| {
-                child.optimize();
-                !child.is_empty()
-            });
+        self.end_wildcard_children.retain_mut(|child| {
+            child.optimize();
+            !child.is_empty()
+        });
 
         self.update_quicks();
     }

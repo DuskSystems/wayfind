@@ -12,7 +12,9 @@ macro_rules! unsupported_type {
         where
             V: Visitor<'de>,
         {
-            Err(PathDeserializationError::unsupported_type(type_name::<V::Value>()))
+            Err(PathDeserializationError::unsupported_type(type_name::<
+                V::Value,
+            >()))
         }
     };
 }
@@ -29,15 +31,12 @@ macro_rules! parse_single_value {
                     .expected(1));
             }
 
-            let value = self.url_params[0]
-                .1
-                .parse()
-                .map_err(|_| {
-                    PathDeserializationError::new(ErrorKind::ParseError {
-                        value: self.url_params[0].1.as_str().to_owned(),
-                        expected_type: $ty,
-                    })
-                })?;
+            let value = self.url_params[0].1.parse().map_err(|_| {
+                PathDeserializationError::new(ErrorKind::ParseError {
+                    value: self.url_params[0].1.as_str().to_owned(),
+                    expected_type: $ty,
+                })
+            })?;
             visitor.$visit_fn(value)
         }
     };
@@ -105,14 +104,22 @@ impl<'de> Deserializer<'de> for PathDeserializer<'de> {
         visitor.visit_unit()
     }
 
-    fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_unit_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
         visitor.visit_unit()
     }
 
-    fn deserialize_newtype_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_newtype_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -144,7 +151,12 @@ impl<'de> Deserializer<'de> for PathDeserializer<'de> {
         })
     }
 
-    fn deserialize_tuple_struct<V>(self, _name: &'static str, len: usize, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple_struct<V>(
+        self,
+        _name: &'static str,
+        len: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -198,10 +210,7 @@ impl<'de> Deserializer<'de> for PathDeserializer<'de> {
         }
 
         visitor.visit_enum(EnumDeserializer {
-            value: self.url_params[0]
-                .1
-                .clone()
-                .into_inner(),
+            value: self.url_params[0].1.clone().into_inner(),
         })
     }
 }
@@ -224,8 +233,10 @@ impl<'de> MapAccess<'de> for MapDeserializer<'de> {
                 self.value = Some(value);
                 self.params = tail;
                 self.key = Some(KeyOrIdx::Key(key.clone()));
-                seed.deserialize(KeyDeserializer { key: Arc::clone(key) })
-                    .map(Some)
+                seed.deserialize(KeyDeserializer {
+                    key: Arc::clone(key),
+                })
+                .map(Some)
             }
             None => Ok(None),
         }
@@ -378,14 +389,22 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
         visitor.visit_unit()
     }
 
-    fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_unit_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
         visitor.visit_unit()
     }
 
-    fn deserialize_newtype_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_newtype_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -410,9 +429,7 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
             {
                 match self.key.take() {
                     Some(KeyOrIdx::Idx { idx: _, key }) => {
-                        return seed
-                            .deserialize(KeyDeserializer { key })
-                            .map(Some);
+                        return seed.deserialize(KeyDeserializer { key }).map(Some);
                     }
                     // `KeyOrIdx::Key` is only used when deserializing maps so `deserialize_seq`
                     // wouldn't be called for that
@@ -438,7 +455,9 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
                 None => unreachable!(),
             }
         } else {
-            Err(PathDeserializationError::unsupported_type(type_name::<V::Value>()))
+            Err(PathDeserializationError::unsupported_type(type_name::<
+                V::Value,
+            >()))
         }
     }
 
@@ -446,14 +465,23 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        Err(PathDeserializationError::unsupported_type(type_name::<V::Value>()))
+        Err(PathDeserializationError::unsupported_type(type_name::<
+            V::Value,
+        >()))
     }
 
-    fn deserialize_tuple_struct<V>(self, _name: &'static str, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple_struct<V>(
+        self,
+        _name: &'static str,
+        _len: usize,
+        _visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(PathDeserializationError::unsupported_type(type_name::<V::Value>()))
+        Err(PathDeserializationError::unsupported_type(type_name::<
+            V::Value,
+        >()))
     }
 
     fn deserialize_struct<V>(
@@ -465,7 +493,9 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        Err(PathDeserializationError::unsupported_type(type_name::<V::Value>()))
+        Err(PathDeserializationError::unsupported_type(type_name::<
+            V::Value,
+        >()))
     }
 
     fn deserialize_enum<V>(
@@ -502,7 +532,10 @@ impl<'de> EnumAccess<'de> for EnumDeserializer {
     where
         V: de::DeserializeSeed<'de>,
     {
-        Ok((seed.deserialize(KeyDeserializer { key: self.value })?, UnitVariant))
+        Ok((
+            seed.deserialize(KeyDeserializer { key: self.value })?,
+            UnitVariant,
+        ))
     }
 }
 
@@ -519,21 +552,31 @@ impl<'de> VariantAccess<'de> for UnitVariant {
     where
         T: DeserializeSeed<'de>,
     {
-        Err(PathDeserializationError::unsupported_type("newtype enum variant"))
+        Err(PathDeserializationError::unsupported_type(
+            "newtype enum variant",
+        ))
     }
 
     fn tuple_variant<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(PathDeserializationError::unsupported_type("tuple enum variant"))
+        Err(PathDeserializationError::unsupported_type(
+            "tuple enum variant",
+        ))
     }
 
-    fn struct_variant<V>(self, _fields: &'static [&'static str], _visitor: V) -> Result<V::Value, Self::Error>
+    fn struct_variant<V>(
+        self,
+        _fields: &'static [&'static str],
+        _visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(PathDeserializationError::unsupported_type("struct enum variant"))
+        Err(PathDeserializationError::unsupported_type(
+            "struct enum variant",
+        ))
     }
 }
 
@@ -555,7 +598,10 @@ impl<'de> SeqAccess<'de> for SeqDeserializer<'de> {
                 let idx = self.idx;
                 self.idx += 1;
                 Ok(Some(seed.deserialize(ValueDeserializer {
-                    key: Some(KeyOrIdx::Idx { idx, key: key.clone() }),
+                    key: Some(KeyOrIdx::Idx {
+                        idx,
+                        key: key.clone(),
+                    }),
                     value,
                 })?))
             }
@@ -648,7 +694,10 @@ mod tests {
             .kind;
         assert!(matches!(
             error_kind,
-            ErrorKind::WrongNumberOfParameters { expected: 1, got: 2 }
+            ErrorKind::WrongNumberOfParameters {
+                expected: 1,
+                got: 2
+            }
         ));
     }
 
@@ -685,7 +734,10 @@ mod tests {
         let url_params = create_url_params(vec![("a", "foo"), ("b", "bar")]);
         assert_eq!(
             <Vec<(String, String)>>::deserialize(PathDeserializer::new(&url_params)).unwrap(),
-            vec![("a".to_owned(), "foo".to_owned()), ("b".to_owned(), "bar".to_owned())]
+            vec![
+                ("a".to_owned(), "foo".to_owned()),
+                ("b".to_owned(), "bar".to_owned())
+            ]
         );
     }
 
@@ -713,7 +765,12 @@ mod tests {
 
     #[test]
     fn test_parse_struct_ignoring_additional_fields() {
-        let url_params = create_url_params(vec![("a", "1"), ("b", "true"), ("c", "abc"), ("d", "false")]);
+        let url_params = create_url_params(vec![
+            ("a", "1"),
+            ("b", "true"),
+            ("c", "abc"),
+            ("d", "false"),
+        ]);
         assert_eq!(
             Struct::deserialize(PathDeserializer::new(&url_params)).unwrap(),
             Struct {
@@ -726,7 +783,12 @@ mod tests {
 
     #[test]
     fn test_parse_tuple_ignoring_additional_fields() {
-        let url_params = create_url_params(vec![("a", "abc"), ("b", "true"), ("c", "1"), ("d", "false")]);
+        let url_params = create_url_params(vec![
+            ("a", "abc"),
+            ("b", "true"),
+            ("c", "1"),
+            ("d", "false"),
+        ]);
         assert_eq!(
             <(&str, bool, u32)>::deserialize(PathDeserializer::new(&url_params)).unwrap(),
             ("abc", true, 1)
@@ -764,7 +826,10 @@ mod tests {
         test_parse_error!(
             vec![("a", "1")],
             (u32, u32),
-            ErrorKind::WrongNumberOfParameters { got: 1, expected: 2 }
+            ErrorKind::WrongNumberOfParameters {
+                got: 1,
+                expected: 2
+            }
         );
     }
 

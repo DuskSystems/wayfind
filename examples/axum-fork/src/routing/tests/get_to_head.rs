@@ -31,10 +31,7 @@ mod for_handlers {
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(res.headers()["x-some-header"], "foobar");
 
-        let body = BodyExt::collect(res.into_body())
-            .await
-            .unwrap()
-            .to_bytes();
+        let body = BodyExt::collect(res.into_body()).await.unwrap().to_bytes();
         assert_eq!(body.len(), 0);
     }
 }
@@ -47,7 +44,9 @@ mod for_services {
         let app = Router::new().route(
             "/",
             get_service(service_fn(|_req: Request| async move {
-                Ok::<_, Infallible>(([("x-some-header", "foobar")], "you shouldn't see this").into_response())
+                Ok::<_, Infallible>(
+                    ([("x-some-header", "foobar")], "you shouldn't see this").into_response(),
+                )
             })),
         );
 
@@ -66,10 +65,7 @@ mod for_services {
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(res.headers()["x-some-header"], "foobar");
 
-        let body = BodyExt::collect(res.into_body())
-            .await
-            .unwrap()
-            .to_bytes();
+        let body = BodyExt::collect(res.into_body()).await.unwrap().to_bytes();
         assert_eq!(body.len(), 0);
     }
 }

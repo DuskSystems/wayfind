@@ -127,7 +127,9 @@ pub use self::service::HandlerService;
 /// ```
 #[cfg_attr(
     nightly_error_messages,
-    diagnostic::on_unimplemented(note = "Consider using `#[axum::debug_handler]` to improve the error message")
+    diagnostic::on_unimplemented(
+        note = "Consider using `#[axum::debug_handler]` to improve the error message"
+    )
 )]
 pub trait Handler<T, S>: Clone + Send + Sized + 'static {
     /// The type of future calling this handler returns.
@@ -318,13 +320,16 @@ where
 
         let future: Map<
             _,
-            fn(Result<<L::Service as Service<Request>>::Response, <L::Service as Service<Request>>::Error>) -> _,
-        > = svc
-            .oneshot(req)
-            .map(|result| match result {
-                Ok(res) => res.into_response(),
-                Err(err) => match err {},
-            });
+            fn(
+                Result<
+                    <L::Service as Service<Request>>::Response,
+                    <L::Service as Service<Request>>::Error,
+                >,
+            ) -> _,
+        > = svc.oneshot(req).map(|result| match result {
+            Ok(res) => res.into_response(),
+            Err(err) => match err {},
+        });
 
         future::LayeredFuture::new(future)
     }
@@ -353,7 +358,9 @@ pub trait HandlerWithoutStateExt<T>: Handler<T, ()> {
     ///
     /// [`MakeService`]: tower::make::MakeService
     #[cfg(feature = "tokio")]
-    fn into_make_service_with_connect_info<C>(self) -> IntoMakeServiceWithConnectInfo<HandlerService<Self, T, ()>, C>;
+    fn into_make_service_with_connect_info<C>(
+        self,
+    ) -> IntoMakeServiceWithConnectInfo<HandlerService<Self, T, ()>, C>;
 }
 
 impl<H, T> HandlerWithoutStateExt<T> for H
@@ -369,9 +376,10 @@ where
     }
 
     #[cfg(feature = "tokio")]
-    fn into_make_service_with_connect_info<C>(self) -> IntoMakeServiceWithConnectInfo<HandlerService<Self, T, ()>, C> {
-        self.into_service()
-            .into_make_service_with_connect_info()
+    fn into_make_service_with_connect_info<C>(
+        self,
+    ) -> IntoMakeServiceWithConnectInfo<HandlerService<Self, T, ()>, C> {
+        self.into_service().into_make_service_with_connect_info()
     }
 }
 
@@ -383,8 +391,8 @@ mod tests {
     use http::StatusCode;
     use std::time::Duration;
     use tower_http::{
-        limit::RequestBodyLimitLayer, map_request_body::MapRequestBodyLayer, map_response_body::MapResponseBodyLayer,
-        timeout::TimeoutLayer,
+        limit::RequestBodyLimitLayer, map_request_body::MapRequestBodyLayer,
+        map_response_body::MapResponseBodyLayer, timeout::TimeoutLayer,
     };
 
     #[crate::test]

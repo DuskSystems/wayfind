@@ -34,7 +34,12 @@ impl<T> Node<T> {
         Ok(())
     }
 
-    fn insert_static(&mut self, parts: &mut Parts<'_>, data: NodeData<T>, prefix: &[u8]) -> Result<(), InsertError> {
+    fn insert_static(
+        &mut self,
+        parts: &mut Parts<'_>,
+        data: NodeData<T>,
+        prefix: &[u8],
+    ) -> Result<(), InsertError> {
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -231,35 +236,32 @@ impl<T> Node<T> {
     }
 
     pub(super) fn update_quicks(&mut self) {
-        self.quick_dynamic = self
-            .dynamic_children
-            .iter()
-            .all(|child| {
-                // Leading slash?
-                if child.prefix.first() == Some(&b'/') {
-                    return true;
-                }
+        self.quick_dynamic = self.dynamic_children.iter().all(|child| {
+            // Leading slash?
+            if child.prefix.first() == Some(&b'/') {
+                return true;
+            }
 
-                // No children?
-                if child.static_children.is_empty()
-                    && child.dynamic_children.is_empty()
-                    && child.wildcard_children.is_empty()
-                    && child.end_wildcard_children.is_empty()
-                {
-                    return true;
-                }
+            // No children?
+            if child.static_children.is_empty()
+                && child.dynamic_children.is_empty()
+                && child.wildcard_children.is_empty()
+                && child.end_wildcard_children.is_empty()
+            {
+                return true;
+            }
 
-                // All static children start with a slash?
-                if child
-                    .static_children
-                    .iter()
-                    .all(|child| child.prefix.first() == Some(&b'/'))
-                {
-                    return true;
-                }
+            // All static children start with a slash?
+            if child
+                .static_children
+                .iter()
+                .all(|child| child.prefix.first() == Some(&b'/'))
+            {
+                return true;
+            }
 
-                false
-            });
+            false
+        });
 
         for child in &mut self.static_children {
             child.update_quicks();
@@ -275,29 +277,31 @@ impl<T> Node<T> {
     }
 
     fn sort_children(&mut self) {
-        self.static_children
-            .sort_by(|a, b| a.prefix.cmp(&b.prefix));
+        self.static_children.sort_by(|a, b| a.prefix.cmp(&b.prefix));
 
-        self.dynamic_children
-            .sort_by(|a, b| match (a.constraint.is_some(), b.constraint.is_some()) {
+        self.dynamic_children.sort_by(|a, b| {
+            match (a.constraint.is_some(), b.constraint.is_some()) {
                 (true, false) => Ordering::Less,
                 (false, true) => Ordering::Greater,
                 _ => a.prefix.cmp(&b.prefix),
-            });
+            }
+        });
 
-        self.wildcard_children
-            .sort_by(|a, b| match (a.constraint.is_some(), b.constraint.is_some()) {
+        self.wildcard_children.sort_by(|a, b| {
+            match (a.constraint.is_some(), b.constraint.is_some()) {
                 (true, false) => Ordering::Less,
                 (false, true) => Ordering::Greater,
                 _ => a.prefix.cmp(&b.prefix),
-            });
+            }
+        });
 
-        self.end_wildcard_children
-            .sort_by(|a, b| match (a.constraint.is_some(), b.constraint.is_some()) {
+        self.end_wildcard_children.sort_by(|a, b| {
+            match (a.constraint.is_some(), b.constraint.is_some()) {
                 (true, false) => Ordering::Less,
                 (false, true) => Ordering::Greater,
                 _ => a.prefix.cmp(&b.prefix),
-            });
+            }
+        });
 
         for child in &mut self.static_children {
             child.sort_children();

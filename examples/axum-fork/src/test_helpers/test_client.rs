@@ -16,9 +16,7 @@ where
     S::Future: Send,
 {
     let std_listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    std_listener
-        .set_nonblocking(true)
-        .unwrap();
+    std_listener.set_nonblocking(true).unwrap();
     let listener = TcpListener::from_std(std_listener).unwrap();
 
     let addr = listener.local_addr().unwrap();
@@ -56,43 +54,33 @@ impl TestClient {
 
     pub(crate) fn get(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
-            builder: self
-                .client
-                .get(format!("http://{}{}", self.addr, url)),
+            builder: self.client.get(format!("http://{}{}", self.addr, url)),
         }
     }
 
     pub(crate) fn head(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
-            builder: self
-                .client
-                .head(format!("http://{}{}", self.addr, url)),
+            builder: self.client.head(format!("http://{}{}", self.addr, url)),
         }
     }
 
     pub(crate) fn post(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
-            builder: self
-                .client
-                .post(format!("http://{}{}", self.addr, url)),
+            builder: self.client.post(format!("http://{}{}", self.addr, url)),
         }
     }
 
     #[allow(dead_code)]
     pub(crate) fn put(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
-            builder: self
-                .client
-                .put(format!("http://{}{}", self.addr, url)),
+            builder: self.client.put(format!("http://{}{}", self.addr, url)),
         }
     }
 
     #[allow(dead_code)]
     pub(crate) fn patch(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
-            builder: self
-                .client
-                .patch(format!("http://{}{}", self.addr, url)),
+            builder: self.client.patch(format!("http://{}{}", self.addr, url)),
         }
     }
 }
@@ -123,16 +111,10 @@ impl RequestBuilder {
         <HeaderValue as TryFrom<V>>::Error: Into<http::Error>,
     {
         // reqwest still uses http 0.2
-        let key: HeaderName = key
-            .try_into()
-            .map_err(Into::into)
-            .unwrap();
+        let key: HeaderName = key.try_into().map_err(Into::into).unwrap();
         let key = reqwest::header::HeaderName::from_bytes(key.as_ref()).unwrap();
 
-        let value: HeaderValue = value
-            .try_into()
-            .map_err(Into::into)
-            .unwrap();
+        let value: HeaderValue = value.try_into().map_err(Into::into).unwrap();
         let value = reqwest::header::HeaderValue::from_bytes(value.as_bytes()).unwrap();
 
         self.builder = self.builder.header(key, value);

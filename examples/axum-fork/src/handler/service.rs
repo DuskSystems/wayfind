@@ -101,7 +101,9 @@ impl<H, T, S> HandlerService<H, T, S> {
     /// [`MakeService`]: tower::make::MakeService
     /// [`Router::into_make_service_with_connect_info`]: crate::routing::Router::into_make_service_with_connect_info
     #[cfg(feature = "tokio")]
-    pub fn into_make_service_with_connect_info<C>(self) -> IntoMakeServiceWithConnectInfo<HandlerService<H, T, S>, C> {
+    pub fn into_make_service_with_connect_info<C>(
+        self,
+    ) -> IntoMakeServiceWithConnectInfo<HandlerService<H, T, S>, C> {
         IntoMakeServiceWithConnectInfo::new(self)
     }
 }
@@ -125,8 +127,7 @@ impl<H, T, S> HandlerService<H, T, S> {
 
 impl<H, T, S> fmt::Debug for HandlerService<H, T, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("IntoService")
-            .finish_non_exhaustive()
+        f.debug_struct("IntoService").finish_non_exhaustive()
     }
 }
 

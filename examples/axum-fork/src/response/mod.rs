@@ -122,7 +122,11 @@ mod tests {
         }
 
         async fn status_header_array_body() -> impl IntoResponse {
-            (StatusCode::OK, [("content-type", "text/plain")], String::new())
+            (
+                StatusCode::OK,
+                [("content-type", "text/plain")],
+                String::new(),
+            )
         }
 
         async fn status_headermap_impl_into_response() -> impl IntoResponse {
@@ -130,7 +134,11 @@ mod tests {
         }
 
         async fn status_header_array_impl_into_response() -> impl IntoResponse {
-            (StatusCode::OK, [("content-type", "text/plain")], impl_into_response())
+            (
+                StatusCode::OK,
+                [("content-type", "text/plain")],
+                impl_into_response(),
+            )
         }
 
         fn impl_into_response() -> impl IntoResponse {}
@@ -181,7 +189,11 @@ mod tests {
         }
 
         async fn header_array_extension_body() -> impl IntoResponse {
-            ([("content-type", "text/plain")], Extension(1), String::new())
+            (
+                [("content-type", "text/plain")],
+                Extension(1),
+                String::new(),
+            )
         }
 
         async fn header_array_extension_mixed_body() -> impl IntoResponse {

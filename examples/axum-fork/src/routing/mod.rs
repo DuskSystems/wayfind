@@ -40,8 +40,9 @@ mod tests;
 pub use self::{into_make_service::IntoMakeService, method_filter::MethodFilter, route::Route};
 
 pub use self::method_routing::{
-    any, any_service, delete, delete_service, get, get_service, head, head_service, on, on_service, options,
-    options_service, patch, patch_service, post, post_service, put, put_service, trace, trace_service, MethodRouter,
+    any, any_service, delete, delete_service, get, get_service, head, head_service, on, on_service,
+    options, options_service, patch, patch_service, post, post_service, put, put_service, trace,
+    trace_service, MethodRouter,
 };
 
 macro_rules! panic_on_err {
@@ -136,7 +137,9 @@ where
     {
         let mut inner = self.into_inner();
         f(&mut inner);
-        Router { inner: Arc::new(inner) }
+        Router {
+            inner: Arc::new(inner),
+        }
     }
 
     fn into_inner(self) -> RouterInner<S> {
@@ -155,9 +158,7 @@ where
     #[track_caller]
     pub fn route(self, path: &str, method_router: MethodRouter<S>) -> Self {
         self.tap_inner_mut(|this| {
-            panic_on_err!(this
-                .path_router
-                .route(path, method_router));
+            panic_on_err!(this.path_router.route(path, method_router));
         })
     }
 
@@ -179,9 +180,7 @@ where
         };
 
         self.tap_inner_mut(|this| {
-            panic_on_err!(this
-                .path_router
-                .route_service(path, service));
+            panic_on_err!(this.path_router.route_service(path, service));
         })
     }
 
@@ -202,9 +201,7 @@ where
             panic_on_err!(this.path_router.nest(path, path_router));
 
             if !default_fallback {
-                panic_on_err!(this
-                    .fallback_router
-                    .nest(path, fallback_router));
+                panic_on_err!(this.fallback_router.nest(path, fallback_router));
             }
         })
     }
@@ -218,9 +215,7 @@ where
         T::Future: Send + 'static,
     {
         self.tap_inner_mut(|this| {
-            panic_on_err!(this
-                .path_router
-                .nest_service(path, service));
+            panic_on_err!(this.path_router.nest_service(path, service));
         })
     }
 
@@ -230,7 +225,8 @@ where
     where
         R: Into<Router<S>>,
     {
-        const PANIC_MSG: &str = "Failed to merge fallbacks. This is a bug in axum. Please file an issue";
+        const PANIC_MSG: &str =
+            "Failed to merge fallbacks. This is a bug in axum. Please file an issue";
 
         let other: Router<S> = other.into();
         let RouterInner {
@@ -247,23 +243,17 @@ where
                 // both have the default fallback
                 // use the one from other
                 (true, true) => {
-                    this.fallback_router
-                        .merge(other_fallback)
-                        .expect(PANIC_MSG);
+                    this.fallback_router.merge(other_fallback).expect(PANIC_MSG);
                 }
                 // this has default fallback, other has a custom fallback
                 (true, false) => {
-                    this.fallback_router
-                        .merge(other_fallback)
-                        .expect(PANIC_MSG);
+                    this.fallback_router.merge(other_fallback).expect(PANIC_MSG);
                     this.default_fallback = false;
                 }
                 // this has a custom fallback, other has a default
                 (false, true) => {
                     let fallback_router = std::mem::take(&mut this.fallback_router);
-                    other_fallback
-                        .merge(fallback_router)
-                        .expect(PANIC_MSG);
+                    other_fallback.merge(fallback_router).expect(PANIC_MSG);
                     this.fallback_router = other_fallback;
                 }
                 // both have a custom fallback, not allowed
@@ -292,13 +282,9 @@ where
     {
         self.map_inner(|this| RouterInner {
             path_router: this.path_router.layer(layer.clone()),
-            fallback_router: this
-                .fallback_router
-                .layer(layer.clone()),
+            fallback_router: this.fallback_router.layer(layer.clone()),
             default_fallback: this.default_fallback,
-            catch_all_fallback: this
-                .catch_all_fallback
-                .map(|route| route.layer(layer)),
+            catch_all_fallback: this.catch_all_fallback.map(|route| route.layer(layer)),
         })
     }
 
@@ -328,7 +314,8 @@ where
         T: 'static,
     {
         self.tap_inner_mut(|this| {
-            this.catch_all_fallback = Fallback::BoxedHandler(BoxedIntoRoute::from_handler(handler.clone()));
+            this.catch_all_fallback =
+                Fallback::BoxedHandler(BoxedIntoRoute::from_handler(handler.clone()));
         })
         .fallback_endpoint(Endpoint::MethodRouter(any(handler)))
     }
@@ -351,8 +338,7 @@ where
 
     fn fallback_endpoint(self, endpoint: Endpoint<S>) -> Self {
         self.tap_inner_mut(|this| {
-            this.fallback_router
-                .set_fallback(endpoint);
+            this.fallback_router.set_fallback(endpoint);
             this.default_fallback = false;
         })
     }
@@ -360,34 +346,20 @@ where
     #[doc = include_str!("../docs/routing/with_state.md")]
     pub fn with_state<S2>(self, state: S) -> Router<S2> {
         self.map_inner(|this| RouterInner {
-            path_router: this
-                .path_router
-                .with_state(state.clone()),
-            fallback_router: this
-                .fallback_router
-                .with_state(state.clone()),
+            path_router: this.path_router.with_state(state.clone()),
+            fallback_router: this.fallback_router.with_state(state.clone()),
             default_fallback: this.default_fallback,
-            catch_all_fallback: this
-                .catch_all_fallback
-                .with_state(state),
+            catch_all_fallback: this.catch_all_fallback.with_state(state),
         })
     }
 
     pub(crate) fn call_with_state(&self, req: Request, state: S) -> RouteFuture<Infallible> {
-        let (req, state) = match self
-            .inner
-            .path_router
-            .call_with_state(req, state)
-        {
+        let (req, state) = match self.inner.path_router.call_with_state(req, state) {
             Ok(future) => return future,
             Err((req, state)) => (req, state),
         };
 
-        let (req, state) = match self
-            .inner
-            .fallback_router
-            .call_with_state(req, state)
-        {
+        let (req, state) = match self.inner.fallback_router.call_with_state(req, state) {
             Ok(future) => return future,
             Err((req, state)) => (req, state),
         };
@@ -680,7 +652,9 @@ where
 
     fn call_with_state(&mut self, req: Request, state: S) -> RouteFuture<E> {
         match self {
-            Fallback::Default(route) | Fallback::Service(route) => RouteFuture::from_future(route.oneshot_inner(req)),
+            Fallback::Default(route) | Fallback::Service(route) => {
+                RouteFuture::from_future(route.oneshot_inner(req))
+            }
             Fallback::BoxedHandler(handler) => {
                 let mut route = handler.clone().into_route(state);
                 RouteFuture::from_future(route.oneshot_inner(req))
@@ -702,14 +676,8 @@ impl<S, E> Clone for Fallback<S, E> {
 impl<S, E> fmt::Debug for Fallback<S, E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Default(inner) => f
-                .debug_tuple("Default")
-                .field(inner)
-                .finish(),
-            Self::Service(inner) => f
-                .debug_tuple("Service")
-                .field(inner)
-                .finish(),
+            Self::Default(inner) => f.debug_tuple("Default").field(inner).finish(),
+            Self::Service(inner) => f.debug_tuple("Service").field(inner).finish(),
             Self::BoxedHandler(_) => f.debug_tuple("BoxedHandler").finish(),
         }
     }
@@ -734,7 +702,9 @@ where
         <L::Service as Service<Request>>::Future: Send + 'static,
     {
         match self {
-            Endpoint::MethodRouter(method_router) => Endpoint::MethodRouter(method_router.layer(layer)),
+            Endpoint::MethodRouter(method_router) => {
+                Endpoint::MethodRouter(method_router.layer(layer))
+            }
             Endpoint::Route(route) => Endpoint::Route(route.layer(layer)),
         }
     }
@@ -752,14 +722,10 @@ impl<S> Clone for Endpoint<S> {
 impl<S> fmt::Debug for Endpoint<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MethodRouter(method_router) => f
-                .debug_tuple("MethodRouter")
-                .field(method_router)
-                .finish(),
-            Self::Route(route) => f
-                .debug_tuple("Route")
-                .field(route)
-                .finish(),
+            Self::MethodRouter(method_router) => {
+                f.debug_tuple("MethodRouter").field(method_router).finish()
+            }
+            Self::Route(route) => f.debug_tuple("Route").field(route).finish(),
         }
     }
 }

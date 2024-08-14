@@ -17,10 +17,16 @@ use std::{
 use tokio::{net::TcpListener, task::JoinSet};
 use wayfind::{matches::Parameter, router::Router};
 
-type BoxFuture<'a> =
-    Pin<Box<dyn Future<Output = Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error>> + Send + 'a>>;
+type BoxFuture<'a> = Pin<
+    Box<
+        dyn Future<Output = Result<Response<BoxBody<Bytes, Infallible>>, anyhow::Error>>
+            + Send
+            + 'a,
+    >,
+>;
 
-type HandlerFn = Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'_, 'a>]) -> BoxFuture<'a> + Send + Sync>;
+type HandlerFn =
+    Arc<dyn for<'a> Fn(&'a str, &'a [Parameter<'_, 'a>]) -> BoxFuture<'a> + Send + Sync>;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -59,9 +65,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         let router = Arc::clone(&router);
                         async move {
                             let path = request.uri().path();
-                            let matches = router
-                                .matches(path)
-                                .expect("Failed to match!");
+                            let matches = router.matches(path).expect("Failed to match!");
 
                             let handler = &matches.data.value;
                             let parameters = &matches.parameters;

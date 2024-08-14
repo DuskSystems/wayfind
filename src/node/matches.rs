@@ -10,7 +10,11 @@ impl<T> Node<T> {
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         if path.is_empty() {
-            return if self.data.is_some() { Some(self) } else { None };
+            return if self.data.is_some() {
+                Some(self)
+            } else {
+                None
+            };
         }
 
         if let Some(matches) = self.matches_static(path, parameters, constraints) {
@@ -41,14 +45,12 @@ impl<T> Node<T> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
-                && static_child
-                    .prefix
-                    .iter()
-                    .zip(path)
-                    .all(|(a, b)| a == b)
+                && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
                 let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node_data) = static_child.matches(remaining_path, parameters, constraints) {
+                if let Some(node_data) =
+                    static_child.matches(remaining_path, parameters, constraints)
+                {
                     return Some(node_data);
                 }
             }
@@ -106,7 +108,8 @@ impl<T> Node<T> {
                     value: segment,
                 });
 
-                if let Some(node_data) = dynamic_child.matches(&path[consumed..], &mut current_parameters, constraints)
+                if let Some(node_data) =
+                    dynamic_child.matches(&path[consumed..], &mut current_parameters, constraints)
                 {
                     last_match = Some(node_data);
                     last_match_parameters = current_parameters;
@@ -130,10 +133,7 @@ impl<T> Node<T> {
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         for dynamic_child in &self.dynamic_children {
-            let segment_end = path
-                .iter()
-                .position(|&b| b == b'/')
-                .unwrap_or(path.len());
+            let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
             if !Self::check_constraint(dynamic_child, segment, constraints) {
@@ -145,7 +145,9 @@ impl<T> Node<T> {
                 value: segment,
             });
 
-            if let Some(node_data) = dynamic_child.matches(&path[segment_end..], parameters, constraints) {
+            if let Some(node_data) =
+                dynamic_child.matches(&path[segment_end..], parameters, constraints)
+            {
                 return Some(node_data);
             }
 
@@ -199,7 +201,8 @@ impl<T> Node<T> {
                     value: segment,
                 });
 
-                if let Some(node_data) = wildcard_child.matches(&remaining_path[segment_end..], parameters, constraints)
+                if let Some(node_data) =
+                    wildcard_child.matches(&remaining_path[segment_end..], parameters, constraints)
                 {
                     return Some(node_data);
                 }
@@ -243,7 +246,11 @@ impl<T> Node<T> {
         None
     }
 
-    fn check_constraint(node: &Self, segment: &[u8], constraints: &HashMap<Vec<u8>, fn(&str) -> bool>) -> bool {
+    fn check_constraint(
+        node: &Self,
+        segment: &[u8],
+        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+    ) -> bool {
         let Some(name) = &node.constraint else {
             return true;
         };

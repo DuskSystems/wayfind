@@ -158,7 +158,9 @@ where
             Some(UrlParams::Params(params)) => params,
             Some(UrlParams::InvalidUtf8InPathParam { key }) => {
                 let err = PathDeserializationError {
-                    kind: ErrorKind::InvalidUtf8InPathParam { key: key.to_string() },
+                    kind: ErrorKind::InvalidUtf8InPathParam {
+                        key: key.to_string(),
+                    },
                 };
                 let err = FailedToDeserializePathParams(err);
                 return Err(err.into());
@@ -169,7 +171,9 @@ where
         };
 
         T::deserialize(de::PathDeserializer::new(params))
-            .map_err(|err| PathRejection::FailedToDeserializePathParams(FailedToDeserializePathParams(err)))
+            .map_err(|err| {
+                PathRejection::FailedToDeserializePathParams(FailedToDeserializePathParams(err))
+            })
             .map(Path)
     }
 }
@@ -327,8 +331,14 @@ impl fmt::Display for ErrorKind {
                 key,
                 value,
                 expected_type,
-            } => write!(f, "Cannot parse `{key}` with value `{value:?}` to a `{expected_type}`"),
-            ErrorKind::ParseError { value, expected_type } => {
+            } => write!(
+                f,
+                "Cannot parse `{key}` with value `{value:?}` to a `{expected_type}`"
+            ),
+            ErrorKind::ParseError {
+                value,
+                expected_type,
+            } => {
                 write!(f, "Cannot parse `{value:?}` to a `{expected_type}`")
             }
             ErrorKind::ParseErrorAtIndex {
@@ -367,7 +377,9 @@ impl FailedToDeserializePathParams {
             | ErrorKind::ParseError { .. }
             | ErrorKind::ParseErrorAtIndex { .. }
             | ErrorKind::ParseErrorAtKey { .. } => format!("Invalid URL: {}", self.0.kind),
-            ErrorKind::WrongNumberOfParameters { .. } | ErrorKind::UnsupportedType { .. } => self.0.kind.to_string(),
+            ErrorKind::WrongNumberOfParameters { .. } | ErrorKind::UnsupportedType { .. } => {
+                self.0.kind.to_string()
+            }
         }
     }
 
@@ -389,7 +401,11 @@ impl FailedToDeserializePathParams {
 impl IntoResponse for FailedToDeserializePathParams {
     fn into_response(self) -> Response {
         let body = self.body_text();
-        axum_core::__log_rejection!(rejection_type = Self, body_text = body, status = self.status(),);
+        axum_core::__log_rejection!(
+            rejection_type = Self,
+            body_text = body,
+            status = self.status(),
+        );
         (self.status(), body).into_response()
     }
 }
@@ -443,7 +459,10 @@ where
         let params = match parts.extensions.get::<UrlParams>() {
             Some(UrlParams::Params(params)) => params,
             Some(UrlParams::InvalidUtf8InPathParam { key }) => {
-                return Err(InvalidUtf8InPathParam { key: Arc::clone(key) }.into());
+                return Err(InvalidUtf8InPathParam {
+                    key: Arc::clone(key),
+                }
+                .into());
             }
             None => {
                 return Err(MissingPathParams.into());
@@ -515,7 +534,11 @@ impl std::error::Error for InvalidUtf8InPathParam {}
 impl IntoResponse for InvalidUtf8InPathParam {
     fn into_response(self) -> Response {
         let body = self.body_text();
-        axum_core::__log_rejection!(rejection_type = Self, body_text = body, status = self.status(),);
+        axum_core::__log_rejection!(
+            rejection_type = Self,
+            body_text = body,
+            status = self.status(),
+        );
         (self.status(), body).into_response()
     }
 }
@@ -560,7 +583,10 @@ mod tests {
 
     #[crate::test]
     async fn percent_decoding() {
-        let app = Router::new().route("/:key", get(|Path(param): Path<String>| async move { param }));
+        let app = Router::new().route(
+            "/:key",
+            get(|Path(param): Path<String>| async move { param }),
+        );
 
         let client = TestClient::new(app);
 
@@ -593,10 +619,15 @@ mod tests {
     #[crate::test]
     async fn wildcard() {
         let app = Router::new()
-            .route("/foo/*rest", get(|Path(param): Path<String>| async move { param }))
+            .route(
+                "/foo/*rest",
+                get(|Path(param): Path<String>| async move { param }),
+            )
             .route(
                 "/bar/*rest",
-                get(|Path(params): Path<HashMap<String, String>>| async move { params.get("rest").unwrap().clone() }),
+                get(|Path(params): Path<HashMap<String, String>>| async move {
+                    params.get("rest").unwrap().clone()
+                }),
             );
 
         let client = TestClient::new(app);
@@ -725,7 +756,10 @@ mod tests {
             get(|Path(params): Path<Vec<(String, String)>>| async move {
                 assert_eq!(
                     params,
-                    vec![("a".to_owned(), "foo".to_owned()), ("b".to_owned(), "bar".to_owned())]
+                    vec![
+                        ("a".to_owned(), "foo".to_owned()),
+                        ("b".to_owned(), "bar".to_owned())
+                    ]
                 );
             }),
         );
@@ -747,74 +781,70 @@ mod tests {
             c: Date,
         }
 
-        let app =
-            Router::new()
-                .route(
-                    "/single/:a",
-                    get(|Path(a): Path<Date>| async move { format!("single: {a}") }),
-                )
-                .route(
-                    "/tuple/:a/:b/:c",
-                    get(|Path((a, b, c)): Path<(Date, Date, Date)>| async move { format!("tuple: {a} {b} {c}") }),
-                )
-                .route(
-                    "/vec/:a/:b/:c",
-                    get(|Path(vec): Path<Vec<Date>>| async move {
-                        let [a, b, c]: [Date; 3] = vec.try_into().unwrap();
-                        format!("vec: {a} {b} {c}")
-                    }),
-                )
-                .route(
-                    "/vec_pairs/:a/:b/:c",
-                    get(|Path(vec): Path<Vec<(String, Date)>>| async move {
-                        let [(_, a), (_, b), (_, c)]: [(String, Date); 3] = vec.try_into().unwrap();
-                        format!("vec_pairs: {a} {b} {c}")
-                    }),
-                )
-                .route(
-                    "/map/:a/:b/:c",
-                    get(|Path(mut map): Path<HashMap<String, Date>>| async move {
-                        let a = map.remove("a").unwrap();
-                        let b = map.remove("b").unwrap();
-                        let c = map.remove("c").unwrap();
-                        format!("map: {a} {b} {c}")
-                    }),
-                )
-                .route(
-                    "/struct/:a/:b/:c",
-                    get(|Path(params): Path<Params>| async move {
-                        format!("struct: {} {} {}", params.a, params.b, params.c)
-                    }),
-                );
+        let app = Router::new()
+            .route(
+                "/single/:a",
+                get(|Path(a): Path<Date>| async move { format!("single: {a}") }),
+            )
+            .route(
+                "/tuple/:a/:b/:c",
+                get(|Path((a, b, c)): Path<(Date, Date, Date)>| async move {
+                    format!("tuple: {a} {b} {c}")
+                }),
+            )
+            .route(
+                "/vec/:a/:b/:c",
+                get(|Path(vec): Path<Vec<Date>>| async move {
+                    let [a, b, c]: [Date; 3] = vec.try_into().unwrap();
+                    format!("vec: {a} {b} {c}")
+                }),
+            )
+            .route(
+                "/vec_pairs/:a/:b/:c",
+                get(|Path(vec): Path<Vec<(String, Date)>>| async move {
+                    let [(_, a), (_, b), (_, c)]: [(String, Date); 3] = vec.try_into().unwrap();
+                    format!("vec_pairs: {a} {b} {c}")
+                }),
+            )
+            .route(
+                "/map/:a/:b/:c",
+                get(|Path(mut map): Path<HashMap<String, Date>>| async move {
+                    let a = map.remove("a").unwrap();
+                    let b = map.remove("b").unwrap();
+                    let c = map.remove("c").unwrap();
+                    format!("map: {a} {b} {c}")
+                }),
+            )
+            .route(
+                "/struct/:a/:b/:c",
+                get(|Path(params): Path<Params>| async move {
+                    format!("struct: {} {} {}", params.a, params.b, params.c)
+                }),
+            );
 
         let client = TestClient::new(app);
 
         let res = client.get("/single/2023-01-01").await;
         assert_eq!(res.text().await, "single: 2023-01-01");
 
-        let res = client
-            .get("/tuple/2023-01-01/2023-01-02/2023-01-03")
-            .await;
+        let res = client.get("/tuple/2023-01-01/2023-01-02/2023-01-03").await;
         assert_eq!(res.text().await, "tuple: 2023-01-01 2023-01-02 2023-01-03");
 
-        let res = client
-            .get("/vec/2023-01-01/2023-01-02/2023-01-03")
-            .await;
+        let res = client.get("/vec/2023-01-01/2023-01-02/2023-01-03").await;
         assert_eq!(res.text().await, "vec: 2023-01-01 2023-01-02 2023-01-03");
 
         let res = client
             .get("/vec_pairs/2023-01-01/2023-01-02/2023-01-03")
             .await;
-        assert_eq!(res.text().await, "vec_pairs: 2023-01-01 2023-01-02 2023-01-03",);
+        assert_eq!(
+            res.text().await,
+            "vec_pairs: 2023-01-01 2023-01-02 2023-01-03",
+        );
 
-        let res = client
-            .get("/map/2023-01-01/2023-01-02/2023-01-03")
-            .await;
+        let res = client.get("/map/2023-01-01/2023-01-02/2023-01-03").await;
         assert_eq!(res.text().await, "map: 2023-01-01 2023-01-02 2023-01-03");
 
-        let res = client
-            .get("/struct/2023-01-01/2023-01-02/2023-01-03")
-            .await;
+        let res = client.get("/struct/2023-01-01/2023-01-02/2023-01-03").await;
         assert_eq!(res.text().await, "struct: 2023-01-01 2023-01-02 2023-01-03");
     }
 

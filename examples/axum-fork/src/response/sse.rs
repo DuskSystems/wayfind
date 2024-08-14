@@ -105,9 +105,7 @@ where
             ],
             Body::new(SseBody {
                 event_stream: SyncWrapper::new(self.stream),
-                keep_alive: self
-                    .keep_alive
-                    .map(KeepAliveStream::new),
+                keep_alive: self.keep_alive.map(KeepAliveStream::new),
             }),
         )
             .into_response()
@@ -130,19 +128,16 @@ where
     type Data = Bytes;
     type Error = E;
 
-    fn poll_frame(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Result<Frame<Self::Data>, Self::Error>>> {
+    fn poll_frame(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Result<Frame<Self::Data>, Self::Error>>> {
         let this = self.project();
 
-        match this
-            .event_stream
-            .get_pin_mut()
-            .poll_next(cx)
-        {
+        match this.event_stream.get_pin_mut().poll_next(cx) {
             Poll::Pending => {
                 if let Some(keep_alive) = this.keep_alive.as_pin_mut() {
-                    keep_alive
-                        .poll_event(cx)
-                        .map(|e| Some(Ok(Frame::data(e))))
+                    keep_alive.poll_event(cx).map(|e| Some(Ok(Frame::data(e))))
                 } else {
                     Poll::Pending
                 }
@@ -186,10 +181,7 @@ impl Event {
     where
         T: AsRef<str>,
     {
-        if self
-            .flags
-            .contains(EventFlags::HAS_DATA)
-        {
+        if self.flags.contains(EventFlags::HAS_DATA) {
             panic!("Called `EventBuilder::data` multiple times");
         }
 
@@ -216,10 +208,7 @@ impl Event {
     where
         T: serde::Serialize,
     {
-        if self
-            .flags
-            .contains(EventFlags::HAS_DATA)
-        {
+        if self.flags.contains(EventFlags::HAS_DATA) {
             panic!("Called `EventBuilder::json_data` multiple times");
         }
 
@@ -268,10 +257,7 @@ impl Event {
     where
         T: AsRef<str>,
     {
-        if self
-            .flags
-            .contains(EventFlags::HAS_EVENT)
-        {
+        if self.flags.contains(EventFlags::HAS_EVENT) {
             panic!("Called `EventBuilder::event` multiple times");
         }
         self.flags.insert(EventFlags::HAS_EVENT);
@@ -291,10 +277,7 @@ impl Event {
     ///
     /// Panics if this function has already been called on this event.
     pub fn retry(mut self, duration: Duration) -> Event {
-        if self
-            .flags
-            .contains(EventFlags::HAS_RETRY)
-        {
+        if self.flags.contains(EventFlags::HAS_RETRY) {
             panic!("Called `EventBuilder::retry` multiple times");
         }
         self.flags.insert(EventFlags::HAS_RETRY);
@@ -306,11 +289,8 @@ impl Event {
 
         if secs > 0 {
             // format seconds
-            self.buffer.extend_from_slice(
-                itoa::Buffer::new()
-                    .format(secs)
-                    .as_bytes(),
-            );
+            self.buffer
+                .extend_from_slice(itoa::Buffer::new().format(secs).as_bytes());
 
             // pad milliseconds
             if millis < 10 {
@@ -321,11 +301,8 @@ impl Event {
         }
 
         // format milliseconds
-        self.buffer.extend_from_slice(
-            itoa::Buffer::new()
-                .format(millis)
-                .as_bytes(),
-        );
+        self.buffer
+            .extend_from_slice(itoa::Buffer::new().format(millis).as_bytes());
 
         self.buffer.put_u8(b'\n');
 
@@ -371,8 +348,7 @@ impl Event {
             None,
             "SSE field value cannot contain newlines or carriage returns",
         );
-        self.buffer
-            .extend_from_slice(name.as_bytes());
+        self.buffer.extend_from_slice(name.as_bytes());
         self.buffer.put_u8(b':');
         self.buffer.put_u8(b' ');
         self.buffer.extend_from_slice(value);
@@ -557,9 +533,7 @@ mod tests {
             "/",
             get(|| async {
                 let stream = stream::iter(vec![
-                    Event::default()
-                        .data("one")
-                        .comment("this is a comment"),
+                    Event::default().data("one").comment("this is a comment"),
                     Event::default()
                         .json_data(serde_json::json!({ "foo": "bar" }))
                         .unwrap(),
@@ -697,11 +671,26 @@ mod tests {
 
     #[test]
     fn memchr_splitting() {
-        assert_eq!(memchr_split(2, &[]).collect::<Vec<_>>(), [&[]] as [&[u8]; 1]);
-        assert_eq!(memchr_split(2, &[2]).collect::<Vec<_>>(), [&[], &[]] as [&[u8]; 2]);
-        assert_eq!(memchr_split(2, &[1]).collect::<Vec<_>>(), [&[1]] as [&[u8]; 1]);
-        assert_eq!(memchr_split(2, &[1, 2]).collect::<Vec<_>>(), [&[1], &[]] as [&[u8]; 2]);
-        assert_eq!(memchr_split(2, &[2, 1]).collect::<Vec<_>>(), [&[], &[1]] as [&[u8]; 2]);
+        assert_eq!(
+            memchr_split(2, &[]).collect::<Vec<_>>(),
+            [&[]] as [&[u8]; 1]
+        );
+        assert_eq!(
+            memchr_split(2, &[2]).collect::<Vec<_>>(),
+            [&[], &[]] as [&[u8]; 2]
+        );
+        assert_eq!(
+            memchr_split(2, &[1]).collect::<Vec<_>>(),
+            [&[1]] as [&[u8]; 1]
+        );
+        assert_eq!(
+            memchr_split(2, &[1, 2]).collect::<Vec<_>>(),
+            [&[1], &[]] as [&[u8]; 2]
+        );
+        assert_eq!(
+            memchr_split(2, &[2, 1]).collect::<Vec<_>>(),
+            [&[], &[1]] as [&[u8]; 2]
+        );
         assert_eq!(
             memchr_split(2, &[1, 2, 2, 1]).collect::<Vec<_>>(),
             [&[1], &[], &[1]] as [&[u8]; 3]

@@ -42,12 +42,11 @@ impl<E> Route<E> {
         )))
     }
 
-    pub(crate) fn oneshot_inner(&mut self, req: Request) -> Oneshot<BoxCloneService<Request, Response, E>, Request> {
-        self.0
-            .get_mut()
-            .unwrap()
-            .clone()
-            .oneshot(req)
+    pub(crate) fn oneshot_inner(
+        &mut self,
+        req: Request,
+    ) -> Oneshot<BoxCloneService<Request, Response, E>, Request> {
+        self.0.get_mut().unwrap().clone().oneshot(req)
     }
 
     pub(crate) fn layer<L, NewError>(self, layer: L) -> Route<NewError>
@@ -131,7 +130,9 @@ pin_project! {
 }
 
 impl<E> RouteFuture<E> {
-    pub(crate) fn from_future(future: Oneshot<BoxCloneService<Request, Response, E>, Request>) -> Self {
+    pub(crate) fn from_future(
+        future: Oneshot<BoxCloneService<Request, Response, E>, Request>,
+    ) -> Self {
         Self {
             kind: RouteFutureKind::Future { future },
             strip_body: false,
@@ -163,9 +164,9 @@ impl<E> Future for RouteFuture<E> {
                 Poll::Ready(Err(err)) => return Poll::Ready(Err(err)),
                 Poll::Pending => return Poll::Pending,
             },
-            RouteFutureKindProj::Response { response } => response
-                .take()
-                .expect("future polled after completion"),
+            RouteFutureKindProj::Response { response } => {
+                response.take().expect("future polled after completion")
+            }
         };
 
         set_allow_header(res.headers_mut(), this.allow_header);

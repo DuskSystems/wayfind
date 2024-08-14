@@ -64,18 +64,9 @@ mod tests {
     use crate::extract::FromRequest;
 
     async fn check_query(uri: &str, value: &[u8]) {
-        let req = Request::builder()
-            .uri(uri)
-            .body(Body::empty())
-            .unwrap();
+        let req = Request::builder().uri(uri).body(Body::empty()).unwrap();
 
-        assert_eq!(
-            RawForm::from_request(req, &())
-                .await
-                .unwrap()
-                .0,
-            value
-        );
+        assert_eq!(RawForm::from_request(req, &()).await.unwrap().0, value);
     }
 
     async fn check_body(body: &'static [u8]) {
@@ -84,13 +75,7 @@ mod tests {
             .body(Body::from(body))
             .unwrap();
 
-        assert_eq!(
-            RawForm::from_request(req, &())
-                .await
-                .unwrap()
-                .0,
-            body
-        );
+        assert_eq!(RawForm::from_request(req, &()).await.unwrap().0, body);
     }
 
     #[crate::test]
@@ -114,9 +99,7 @@ mod tests {
             .unwrap();
 
         assert!(matches!(
-            RawForm::from_request(req, &())
-                .await
-                .unwrap_err(),
+            RawForm::from_request(req, &()).await.unwrap_err(),
             RawFormRejection::InvalidFormContentType(InvalidFormContentType)
         ))
     }

@@ -72,7 +72,10 @@ impl Redirect {
     //
     // We're open to adding more constructors upon request, if they make sense :)
     fn with_status_code(status_code: StatusCode, uri: &str) -> Self {
-        assert!(status_code.is_redirection(), "not a redirection status code");
+        assert!(
+            status_code.is_redirection(),
+            "not a redirection status code"
+        );
 
         Self {
             status_code,

@@ -48,9 +48,7 @@ async fn or() {
     let one = Router::new().route("/one", get(|| async {}));
     let two = Router::new().route("/two", get(|| async {}));
 
-    let app = one
-        .merge(two)
-        .fallback(|| async { "fallback" });
+    let app = one.merge(two).fallback(|| async { "fallback" });
 
     let client = TestClient::new(app);
 
@@ -86,9 +84,7 @@ async fn outer_fallback() -> impl IntoResponse {
 #[crate::test]
 async fn nested_router_inherits_fallback() {
     let inner = Router::new();
-    let app = Router::new()
-        .nest("/foo", inner)
-        .fallback(outer_fallback);
+    let app = Router::new().nest("/foo", inner).fallback(outer_fallback);
 
     let client = TestClient::new(app);
 
@@ -100,9 +96,7 @@ async fn nested_router_inherits_fallback() {
 #[crate::test]
 async fn doesnt_inherit_fallback_if_overridden() {
     let inner = Router::new().fallback(inner_fallback);
-    let app = Router::new()
-        .nest("/foo", inner)
-        .fallback(outer_fallback);
+    let app = Router::new().nest("/foo", inner).fallback(outer_fallback);
 
     let client = TestClient::new(app);
 
@@ -151,9 +145,7 @@ async fn with_middleware_on_inner_fallback() {
     }
 
     let inner = Router::new().layer(map_request(never_called));
-    let app = Router::new()
-        .nest("/foo", inner)
-        .fallback(outer_fallback);
+    let app = Router::new().nest("/foo", inner).fallback(outer_fallback);
 
     let client = TestClient::new(app);
 
@@ -207,7 +199,8 @@ async fn nest_fallback_on_inner() {
 async fn doesnt_panic_if_used_with_nested_router() {
     async fn handler() {}
 
-    let routes_static = Router::new().nest_service("/", crate::routing::get_service(handler.into_service()));
+    let routes_static =
+        Router::new().nest_service("/", crate::routing::get_service(handler.into_service()));
 
     let routes_all = Router::new().fallback_service(routes_static);
 
@@ -227,9 +220,7 @@ async fn issue_2072() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .get("/nested/does-not-exist")
-        .await;
+    let res = client.get("/nested/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "inner");
 
@@ -249,9 +240,7 @@ async fn issue_2072_outer_fallback_before_merge() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .get("/nested/does-not-exist")
-        .await;
+    let res = client.get("/nested/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "inner");
 
@@ -271,9 +260,7 @@ async fn issue_2072_outer_fallback_after_merge() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .get("/nested/does-not-exist")
-        .await;
+    let res = client.get("/nested/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "inner");
 
@@ -292,9 +279,7 @@ async fn merge_router_with_fallback_into_nested_router_with_fallback() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .get("/nested/does-not-exist")
-        .await;
+    let res = client.get("/nested/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "inner");
 
@@ -313,9 +298,7 @@ async fn merging_nested_router_with_fallback_into_router_with_fallback() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .get("/nested/does-not-exist")
-        .await;
+    let res = client.get("/nested/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "inner");
 
@@ -326,9 +309,7 @@ async fn merging_nested_router_with_fallback_into_router_with_fallback() {
 
 #[crate::test]
 async fn merge_empty_into_router_with_fallback() {
-    let app = Router::new()
-        .fallback(outer_fallback)
-        .merge(Router::new());
+    let app = Router::new().fallback(outer_fallback).merge(Router::new());
 
     let client = TestClient::new(app);
 

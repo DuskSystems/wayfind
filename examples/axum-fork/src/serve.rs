@@ -207,7 +207,9 @@ where
                     .await
                     .unwrap_or_else(|err| match err {});
 
-                let hyper_service = TowerToHyperService { service: tower_service };
+                let hyper_service = TowerToHyperService {
+                    service: tower_service,
+                };
 
                 tokio::spawn(async move {
                     match Builder::new(TokioExecutor::new())
@@ -323,7 +325,9 @@ where
                     .await
                     .unwrap_or_else(|err| match err {});
 
-                let hyper_service = TowerToHyperService { service: tower_service };
+                let hyper_service = TowerToHyperService {
+                    service: tower_service,
+                };
 
                 let signal_tx = Arc::clone(&signal_tx);
 
@@ -361,7 +365,10 @@ where
             drop(close_rx);
             drop(tcp_listener);
 
-            trace!("waiting for {} task(s) to finish", close_tx.receiver_count());
+            trace!(
+                "waiting for {} task(s) to finish",
+                close_tx.receiver_count()
+            );
             close_tx.closed().await;
 
             Ok(())
@@ -372,7 +379,9 @@ where
 fn is_connection_error(e: &io::Error) -> bool {
     matches!(
         e.kind(),
-        io::ErrorKind::ConnectionRefused | io::ErrorKind::ConnectionAborted | io::ErrorKind::ConnectionReset
+        io::ErrorKind::ConnectionRefused
+            | io::ErrorKind::ConnectionAborted
+            | io::ErrorKind::ConnectionReset
     )
 }
 
@@ -423,8 +432,7 @@ mod private {
 
     impl std::fmt::Debug for ServeFuture {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            f.debug_struct("ServeFuture")
-                .finish_non_exhaustive()
+            f.debug_struct("ServeFuture").finish_non_exhaustive()
         }
     }
 }
@@ -523,16 +531,28 @@ mod tests {
 
         // method router
         serve(TcpListener::bind(addr).await.unwrap(), get(handler));
-        serve(TcpListener::bind(addr).await.unwrap(), get(handler).into_make_service());
+        serve(
+            TcpListener::bind(addr).await.unwrap(),
+            get(handler).into_make_service(),
+        );
         serve(
             TcpListener::bind(addr).await.unwrap(),
             get(handler).into_make_service_with_connect_info::<SocketAddr>(),
         );
 
         // handler
-        serve(TcpListener::bind(addr).await.unwrap(), handler.into_service());
-        serve(TcpListener::bind(addr).await.unwrap(), handler.with_state(()));
-        serve(TcpListener::bind(addr).await.unwrap(), handler.into_make_service());
+        serve(
+            TcpListener::bind(addr).await.unwrap(),
+            handler.into_service(),
+        );
+        serve(
+            TcpListener::bind(addr).await.unwrap(),
+            handler.with_state(()),
+        );
+        serve(
+            TcpListener::bind(addr).await.unwrap(),
+            handler.into_make_service(),
+        );
         serve(
             TcpListener::bind(addr).await.unwrap(),
             handler.into_make_service_with_connect_info::<SocketAddr>(),

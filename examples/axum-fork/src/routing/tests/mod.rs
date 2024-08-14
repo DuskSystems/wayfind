@@ -5,8 +5,8 @@ use crate::{
     handler::{Handler, HandlerWithoutStateExt},
     response::{IntoResponse, Response},
     routing::{
-        delete, get, get_service, on, on_service, patch, patch_service, path_router::path_for_nested_route, post,
-        MethodFilter,
+        delete, get, get_service, on, on_service, patch, patch_service,
+        path_router::path_for_nested_route, post, MethodFilter,
     },
     test_helpers::{
         tracing_helpers::{capture_tracing, TracingEvent},
@@ -32,7 +32,10 @@ use std::{
     time::Duration,
 };
 use tower::{service_fn, util::MapResponseLayer, ServiceExt as TowerServiceExt};
-use tower_http::{limit::RequestBodyLimitLayer, timeout::TimeoutLayer, validate_request::ValidateRequestHeaderLayer};
+use tower_http::{
+    limit::RequestBodyLimitLayer, timeout::TimeoutLayer,
+    validate_request::ValidateRequestHeaderLayer,
+};
 use tower_service::Service;
 
 mod fallback;
@@ -82,7 +85,10 @@ async fn routing() {
             get(|_: Request| async { "users#index" }).post(|_: Request| async { "users#create" }),
         )
         .route("/users/:id", get(|_: Request| async { "users#show" }))
-        .route("/users/:id/action", get(|_: Request| async { "users#action" }));
+        .route(
+            "/users/:id/action",
+            get(|_: Request| async { "users#action" }),
+        );
 
     let client = TestClient::new(app);
 
@@ -147,7 +153,9 @@ async fn routing_between_services() {
             }))
             .on_service(
                 MethodFilter::PUT,
-                service_fn(|_: Request| async { Ok::<_, Infallible>(Response::new(Body::from("one put"))) }),
+                service_fn(|_: Request| async {
+                    Ok::<_, Infallible>(Response::new(Body::from("one put")))
+                }),
             ),
         )
         .route("/two", on_service(MethodFilter::GET, handle.into_service()));
@@ -349,7 +357,10 @@ async fn with_and_without_trailing_slash() {
 // for https://github.com/tokio-rs/axum/issues/420
 #[crate::test]
 async fn wildcard_doesnt_match_just_trailing_slash() {
-    let app = Router::new().route("/x/*path", get(|Path(path): Path<String>| async move { path }));
+    let app = Router::new().route(
+        "/x/*path",
+        get(|Path(path): Path<String>| async move { path }),
+    );
 
     let client = TestClient::new(app);
 
@@ -584,36 +595,27 @@ async fn head_with_middleware_applied() {
     use tower_http::compression::{predicate::SizeAbove, CompressionLayer};
 
     let app = Router::new()
-        .nest("/", Router::new().route("/", get(|| async { "Hello, World!" })))
+        .nest(
+            "/",
+            Router::new().route("/", get(|| async { "Hello, World!" })),
+        )
         .layer(CompressionLayer::new().compress_when(SizeAbove::new(0)));
 
     let client = TestClient::new(app);
 
     // send GET request
-    let res = client
-        .get("/")
-        .header("accept-encoding", "gzip")
-        .await;
+    let res = client.get("/").header("accept-encoding", "gzip").await;
     assert_eq!(res.headers()["transfer-encoding"], "chunked");
     // cannot have `transfer-encoding: chunked` and `content-length`
-    assert!(!res
-        .headers()
-        .contains_key("content-length"));
+    assert!(!res.headers().contains_key("content-length"));
 
     // send HEAD request
-    let res = client
-        .head("/")
-        .header("accept-encoding", "gzip")
-        .await;
+    let res = client.head("/").header("accept-encoding", "gzip").await;
     // no response body so no `transfer-encoding`
-    assert!(!res
-        .headers()
-        .contains_key("transfer-encoding"));
+    assert!(!res.headers().contains_key("transfer-encoding"));
     // no content-length since we cannot know it since the response
     // is compressed
-    assert!(!res
-        .headers()
-        .contains_key("content-length"));
+    assert!(!res.headers().contains_key("content-length"));
 }
 
 #[crate::test]
@@ -682,16 +684,10 @@ async fn limited_body_with_content_length() {
 
     let client = TestClient::new(app);
 
-    let res = client
-        .post("/")
-        .body("a".repeat(LIMIT))
-        .await;
+    let res = client.post("/").body("a".repeat(LIMIT)).await;
     assert_eq!(res.status(), StatusCode::OK);
 
-    let res = client
-        .post("/")
-        .body("a".repeat(LIMIT * 2))
-        .await;
+    let res = client.post("/").body("a".repeat(LIMIT * 2)).await;
     assert_eq!(res.status(), StatusCode::PAYLOAD_TOO_LARGE);
 }
 
@@ -839,9 +835,7 @@ async fn extract_state() {
         inner: InnerState { value: 2 },
     };
 
-    let app = Router::new()
-        .route("/", get(handler))
-        .with_state(state);
+    let app = Router::new().route("/", get(handler)).with_state(state);
     let client = TestClient::new(app);
 
     let res = client.get("/").await;
@@ -1041,14 +1035,7 @@ async fn connect_going_to_custom_fallback() {
 
     let res = app.oneshot(req).await.unwrap();
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
-    let text = String::from_utf8(
-        res.collect()
-            .await
-            .unwrap()
-            .to_bytes()
-            .to_vec(),
-    )
-    .unwrap();
+    let text = String::from_utf8(res.collect().await.unwrap().to_bytes().to_vec()).unwrap();
     assert_eq!(text, "custom fallback");
 }
 
@@ -1104,12 +1091,7 @@ async fn locks_mutex_very_little() {
             //
             // So instead `call` the service directly without spawning new tasks.
             app.clone()
-                .oneshot(
-                    Request::builder()
-                        .uri(path)
-                        .body(Body::empty())
-                        .unwrap(),
-                )
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
                 .await
                 .unwrap()
         })

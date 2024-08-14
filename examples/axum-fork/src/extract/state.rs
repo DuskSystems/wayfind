@@ -352,7 +352,10 @@ where
 {
     type Rejection = Infallible;
 
-    async fn from_request_parts(_parts: &mut Parts, state: &OuterState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        _parts: &mut Parts,
+        state: &OuterState,
+    ) -> Result<Self, Self::Rejection> {
         let inner_state = InnerState::from_ref(state);
         Ok(Self(inner_state))
     }

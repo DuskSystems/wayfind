@@ -65,10 +65,7 @@ impl<T> Router<T> {
     }
 
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        match self
-            .constraints
-            .entry(C::NAME.as_bytes().to_vec())
-        {
+        match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
                 entry.insert(C::check);
                 Ok(())
@@ -83,10 +80,12 @@ impl<T> Router<T> {
 
         for part in &parts.0 {
             if let Part::Dynamic {
-                constraint: Some(name), ..
+                constraint: Some(name),
+                ..
             }
             | Part::Wildcard {
-                constraint: Some(name), ..
+                constraint: Some(name),
+                ..
             } = part
             {
                 if !self.constraints.contains_key(name) {
@@ -95,8 +94,7 @@ impl<T> Router<T> {
             }
         }
 
-        self.root
-            .insert(&mut parts, NodeData { path, value })
+        self.root.insert(&mut parts, NodeData { path, value })
     }
 
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {

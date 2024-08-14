@@ -92,10 +92,7 @@ where
     }
 
     fn call(&mut self, mut req: Request<B>) -> Self::Future {
-        if let Some(prev) = req
-            .extensions_mut()
-            .get_mut::<NestedPath>()
-        {
+        if let Some(prev) = req.extensions_mut().get_mut::<NestedPath>() {
             let new_path = if prev.as_str() == "/" {
                 Arc::clone(&self.path)
             } else {

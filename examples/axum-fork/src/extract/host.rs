@@ -130,11 +130,7 @@ mod tests {
 
     #[crate::test]
     async fn uri_host() {
-        let host = test_client()
-            .get("/")
-            .await
-            .text()
-            .await;
+        let host = test_client().get("/").await.text().await;
         assert!(host.contains("127.0.0.1"));
     }
 
@@ -161,7 +157,10 @@ mod tests {
         assert_eq!(value, "192.0.2.60");
 
         // multiple header values
-        let headers = header_map(&[(FORWARDED, "host=192.0.2.60"), (FORWARDED, "host=127.0.0.1")]);
+        let headers = header_map(&[
+            (FORWARDED, "host=192.0.2.60"),
+            (FORWARDED, "host=127.0.0.1"),
+        ]);
         let value = parse_forwarded(&headers).unwrap();
         assert_eq!(value, "192.0.2.60");
     }

@@ -374,8 +374,7 @@ impl Future for ResponseFuture {
 
 impl fmt::Debug for ResponseFuture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ResponseFuture")
-            .finish()
+        f.debug_struct("ResponseFuture").finish()
     }
 }
 
@@ -397,10 +396,7 @@ mod tests {
         }
 
         async fn handle(headers: HeaderMap) -> String {
-            headers["x-axum-test"]
-                .to_str()
-                .unwrap()
-                .to_owned()
+            headers["x-axum-test"].to_str().unwrap().to_owned()
         }
 
         let app = Router::new()
@@ -408,12 +404,7 @@ mod tests {
             .layer(from_fn(insert_header));
 
         let res = app
-            .oneshot(
-                Request::builder()
-                    .uri("/")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::OK);

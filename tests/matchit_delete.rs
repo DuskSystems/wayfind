@@ -795,7 +795,10 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [1]
     "###);
 
-    assert_eq!(router.delete("/bar/{a}/{b}/baz"), Err(DeleteError::NotFound));
+    assert_eq!(
+        router.delete("/bar/{a}/{b}/baz"),
+        Err(DeleteError::NotFound)
+    );
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -817,7 +820,10 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [1]
     "###);
 
-    assert_eq!(router.delete("/baz/{a}/{b}/{c}"), Err(DeleteError::NotFound));
+    assert_eq!(
+        router.delete("/baz/{a}/{b}/{c}"),
+        Err(DeleteError::NotFound)
+    );
 
     insta::assert_snapshot!(router, @r###"
     $

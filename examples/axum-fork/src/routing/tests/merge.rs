@@ -52,11 +52,8 @@ async fn multiple_ors_balanced_differently() {
 
     test(
         "three",
-        one.clone().merge(
-            two.clone()
-                .merge(three.clone())
-                .merge(four.clone()),
-        ),
+        one.clone()
+            .merge(two.clone().merge(three.clone()).merge(four.clone())),
     )
     .await;
 
@@ -86,31 +83,15 @@ async fn nested_or() {
     assert_eq!(client.get("/baz").await.text().await, "baz");
 
     let client = TestClient::new(Router::new().nest("/foo", bar_or_baz));
-    assert_eq!(
-        client
-            .get("/foo/bar")
-            .await
-            .text()
-            .await,
-        "bar"
-    );
-    assert_eq!(
-        client
-            .get("/foo/baz")
-            .await
-            .text()
-            .await,
-        "baz"
-    );
+    assert_eq!(client.get("/foo/bar").await.text().await, "bar");
+    assert_eq!(client.get("/foo/baz").await.text().await, "baz");
 }
 
 #[crate::test]
 async fn or_with_route_following() {
     let one = Router::new().route("/one", get(|| async { "one" }));
     let two = Router::new().route("/two", get(|| async { "two" }));
-    let app = one
-        .merge(two)
-        .route("/three", get(|| async { "three" }));
+    let app = one.merge(two).route("/three", get(|| async { "three" }));
 
     let client = TestClient::new(app);
 
@@ -230,7 +211,11 @@ async fn services() {
     assert_eq!(res.status(), StatusCode::OK);
 }
 
-async fn all_the_uris(uri: Uri, OriginalUri(original_uri): OriginalUri, req: Request) -> impl IntoResponse {
+async fn all_the_uris(
+    uri: Uri,
+    OriginalUri(original_uri): OriginalUri,
+    req: Request,
+) -> impl IntoResponse {
     Json(json!({
         "uri": uri.to_string(),
         "request_uri": req.uri().to_string(),
@@ -399,10 +384,7 @@ async fn middleware_that_return_early() {
         StatusCode::OK
     );
     assert_eq!(
-        client
-            .get("/doesnt-exist")
-            .await
-            .status(),
+        client.get("/doesnt-exist").await.status(),
         StatusCode::NOT_FOUND
     );
     assert_eq!(client.get("/public").await.status(), StatusCode::OK);

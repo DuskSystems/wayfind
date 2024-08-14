@@ -11,23 +11,27 @@ async fn nesting_apps() {
         )
         .route(
             "/users/:id",
-            get(|params: extract::Path<HashMap<String, String>>| async move {
-                format!(
-                    "{}: users#show ({})",
-                    params.get("version").unwrap(),
-                    params.get("id").unwrap()
-                )
-            }),
+            get(
+                |params: extract::Path<HashMap<String, String>>| async move {
+                    format!(
+                        "{}: users#show ({})",
+                        params.get("version").unwrap(),
+                        params.get("id").unwrap()
+                    )
+                },
+            ),
         )
         .route(
             "/games/:id",
-            get(|params: extract::Path<HashMap<String, String>>| async move {
-                format!(
-                    "{}: games#show ({})",
-                    params.get("version").unwrap(),
-                    params.get("id").unwrap()
-                )
-            }),
+            get(
+                |params: extract::Path<HashMap<String, String>>| async move {
+                    format!(
+                        "{}: games#show ({})",
+                        params.get("version").unwrap(),
+                        params.get("id").unwrap()
+                    )
+                },
+            ),
         );
 
     let app = Router::new()
@@ -134,7 +138,10 @@ async fn nested_url_extractor() {
             "/bar",
             Router::new()
                 .route("/baz", get(|uri: Uri| async move { uri.to_string() }))
-                .route("/qux", get(|req: Request| async move { req.uri().to_string() })),
+                .route(
+                    "/qux",
+                    get(|req: Request| async move { req.uri().to_string() }),
+                ),
         ),
     );
 
@@ -216,22 +223,8 @@ async fn nested_multiple_routes() {
     let client = TestClient::new(app);
 
     assert_eq!(client.get("/").await.text().await, "root");
-    assert_eq!(
-        client
-            .get("/api/users")
-            .await
-            .text()
-            .await,
-        "users"
-    );
-    assert_eq!(
-        client
-            .get("/api/teams")
-            .await
-            .text()
-            .await,
-        "teams"
-    );
+    assert_eq!(client.get("/api/users").await.text().await, "users");
+    assert_eq!(client.get("/api/teams").await.text().await, "teams");
 }
 
 #[test]
@@ -252,27 +245,19 @@ fn nested_at_root_with_other_routes() {
 #[crate::test]
 async fn multiple_top_level_nests() {
     let app = Router::new()
-        .nest("/one", Router::new().route("/route", get(|| async { "one" })))
-        .nest("/two", Router::new().route("/route", get(|| async { "two" })));
+        .nest(
+            "/one",
+            Router::new().route("/route", get(|| async { "one" })),
+        )
+        .nest(
+            "/two",
+            Router::new().route("/route", get(|| async { "two" })),
+        );
 
     let client = TestClient::new(app);
 
-    assert_eq!(
-        client
-            .get("/one/route")
-            .await
-            .text()
-            .await,
-        "one"
-    );
-    assert_eq!(
-        client
-            .get("/two/route")
-            .await
-            .text()
-            .await,
-        "two"
-    );
+    assert_eq!(client.get("/one/route").await.text().await, "one");
+    assert_eq!(client.get("/two/route").await.text().await, "two");
 }
 
 #[crate::test]
@@ -324,30 +309,9 @@ async fn outer_middleware_still_see_whole_url() {
 
     assert_eq!(client.get("/").await.text().await, "/");
     assert_eq!(client.get("/foo").await.text().await, "/foo");
-    assert_eq!(
-        client
-            .get("/foo/bar")
-            .await
-            .text()
-            .await,
-        "/foo/bar"
-    );
-    assert_eq!(
-        client
-            .get("/not-found")
-            .await
-            .text()
-            .await,
-        "/not-found"
-    );
-    assert_eq!(
-        client
-            .get("/one/two")
-            .await
-            .text()
-            .await,
-        "/one/two"
-    );
+    assert_eq!(client.get("/foo/bar").await.text().await, "/foo/bar");
+    assert_eq!(client.get("/not-found").await.text().await, "/not-found");
+    assert_eq!(client.get("/one/two").await.text().await, "/one/two");
 }
 
 #[crate::test]

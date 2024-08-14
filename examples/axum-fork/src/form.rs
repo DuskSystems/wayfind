@@ -81,21 +81,25 @@ where
     type Rejection = FormRejection;
 
     async fn from_request(req: Request, _state: &S) -> Result<Self, Self::Rejection> {
-        let is_get_or_head = req.method() == http::Method::GET || req.method() == http::Method::HEAD;
+        let is_get_or_head =
+            req.method() == http::Method::GET || req.method() == http::Method::HEAD;
 
         match req.extract().await {
             Ok(RawForm(bytes)) => {
-                let value = serde_urlencoded::from_bytes(&bytes).map_err(|err| -> FormRejection {
-                    if is_get_or_head {
-                        FailedToDeserializeForm::from_err(err).into()
-                    } else {
-                        FailedToDeserializeFormBody::from_err(err).into()
-                    }
-                })?;
+                let value =
+                    serde_urlencoded::from_bytes(&bytes).map_err(|err| -> FormRejection {
+                        if is_get_or_head {
+                            FailedToDeserializeForm::from_err(err).into()
+                        } else {
+                            FailedToDeserializeFormBody::from_err(err).into()
+                        }
+                    })?;
                 Ok(Form(value))
             }
             Err(RawFormRejection::BytesRejection(r)) => Err(FormRejection::BytesRejection(r)),
-            Err(RawFormRejection::InvalidFormContentType(r)) => Err(FormRejection::InvalidFormContentType(r)),
+            Err(RawFormRejection::InvalidFormContentType(r)) => {
+                Err(FormRejection::InvalidFormContentType(r))
+            }
         }
     }
 }
@@ -106,7 +110,11 @@ where
 {
     fn into_response(self) -> Response {
         match serde_urlencoded::to_string(&self.0) {
-            Ok(body) => ([(CONTENT_TYPE, mime::APPLICATION_WWW_FORM_URLENCODED.as_ref())], body).into_response(),
+            Ok(body) => (
+                [(CONTENT_TYPE, mime::APPLICATION_WWW_FORM_URLENCODED.as_ref())],
+                body,
+            )
+                .into_response(),
             Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
         }
     }
@@ -140,13 +148,7 @@ mod tests {
             .uri(uri.as_ref())
             .body(Body::empty())
             .unwrap();
-        assert_eq!(
-            Form::<T>::from_request(req, &())
-                .await
-                .unwrap()
-                .0,
-            value
-        );
+        assert_eq!(Form::<T>::from_request(req, &()).await.unwrap().0, value);
     }
 
     async fn check_body<T: Serialize + DeserializeOwned + PartialEq + Debug>(value: T) {
@@ -156,18 +158,19 @@ mod tests {
             .header(CONTENT_TYPE, APPLICATION_WWW_FORM_URLENCODED.as_ref())
             .body(Body::from(serde_urlencoded::to_string(&value).unwrap()))
             .unwrap();
-        assert_eq!(
-            Form::<T>::from_request(req, &())
-                .await
-                .unwrap()
-                .0,
-            value
-        );
+        assert_eq!(Form::<T>::from_request(req, &()).await.unwrap().0, value);
     }
 
     #[crate::test]
     async fn test_form_query() {
-        check_query("http://example.com/test", Pagination { size: None, page: None }).await;
+        check_query(
+            "http://example.com/test",
+            Pagination {
+                size: None,
+                page: None,
+            },
+        )
+        .await;
 
         check_query(
             "http://example.com/test?size=10",
@@ -190,7 +193,11 @@ mod tests {
 
     #[crate::test]
     async fn test_form_body() {
-        check_body(Pagination { size: None, page: None }).await;
+        check_body(Pagination {
+            size: None,
+            page: None,
+        })
+        .await;
 
         check_body(Pagination {
             size: Some(10),
@@ -237,7 +244,10 @@ mod tests {
 
         let app = Router::new().route(
             "/",
-            on(MethodFilter::GET.or(MethodFilter::POST), |_: Form<Payload>| async {}),
+            on(
+                MethodFilter::GET.or(MethodFilter::POST),
+                |_: Form<Payload>| async {},
+            ),
         );
 
         let client = TestClient::new(app);

@@ -89,7 +89,8 @@ where
     /// ```
     pub fn try_from_uri(value: &Uri) -> Result<Self, QueryRejection> {
         let query = value.query().unwrap_or_default();
-        let params = serde_urlencoded::from_str(query).map_err(FailedToDeserializeQueryString::from_err)?;
+        let params =
+            serde_urlencoded::from_str(query).map_err(FailedToDeserializeQueryString::from_err)?;
         Ok(Query(params))
     }
 }
@@ -114,13 +115,7 @@ mod tests {
             .uri(uri.as_ref())
             .body(Body::empty())
             .unwrap();
-        assert_eq!(
-            Query::<T>::from_request(req, &())
-                .await
-                .unwrap()
-                .0,
-            value
-        );
+        assert_eq!(Query::<T>::from_request(req, &()).await.unwrap().0, value);
     }
 
     #[crate::test]
@@ -131,7 +126,14 @@ mod tests {
             page: Option<u64>,
         }
 
-        check("http://example.com/test", Pagination { size: None, page: None }).await;
+        check(
+            "http://example.com/test",
+            Pagination {
+                size: None,
+                page: None,
+            },
+        )
+        .await;
 
         check(
             "http://example.com/test?size=10",
@@ -176,9 +178,7 @@ mod tests {
             foo: String,
             bar: u32,
         }
-        let uri: Uri = "http://example.com/path?foo=hello&bar=42"
-            .parse()
-            .unwrap();
+        let uri: Uri = "http://example.com/path?foo=hello&bar=42".parse().unwrap();
         let result: Query<TestQueryParams> = Query::try_from_uri(&uri).unwrap();
         assert_eq!(result.foo, String::from("hello"));
         assert_eq!(result.bar, 42);

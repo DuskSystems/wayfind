@@ -150,10 +150,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         match Extension::<Self>::from_request_parts(parts, state).await {
             Ok(Extension(connect_info)) => Ok(connect_info),
-            Err(err) => match parts
-                .extensions
-                .get::<MockConnectInfo<T>>()
-            {
+            Err(err) => match parts.extensions.get::<MockConnectInfo<T>>() {
                 Some(MockConnectInfo(connect_info)) => Ok(Self(connect_info.clone())),
                 None => Err(err),
             },
@@ -236,28 +233,25 @@ mod tests {
             format!("{addr}")
         }
 
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .await
-            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
 
         let (tx, rx) = tokio::sync::oneshot::channel();
         tokio::spawn(async move {
             let app = Router::new().route("/", get(handler));
             tx.send(()).unwrap();
-            crate::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
-                .await
-                .unwrap();
+            crate::serve(
+                listener,
+                app.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+            .unwrap();
         });
         rx.await.unwrap();
 
         let client = reqwest::Client::new();
 
-        let res = client
-            .get(format!("http://{addr}"))
-            .send()
-            .await
-            .unwrap();
+        let res = client.get(format!("http://{addr}")).send().await.unwrap();
         let body = res.text().await.unwrap();
         assert!(body.starts_with("127.0.0.1:"));
     }
@@ -271,7 +265,9 @@ mod tests {
 
         impl Connected<IncomingStream<'_>> for MyConnectInfo {
             fn connect_info(_target: IncomingStream<'_>) -> Self {
-                Self { value: "it worked!" }
+                Self {
+                    value: "it worked!",
+                }
             }
         }
 
@@ -279,28 +275,25 @@ mod tests {
             addr.value
         }
 
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .await
-            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
 
         let (tx, rx) = tokio::sync::oneshot::channel();
         tokio::spawn(async move {
             let app = Router::new().route("/", get(handler));
             tx.send(()).unwrap();
-            crate::serve(listener, app.into_make_service_with_connect_info::<MyConnectInfo>())
-                .await
-                .unwrap();
+            crate::serve(
+                listener,
+                app.into_make_service_with_connect_info::<MyConnectInfo>(),
+            )
+            .await
+            .unwrap();
         });
         rx.await.unwrap();
 
         let client = reqwest::Client::new();
 
-        let res = client
-            .get(format!("http://{addr}"))
-            .send()
-            .await
-            .unwrap();
+        let res = client.get(format!("http://{addr}")).send().await.unwrap();
         let body = res.text().await.unwrap();
         assert_eq!(body, "it worked!");
     }
@@ -328,9 +321,7 @@ mod tests {
             format!("{addr}")
         }
 
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .await
-            .unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
 
         tokio::spawn(async move {
@@ -338,18 +329,17 @@ mod tests {
                 .route("/", get(handler))
                 .layer(MockConnectInfo(SocketAddr::from(([0, 0, 0, 0], 1337))));
 
-            crate::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
-                .await
-                .unwrap();
+            crate::serve(
+                listener,
+                app.into_make_service_with_connect_info::<SocketAddr>(),
+            )
+            .await
+            .unwrap();
         });
 
         let client = reqwest::Client::new();
 
-        let res = client
-            .get(format!("http://{addr}"))
-            .send()
-            .await
-            .unwrap();
+        let res = client.get(format!("http://{addr}")).send().await.unwrap();
         let body = res.text().await.unwrap();
         assert!(body.starts_with("127.0.0.1:"));
     }

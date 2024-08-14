@@ -111,7 +111,10 @@ mod tests {
 
     #[test]
     fn test_parts_static() {
-        assert_eq!(Parts::new(b"/abcd"), Ok(Parts(vec![Part::Static { prefix: b"/abcd" }])),);
+        assert_eq!(
+            Parts::new(b"/abcd"),
+            Ok(Parts(vec![Part::Static { prefix: b"/abcd" }])),
+        );
     }
 
     #[test]
