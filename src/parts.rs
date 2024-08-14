@@ -12,11 +12,13 @@ pub enum Part<'a> {
 
     Dynamic {
         name: &'a [u8],
+        optional: bool,
         constraint: Option<Vec<u8>>,
     },
 
     Wildcard {
         name: &'a [u8],
+        optional: bool,
         constraint: Option<Vec<u8>>,
     },
 }
@@ -31,32 +33,22 @@ impl<'a> Parts<'a> {
 
         while index < path.len() {
             if path[index] == b'{' {
-                let (name, constraint) = Self::parse_parameter(path, &mut index)?;
-
-                if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                    return Err(RouteError::InvalidPath);
-                }
-
-                if let Some(constraint) = &constraint {
-                    if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                        return Err(RouteError::InvalidPath);
-                    }
-                }
-
+                let (name, optional, constraint) = Self::parse_parameter(path, &mut index)?;
                 if name.starts_with(b"*") {
                     parts.push(Part::Wildcard {
                         name: &name[1..],
+                        optional,
                         constraint,
                     });
                 } else {
-                    parts.push(Part::Dynamic { name, constraint });
+                    parts.push(Part::Dynamic {
+                        name,
+                        optional,
+                        constraint,
+                    });
                 }
             } else {
-                let prefix = Self::parse_static(path, &mut index);
-                if prefix.iter().any(|&c| INVALID_STATIC_CHARS.contains(&c)) {
-                    return Err(RouteError::InvalidPath);
-                }
-
+                let prefix = Self::parse_static(path, &mut index)?;
                 parts.push(Part::Static { prefix });
             }
         }
@@ -79,7 +71,7 @@ impl<'a> Parts<'a> {
         self.0.is_empty()
     }
 
-    fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
+    fn parse_static(path: &'a [u8], index: &mut usize) -> Result<&'a [u8], RouteError> {
         let start = *index;
 
         // Consume up until the next '{'
@@ -91,13 +83,19 @@ impl<'a> Parts<'a> {
             *index += 1;
         }
 
-        &path[start..*index]
+        let prefix = &path[start..*index];
+        if prefix.iter().any(|c| INVALID_STATIC_CHARS.contains(c)) {
+            return Err(RouteError::InvalidPath);
+        }
+
+        Ok(prefix)
     }
 
+    #[allow(clippy::type_complexity)]
     fn parse_parameter(
         path: &'a [u8],
         index: &mut usize,
-    ) -> Result<(&'a [u8], Option<Vec<u8>>), RouteError> {
+    ) -> Result<(&'a [u8], bool, Option<Vec<u8>>), RouteError> {
         // Consume opening '{'
         *index += 1;
         let start = *index;
@@ -116,6 +114,16 @@ impl<'a> Parts<'a> {
 
         // Empty name
         if name_end == start {
+            return Err(RouteError::InvalidPath);
+        }
+
+        let (name, optional) = if path[name_end - 1] == b'?' {
+            (&path[start..name_end - 1], true)
+        } else {
+            (&path[start..name_end], false)
+        };
+
+        if name.iter().any(|c| INVALID_PARAM_CHARS.contains(c)) {
             return Err(RouteError::InvalidPath);
         }
 
@@ -139,7 +147,12 @@ impl<'a> Parts<'a> {
                 return Err(RouteError::InvalidPath);
             }
 
-            Some(path[constraint_start..*index].to_vec())
+            let constraint = &path[constraint_start..*index];
+            if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+                return Err(RouteError::InvalidPath);
+            }
+
+            Some(constraint.to_vec())
         } else {
             None
         };
@@ -147,7 +160,7 @@ impl<'a> Parts<'a> {
         // Consume closing '}'
         *index += 1;
 
-        Ok((&path[start..name_end], constraint))
+        Ok((name, optional, constraint))
     }
 }
 
@@ -170,6 +183,7 @@ mod tests {
             Ok(Parts(vec![
                 Part::Dynamic {
                     name: b"name",
+                    optional: false,
                     constraint: None
                 },
                 Part::Static { prefix: b"/" },
@@ -184,6 +198,7 @@ mod tests {
             Ok(Parts(vec![
                 Part::Wildcard {
                     name: b"path",
+                    optional: false,
                     constraint: None
                 },
                 Part::Static { prefix: b"/" },
@@ -198,12 +213,65 @@ mod tests {
             Ok(Parts(vec![
                 Part::Dynamic {
                     name: b"id",
+                    optional: false,
                     constraint: Some("numeric".into())
                 },
                 Part::Static { prefix: b"/" },
                 Part::Dynamic {
                     name: b"name",
+                    optional: false,
                     constraint: Some("alpha".into())
+                },
+                Part::Static { prefix: b"/" },
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_parts_optional_dynamic() {
+        assert_eq!(
+            Parts::new(b"/{name?}"),
+            Ok(Parts(vec![
+                Part::Dynamic {
+                    name: b"name",
+                    optional: true,
+                    constraint: None,
+                },
+                Part::Static { prefix: b"/" },
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_parts_optional_wildcard() {
+        assert_eq!(
+            Parts::new(b"/{*path?}"),
+            Ok(Parts(vec![
+                Part::Wildcard {
+                    name: b"path",
+                    optional: true,
+                    constraint: None,
+                },
+                Part::Static { prefix: b"/" },
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_parts_optional_with_constraint() {
+        assert_eq!(
+            Parts::new(b"/{name?:alpha}/{id:numeric}"),
+            Ok(Parts(vec![
+                Part::Dynamic {
+                    name: b"id",
+                    constraint: Some("numeric".into()),
+                    optional: false
+                },
+                Part::Static { prefix: b"/" },
+                Part::Dynamic {
+                    name: b"name",
+                    constraint: Some("alpha".into()),
+                    optional: true
                 },
                 Part::Static { prefix: b"/" },
             ]))

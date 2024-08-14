@@ -10,13 +10,19 @@ impl<T> Node<T> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, prefix)?,
-                Part::Dynamic { name, constraint } => {
+                Part::Dynamic {
+                    name, constraint, ..
+                } => {
                     self.insert_dynamic(parts, data, name, constraint)?;
                 }
-                Part::Wildcard { name, constraint } if parts.is_empty() => {
+                Part::Wildcard {
+                    name, constraint, ..
+                } if parts.is_empty() => {
                     self.insert_end_wildcard(data, name, constraint)?;
                 }
-                Part::Wildcard { name, constraint } => {
+                Part::Wildcard {
+                    name, constraint, ..
+                } => {
                     self.insert_wildcard(parts, data, name, constraint)?;
                 }
             };

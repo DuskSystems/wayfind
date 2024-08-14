@@ -9,13 +9,15 @@ impl<T> Node<T> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(parts, prefix),
-                Part::Dynamic { name, constraint } => self.delete_dynamic(parts, name, &constraint),
-                Part::Wildcard { name, constraint } if parts.is_empty() => {
-                    self.delete_end_wildcard(name, &constraint)
-                }
-                Part::Wildcard { name, constraint } => {
-                    self.delete_wildcard(parts, name, &constraint)
-                }
+                Part::Dynamic {
+                    name, constraint, ..
+                } => self.delete_dynamic(parts, name, &constraint),
+                Part::Wildcard {
+                    name, constraint, ..
+                } if parts.is_empty() => self.delete_end_wildcard(name, &constraint),
+                Part::Wildcard {
+                    name, constraint, ..
+                } => self.delete_wildcard(parts, name, &constraint),
             };
 
             if result.is_ok() {
