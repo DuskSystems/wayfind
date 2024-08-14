@@ -1,12 +1,12 @@
+# https://rust-lang.github.io/rustup-components-history
 [toolchain]
 channel = "1.80.1"
-targets = ["wasm32-unknown-unknown"]
+profile = "minimal"
 components = [
-  "cargo",
-  "rustfmt",
   "clippy",
-  "rust-src",
-  "rust-std",
+  "llvm-tools",
   "rust-analyzer",
-  "llvm-tools-preview",
+  "rust-docs",
+  "rust-src",
+  "rustfmt",
 ]
