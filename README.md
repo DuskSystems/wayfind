@@ -51,25 +51,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // $
     // ╰─ /
-    //    ├─ pet [1]
+    //    ├─ pet [*]
     //    │    ╰─ /
     //    │       ├─ findBy
-    //    │       │       ├─ Status [2]
-    //    │       │       ╰─ Tags [3]
-    //    │       ╰─ {petId} [4]
-    //    │                ╰─ /uploadImage [5]
+    //    │       │       ├─ Status [*]
+    //    │       │       ╰─ Tags [*]
+    //    │       ╰─ {petId} [*]
+    //    │                ╰─ /uploadImage [*]
     //    ├─ store/
-    //    │       ├─ inventory [6]
-    //    │       ╰─ order [7]
+    //    │       ├─ inventory [*]
+    //    │       ╰─ order [*]
     //    │              ╰─ /
-    //    │                 ╰─ {orderId} [8]
-    //    ╰─ user [9]
+    //    │                 ╰─ {orderId} [*]
+    //    ╰─ user [*]
     //          ╰─ /
-    //             ├─ createWithList [10]
+    //             ├─ createWithList [*]
     //             ├─ log
-    //             │    ├─ in [11]
-    //             │    ╰─ out [12]
-    //             ╰─ {username} [13]
+    //             │    ├─ in [*]
+    //             │    ╰─ out [*]
+    //             ╰─ {username} [*]
 
     Ok(())
 }
@@ -107,20 +107,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2/{*name:namespace}/referrers/{digest}", 7)?;
 
     // $
-    // ╰─ /v2 [1]
+    // ╰─ /v2 [*]
     //      ╰─ /
     //         ╰─ {*name:namespace}
     //                            ╰─ /
     //                               ├─ blobs/
-    //                               │       ├─ uploads [4]
+    //                               │       ├─ uploads [*]
     //                               │       │        ╰─ /
-    //                               │       │           ╰─ {reference} [5]
-    //                               │       ╰─ {digest} [2]
+    //                               │       │           ╰─ {reference} [*]
+    //                               │       ╰─ {digest} [*]
     //                               ├─ manifests/
-    //                               │           ╰─ {reference} [3]
+    //                               │           ╰─ {reference} [*]
     //                               ├─ referrers/
-    //                               │           ╰─ {digest} [7]
-    //                               ╰─ tags/list [6]
+    //                               │           ╰─ {digest} [*]
+    //                               ╰─ tags/list [*]
 
     Ok(())
 }
