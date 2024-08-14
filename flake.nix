@@ -41,8 +41,14 @@
       };
 
       rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-      rust-toolchain-msrv = pkgs.rust-bin.stable."1.66.0".default;
-      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".default;
+      rust-toolchain-ci = pkgs.rust-bin.stable."1.80.1".minimal.override {
+        extensions = [
+          "clippy"
+          "rustfmt"
+        ];
+      };
+      rust-toolchain-msrv = pkgs.rust-bin.stable."1.66.0".minimal;
+      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".minimal;
     in {
       devShells = {
         # nix develop
@@ -52,28 +58,21 @@
           RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
           CARGO_INCREMENTAL = "0";
 
-          buildInputs = with pkgs;
-            [
-              # Rust
-              rust-toolchain
-              sccache
-              cargo-codspeed
-              cargo-insta
-              cargo-nextest
+          buildInputs = with pkgs; [
+            # Rust
+            rust-toolchain
+            sccache
+            cargo-codspeed
+            cargo-insta
 
-              # Benchmarking
-              gnuplot
+            # Benchmarking
+            gnuplot
 
-              # Nix
-              alejandra
-              statix
-              nil
-            ]
-            ++ lib.optionals pkgs.stdenv.isLinux [
-              # Rust
-              # NOTE: https://github.com/NixOS/nixpkgs/pull/260725
-              cargo-llvm-cov
-            ];
+            # Nix
+            alejandra
+            statix
+            nil
+          ];
         };
 
         # nix develop .#ci
@@ -83,19 +82,12 @@
           RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
           CARGO_INCREMENTAL = "0";
 
-          buildInputs = with pkgs;
-            [
-              # Rust
-              rust-toolchain
-              sccache
-              cargo-codspeed
-              cargo-nextest
-            ]
-            ++ lib.optionals pkgs.stdenv.isLinux [
-              # Rust
-              # NOTE: https://github.com/NixOS/nixpkgs/pull/260725
-              cargo-llvm-cov
-            ];
+          buildInputs = with pkgs; [
+            # Rust
+            rust-toolchain-ci
+            sccache
+            cargo-codspeed
+          ];
         };
 
         # nix develop .#msrv
