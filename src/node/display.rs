@@ -2,10 +2,9 @@ use super::Node;
 use crate::node::NodeKind;
 use std::fmt::Display;
 
-impl<T: Display> Display for Node<T> {
-    #[allow(clippy::too_many_lines)]
+impl<T> Display for Node<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn debug_node<T: Display>(
+        fn debug_node<T>(
             f: &mut std::fmt::Formatter,
             node: &Node<T>,
             padding: &str,
@@ -39,7 +38,7 @@ impl<T: Display> Display for Node<T> {
             let value = node
                 .data
                 .as_ref()
-                .map_or(String::new(), |node_data| format!(" [{}]", node_data.value));
+                .map_or(String::new(), |_node_data| " [*]".to_string());
 
             if is_root {
                 writeln!(f, "{key}")?;

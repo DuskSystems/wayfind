@@ -27,38 +27,38 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ s [8]
-       │  ╰─ /s [9]
+       ├─ s [*]
+       │  ╰─ /s [*]
        │      ╰─ /
-       │         ├─ s [10]
-       │         │  ╰─ /s [11]
+       │         ├─ s [*]
+       │         │  ╰─ /s [*]
        │         ├─ {s}
-       │         │    ╰─ /x [12]
+       │         │    ╰─ /x [*]
        │         ╰─ {y}
-       │              ╰─ /d [13]
+       │              ╰─ /d [*]
        ├─ x/
        │   ├─ {bar}
-       │   │      ╰─ /baz [1]
+       │   │      ╰─ /baz [*]
        │   ╰─ {foo}
-       │          ╰─ /bar [0]
+       │          ╰─ /bar [*]
        ├─ {bar}
        │      ╰─ /
        │         ╰─ {bay}
-       │                ╰─ /bay [7]
+       │                ╰─ /bay [*]
        ├─ {fod}
        │      ╰─ /
-       │         ├─ baz/bax/foo [5]
+       │         ├─ baz/bax/foo [*]
        │         ╰─ {baz}
        │                ╰─ /
        │                   ╰─ {bax}
-       │                          ╰─ /foo [4]
+       │                          ╰─ /foo [*]
        ╰─ {foo}
               ╰─ /
-                 ├─ baz/bax [6]
+                 ├─ baz/bax [*]
                  ├─ {bar}
-                 │      ╰─ /baz [3]
+                 │      ╰─ /baz [*]
                  ╰─ {baz}
-                        ╰─ /bax [2]
+                        ╰─ /bax [*]
     "###);
 
     assert_eq!(router.delete("/x/{foo}/bar"), Ok(()));
@@ -91,9 +91,9 @@ fn test() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r###"
     $
-    ╰─ /home [0]
+    ╰─ /home [*]
            ╰─ /
-              ╰─ {id} [1]
+              ╰─ {id} [*]
     "###);
 
     assert_eq!(router.delete("/home"), Ok(()));
@@ -121,18 +121,18 @@ fn blog() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ favicon.ico [5]
+       ├─ favicon.ico [*]
        ├─ posts/
        │       ╰─ {year}
        │               ╰─ /
-       │                  ├─ top [3]
+       │                  ├─ top [*]
        │                  ╰─ {month}
        │                           ╰─ /
-       │                              ├─ index [2]
-       │                              ╰─ {post} [1]
+       │                              ├─ index [*]
+       │                              ╰─ {post} [*]
        ├─ static/
-       │        ╰─ {*path} [4]
-       ╰─ {page} [0]
+       │        ╰─ {*path} [*]
+       ╰─ {page} [*]
     "###);
 
     assert_eq!(router.delete("/{page}"), Ok(()));
@@ -160,11 +160,11 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ bar [1]
-       │    ╰─ / [2]
-       │       ╰─ {*catchall} [3]
+       ├─ bar [*]
+       │    ╰─ / [*]
+       │       ╰─ {*catchall} [*]
        ╰─ foo/
-             ╰─ {*catchall} [0]
+             ╰─ {*catchall} [*]
     "###);
 
     assert_eq!(router.delete("/foo/{*catchall}"), Ok(()));
@@ -173,9 +173,9 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ╰─ bar [1]
+       ╰─ bar [*]
             ╰─ /
-               ╰─ {*catchall} [3]
+               ╰─ {*catchall} [*]
     "###);
 
     router.insert("/foo/{*catchall}", 4)?;
@@ -183,11 +183,11 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ bar [1]
+       ├─ bar [*]
        │    ╰─ /
-       │       ╰─ {*catchall} [3]
+       │       ╰─ {*catchall} [*]
        ╰─ foo/
-             ╰─ {*catchall} [4]
+             ╰─ {*catchall} [*]
     "###);
 
     assert_eq!(router.delete("/bar/{*catchall}"), Ok(()));
@@ -195,9 +195,9 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ bar [1]
+       ├─ bar [*]
        ╰─ foo/
-             ╰─ {*catchall} [4]
+             ╰─ {*catchall} [*]
     "###);
 
     Ok(())
@@ -219,20 +219,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [0]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [1]
-       ╰─ users [2]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/home"), Ok(()));
@@ -240,20 +240,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
+       │                           ╰─ {id} [*]
        ├─ home
        │     ╰─ /
-       │        ╰─ {id} [1]
-       ╰─ users [2]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/home", 9)?;
@@ -261,20 +261,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [1]
-       ╰─ users [2]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/home/{id}"), Ok(()));
@@ -282,18 +282,18 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
-       ╰─ users [2]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/home/{id}", 10)?;
@@ -301,20 +301,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [2]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/users"), Ok(()));
@@ -322,20 +322,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
+       │        ╰─ {id} [*]
        ╰─ users
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/users", 11)?;
@@ -343,20 +343,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [3]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/users/{id}"), Ok(()));
@@ -364,20 +364,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
                  ╰─ {id}
-                       ╰─ /posts [4]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/users/{id}", 12)?;
@@ -385,20 +385,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [4]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/users/{id}/posts"), Ok(()));
@@ -406,20 +406,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
+                 ╰─ {id} [*]
                        ╰─ /posts
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/users/{id}/posts", 13)?;
@@ -427,20 +427,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [5]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/users/{id}/posts/{post_id}"), Ok(()));
@@ -448,18 +448,18 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
     "###);
 
     router.insert("/users/{id}/posts/{post_id}", 14)?;
@@ -467,20 +467,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [6]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/articles"), Ok(()));
@@ -490,18 +490,18 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ articles
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/articles", 15)?;
@@ -509,20 +509,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [15]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [7]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/articles/{category}"), Ok(()));
@@ -530,20 +530,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [15]
+       ├─ articles [*]
        │         ╰─ /
        │            ╰─ {category}
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/articles/{category}", 16)?;
@@ -551,20 +551,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [15]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [16]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [8]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     assert_eq!(router.delete("/articles/{category}/{id}"), Ok(()));
@@ -572,18 +572,18 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [15]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [16]
-       ├─ home [9]
+       │            ╰─ {category} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     router.insert("/articles/{category}/{id}", 17)?;
@@ -591,20 +591,20 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ articles [15]
+       ├─ articles [*]
        │         ╰─ /
-       │            ╰─ {category} [16]
+       │            ╰─ {category} [*]
        │                        ╰─ /
-       │                           ╰─ {id} [17]
-       ├─ home [9]
+       │                           ╰─ {id} [*]
+       ├─ home [*]
        │     ╰─ /
-       │        ╰─ {id} [10]
-       ╰─ users [11]
+       │        ╰─ {id} [*]
+       ╰─ users [*]
               ╰─ /
-                 ╰─ {id} [12]
-                       ╰─ /posts [13]
+                 ╰─ {id} [*]
+                       ╰─ /posts [*]
                                ╰─ /
-                                  ╰─ {post_id} [14]
+                                  ╰─ {post_id} [*]
     "###);
 
     Ok(())
@@ -619,9 +619,9 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo [1]
+       ├─ foo [*]
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/"), Err(DeleteError::NotFound));
@@ -629,9 +629,9 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo [1]
+       ├─ foo [*]
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/{home}"), Err(DeleteError::NotFound));
@@ -639,9 +639,9 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo [1]
+       ├─ foo [*]
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/foo/"), Err(DeleteError::NotFound));
@@ -649,9 +649,9 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r###"
     $
     ╰─ /
-       ├─ foo [1]
+       ├─ foo [*]
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/foo"), Ok(()));
@@ -660,7 +660,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/{home}"), Err(DeleteError::NotFound));
@@ -669,7 +669,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     $
     ╰─ /
        ╰─ {home}
-               ╰─ / [0]
+               ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/{home}/"), Ok(()));
@@ -688,7 +688,7 @@ fn remove_root() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r###"
     $
-    ╰─ / [0]
+    ╰─ / [*]
     "###);
 
     assert_eq!(router.delete("/"), Ok(()));
@@ -716,17 +716,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     assert_eq!(router.delete("/foo/{a}"), Err(DeleteError::NotFound));
@@ -738,17 +738,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     assert_eq!(router.delete("/foo/{a}/bar"), Err(DeleteError::NotFound));
@@ -760,17 +760,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     assert_eq!(router.delete("/bar/{a}/{b}"), Err(DeleteError::NotFound));
@@ -782,17 +782,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     assert_eq!(
@@ -807,17 +807,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     assert_eq!(
@@ -832,17 +832,17 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [2]
-       │   │                    ╰─ /baz [3]
+       │   │              ╰─ {id} [*]
+       │   │                    ╰─ /baz [*]
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [4]
+       │                                ╰─ {id} [*]
        ╰─ foo/
-             ╰─ {id} [0]
-                   ╰─ /bar [1]
+             ╰─ {id} [*]
+                   ╰─ /bar [*]
     "###);
 
     Ok(())
