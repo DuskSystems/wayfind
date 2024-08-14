@@ -13,13 +13,6 @@ target
 # Insta
 *.pending-snap
 
-# Tests
-junit.xml
-
-# Coverage
-lcov.info
-codecov.json
-
 # Fuzz
 corpus
 artifacts

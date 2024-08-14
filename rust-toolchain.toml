@@ -2,11 +2,4 @@
 [toolchain]
 channel = "1.80.1"
 profile = "minimal"
-components = [
-  "clippy",
-  "llvm-tools",
-  "rust-analyzer",
-  "rust-docs",
-  "rust-src",
-  "rustfmt",
-]
+components = ["clippy", "rust-analyzer", "rust-docs", "rust-src", "rustfmt"]
