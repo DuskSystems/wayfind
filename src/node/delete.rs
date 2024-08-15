@@ -5,16 +5,18 @@ use crate::{
 };
 
 impl<T> Node<T> {
-    pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, parts: &mut Parts) -> Result<(), DeleteError> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
-                Part::Static { prefix } => self.delete_static(parts, prefix),
-                Part::Dynamic { name, constraint } => self.delete_dynamic(parts, name, &constraint),
+                Part::Static { prefix } => self.delete_static(parts, &prefix),
+                Part::Dynamic { name, constraint } => {
+                    self.delete_dynamic(parts, &name, &constraint)
+                }
                 Part::Wildcard { name, constraint } if parts.is_empty() => {
-                    self.delete_end_wildcard(name, &constraint)
+                    self.delete_end_wildcard(&name, &constraint)
                 }
                 Part::Wildcard { name, constraint } => {
-                    self.delete_wildcard(parts, name, &constraint)
+                    self.delete_wildcard(parts, &name, &constraint)
                 }
             };
 
@@ -33,7 +35,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn delete_static(&mut self, parts: &mut Parts<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, parts: &mut Parts, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -65,7 +67,7 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        parts: &mut Parts<'_>,
+        parts: &mut Parts,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -91,7 +93,7 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        parts: &mut Parts<'_>,
+        parts: &mut Parts,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {

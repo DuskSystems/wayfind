@@ -1,8 +1,7 @@
 use crate::{
     constraints::Constraint,
     errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
-    matches::Match,
-    node::{Node, NodeData, NodeKind},
+    node::{matches::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
 use std::{

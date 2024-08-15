@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 use wayfind::{
-    matches::{Match, Parameter},
+    node::matches::{Match, Parameter},
     router::Router,
 };
 
@@ -27,7 +27,7 @@ macro_rules! assert_router_matches {
             value: $value,
             params: vec![
                 $(
-                    $( wayfind::matches::Parameter {
+                    $( wayfind::node::matches::Parameter {
                         #[allow(clippy::string_lit_as_bytes)]
                         key: $param_key.as_bytes(),
 
