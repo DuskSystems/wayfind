@@ -845,6 +845,5 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(0, 1);
     Ok(())
 }
