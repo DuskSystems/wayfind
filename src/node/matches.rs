@@ -1,6 +1,17 @@
-use super::Node;
-use crate::matches::Parameter;
+use super::{Node, NodeData};
 use std::collections::HashMap;
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Match<'k, 'v, T> {
+    pub data: &'k NodeData<T>,
+    pub parameters: Vec<Parameter<'k, 'v>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Parameter<'k, 'v> {
+    pub key: &'k [u8],
+    pub value: &'v [u8],
+}
 
 impl<T> Node<T> {
     pub fn matches<'k, 'v>(

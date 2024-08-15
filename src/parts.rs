@@ -1,31 +1,30 @@
 use crate::errors::route::RouteError;
 use std::fmt::Debug;
 
-const INVALID_STATIC_CHARS: [u8; 2] = [b'{', b'}'];
 const INVALID_PARAM_CHARS: [u8; 4] = [b':', b'/', b'{', b'}'];
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Part<'a> {
+pub enum Part {
     Static {
-        prefix: &'a [u8],
+        prefix: Vec<u8>,
     },
 
     Dynamic {
-        name: &'a [u8],
+        name: Vec<u8>,
         constraint: Option<Vec<u8>>,
     },
 
     Wildcard {
-        name: &'a [u8],
+        name: Vec<u8>,
         constraint: Option<Vec<u8>>,
     },
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a>(pub Vec<Part<'a>>);
+pub struct Parts(pub Vec<Part>);
 
-impl<'a> Parts<'a> {
-    pub fn new(path: &'a [u8]) -> Result<Self, RouteError> {
+impl Parts {
+    pub fn new(path: &[u8]) -> Result<Self, RouteError> {
         let mut parts = vec![];
         let mut index = 0;
 
@@ -33,19 +32,19 @@ impl<'a> Parts<'a> {
             if path[index] == b'{' {
                 let (name, constraint) = Self::parse_parameter(path, &mut index)?;
 
-                if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+                if name.iter().any(|c| INVALID_PARAM_CHARS.contains(c)) {
                     return Err(RouteError::InvalidPath);
                 }
 
                 if let Some(constraint) = &constraint {
-                    if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+                    if constraint.iter().any(|c| INVALID_PARAM_CHARS.contains(c)) {
                         return Err(RouteError::InvalidPath);
                     }
                 }
 
                 if name.starts_with(b"*") {
                     parts.push(Part::Wildcard {
-                        name: &name[1..],
+                        name: name[1..].to_vec(),
                         constraint,
                     });
                 } else {
@@ -53,10 +52,6 @@ impl<'a> Parts<'a> {
                 }
             } else {
                 let prefix = Self::parse_static(path, &mut index);
-                if prefix.iter().any(|&c| INVALID_STATIC_CHARS.contains(&c)) {
-                    return Err(RouteError::InvalidPath);
-                }
-
                 parts.push(Part::Static { prefix });
             }
         }
@@ -70,7 +65,7 @@ impl<'a> Parts<'a> {
         Ok(Self(parts))
     }
 
-    pub fn pop(&mut self) -> Option<Part<'a>> {
+    pub fn pop(&mut self) -> Option<Part> {
         self.0.pop()
     }
 
@@ -79,7 +74,7 @@ impl<'a> Parts<'a> {
         self.0.is_empty()
     }
 
-    fn parse_static(path: &'a [u8], index: &mut usize) -> &'a [u8] {
+    fn parse_static(path: &[u8], index: &mut usize) -> Vec<u8> {
         let start = *index;
 
         // Consume up until the next '{'
@@ -91,13 +86,13 @@ impl<'a> Parts<'a> {
             *index += 1;
         }
 
-        &path[start..*index]
+        path[start..*index].to_vec()
     }
 
     fn parse_parameter(
-        path: &'a [u8],
+        path: &[u8],
         index: &mut usize,
-    ) -> Result<(&'a [u8], Option<Vec<u8>>), RouteError> {
+    ) -> Result<(Vec<u8>, Option<Vec<u8>>), RouteError> {
         // Consume opening '{'
         *index += 1;
         let start = *index;
@@ -147,7 +142,7 @@ impl<'a> Parts<'a> {
         // Consume closing '}'
         *index += 1;
 
-        Ok((&path[start..name_end], constraint))
+        Ok((path[start..name_end].to_vec(), constraint))
     }
 }
 
@@ -159,7 +154,9 @@ mod tests {
     fn test_parts_static() {
         assert_eq!(
             Parts::new(b"/abcd"),
-            Ok(Parts(vec![Part::Static { prefix: b"/abcd" }])),
+            Ok(Parts(vec![Part::Static {
+                prefix: b"/abcd".to_vec()
+            }])),
         );
     }
 
@@ -169,10 +166,12 @@ mod tests {
             Parts::new(b"/{name}"),
             Ok(Parts(vec![
                 Part::Dynamic {
-                    name: b"name",
+                    name: b"name".to_vec(),
                     constraint: None
                 },
-                Part::Static { prefix: b"/" },
+                Part::Static {
+                    prefix: b"/".to_vec()
+                },
             ]))
         );
     }
@@ -183,10 +182,12 @@ mod tests {
             Parts::new(b"/{*path}"),
             Ok(Parts(vec![
                 Part::Wildcard {
-                    name: b"path",
+                    name: b"path".to_vec(),
                     constraint: None
                 },
-                Part::Static { prefix: b"/" },
+                Part::Static {
+                    prefix: b"/".to_vec()
+                },
             ]))
         );
     }
@@ -197,15 +198,19 @@ mod tests {
             Parts::new(b"/{name:alpha}/{id:numeric}"),
             Ok(Parts(vec![
                 Part::Dynamic {
-                    name: b"id",
+                    name: b"id".to_vec(),
                     constraint: Some("numeric".into())
                 },
-                Part::Static { prefix: b"/" },
+                Part::Static {
+                    prefix: b"/".to_vec()
+                },
                 Part::Dynamic {
-                    name: b"name",
+                    name: b"name".to_vec(),
                     constraint: Some("alpha".into())
                 },
-                Part::Static { prefix: b"/" },
+                Part::Static {
+                    prefix: b"/".to_vec()
+                },
             ]))
         );
     }
@@ -229,19 +234,6 @@ mod tests {
     fn test_parts_empty_braces() {
         assert_eq!(Parts::new(b"/{}"), Err(RouteError::InvalidPath));
         assert_eq!(Parts::new(b"/{:}"), Err(RouteError::InvalidPath));
-    }
-
-    #[test]
-    fn test_parts_unescaped_braces() {
-        assert_eq!(
-            Parts::new(b"/{name}with}brace}"),
-            Err(RouteError::InvalidPath)
-        );
-
-        assert_eq!(
-            Parts::new(b"/{name}with{brace{"),
-            Err(RouteError::InvalidPath)
-        );
     }
 
     #[test]
@@ -280,6 +272,46 @@ mod tests {
         assert_eq!(
             Parts::new(b"/{name{with}brace}"),
             Err(RouteError::InvalidPath)
+        );
+    }
+
+    #[test]
+    fn test_parts_escaped() {
+        assert_eq!(
+            Parts::new(b"/{{name}}"),
+            Ok(Parts(vec![Part::Static {
+                prefix: b"/{name}".to_vec()
+            }]))
+        );
+
+        assert_eq!(
+            Parts::new(b"/name}}"),
+            Ok(Parts(vec![Part::Static {
+                prefix: b"/name}".to_vec()
+            }]))
+        );
+
+        assert_eq!(
+            Parts::new(b"/name{{"),
+            Ok(Parts(vec![Part::Static {
+                prefix: b"/name{".to_vec()
+            }]))
+        );
+
+        assert_eq!(
+            Parts::new(b"/{{{name}}}"),
+            Ok(Parts(vec![
+                Part::Static {
+                    prefix: b"}".to_vec()
+                },
+                Part::Dynamic {
+                    name: b"name".to_vec(),
+                    constraint: None
+                },
+                Part::Static {
+                    prefix: b"/{".to_vec()
+                },
+            ]))
         );
     }
 }

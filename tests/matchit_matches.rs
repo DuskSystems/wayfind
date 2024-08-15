@@ -1106,7 +1106,6 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "escaping not yet implemented"]
 fn escaped() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
