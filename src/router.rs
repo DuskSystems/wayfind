@@ -1,7 +1,7 @@
 use crate::{
     constraints::Constraint,
     errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
-    node::{matches::Match, Node, NodeData, NodeKind},
+    node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
 use std::{
@@ -102,11 +102,11 @@ impl<T> Router<T> {
     }
 
     #[must_use]
-    pub fn matches<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
+    pub fn search<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
         let mut parameters = vec![];
         let node = self
             .root
-            .matches(path.as_bytes(), &mut parameters, &self.constraints)?;
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
 
         Some(Match {
             data: node.data.as_ref()?,

@@ -19,7 +19,7 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = wayfind.matches(path).unwrap();
+                let n = wayfind.search(path).unwrap();
                 assert_eq!(n.data.value, index);
             }
         });

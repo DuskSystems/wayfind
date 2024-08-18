@@ -19,7 +19,7 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                wayfind.matches(route).unwrap();
+                wayfind.search(route).unwrap();
             }
         });
     });

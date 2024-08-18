@@ -1,7 +1,7 @@
 use crate::util::PercentDecodedStr;
 use http::Extensions;
 use std::sync::Arc;
-use wayfind::node::matches::Parameter;
+use wayfind::node::search::Parameter;
 
 #[derive(Clone)]
 pub(crate) enum UrlParams {

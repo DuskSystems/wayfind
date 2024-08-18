@@ -3,7 +3,7 @@ use std::{fmt::Debug, sync::Arc};
 pub mod delete;
 pub mod display;
 pub mod insert;
-pub mod matches;
+pub mod search;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeKind {

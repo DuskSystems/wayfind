@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 use wayfind::{
-    node::matches::{Match, Parameter},
+    node::search::{Match, Parameter},
     router::Router,
 };
 
@@ -27,7 +27,7 @@ macro_rules! assert_router_matches {
             value: $value,
             params: vec![
                 $(
-                    $( wayfind::node::matches::Parameter {
+                    $( wayfind::node::search::Parameter {
                         #[allow(clippy::string_lit_as_bytes)]
                         key: $param_key.as_bytes(),
 
@@ -55,7 +55,7 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
-    let Some(Match { data, parameters }) = router.matches(input) else {
+    let Some(Match { data, parameters }) = router.search(input) else {
         assert!(expected.is_none(), "No match found for input: {input}");
         return;
     };

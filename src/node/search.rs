@@ -14,7 +14,7 @@ pub struct Parameter<'k, 'v> {
 }
 
 impl<T> Node<T> {
-    pub fn matches<'k, 'v>(
+    pub fn search<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
@@ -28,26 +28,26 @@ impl<T> Node<T> {
             };
         }
 
-        if let Some(matches) = self.matches_static(path, parameters, constraints) {
-            return Some(matches);
+        if let Some(search) = self.search_static(path, parameters, constraints) {
+            return Some(search);
         }
 
-        if let Some(matches) = self.matches_dynamic(path, parameters, constraints) {
-            return Some(matches);
+        if let Some(search) = self.search_dynamic(path, parameters, constraints) {
+            return Some(search);
         }
 
-        if let Some(matches) = self.matches_wildcard(path, parameters, constraints) {
-            return Some(matches);
+        if let Some(search) = self.search_wildcard(path, parameters, constraints) {
+            return Some(search);
         }
 
-        if let Some(matches) = self.matches_end_wildcard(path, parameters, constraints) {
-            return Some(matches);
+        if let Some(search) = self.search_end_wildcard(path, parameters, constraints) {
+            return Some(search);
         }
 
         None
     }
 
-    fn matches_static<'k, 'v>(
+    fn search_static<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
@@ -60,7 +60,7 @@ impl<T> Node<T> {
             {
                 let remaining_path = &path[static_child.prefix.len()..];
                 if let Some(node_data) =
-                    static_child.matches(remaining_path, parameters, constraints)
+                    static_child.search(remaining_path, parameters, constraints)
                 {
                     return Some(node_data);
                 }
@@ -70,16 +70,16 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_dynamic<'k, 'v>(
+    fn search_dynamic<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
     ) -> Option<&'k Self> {
         if self.quick_dynamic {
-            self.matches_dynamic_segment(path, parameters, constraints)
+            self.search_dynamic_segment(path, parameters, constraints)
         } else {
-            self.matches_dynamic_inline(path, parameters, constraints)
+            self.search_dynamic_inline(path, parameters, constraints)
         }
     }
 
@@ -89,7 +89,7 @@ impl<T> Node<T> {
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
-    fn matches_dynamic_inline<'k, 'v>(
+    fn search_dynamic_inline<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
@@ -120,7 +120,7 @@ impl<T> Node<T> {
                 });
 
                 if let Some(node_data) =
-                    dynamic_child.matches(&path[consumed..], &mut current_parameters, constraints)
+                    dynamic_child.search(&path[consumed..], &mut current_parameters, constraints)
                 {
                     last_match = Some(node_data);
                     last_match_parameters = current_parameters;
@@ -137,7 +137,7 @@ impl<T> Node<T> {
     }
 
     // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
-    fn matches_dynamic_segment<'k, 'v>(
+    fn search_dynamic_segment<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
@@ -157,7 +157,7 @@ impl<T> Node<T> {
             });
 
             if let Some(node_data) =
-                dynamic_child.matches(&path[segment_end..], parameters, constraints)
+                dynamic_child.search(&path[segment_end..], parameters, constraints)
             {
                 return Some(node_data);
             }
@@ -168,7 +168,7 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_wildcard<'k, 'v>(
+    fn search_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,
@@ -213,7 +213,7 @@ impl<T> Node<T> {
                 });
 
                 if let Some(node_data) =
-                    wildcard_child.matches(&remaining_path[segment_end..], parameters, constraints)
+                    wildcard_child.search(&remaining_path[segment_end..], parameters, constraints)
                 {
                     return Some(node_data);
                 }
@@ -231,7 +231,7 @@ impl<T> Node<T> {
         None
     }
 
-    fn matches_end_wildcard<'k, 'v>(
+    fn search_end_wildcard<'k, 'v>(
         &'k self,
         path: &'v [u8],
         parameters: &mut Vec<Parameter<'k, 'v>>,

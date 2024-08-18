@@ -15,7 +15,7 @@ use std::{
     sync::Arc,
 };
 use tokio::{net::TcpListener, task::JoinSet};
-use wayfind::{node::matches::Parameter, router::Router};
+use wayfind::{node::search::Parameter, router::Router};
 
 type BoxFuture<'a> = Pin<
     Box<
@@ -65,7 +65,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         let router = Arc::clone(&router);
                         async move {
                             let path = request.uri().path();
-                            let matches = router.matches(path).expect("Failed to match!");
+                            let matches = router.search(path).expect("Failed to match!");
 
                             let handler = &matches.data.value;
                             let parameters = &matches.parameters;
