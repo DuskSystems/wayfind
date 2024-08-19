@@ -129,7 +129,7 @@ All benchmarks ran on a MacOS M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
-### [`matchit` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
+### `matchit` inspired benches
 
 In a router of 130 routes, benchmark matching 4 paths.
 
@@ -145,7 +145,7 @@ In a router of 130 routes, benchmark matching 4 paths.
 | routefinder | 6.2077 µs |
 | actix-router | 20.722 µs |
 
-### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
+### `path-tree` inspired benches
 
 In a router of 320 routes, benchmark matching 80 paths.
 
