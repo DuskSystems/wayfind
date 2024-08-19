@@ -2208,7 +2208,6 @@ dependencies = [
  "ntex-router",
  "path-tree",
  "percent-encoding",
- "regex",
  "route-recognizer",
  "routefinder",
  "smallvec",

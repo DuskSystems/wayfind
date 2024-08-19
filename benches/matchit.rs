@@ -5,6 +5,7 @@
 
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
+use percent_encoding::percent_decode;
 
 pub mod matchit_routes;
 
@@ -39,7 +40,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let mut path = actix_router::Path::new(route);
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let mut path = actix_router::Path::new(route.as_ref());
                 actix.recognize(&mut path).unwrap();
                 let _ = path
                     .iter()
@@ -57,7 +59,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let at = matchit.at(route).unwrap();
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let at = matchit.at(route.as_ref()).unwrap();
                 let _ = at
                     .params
                     .iter()
@@ -76,7 +79,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let mut path = ntex_router::Path::new(route);
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let mut path = ntex_router::Path::new(route.as_ref());
                 ntex.recognize(&mut path).unwrap();
                 let _ = path
                     .iter()
@@ -94,32 +98,12 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let route = path_tree.find(route).unwrap();
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let route = path_tree.find(route.as_ref()).unwrap();
                 let _ = route
                     .1
                     .params_iter()
                     .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/regex", |bencher| {
-        let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
-        let regexes: Vec<_> = routes!(regex)
-            .into_iter()
-            .map(|pattern| regex::Regex::new(pattern).unwrap())
-            .collect();
-
-        bencher.iter(|| {
-            for route in paths() {
-                let matches = regex_set.matches(route).into_iter().collect::<Vec<_>>();
-                let index = matches.first().unwrap();
-                let captures = regexes[*index].captures(route).unwrap();
-                let _ = regexes[*index]
-                    .capture_names()
-                    .flatten()
-                    .filter_map(|name| captures.name(name).map(|m| (name, m.as_str())))
                     .collect::<Vec<(&str, &str)>>();
             }
         });
@@ -133,7 +117,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let recognize = route_recognizer.recognize(route).unwrap();
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let recognize = route_recognizer.recognize(route.as_ref()).unwrap();
                 let _ = recognize
                     .params()
                     .iter()
@@ -151,7 +136,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let best_match = routefinder.best_match(route).unwrap();
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let best_match = routefinder.best_match(route.as_ref()).unwrap();
                 let _ = best_match
                     .captures()
                     .iter()
@@ -169,7 +155,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let at = xitca.at(route).unwrap();
+                let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
+                let at = xitca.at(route.as_ref()).unwrap();
                 let _ = at
                     .params
                     .iter()

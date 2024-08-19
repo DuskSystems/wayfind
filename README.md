@@ -141,7 +141,6 @@ In a router of 130 routes, benchmark matching 4 paths.
 | xitca-router | 415.02 ns |
 | ntex-router | 1.6291 µs |
 | route-recognizer | 4.3608 µs |
-| regex | 4.5123 µs |
 | routefinder | 6.2077 µs |
 | actix-router | 20.722 µs |
 
@@ -158,7 +157,6 @@ In a router of 320 routes, benchmark matching 80 paths.
 | ntex-router | 28.003 µs |
 | route-recognizer | 87.400 µs |
 | routefinder | 95.115 µs |
-| regex | 117.12 µs |
 | actix-router | 176.11 µs |
 
 ## Inspirations
