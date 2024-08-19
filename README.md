@@ -133,17 +133,33 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchma
 
 In a router of 130 routes, benchmark matching 4 paths.
 
-```
-TODO
-```
+| Library | Time |
+|-----------|------|
+| wayfind | 199.14 ns |
+| matchit | 310.24 ns |
+| path-tree | 406.26 ns |
+| xitca-router | 415.02 ns |
+| ntex-router | 1.6291 µs |
+| route-recognizer | 4.3608 µs |
+| regex | 4.5123 µs |
+| routefinder | 6.2077 µs |
+| actix-router | 20.722 µs |
 
 ### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
 
 In a router of 320 routes, benchmark matching 80 paths.
 
-```
-TODO
-```
+| Library | Time |
+|-----------|------|
+| wayfind | 3.2224 µs |
+| matchit | 6.8657 µs |
+| path-tree | 7.5262 µs |
+| xitca-router | 8.5490 µs |
+| ntex-router | 28.003 µs |
+| route-recognizer | 87.400 µs |
+| routefinder | 95.115 µs |
+| regex | 117.12 µs |
+| actix-router | 176.11 µs |
 
 ## Inspirations
 
