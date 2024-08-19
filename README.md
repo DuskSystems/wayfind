@@ -46,30 +46,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/user/logout", 12)?;
     router.insert("/user/{username}", 13)?;
 
-    // $
-    // ╰─ /
-    //    ├─ pet [*]
-    //    │    ╰─ /
-    //    │       ├─ findBy
-    //    │       │       ├─ Status [*]
-    //    │       │       ╰─ Tags [*]
-    //    │       ╰─ {petId} [*]
-    //    │                ╰─ /uploadImage [*]
-    //    ├─ store/
-    //    │       ├─ inventory [*]
-    //    │       ╰─ order [*]
-    //    │              ╰─ /
-    //    │                 ╰─ {orderId} [*]
-    //    ╰─ user [*]
-    //          ╰─ /
-    //             ├─ createWithList [*]
-    //             ├─ log
-    //             │    ├─ in [*]
-    //             │    ╰─ out [*]
-    //             ╰─ {username} [*]
-
     Ok(())
 }
+```
+
+```
+$
+╰─ /
+   ├─ pet [*]
+   │    ╰─ /
+   │       ├─ findBy
+   │       │       ├─ Status [*]
+   │       │       ╰─ Tags [*]
+   │       ╰─ {petId} [*]
+   │                ╰─ /uploadImage [*]
+   ├─ store/
+   │       ├─ inventory [*]
+   │       ╰─ order [*]
+   │              ╰─ /
+   │                 ╰─ {orderId} [*]
+   ╰─ user [*]
+         ╰─ /
+            ├─ createWithList [*]
+            ├─ log
+            │    ├─ in [*]
+            │    ╰─ out [*]
+            ╰─ {username} [*]
 ```
 
 ### [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec)
@@ -103,24 +105,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2/{*name:namespace}/tags/list", 6)?;
     router.insert("/v2/{*name:namespace}/referrers/{digest}", 7)?;
 
-    // $
-    // ╰─ /v2 [*]
-    //      ╰─ /
-    //         ╰─ {*name:namespace}
-    //                            ╰─ /
-    //                               ├─ blobs/
-    //                               │       ├─ uploads [*]
-    //                               │       │        ╰─ /
-    //                               │       │           ╰─ {reference} [*]
-    //                               │       ╰─ {digest} [*]
-    //                               ├─ manifests/
-    //                               │           ╰─ {reference} [*]
-    //                               ├─ referrers/
-    //                               │           ╰─ {digest} [*]
-    //                               ╰─ tags/list [*]
-
     Ok(())
 }
+```
+
+```
+$
+╰─ /v2 [*]
+     ╰─ /
+        ╰─ {*name:namespace}
+                           ╰─ /
+                              ├─ blobs/
+                              │       ├─ uploads [*]
+                              │       │        ╰─ /
+                              │       │           ╰─ {reference} [*]
+                              │       ╰─ {digest} [*]
+                              ├─ manifests/
+                              │           ╰─ {reference} [*]
+                              ├─ referrers/
+                              │           ╰─ {digest} [*]
+                              ╰─ tags/list [*]
 ```
 
 ## Benchmarks
@@ -129,35 +133,42 @@ All benchmarks ran on a MacOS M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
+> [!NOTE]
+> For all benchmarks, we percent-decode the path before matching.
+> After matching, we convert any extracted parameters to strings.
+> Some routers perform these operations automatically, while others require them to be done manually.
+> We do this to try and match behaviour as best as possible.
+
 ### `matchit` inspired benches
 
 In a router of 130 routes, benchmark matching 4 paths.
 
-| Library | Time |
-|---------|------|
-| wayfind | 301.64 ns |
-| matchit | 471.11 ns |
-| xitca-router | 568.31 ns |
-| path-tree | 586.17 ns |
-| ntex-router | 1.7905 µs |
-| route-recognizer | 4.5652 µs |
-| routefinder | 6.6322 µs |
-| actix-router | 21.162 µs |
+| Library          | Time      |
+|:-----------------|----------:|
+| wayfind          | 301.64 ns |
+| matchit          | 471.11 ns |
+| xitca-router     | 568.31 ns |
+| path-tree        | 586.17 ns |
+| ntex-router      | 1.79 µs   |
+| route-recognizer | 4.56 µs   |
+| routefinder      | 6.63 µs   |
+| actix-router     | 21.16 µs  |
 
 ### `path-tree` inspired benches
 
 In a router of 320 routes, benchmark matching 80 paths.
 
-| Library | Time |
-|---------|------|
-| wayfind | 3.9211 µs |
-| matchit | 8.9698 µs |
-| path-tree | 9.5825 µs |
-| xitca-router | 10.882 µs |
-| ntex-router | 30.931 µs |
-| route-recognizer | 90.966 µs |
-| routefinder | 98.779 µs |
-| actix-router | 178.40 µs |
+| Library          | Time      |
+|:-----------------|----------:|
+| wayfind          | 3.92 µs   |
+| matchit          | 8.96 µs   |
+| path-tree        | 9.58 µs   |
+| xitca-router     | 10.88 µs  |
+| ntex-router      | 30.93 µs  |
+| route-recognizer | 90.96 µs  |
+| routefinder      | 98.77 µs  |
+| actix-router     | 178.40 µs |
+
 
 ## Inspirations
 
