@@ -512,7 +512,7 @@ fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
                 "id" => "abc"
             }
         }
-        "/a/你好" => {
+        "/a/%E4%BD%A0%E5%A5%BD" => {
             path: "/a/{id}",
             value: 1,
             params: {

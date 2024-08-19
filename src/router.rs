@@ -131,10 +131,6 @@ impl<T> Router<T> {
         self.root.delete(&mut parts)
     }
 
-    // FIXME: Let's try a 'Path' style approach to the returned value.
-    // Like what actix/ntex does.
-    // Maybe instead of returning anything, we just set something everything in Path?
-    // i.e. merge Match with Path?
     pub fn search<'k, 'v>(
         &'k self,
         path: &'v mut Path,
@@ -146,7 +142,7 @@ impl<T> Router<T> {
         let mut parameters = smallvec![];
         let Some(node) = self
             .root
-            .search(&path.inner, &mut parameters, &self.constraints)
+            .search(path.as_bytes(), &mut parameters, &self.constraints)
         else {
             return Ok(None);
         };
