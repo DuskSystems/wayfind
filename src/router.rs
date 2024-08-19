@@ -1,6 +1,8 @@
 use crate::{
     constraints::Constraint,
-    errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
+    errors::{
+        constraint::ConstraintError, delete::DeleteError, insert::InsertError, search::SearchError,
+    },
     node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
@@ -101,17 +103,23 @@ impl<T> Router<T> {
         self.root.delete(&mut parts)
     }
 
-    #[must_use]
-    pub fn search<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
+    pub fn search<'k, 'v>(
+        &'k self,
+        path: &'v str,
+    ) -> Result<Option<Match<'k, 'v, T>>, SearchError> {
         let mut parameters = vec![];
-        let node = self
+        let Some(node) = self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?
+        else {
+            return Ok(None);
+        };
 
-        Some(Match {
-            data: node.data.as_ref()?,
-            parameters,
-        })
+        let Some(data) = node.data.as_ref() else {
+            return Ok(None);
+        };
+
+        Ok(Some(Match { data, parameters }))
     }
 }
 

@@ -19,12 +19,7 @@ pub(super) fn insert_url_params(extensions: &mut Extensions, params: &[Parameter
 
     let params = params
         .iter()
-        .map(|param| {
-            (
-                String::from_utf8_lossy(param.key),
-                String::from_utf8_lossy(param.value),
-            )
-        })
+        .map(|param| (param.key, param.value))
         .filter(|(key, _)| !key.starts_with(super::NEST_TAIL_PARAM))
         .filter(|(key, _)| !key.starts_with(super::FALLBACK_PARAM))
         .map(|(k, v)| {

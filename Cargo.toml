@@ -76,10 +76,8 @@ codspeed-criterion-compat = "2.6.0"
 
 # Routers
 actix-router = "0.5.3"
-gonzales = "0.0.3-beta"
 matchit = "0.8.3"
 ntex-router = "0.5.3"
-path-table = "1.0.0"
 path-tree = "0.8.1"
 regex = "1.10.6"
 route-recognizer = "0.3.1"

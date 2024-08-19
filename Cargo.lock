@@ -647,15 +647,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40ecd4077b5ae9fd2e9e169b102c6c330d0605168eb0e8bf79952b256dbefffd"
 
 [[package]]
-name = "gonzales"
-version = "0.0.3-beta"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47a63ae0a0e43eefd14cdf85f9d98396115f4473239585f111e5626c79be8007"
-dependencies = [
- "smallvec",
-]
-
-[[package]]
 name = "h2"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1194,12 +1185,6 @@ dependencies = [
  "smallvec",
  "windows-targets 0.52.6",
 ]
-
-[[package]]
-name = "path-table"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efa6ec64318478f01505c2b9139162b106d13a19ecabb15cec9f0cf94f05db73"
 
 [[package]]
 name = "path-tree"
@@ -2218,11 +2203,9 @@ dependencies = [
  "actix-router",
  "codspeed-criterion-compat",
  "criterion",
- "gonzales",
  "insta",
  "matchit",
  "ntex-router",
- "path-table",
  "path-tree",
  "regex",
  "route-recognizer",

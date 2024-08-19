@@ -132,43 +132,27 @@ All benchmarks ran on a MacOS M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
+### Context
+
+`wayfind` is explicity a HTTP routing library.
+It is not meant to be used outside of the context of a web project.
+
+However, a number of the routers we are comparing against are more generic in nature.
+
+As such, any web-specific actions we perform, such as handling percent-encoded routes, will impact performance.
+
+In order to account for this, we include additional benchmarks where we perform certain actions post-routing.
+
+Benchmarks labelled with `(alt)` have been altered in the following ways:
+- parameter key/values are returned as `String`
+- TODO: parameter value decoding
+
 ### [`matchit` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
 In a router of 130 routes, benchmark matching 4 paths.
 
 ```
-matchit benchmarks/gonzales
-  time: [130.19 ns 130.46 ns 130.75 ns]
-
-matchit benchmarks/matchit
-  time: [182.51 ns 182.90 ns 183.31 ns]
-
-matchit benchmarks/wayfind
-  time: [264.19 ns 265.47 ns 266.77 ns]
-
-matchit benchmarks/path-tree
-  time: [334.91 ns 336.14 ns 337.42 ns]
-
-matchit benchmarks/xitca-router
-  time: [352.85 ns 353.63 ns 354.46 ns]
-
-matchit benchmarks/path-table
-  time: [538.15 ns 539.48 ns 540.91 ns]
-
-matchit benchmarks/regex
-  time: [1.1483 µs 1.1507 µs 1.1533 µs]
-
-matchit benchmarks/ntex-router
-  time: [1.5752 µs 1.5797 µs 1.5846 µs]
-
-matchit benchmarks/route-recognizer
-  time: [4.4940 µs 4.5062 µs 4.5164 µs]
-
-matchit benchmarks/routefinder
-  time: [6.1983 µs 6.2179 µs 6.2371 µs]
-
-matchit benchmarks/actix-router
-  time: [20.758 µs 20.864 µs 20.978 µs]
+TODO
 ```
 
 ### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
@@ -176,38 +160,7 @@ matchit benchmarks/actix-router
 In a router of 320 routes, benchmark matching 80 paths.
 
 ```
-path-tree benchmarks/wayfind
-  time: [4.2534 µs 4.2664 µs 4.2791 µs]
-
-path-tree benchmarks/matchit
-  time: [4.8098 µs 4.8250 µs 4.8414 µs]
-
-path-tree benchmarks/gonzales
-  time: [5.1135 µs 5.1565 µs 5.1963 µs]
-
-path-tree benchmarks/path-tree
-  time: [5.6984 µs 5.7135 µs 5.7309 µs]
-
-path-tree benchmarks/xitca-router
-  time: [7.3627 µs 7.3818 µs 7.4020 µs]
-
-path-tree benchmarks/path-table
-  time: [10.455 µs 10.484 µs 10.514 µs]
-
-path-tree benchmarks/ntex-router
-  time: [27.316 µs 27.404 µs 27.499 µs]
-
-path-tree benchmarks/regex
-  time: [41.631 µs 41.831 µs 42.069 µs]
-
-path-tree benchmarks/route-recognizer
-  time: [85.349 µs 85.576 µs 85.832 µs]
-
-path-tree benchmarks/routefinder
-  time: [92.337 µs 92.717 µs 93.221 µs]
-
-path-tree benchmarks/actix-router
-  time: [175.34 µs 176.21 µs 177.18 µs]
+TODO
 ```
 
 ## Inspirations
