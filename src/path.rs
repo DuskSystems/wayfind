@@ -1,29 +1,19 @@
-use crate::{decode::percent_decode, errors::decode::DecodeError};
+use crate::errors::decode::DecodeError;
+use std::borrow::Cow;
 
 pub struct Path<'path> {
-    original: &'path [u8],
-    decoded: Option<Vec<u8>>,
+    decoded: Cow<'path, str>,
 }
 
 impl<'path> Path<'path> {
-    #[must_use]
-    pub const fn new(path: &'path str) -> Self {
-        Self {
-            original: path.as_bytes(),
-            decoded: None,
-        }
-    }
-
-    pub fn percent_decode(&mut self) -> Result<(), DecodeError> {
-        if self.decoded.is_none() {
-            self.decoded = Some(percent_decode(self.original)?);
-        }
-
-        Ok(())
+    pub fn new(path: &'path str) -> Result<Self, DecodeError> {
+        Ok(Self {
+            decoded: percent_encoding::percent_decode_str(path).decode_utf8()?,
+        })
     }
 
     #[must_use]
-    pub fn as_bytes(&self) -> &[u8] {
-        self.decoded.as_deref().unwrap_or(self.original)
+    pub fn decoded_bytes(&'path self) -> &'path [u8] {
+        self.decoded.as_bytes()
     }
 }

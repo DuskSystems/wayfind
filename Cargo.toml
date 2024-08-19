@@ -63,6 +63,7 @@ workspace = true
 
 [dependencies]
 smallvec = "1.13"
+percent-encoding = "2.3"
 
 [dev-dependencies]
 # Snapshots

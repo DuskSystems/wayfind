@@ -6,9 +6,9 @@ use wayfind::router::Router;
 #[path = "./common.rs"]
 mod common;
 
-fn router(percent_encoding: bool) -> Result<Router<usize>, Box<dyn Error>> {
+#[test]
+fn uncommon() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.percent_encoding(percent_encoding);
 
     // Japanese (Konnichiwa)
     router.insert("/こんにちは", 0)?;
@@ -46,110 +46,6 @@ fn router(percent_encoding: bool) -> Result<Router<usize>, Box<dyn Error>> {
 
     // Unicode Control
     router.insert("/\u{0001}\u{0002}\u{0003}", 12)?;
-
-    Ok(router)
-}
-
-#[test]
-fn uncommon() -> Result<(), Box<dyn Error>> {
-    let router = router(false)?;
-
-    assert_router_matches!(router, {
-        // Japanese (Konnichiwa)
-        "/こんにちは" => {
-            path: "/こんにちは",
-            value: 0
-        }
-        "/こんにちわ" => None
-
-        // Russian (Privet)
-        "/привет" => {
-            path: "/привет",
-            value: 1
-        }
-        "/привет!" => None
-
-        // Chinese (Nǐ Hǎo)
-        "/你好" => {
-            path: "/你好",
-            value: 2
-        }
-        "/你们好" => None
-
-        // Arabic Numerals (full-width)
-        "/１２３" => {
-            path: "/１２３",
-            value: 3
-        }
-        "/123" => None
-
-        // Null Byte
-        "/null\0byte" => {
-            path: "/null\0byte",
-            value: 4
-        }
-        "/nullbyte" => None
-
-        // Emoji
-        "/⚽️🏀🏈" => {
-            path: "/⚽️🏀🏈",
-            value: 5
-        }
-        "/⚽️🏀" => None
-
-        // Unicode
-        "/♔♕♖♗♘♙" => {
-            path: "/♔♕♖♗♘♙",
-            value: 6
-        }
-        "/♔♕♖♗♘♟" => None
-
-        // Unicode Normalization
-        "/cafe\u{0301}" => {
-            path: "/cafe\u{0301}",
-            value: 7
-        }
-        "/café" => {
-            path: "/café",
-            value: 8
-        }
-        "/cafe" => None
-
-        // Unicode Zero Width
-        "/abc\u{200B}123" => {
-            path: "/abc\u{200B}123",
-            value: 9
-        }
-        "/abc123" => None
-
-        // Unicode Right to Left
-        "/hello\u{202E}dlrow" => {
-            path: "/hello\u{202E}dlrow",
-            value: 10
-        }
-        "/helloworld" => None
-
-        // Unicode Whitespace
-        "/\u{2000}\u{2001}\u{2002}" => {
-            path: "/\u{2000}\u{2001}\u{2002}",
-            value: 11
-        }
-        "/   " => None
-
-        // Unicode Control
-        "/\u{0001}\u{0002}\u{0003}" => {
-            path: "/\u{0001}\u{0002}\u{0003}",
-            value: 12
-        }
-        "/123" => None
-    });
-
-    Ok(())
-}
-
-#[test]
-fn uncommon_with_percent_encoding() -> Result<(), Box<dyn Error>> {
-    let router = router(true)?;
 
     assert_router_matches!(router, {
         // Japanese (Konnichiwa)

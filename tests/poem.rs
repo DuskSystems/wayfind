@@ -495,7 +495,6 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.percent_encoding(true);
     router.insert("/a/{id}", 1)?;
 
     insta::assert_snapshot!(router, @r###"

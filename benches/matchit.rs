@@ -19,8 +19,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                let mut path = wayfind::path::Path::new(route);
-                let search = wayfind.search(&mut path).unwrap().unwrap();
+                let path = wayfind::path::Path::new(route).unwrap();
+                let search = wayfind.search(&path).unwrap();
                 let _ = search
                     .parameters
                     .iter()

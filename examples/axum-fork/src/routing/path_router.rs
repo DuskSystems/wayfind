@@ -331,8 +331,8 @@ where
         }
 
         let path = req.uri().path().to_owned();
-        let mut wayfind_path = Path::new(&path);
-        let result = match self.node.matches(&mut wayfind_path) {
+        let wayfind_path = Path::new(&path).expect("Invalid path!");
+        let result = match self.node.matches(&wayfind_path) {
             Some(match_) => {
                 let id = match_.data.value;
 
@@ -366,8 +366,8 @@ where
     }
 
     pub(super) fn replace_endpoint(&mut self, path: &str, endpoint: Endpoint<S>) {
-        let mut wayfind_path = Path::new(path);
-        if let Some(match_) = self.node.matches(&mut wayfind_path) {
+        let wayfind_path = Path::new(path).expect("Invalid path!");
+        if let Some(match_) = self.node.matches(&wayfind_path) {
             let id = match_.data.value;
             self.routes.insert(id, endpoint);
             return;
@@ -437,8 +437,8 @@ impl Node {
         Ok(())
     }
 
-    fn matches<'n, 'p>(&'n self, path: &'p mut Path) -> Option<Match<'n, 'p, RouteId>> {
-        self.inner.search(path).expect("Failed to match!")
+    fn matches<'n, 'p>(&'n self, path: &'p Path) -> Option<Match<'n, 'p, RouteId>> {
+        self.inner.search(path)
     }
 }
 

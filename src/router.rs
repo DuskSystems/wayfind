@@ -1,8 +1,6 @@
 use crate::{
     constraints::Constraint,
-    errors::{
-        constraint::ConstraintError, delete::DeleteError, insert::InsertError, search::SearchError,
-    },
+    errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
     path::Path,
@@ -19,7 +17,6 @@ use std::{
 pub struct Router<T> {
     root: Node<T>,
     constraints: HashMap<Vec<u8>, fn(&str) -> bool>,
-    percent_encoding: bool,
 }
 
 impl<T> Router<T> {
@@ -41,7 +38,6 @@ impl<T> Router<T> {
                 quick_dynamic: false,
             },
             constraints: HashMap::new(),
-            percent_encoding: false,
         };
 
         router.constraint::<u8>().unwrap();
@@ -79,28 +75,8 @@ impl<T> Router<T> {
         }
     }
 
-    pub fn percent_encoding(&mut self, enabled: bool) {
-        self.percent_encoding = enabled;
-    }
-
-    // FIXME: This will likely match when it shouldn't.
-    // I guess the correct approach would be to percent-decode the input, and see if it's equal or not.
-    fn contains_percent_encoding(input: &str) -> bool {
-        let chars: Vec<char> = input.chars().collect();
-        for window in chars.windows(3) {
-            if let [a, b, c] = window {
-                if *a == '%' && b.is_ascii_hexdigit() && c.is_ascii_hexdigit() {
-                    return true;
-                }
-            }
-        }
-
-        false
-    }
-
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        // Ensure this isn't already encoded.
-        if Self::contains_percent_encoding(route) {
+        if route.as_bytes() != Path::new(route)?.decoded_bytes() {
             return Err(InsertError::EncodedPath);
         }
 
@@ -133,25 +109,17 @@ impl<T> Router<T> {
 
     pub fn search<'router, 'path>(
         &'router self,
-        path: &'path mut Path,
-    ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
-        if self.percent_encoding {
-            path.percent_decode()?;
-        }
-
+        path: &'path Path,
+    ) -> Option<Match<'router, 'path, T>> {
         let mut parameters = smallvec![];
-        let Some(node) = self
+        let node = self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)
-        else {
-            return Ok(None);
-        };
+            .search(path.decoded_bytes(), &mut parameters, &self.constraints)?;
 
-        let Some(data) = node.data.as_ref() else {
-            return Ok(None);
-        };
-
-        Ok(Some(Match { data, parameters }))
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 }
 
