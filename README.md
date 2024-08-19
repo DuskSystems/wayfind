@@ -135,7 +135,7 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library | Time |
 |-----------|------|
-| wayfind | 199.14 ns |
+| wayfind | 210.33 ns |
 | matchit | 310.24 ns |
 | path-tree | 406.26 ns |
 | xitca-router | 415.02 ns |
@@ -151,7 +151,7 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library | Time |
 |-----------|------|
-| wayfind | 3.2224 µs |
+| wayfind | 3.5117 µs |
 | matchit | 6.8657 µs |
 | path-tree | 7.5262 µs |
 | xitca-router | 8.5490 µs |

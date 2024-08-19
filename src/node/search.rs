@@ -272,7 +272,10 @@ impl<T> Node<T> {
             unreachable!();
         };
 
-        let segment = unsafe { std::str::from_utf8_unchecked(segment) };
+        let Ok(segment) = std::str::from_utf8(segment) else {
+            return false;
+        };
+
         (constraint)(segment)
     }
 }
