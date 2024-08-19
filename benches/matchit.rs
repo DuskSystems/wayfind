@@ -19,19 +19,6 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                wayfind.search(route).unwrap().unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/wayfind (alt)", |bencher| {
-        let mut wayfind = wayfind::router::Router::new();
-        for route in routes!(brackets) {
-            wayfind.insert(route, true).unwrap();
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
                 let search = wayfind.search(route).unwrap().unwrap();
                 let _ = search
                     .parameters
@@ -53,21 +40,6 @@ fn benchmark(criterion: &mut Criterion) {
             for route in paths() {
                 let mut path = actix_router::Path::new(route);
                 actix.recognize(&mut path).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/actix-router (alt)", |bencher| {
-        let mut actix = actix_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            actix.path(route, true);
-        }
-        let actix = actix.finish();
-
-        bencher.iter(|| {
-            for route in paths() {
-                let mut path = actix_router::Path::new(route);
-                actix.recognize(&mut path).unwrap();
                 let _ = path
                     .iter()
                     .map(|p| (p.0, p.1))
@@ -77,19 +49,6 @@ fn benchmark(criterion: &mut Criterion) {
     });
 
     group.bench_function("matchit benchmarks/matchit", |bencher| {
-        let mut matchit = matchit::Router::new();
-        for route in routes!(brackets) {
-            matchit.insert(route, true).unwrap();
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
-                matchit.at(route).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/matchit (alt)", |bencher| {
         let mut matchit = matchit::Router::new();
         for route in routes!(brackets) {
             matchit.insert(route, true).unwrap();
@@ -118,21 +77,6 @@ fn benchmark(criterion: &mut Criterion) {
             for route in paths() {
                 let mut path = ntex_router::Path::new(route);
                 ntex.recognize(&mut path).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/ntex-router (alt)", |bencher| {
-        let mut ntex = ntex_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            ntex.path(route, true);
-        }
-        let ntex = ntex.finish();
-
-        bencher.iter(|| {
-            for route in paths() {
-                let mut path = ntex_router::Path::new(route);
-                ntex.recognize(&mut path).unwrap();
                 let _ = path
                     .iter()
                     .map(|p| (p.0, p.1))
@@ -142,19 +86,6 @@ fn benchmark(criterion: &mut Criterion) {
     });
 
     group.bench_function("matchit benchmarks/path-tree", |bencher| {
-        let mut path_tree = path_tree::PathTree::new();
-        for route in routes!(colon) {
-            let _ = path_tree.insert(route, true);
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
-                path_tree.find(route).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/path-tree (alt)", |bencher| {
         let mut path_tree = path_tree::PathTree::new();
         for route in routes!(colon) {
             let _ = path_tree.insert(route, true);
@@ -173,16 +104,6 @@ fn benchmark(criterion: &mut Criterion) {
     });
 
     group.bench_function("matchit benchmarks/regex", |bencher| {
-        let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
-
-        bencher.iter(|| {
-            for route in paths() {
-                regex_set.matches(route);
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/regex (alt)", |bencher| {
         let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
         let regexes: Vec<_> = routes!(regex)
             .into_iter()
@@ -211,19 +132,6 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                route_recognizer.recognize(route).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/route-recognizer (alt)", |bencher| {
-        let mut route_recognizer = route_recognizer::Router::new();
-        for route in routes!(colon) {
-            route_recognizer.add(route, true);
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
                 let recognize = route_recognizer.recognize(route).unwrap();
                 let _ = recognize
                     .params()
@@ -242,19 +150,6 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for route in paths() {
-                routefinder.best_match(route).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/routefinder (alt)", |bencher| {
-        let mut routefinder = routefinder::Router::new();
-        for route in routes!(colon) {
-            routefinder.add(route, true).unwrap();
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
                 let best_match = routefinder.best_match(route).unwrap();
                 let _ = best_match
                     .captures()
@@ -266,19 +161,6 @@ fn benchmark(criterion: &mut Criterion) {
     });
 
     group.bench_function("matchit benchmarks/xitca-router", |bencher| {
-        let mut xitca = xitca_router::Router::new();
-        for route in routes!(colon) {
-            xitca.insert(route, true).unwrap();
-        }
-
-        bencher.iter(|| {
-            for route in paths() {
-                xitca.at(route).unwrap();
-            }
-        });
-    });
-
-    group.bench_function("matchit benchmarks/xitca-router (alt)", |bencher| {
         let mut xitca = xitca_router::Router::new();
         for route in routes!(colon) {
             xitca.insert(route, true).unwrap();

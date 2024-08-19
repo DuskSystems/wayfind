@@ -132,21 +132,6 @@ All benchmarks ran on a MacOS M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
-### Context
-
-`wayfind` is explicity a HTTP routing library.
-It is not meant to be used outside of the context of a web project.
-
-However, a number of the routers we are comparing against are more generic in nature.
-
-As such, any web-specific actions we perform, such as handling percent-encoded routes, will impact performance.
-
-In order to account for this, we include additional benchmarks where we perform certain actions post-routing.
-
-Benchmarks labelled with `(alt)` have been altered in the following ways:
-- parameter key/values are returned as `String`
-- TODO: parameter value decoding
-
 ### [`matchit` benches](https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs)
 
 In a router of 130 routes, benchmark matching 4 paths.
