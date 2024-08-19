@@ -5,6 +5,7 @@
 
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
+use percent_encoding::percent_decode;
 
 pub mod path_tree_routes;
 
@@ -19,7 +20,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let search = wayfind.search(path).unwrap();
+                let path = wayfind::path::Path::new(path).unwrap();
+                let search = wayfind.search(&path).unwrap();
                 assert_eq!(search.data.value, index);
                 let _ = search
                     .parameters
@@ -39,7 +41,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let mut path = actix_router::Path::new(path);
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let mut path = actix_router::Path::new(path.as_ref());
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
                 let _ = path
@@ -58,7 +61,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = matcher.at(path).unwrap();
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let n = matcher.at(path.as_ref()).unwrap();
                 assert_eq!(*n.value, index);
                 let _ = n
                     .params
@@ -78,7 +82,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let mut path = ntex_router::Path::new(path);
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let mut path = ntex_router::Path::new(path.as_ref());
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
                 let _ = path
@@ -97,34 +102,13 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = tree.find(path).unwrap();
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let n = tree.find(path.as_ref()).unwrap();
                 assert_eq!(*n.0, index);
                 let _ =
                     n.1.params_iter()
                         .map(|p| (p.0, p.1))
                         .collect::<Vec<(&str, &str)>>();
-            }
-        });
-    });
-
-    group.bench_function("path-tree benchmarks/regex", |bencher| {
-        let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
-        let regexes: Vec<_> = routes!(regex)
-            .into_iter()
-            .map(|pattern| regex::Regex::new(pattern).unwrap())
-            .collect();
-
-        bencher.iter(|| {
-            for (index, path) in paths() {
-                let matches = regex_set.matches(path).into_iter().collect::<Vec<_>>();
-                assert!(matches.contains(&index));
-                let i = matches.first().unwrap();
-                let captures = regexes[*i].captures(path).unwrap();
-                let _ = regexes[*i]
-                    .capture_names()
-                    .flatten()
-                    .filter_map(|name| captures.name(name).map(|m| (name, m.as_str())))
-                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -137,7 +121,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = router.recognize(path).unwrap();
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let n = router.recognize(path.as_ref()).unwrap();
                 assert_eq!(**n.handler(), index);
                 let _ = n
                     .params()
@@ -156,7 +141,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = router.best_match(path).unwrap();
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let n = router.best_match(path.as_ref()).unwrap();
                 assert_eq!(*n, index);
                 let _ = n
                     .captures()
@@ -175,7 +161,8 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = xitca.at(path).unwrap();
+                let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
+                let n = xitca.at(path.as_ref()).unwrap();
                 assert_eq!(*n.value, index);
                 let _ = n
                     .params

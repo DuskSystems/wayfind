@@ -2207,7 +2207,7 @@ dependencies = [
  "matchit",
  "ntex-router",
  "path-tree",
- "regex",
+ "percent-encoding",
  "route-recognizer",
  "routefinder",
  "smallvec",

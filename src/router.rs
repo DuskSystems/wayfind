@@ -3,6 +3,7 @@ use crate::{
     errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
+    path::Path,
 };
 use smallvec::smallvec;
 use std::{
@@ -75,6 +76,10 @@ impl<T> Router<T> {
     }
 
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
+        if route.as_bytes() != Path::new(route)?.decoded_bytes() {
+            return Err(InsertError::EncodedPath);
+        }
+
         let path = Arc::from(route);
         let mut parts = Parts::new(route.as_bytes())?;
 
@@ -102,11 +107,14 @@ impl<T> Router<T> {
         self.root.delete(&mut parts)
     }
 
-    pub fn search<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
+    pub fn search<'router, 'path>(
+        &'router self,
+        path: &'path Path,
+    ) -> Option<Match<'router, 'path, T>> {
         let mut parameters = smallvec![];
         let node = self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
+            .search(path.decoded_bytes(), &mut parameters, &self.constraints)?;
 
         Some(Match {
             data: node.data.as_ref()?,

@@ -511,12 +511,11 @@ fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
                 "id" => "abc"
             }
         }
-        // NOTE: Different behaviour: poem would decode to `你好`
         "/a/%E4%BD%A0%E5%A5%BD" => {
             path: "/a/{id}",
             value: 1,
             params: {
-                "id" => "%E4%BD%A0%E5%A5%BD"
+                "id" => "你好"
             }
         }
     });

@@ -4,7 +4,7 @@ pub fn paths() -> impl IntoIterator<Item = &'static str> {
         "/user/repos",
         "/repos/rust-lang/rust/stargazers",
         "/orgs/rust-lang/public_members/nikomatsakis",
-        "/repos/rust-lang/rust/releases/1.51.0",
+        "/repos/rust-lang/rust/releases/1%2E51%2E0",
     ]
 }
 
@@ -16,10 +16,6 @@ macro_rules! routes {
 
     (brackets) => {{
         routes!(finish => "{p1}", "{p2}", "{p3}", "{p4}")
-    }};
-
-    (regex) => {{
-        routes!(finish => "(?<p1>.*)", "(?<p2>.*)", "(?<p3>.*)", "(?<p4>.*)")
     }};
 
     (finish => $p1:literal, $p2:literal, $p3:literal, $p4:literal) => {{
