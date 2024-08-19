@@ -65,10 +65,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         let router = Arc::clone(&router);
                         async move {
                             let path = request.uri().path();
-                            let matches = router
-                                .search(path)
-                                .expect("Failed to match!")
-                                .expect("Failed to match!");
+                            let matches = router.search(path).expect("Failed to match!");
 
                             let handler = &matches.data.value;
                             let parameters = &matches.parameters;

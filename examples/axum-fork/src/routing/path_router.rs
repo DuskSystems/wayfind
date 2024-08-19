@@ -436,7 +436,7 @@ impl Node {
     }
 
     fn matches<'n, 'p>(&'n self, path: &'p str) -> Option<Match<'n, 'p, RouteId>> {
-        self.inner.search(path).expect("Failed to match!")
+        self.inner.search(path)
     }
 }
 

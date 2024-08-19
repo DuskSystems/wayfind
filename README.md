@@ -6,9 +6,6 @@
 
 A speedy, flexible router for Rust.
 
-- Zero dependencies.
-- No unsafe code.
-
 > [!WARNING]
 > Currently in a pre-alpha state.
 

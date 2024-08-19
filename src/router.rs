@@ -1,11 +1,10 @@
 use crate::{
     constraints::Constraint,
-    errors::{
-        constraint::ConstraintError, delete::DeleteError, insert::InsertError, search::SearchError,
-    },
+    errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
     node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
 };
+use smallvec::smallvec;
 use std::{
     collections::{hash_map::Entry, HashMap},
     fmt::Display,
@@ -103,23 +102,16 @@ impl<T> Router<T> {
         self.root.delete(&mut parts)
     }
 
-    pub fn search<'k, 'v>(
-        &'k self,
-        path: &'v str,
-    ) -> Result<Option<Match<'k, 'v, T>>, SearchError> {
-        let mut parameters = vec![];
-        let Some(node) = self
+    pub fn search<'k, 'v>(&'k self, path: &'v str) -> Option<Match<'k, 'v, T>> {
+        let mut parameters = smallvec![];
+        let node = self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?
-        else {
-            return Ok(None);
-        };
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
 
-        let Some(data) = node.data.as_ref() else {
-            return Ok(None);
-        };
-
-        Ok(Some(Match { data, parameters }))
+        Some(Match {
+            data: node.data.as_ref()?,
+            parameters,
+        })
     }
 }
 
