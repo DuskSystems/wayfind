@@ -1,8 +1,8 @@
-use std::{error::Error, fmt::Display, str::Utf8Error};
+use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum DecodeError {
-    Utf8Error(Utf8Error),
+    InvalidEncoding,
 }
 
 impl Error for DecodeError {}
@@ -10,13 +10,7 @@ impl Error for DecodeError {}
 impl Display for DecodeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Utf8Error(error) => error.fmt(f),
+            Self::InvalidEncoding => write!(f, "Invalid Encoding"),
         }
-    }
-}
-
-impl From<Utf8Error> for DecodeError {
-    fn from(error: Utf8Error) -> Self {
-        Self::Utf8Error(error)
     }
 }
