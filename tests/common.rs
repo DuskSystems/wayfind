@@ -1,6 +1,7 @@
 use std::{fmt::Debug, sync::Arc};
 use wayfind::{
     node::search::{Match, Parameter},
+    path::Path,
     router::Router,
 };
 
@@ -52,7 +53,9 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
-    let Some(Match { data, parameters }) = router.search(input) else {
+    let mut path = Path::new(input);
+    let Some(Match { data, parameters }) = router.search(&mut path).expect("Failed to match!")
+    else {
         assert!(expected.is_none(), "No match found for input: {input}");
         return;
     };

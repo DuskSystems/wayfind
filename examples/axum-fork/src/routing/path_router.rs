@@ -3,7 +3,7 @@ use axum_core::response::IntoResponse;
 use std::{borrow::Cow, collections::HashMap, convert::Infallible, fmt, sync::Arc};
 use tower_layer::Layer;
 use tower_service::Service;
-use wayfind::{errors::insert::InsertError, node::search::Match, router::Router};
+use wayfind::{errors::insert::InsertError, node::search::Match, path::Path, router::Router};
 
 use super::{
     future::RouteFuture, not_found::NotFound, strip_prefix::StripPrefix, url_params, Endpoint,
@@ -331,7 +331,8 @@ where
         }
 
         let path = req.uri().path().to_owned();
-        let result = match self.node.matches(&path) {
+        let mut wayfind_path = Path::new(&path);
+        let result = match self.node.matches(&mut wayfind_path) {
             Some(match_) => {
                 let id = match_.data.value;
 
@@ -365,7 +366,8 @@ where
     }
 
     pub(super) fn replace_endpoint(&mut self, path: &str, endpoint: Endpoint<S>) {
-        if let Some(match_) = self.node.matches(path) {
+        let mut wayfind_path = Path::new(path);
+        if let Some(match_) = self.node.matches(&mut wayfind_path) {
             let id = match_.data.value;
             self.routes.insert(id, endpoint);
             return;
@@ -435,8 +437,8 @@ impl Node {
         Ok(())
     }
 
-    fn matches<'n, 'p>(&'n self, path: &'p str) -> Option<Match<'n, 'p, RouteId>> {
-        self.inner.search(path)
+    fn matches<'n, 'p>(&'n self, path: &'p mut Path) -> Option<Match<'n, 'p, RouteId>> {
+        self.inner.search(path).expect("Failed to match!")
     }
 }
 

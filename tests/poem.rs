@@ -495,6 +495,7 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.percent_encoding(true);
     router.insert("/a/{id}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
@@ -511,12 +512,11 @@ fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
                 "id" => "abc"
             }
         }
-        // NOTE: Different behaviour: poem would decode to `你好`
-        "/a/%E4%BD%A0%E5%A5%BD" => {
+        "/a/你好" => {
             path: "/a/{id}",
             value: 1,
             params: {
-                "id" => "%E4%BD%A0%E5%A5%BD"
+                "id" => "你好"
             }
         }
     });
