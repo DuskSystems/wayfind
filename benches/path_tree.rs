@@ -19,8 +19,13 @@ fn benchmark(criterion: &mut Criterion) {
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = wayfind.matches(path).unwrap();
-                assert_eq!(n.data.value, index);
+                let search = wayfind.search(path).unwrap();
+                assert_eq!(search.data.value, index);
+                let _ = search
+                    .parameters
+                    .iter()
+                    .map(|p| (p.key, p.value))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -37,17 +42,10 @@ fn benchmark(criterion: &mut Criterion) {
                 let mut path = actix_router::Path::new(path);
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
-            }
-        });
-    });
-
-    group.bench_function("path-tree benchmarks/gonzales", |bencher| {
-        let gonzales = gonzales::RouterBuilder::new().build(routes!(brackets));
-
-        bencher.iter(|| {
-            for (index, path) in paths() {
-                let n = gonzales.route(path).unwrap();
-                assert_eq!(n.get_index(), index);
+                let _ = path
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -62,6 +60,11 @@ fn benchmark(criterion: &mut Criterion) {
             for (index, path) in paths() {
                 let n = matcher.at(path).unwrap();
                 assert_eq!(*n.value, index);
+                let _ = n
+                    .params
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -78,20 +81,10 @@ fn benchmark(criterion: &mut Criterion) {
                 let mut path = ntex_router::Path::new(path);
                 let n = router.recognize(&mut path).unwrap();
                 assert_eq!(*n.0, index);
-            }
-        });
-    });
-
-    group.bench_function("path-tree benchmarks/path-table", |bencher| {
-        let mut table = path_table::PathTable::new();
-        for (index, route) in routes!(brackets).iter().enumerate() {
-            *table.setup(route) = index;
-        }
-
-        bencher.iter(|| {
-            for (index, path) in paths() {
-                let n = table.route(path).unwrap();
-                assert_eq!(*n.0, index);
+                let _ = path
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -106,17 +99,32 @@ fn benchmark(criterion: &mut Criterion) {
             for (index, path) in paths() {
                 let n = tree.find(path).unwrap();
                 assert_eq!(*n.0, index);
+                let _ =
+                    n.1.params_iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>();
             }
         });
     });
 
     group.bench_function("path-tree benchmarks/regex", |bencher| {
         let regex_set = regex::RegexSet::new(routes!(regex)).unwrap();
+        let regexes: Vec<_> = routes!(regex)
+            .into_iter()
+            .map(|pattern| regex::Regex::new(pattern).unwrap())
+            .collect();
 
         bencher.iter(|| {
             for (index, path) in paths() {
-                let n = regex_set.matches(path);
-                assert!(n.matched(index));
+                let matches = regex_set.matches(path).into_iter().collect::<Vec<_>>();
+                assert!(matches.contains(&index));
+                let i = matches.first().unwrap();
+                let captures = regexes[*i].captures(path).unwrap();
+                let _ = regexes[*i]
+                    .capture_names()
+                    .flatten()
+                    .filter_map(|name| captures.name(name).map(|m| (name, m.as_str())))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -131,6 +139,11 @@ fn benchmark(criterion: &mut Criterion) {
             for (index, path) in paths() {
                 let n = router.recognize(path).unwrap();
                 assert_eq!(**n.handler(), index);
+                let _ = n
+                    .params()
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -145,6 +158,11 @@ fn benchmark(criterion: &mut Criterion) {
             for (index, path) in paths() {
                 let n = router.best_match(path).unwrap();
                 assert_eq!(*n, index);
+                let _ = n
+                    .captures()
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });
@@ -159,6 +177,11 @@ fn benchmark(criterion: &mut Criterion) {
             for (index, path) in paths() {
                 let n = xitca.at(path).unwrap();
                 assert_eq!(*n.value, index);
+                let _ = n
+                    .params
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>();
             }
         });
     });

@@ -6,9 +6,6 @@
 
 A speedy, flexible router for Rust.
 
-- Zero dependencies.
-- No unsafe code.
-
 > [!WARNING]
 > Currently in a pre-alpha state.
 
@@ -136,79 +133,33 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchma
 
 In a router of 130 routes, benchmark matching 4 paths.
 
-```
-matchit benchmarks/gonzales
-  time: [130.19 ns 130.46 ns 130.75 ns]
-
-matchit benchmarks/matchit
-  time: [182.51 ns 182.90 ns 183.31 ns]
-
-matchit benchmarks/wayfind
-  time: [264.19 ns 265.47 ns 266.77 ns]
-
-matchit benchmarks/path-tree
-  time: [334.91 ns 336.14 ns 337.42 ns]
-
-matchit benchmarks/xitca-router
-  time: [352.85 ns 353.63 ns 354.46 ns]
-
-matchit benchmarks/path-table
-  time: [538.15 ns 539.48 ns 540.91 ns]
-
-matchit benchmarks/regex
-  time: [1.1483 µs 1.1507 µs 1.1533 µs]
-
-matchit benchmarks/ntex-router
-  time: [1.5752 µs 1.5797 µs 1.5846 µs]
-
-matchit benchmarks/route-recognizer
-  time: [4.4940 µs 4.5062 µs 4.5164 µs]
-
-matchit benchmarks/routefinder
-  time: [6.1983 µs 6.2179 µs 6.2371 µs]
-
-matchit benchmarks/actix-router
-  time: [20.758 µs 20.864 µs 20.978 µs]
-```
+| Library | Time |
+|-----------|------|
+| wayfind | 210.33 ns |
+| matchit | 310.24 ns |
+| path-tree | 406.26 ns |
+| xitca-router | 415.02 ns |
+| ntex-router | 1.6291 µs |
+| route-recognizer | 4.3608 µs |
+| regex | 4.5123 µs |
+| routefinder | 6.2077 µs |
+| actix-router | 20.722 µs |
 
 ### [`path-tree` benches](https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs)
 
 In a router of 320 routes, benchmark matching 80 paths.
 
-```
-path-tree benchmarks/wayfind
-  time: [4.2534 µs 4.2664 µs 4.2791 µs]
-
-path-tree benchmarks/matchit
-  time: [4.8098 µs 4.8250 µs 4.8414 µs]
-
-path-tree benchmarks/gonzales
-  time: [5.1135 µs 5.1565 µs 5.1963 µs]
-
-path-tree benchmarks/path-tree
-  time: [5.6984 µs 5.7135 µs 5.7309 µs]
-
-path-tree benchmarks/xitca-router
-  time: [7.3627 µs 7.3818 µs 7.4020 µs]
-
-path-tree benchmarks/path-table
-  time: [10.455 µs 10.484 µs 10.514 µs]
-
-path-tree benchmarks/ntex-router
-  time: [27.316 µs 27.404 µs 27.499 µs]
-
-path-tree benchmarks/regex
-  time: [41.631 µs 41.831 µs 42.069 µs]
-
-path-tree benchmarks/route-recognizer
-  time: [85.349 µs 85.576 µs 85.832 µs]
-
-path-tree benchmarks/routefinder
-  time: [92.337 µs 92.717 µs 93.221 µs]
-
-path-tree benchmarks/actix-router
-  time: [175.34 µs 176.21 µs 177.18 µs]
-```
+| Library | Time |
+|-----------|------|
+| wayfind | 3.5117 µs |
+| matchit | 6.8657 µs |
+| path-tree | 7.5262 µs |
+| xitca-router | 8.5490 µs |
+| ntex-router | 28.003 µs |
+| route-recognizer | 87.400 µs |
+| routefinder | 95.115 µs |
+| regex | 117.12 µs |
+| actix-router | 176.11 µs |
 
 ## Inspirations
 

@@ -19,7 +19,7 @@ macro_rules! routes {
     }};
 
     (regex) => {{
-        routes!(finish => "(.*)", "(.*)", "(.*)", "(.*)")
+        routes!(finish => "(?<p1>.*)", "(?<p2>.*)", "(?<p3>.*)", "(?<p4>.*)")
     }};
 
     (finish => $p1:literal, $p2:literal, $p3:literal, $p4:literal) => {{

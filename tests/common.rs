@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 use wayfind::{
-    node::matches::{Match, Parameter},
+    node::search::{Match, Parameter},
     router::Router,
 };
 
@@ -27,12 +27,9 @@ macro_rules! assert_router_matches {
             value: $value,
             params: vec![
                 $(
-                    $( wayfind::node::matches::Parameter {
-                        #[allow(clippy::string_lit_as_bytes)]
-                        key: $param_key.as_bytes(),
-
-                        #[allow(clippy::string_lit_as_bytes)]
-                        value: $param_value.as_bytes(),
+                    $( wayfind::node::search::Parameter {
+                        key: $param_key,
+                        value: $param_value,
                     } ),+
                 )?
             ]
@@ -55,7 +52,7 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
-    let Some(Match { data, parameters }) = router.matches(input) else {
+    let Some(Match { data, parameters }) = router.search(input) else {
         assert!(expected.is_none(), "No match found for input: {input}");
         return;
     };
@@ -67,7 +64,8 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
             "Value mismatch for input: {input}"
         );
         assert_eq!(
-            parameters, expected.params,
+            parameters.to_vec(),
+            expected.params,
             "Parameters mismatch for input: {input}"
         );
     } else {
