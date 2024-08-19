@@ -131,10 +131,10 @@ impl<T> Router<T> {
         self.root.delete(&mut parts)
     }
 
-    pub fn search<'k, 'v>(
-        &'k self,
-        path: &'v mut Path,
-    ) -> Result<Option<Match<'k, 'v, T>>, SearchError> {
+    pub fn search<'router, 'path>(
+        &'router self,
+        path: &'path mut Path,
+    ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
         if self.percent_encoding {
             path.percent_decode()?;
         }

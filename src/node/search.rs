@@ -3,24 +3,24 @@ use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Match<'k, 'v, T> {
-    pub data: &'k NodeData<T>,
-    pub parameters: SmallVec<[Parameter<'k, 'v>; 4]>,
+pub struct Match<'router, 'path, T> {
+    pub data: &'router NodeData<T>,
+    pub parameters: SmallVec<[Parameter<'router, 'path>; 4]>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Parameter<'k, 'v> {
-    pub key: &'k str,
-    pub value: &'v str,
+pub struct Parameter<'router, 'path> {
+    pub key: &'router str,
+    pub value: &'path str,
 }
 
 impl<T> Node<T> {
-    pub fn search<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    pub fn search<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         if path.is_empty() {
             return if self.data.is_some() {
                 Some(self)
@@ -48,12 +48,12 @@ impl<T> Node<T> {
         None
     }
 
-    fn search_static<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_static<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -71,12 +71,12 @@ impl<T> Node<T> {
         None
     }
 
-    fn search_dynamic<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_dynamic<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         if self.quick_dynamic {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -90,12 +90,12 @@ impl<T> Node<T> {
     //   Path: `my.long.file.txt`
     //   Name: `my.long.file`
     //   Ext: `txt`
-    fn search_dynamic_inline<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_dynamic_inline<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
@@ -138,12 +138,12 @@ impl<T> Node<T> {
     }
 
     // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
-    fn search_dynamic_segment<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_dynamic_segment<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -169,12 +169,12 @@ impl<T> Node<T> {
         None
     }
 
-    fn search_wildcard<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_wildcard<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -232,12 +232,12 @@ impl<T> Node<T> {
         None
     }
 
-    fn search_end_wildcard<'k, 'v>(
-        &'k self,
-        path: &'v [u8],
-        parameters: &mut SmallVec<[Parameter<'k, 'v>; 4]>,
+    fn search_end_wildcard<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'k Self> {
+    ) -> Option<&'router Self> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_constraint(end_wildcard, path, constraints) {
                 continue;
