@@ -112,7 +112,11 @@ impl Parts {
 
         if name.is_empty() {
             if is_wildcard {
-                return Err(RouteError::EmptyWildcard);
+                return Err(RouteError::EmptyWildcard {
+                    path: String::from_utf8_lossy(path).to_string(),
+                    start: cursor,
+                    length: end - cursor + 1,
+                });
             }
 
             return Err(RouteError::EmptyParameter {
@@ -132,10 +136,19 @@ impl Parts {
 
         if let Some(constraint) = constraint {
             if constraint.is_empty() {
-                return Err(RouteError::EmptyConstraint);
+                return Err(RouteError::EmptyConstraint {
+                    path: String::from_utf8_lossy(path).to_string(),
+                    start: start + name.len() + 1,
+                    length: 1,
+                });
             }
+
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                return Err(RouteError::InvalidConstraint);
+                return Err(RouteError::InvalidConstraint {
+                    path: String::from_utf8_lossy(path).to_string(),
+                    start: start + name.len() + 1,
+                    length: constraint.len(),
+                });
             }
         }
 
@@ -357,15 +370,58 @@ mod tests {
     #[test]
     fn test_parts_empty_wildcard() {
         let error = Parts::new(b"/{*}").err().unwrap();
-        assert_eq!(error, RouteError::EmptyWildcard);
-        insta::assert_snapshot!(error, @"EmptyWildcard");
+        assert_eq!(
+            error,
+            RouteError::EmptyWildcard {
+                path: "/{*}".to_string(),
+                start: 1,
+                length: 3
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty wildcard name
+
+           Path: /{*}
+                  ^^^
+        "###);
+
+        let error = Parts::new(b"/{*:constraint}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::EmptyWildcard {
+                path: "/{*:constraint}".to_string(),
+                start: 1,
+                length: 14
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty wildcard name
+
+           Path: /{*:constraint}
+                  ^^^^^^^^^^^^^^
+        "###);
     }
 
     #[test]
     fn test_parts_empty_constraint() {
         let error = Parts::new(b"/{name:}").err().unwrap();
-        assert_eq!(error, RouteError::EmptyConstraint);
-        insta::assert_snapshot!(error, @"EmptyConstraint");
+        assert_eq!(
+            error,
+            RouteError::EmptyConstraint {
+                path: "/{name:}".to_string(),
+                start: 7,
+                length: 1
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty constraint name
+
+           Path: /{name:}
+                        ^
+        "###);
     }
 
     #[test]
@@ -386,7 +442,7 @@ mod tests {
            Path: /{name/with/slash}
                   ^^^^^^^^^^^^^^^^^
 
-        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
         let error = Parts::new(b"/{name{with{brace}").err().unwrap();
@@ -405,7 +461,7 @@ mod tests {
            Path: /{name{with{brace}
                   ^^^^^^^^^^^^^^^^^
 
-        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
         let error = Parts::new(b"/{name{with}brace}").err().unwrap();
@@ -424,12 +480,27 @@ mod tests {
            Path: /{name{with}brace}
                   ^^^^^^^^^^^
 
-        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
         let error = Parts::new(b"/{name:with:colon}").err().unwrap();
-        assert_eq!(error, RouteError::InvalidConstraint);
-        insta::assert_snapshot!(error, @"InvalidConstraint");
+        assert_eq!(
+            error,
+            RouteError::InvalidConstraint {
+                path: "/{name:with:colon}".to_string(),
+                start: 7,
+                length: 10
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: invalid constraint name
+
+           Path: /{name:with:colon}
+                        ^^^^^^^^^^
+
+        tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
+        "###);
     }
 
     #[test]

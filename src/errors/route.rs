@@ -30,11 +30,24 @@ pub enum RouteError {
     },
 
     // Wildcard
-    EmptyWildcard,
+    EmptyWildcard {
+        path: String,
+        start: usize,
+        length: usize,
+    },
 
     // Constraint
-    EmptyConstraint,
-    InvalidConstraint,
+    EmptyConstraint {
+        path: String,
+        start: usize,
+        length: usize,
+    },
+
+    InvalidConstraint {
+        path: String,
+        start: usize,
+        length: usize,
+    },
 }
 
 impl Error for RouteError {}
@@ -99,16 +112,58 @@ tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}
    Path: {path}
          {underline}
 
-tip: Parameter names must not contain the characters ':', '*', '?', '{{', '}}', or '/'"#
+tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
                 )
             }
 
             // Wildcard
-            Self::EmptyWildcard => write!(f, "EmptyWildcard"),
+            Self::EmptyWildcard {
+                path,
+                start,
+                length,
+            } => {
+                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"error: empty wildcard name
+
+   Path: {path}
+         {underline}"#
+                )
+            }
 
             // Constraint
-            Self::EmptyConstraint => write!(f, "EmptyConstraint"),
-            Self::InvalidConstraint => write!(f, "InvalidConstraint"),
+            Self::EmptyConstraint {
+                path,
+                start,
+                length,
+            } => {
+                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"error: empty constraint name
+
+   Path: {path}
+         {underline}"#
+                )
+            }
+
+            Self::InvalidConstraint {
+                path,
+                start,
+                length,
+            } => {
+                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"error: invalid constraint name
+
+   Path: {path}
+         {underline}
+
+tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
+                )
+            }
         }
     }
 }
