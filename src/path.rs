@@ -26,15 +26,6 @@ mod tests {
     #[test]
     fn test_path_invalid_encoding() {
         let error = Path::new("/hello%20world%GG").unwrap_err();
-        assert_eq!(
-            error,
-            DecodeError::InvalidEncoding {
-                input: "/hello%20world%GG".to_string(),
-                position: 14,
-                character: [b'%', b'G', b'G']
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         invalid percent-encoding
 

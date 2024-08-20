@@ -287,21 +287,12 @@ mod tests {
     #[test]
     fn test_parts_empty() {
         let error = Parts::new(b"").unwrap_err();
-        assert_eq!(error, RouteError::EmptyPath);
         insta::assert_snapshot!(error, @"empty path");
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
         let error = Parts::new(b"/{").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::UnescapedBrace {
-                path: "/{".to_string(),
-                position: 1,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         unescaped brace
 
@@ -312,14 +303,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{name").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::UnescapedBrace {
-                path: "/{name".to_string(),
-                position: 1,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         unescaped brace
 
@@ -330,14 +313,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/name}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::UnescapedBrace {
-                path: "/name}".to_string(),
-                position: 5,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         unescaped brace
 
@@ -351,14 +326,6 @@ mod tests {
     #[test]
     fn test_parts_empty_braces() {
         let error = Parts::new(b"/{}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyBraces {
-                path: "/{}".to_string(),
-                position: 1,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty braces
 
@@ -370,15 +337,6 @@ mod tests {
     #[test]
     fn test_parts_empty_name() {
         let error = Parts::new(b"/{:}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyParameter {
-                path: "/{:}".to_string(),
-                start: 1,
-                length: 3
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty parameter name
 
@@ -387,15 +345,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{:constraint}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyParameter {
-                path: "/{:constraint}".to_string(),
-                start: 1,
-                length: 13
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty parameter name
 
@@ -407,15 +356,6 @@ mod tests {
     #[test]
     fn test_parts_empty_wildcard() {
         let error = Parts::new(b"/{*}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyWildcard {
-                path: "/{*}".to_string(),
-                start: 1,
-                length: 3
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty wildcard name
 
@@ -424,15 +364,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{*:constraint}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyWildcard {
-                path: "/{*:constraint}".to_string(),
-                start: 1,
-                length: 14
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty wildcard name
 
@@ -444,15 +375,6 @@ mod tests {
     #[test]
     fn test_parts_empty_constraint() {
         let error = Parts::new(b"/{name:}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::EmptyConstraint {
-                path: "/{name:}".to_string(),
-                start: 7,
-                length: 1
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         empty constraint name
 
@@ -464,15 +386,6 @@ mod tests {
     #[test]
     fn test_parts_invalid_characters() {
         let error = Parts::new(b"/{name/with/slash}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::InvalidParameter {
-                path: "/{name/with/slash}".to_string(),
-                start: 1,
-                length: 17
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         invalid parameter name
 
@@ -483,15 +396,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{name{with{brace}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::InvalidParameter {
-                path: "/{name{with{brace}".to_string(),
-                start: 1,
-                length: 17
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         invalid parameter name
 
@@ -502,15 +406,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{name{with}brace}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::InvalidParameter {
-                path: "/{name{with}brace}".to_string(),
-                start: 1,
-                length: 11
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         invalid parameter name
 
@@ -521,15 +416,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"/{name:with:colon}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::InvalidConstraint {
-                path: "/{name:with:colon}".to_string(),
-                start: 7,
-                length: 10
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         invalid constraint name
 
@@ -625,14 +511,6 @@ mod tests {
     #[test]
     fn test_parts_invalid_escaped() {
         let error = Parts::new(b"{name}}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::UnescapedBrace {
-                path: "{name}}".to_string(),
-                position: 6,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         unescaped brace
 
@@ -643,14 +521,6 @@ mod tests {
         "###);
 
         let error = Parts::new(b"{{name}").unwrap_err();
-        assert_eq!(
-            error,
-            RouteError::UnescapedBrace {
-                path: "{{name}".to_string(),
-                position: 6,
-            }
-        );
-
         insta::assert_snapshot!(error, @r###"
         unescaped brace
 
