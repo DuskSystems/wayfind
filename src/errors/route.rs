@@ -55,14 +55,14 @@ impl Error for RouteError {}
 impl Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::EmptyPath => write!(f, "error: empty path"),
+            Self::EmptyPath => write!(f, "empty path"),
 
             // Braces
             Self::EmptyBraces { path, position } => {
                 let arrow = " ".repeat(*position) + "^^";
                 write!(
                     f,
-                    r#"error: empty braces
+                    r#"empty braces
 
    Path: {path}
          {arrow}"#
@@ -74,7 +74,7 @@ impl Display for RouteError {
                 let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
-                    r#"error: unescaped brace
+                    r#"unescaped brace
 
    Path: {path}
          {arrow}
@@ -92,7 +92,7 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"error: empty parameter name
+                    r#"empty parameter name
 
    Path: {path}
          {arrow}"#
@@ -107,7 +107,7 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"error: invalid parameter name
+                    r#"invalid parameter name
 
    Path: {path}
          {arrow}
@@ -125,7 +125,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"error: empty wildcard name
+                    r#"empty wildcard name
 
    Path: {path}
          {arrow}"#
@@ -141,7 +141,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"error: empty constraint name
+                    r#"empty constraint name
 
    Path: {path}
          {arrow}"#
@@ -156,7 +156,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"error: invalid constraint name
+                    r#"invalid constraint name
 
    Path: {path}
          {arrow}

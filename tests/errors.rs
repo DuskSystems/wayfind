@@ -35,7 +35,7 @@ fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @r###"
-    error: duplicate constraint name
+    duplicate constraint name
 
     The constraint name 'my_constraint' is already in use:
         - existing constraint type: 'errors::ConstraintA'

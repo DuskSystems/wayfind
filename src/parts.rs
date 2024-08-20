@@ -251,7 +251,7 @@ mod tests {
     fn test_parts_empty() {
         let error = Parts::new(b"").err().unwrap();
         assert_eq!(error, RouteError::EmptyPath);
-        insta::assert_snapshot!(error, @"error: empty path");
+        insta::assert_snapshot!(error, @"empty path");
     }
 
     #[test]
@@ -266,7 +266,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: unescaped brace
+        unescaped brace
 
            Path: /{
                   ^
@@ -284,7 +284,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: unescaped brace
+        unescaped brace
 
            Path: /{name
                   ^
@@ -302,7 +302,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: unescaped brace
+        unescaped brace
 
            Path: /name}
                       ^
@@ -323,7 +323,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty braces
+        empty braces
 
            Path: /{}
                   ^^
@@ -343,7 +343,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty parameter name
+        empty parameter name
 
            Path: /{:}
                   ^^^
@@ -360,7 +360,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty parameter name
+        empty parameter name
 
            Path: /{:constraint}
                   ^^^^^^^^^^^^^
@@ -380,7 +380,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty wildcard name
+        empty wildcard name
 
            Path: /{*}
                   ^^^
@@ -397,7 +397,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty wildcard name
+        empty wildcard name
 
            Path: /{*:constraint}
                   ^^^^^^^^^^^^^^
@@ -417,7 +417,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: empty constraint name
+        empty constraint name
 
            Path: /{name:}
                         ^
@@ -437,7 +437,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: invalid parameter name
+        invalid parameter name
 
            Path: /{name/with/slash}
                   ^^^^^^^^^^^^^^^^^
@@ -456,7 +456,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: invalid parameter name
+        invalid parameter name
 
            Path: /{name{with{brace}
                   ^^^^^^^^^^^^^^^^^
@@ -475,7 +475,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: invalid parameter name
+        invalid parameter name
 
            Path: /{name{with}brace}
                   ^^^^^^^^^^^
@@ -494,7 +494,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: invalid constraint name
+        invalid constraint name
 
            Path: /{name:with:colon}
                         ^^^^^^^^^^
@@ -576,7 +576,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: unescaped brace
+        unescaped brace
 
            Path: {name}}
                        ^
@@ -594,7 +594,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: unescaped brace
+        unescaped brace
 
            Path: {{name}
                        ^

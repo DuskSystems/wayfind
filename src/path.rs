@@ -35,7 +35,7 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r###"
-        error: invalid percent-encoding
+        invalid percent-encoding
 
            Input: /hello%20world%GG
                                 ^^^

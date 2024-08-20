@@ -24,7 +24,7 @@ impl Display for DecodeError {
 
                 write!(
                     f,
-                    r#"error: invalid percent-encoding
+                    r#"invalid percent-encoding
 
    Input: {input}
           {arrow}

@@ -20,7 +20,7 @@ impl Display for ConstraintError {
                 new_type,
             } => write!(
                 f,
-                "error: duplicate constraint name
+                "duplicate constraint name
 
 The constraint name '{name}' is already in use:
     - existing constraint type: '{existing_type}'
