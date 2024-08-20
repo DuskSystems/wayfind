@@ -4,7 +4,7 @@
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
 use std::error::Error;
-use wayfind::{errors::delete::DeleteError, router::Router};
+use wayfind::router::Router;
 
 #[test]
 fn normalized() -> Result<(), Box<dyn Error>> {
@@ -97,9 +97,24 @@ fn test() -> Result<(), Box<dyn Error>> {
     "###);
 
     assert_eq!(router.delete("/home"), Ok(()));
-    assert_eq!(router.delete("/home"), Err(DeleteError::NotFound));
+    let error = router.delete("/home").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /home
+
+    The specified path does not exist in the router
+    "###);
+
     assert_eq!(router.delete("/home/{id}"), Ok(()));
-    assert_eq!(router.delete("/home/{id}"), Err(DeleteError::NotFound));
+    let error = router.delete("/home/{id}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /home/{id}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -624,7 +639,14 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
                ╰─ / [*]
     "###);
 
-    assert_eq!(router.delete("/"), Err(DeleteError::NotFound));
+    let error = router.delete("/").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -634,7 +656,14 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
                ╰─ / [*]
     "###);
 
-    assert_eq!(router.delete("/{home}"), Err(DeleteError::NotFound));
+    let error = router.delete("/{home}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /{home}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -644,7 +673,14 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
                ╰─ / [*]
     "###);
 
-    assert_eq!(router.delete("/foo/"), Err(DeleteError::NotFound));
+    let error = router.delete("/foo/").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /foo/
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -663,7 +699,14 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
                ╰─ / [*]
     "###);
 
-    assert_eq!(router.delete("/{home}"), Err(DeleteError::NotFound));
+    let error = router.delete("/{home}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /{home}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -729,7 +772,14 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(router.delete("/foo/{a}"), Err(DeleteError::NotFound));
+    let error = router.delete("/foo/{a}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /foo/{a}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -751,7 +801,14 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(router.delete("/foo/{a}/bar"), Err(DeleteError::NotFound));
+    let error = router.delete("/foo/{a}/bar").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /foo/{a}/bar
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -773,7 +830,14 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(router.delete("/bar/{a}/{b}"), Err(DeleteError::NotFound));
+    let error = router.delete("/bar/{a}/{b}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /bar/{a}/{b}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -795,10 +859,14 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(
-        router.delete("/bar/{a}/{b}/baz"),
-        Err(DeleteError::NotFound)
-    );
+    let error = router.delete("/bar/{a}/{b}/baz").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /bar/{a}/{b}/baz
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $
@@ -820,10 +888,14 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
                    ╰─ /bar [*]
     "###);
 
-    assert_eq!(
-        router.delete("/baz/{a}/{b}/{c}"),
-        Err(DeleteError::NotFound)
-    );
+    let error = router.delete("/baz/{a}/{b}/{c}").unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    not found
+
+       Path: /baz/{a}/{b}/{c}
+
+    The specified path does not exist in the router
+    "###);
 
     insta::assert_snapshot!(router, @r###"
     $

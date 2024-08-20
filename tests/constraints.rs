@@ -158,3 +158,58 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_unknown_constraints() {
+    let mut router = Router::new();
+
+    let error = router.insert("/{name:unknown}", 0).unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    unknown constraint
+
+       Constraint: unknown
+
+    The router doesn't recognize this constraint
+    "###);
+}
+
+struct ConstraintA;
+impl Constraint for ConstraintA {
+    const NAME: &'static str = "my_constraint";
+
+    fn check(_segment: &str) -> bool {
+        true
+    }
+}
+
+struct ConstraintB;
+impl Constraint for ConstraintB {
+    const NAME: &'static str = "my_constraint";
+
+    fn check(_segment: &str) -> bool {
+        true
+    }
+}
+
+#[test]
+fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
+    let mut router: Router<usize> = Router::new();
+    router.constraint::<ConstraintA>()?;
+
+    let error = router.constraint::<ConstraintB>().unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    duplicate constraint name
+
+    The constraint name 'my_constraint' is already in use:
+        - existing constraint type: 'constraints::ConstraintA'
+        - new constraint type: 'constraints::ConstraintB'
+
+    help: each constraint must have a unique name
+
+    try:
+        - Check if you have accidentally added the same constraint twice
+        - Ensure different constraints have different names
+    "###);
+
+    Ok(())
+}

@@ -14,7 +14,7 @@ impl<T> Node<T> {
                     self.insert_dynamic(parts, data, &name, constraint)?;
                 }
                 Part::Wildcard { name, constraint } if parts.is_empty() => {
-                    self.insert_end_wildcard(data, &name, constraint)?;
+                    self.insert_end_wildcard(parts, data, &name, constraint)?;
                 }
                 Part::Wildcard { name, constraint } => {
                     self.insert_wildcard(parts, data, &name, constraint)?;
@@ -22,7 +22,9 @@ impl<T> Node<T> {
             };
         } else {
             if self.data.is_some() {
-                return Err(InsertError::DuplicatePath);
+                return Err(InsertError::DuplicatePath {
+                    path: String::from_utf8_lossy(parts.path).to_string(),
+                });
             }
 
             self.data = Some(data);
@@ -205,6 +207,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
+        parts: &mut Parts,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -214,7 +217,9 @@ impl<T> Node<T> {
             .iter()
             .any(|child| child.prefix == name && child.constraint == constraint)
         {
-            return Err(InsertError::DuplicatePath);
+            return Err(InsertError::DuplicatePath {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            });
         }
 
         self.end_wildcard_children.push(Self {

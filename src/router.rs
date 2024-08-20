@@ -7,6 +7,7 @@ use crate::{
 };
 use smallvec::smallvec;
 use std::{
+    any::type_name,
     collections::{hash_map::Entry, HashMap},
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
@@ -14,9 +15,15 @@ use std::{
 };
 
 #[derive(Clone)]
+pub struct StoredConstraint {
+    pub type_name: &'static str,
+    pub check: fn(&str) -> bool,
+}
+
+#[derive(Clone)]
 pub struct Router<T> {
     root: Node<T>,
-    constraints: HashMap<Vec<u8>, fn(&str) -> bool>,
+    constraints: HashMap<Vec<u8>, StoredConstraint>,
 }
 
 impl<T> Router<T> {
@@ -68,22 +75,34 @@ impl<T> Router<T> {
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
         match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
-                entry.insert(C::check);
+                entry.insert(StoredConstraint {
+                    type_name: type_name::<C>(),
+                    check: C::check,
+                });
+
                 Ok(())
             }
-            Entry::Occupied(_) => Err(ConstraintError::DuplicateName),
+            Entry::Occupied(entry) => Err(ConstraintError::DuplicateName {
+                name: C::NAME,
+                existing_type: entry.get().type_name,
+                new_type: type_name::<C>(),
+            }),
         }
     }
 
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        if route.as_bytes() != Path::new(route)?.decoded_bytes() {
-            return Err(InsertError::EncodedPath);
+        let decoded = Path::new(route)?;
+        if route.as_bytes() != decoded.decoded_bytes() {
+            return Err(InsertError::EncodedPath {
+                input: route.to_string(),
+                decoded: String::from_utf8_lossy(decoded.decoded_bytes()).to_string(),
+            });
         }
 
         let path = Arc::from(route);
         let mut parts = Parts::new(route.as_bytes())?;
 
-        for part in &parts.0 {
+        for part in &parts {
             if let Part::Dynamic {
                 constraint: Some(name),
                 ..
@@ -94,7 +113,9 @@ impl<T> Router<T> {
             } = part
             {
                 if !self.constraints.contains_key(name) {
-                    return Err(InsertError::UnknownConstraint);
+                    return Err(InsertError::UnknownConstraint {
+                        constraint: String::from_utf8_lossy(name).to_string(),
+                    });
                 }
             }
         }

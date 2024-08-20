@@ -1,15 +1,14 @@
 use crate::{decode::percent_decode, errors::decode::DecodeError};
 use std::borrow::Cow;
 
+#[derive(Debug)]
 pub struct Path<'path> {
-    _raw: &'path [u8],
     decoded: Cow<'path, [u8]>,
 }
 
 impl<'path> Path<'path> {
     pub fn new(path: &'path str) -> Result<Self, DecodeError> {
         Ok(Self {
-            _raw: path.as_bytes(),
             decoded: percent_decode(path.as_bytes())?,
         })
     }
@@ -17,5 +16,33 @@ impl<'path> Path<'path> {
     #[must_use]
     pub fn decoded_bytes(&'path self) -> &'path [u8] {
         &self.decoded
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_path_invalid_encoding() {
+        let error = Path::new("/hello%20world%GG").unwrap_err();
+        assert_eq!(
+            error,
+            DecodeError::InvalidEncoding {
+                input: "/hello%20world%GG".to_string(),
+                position: 14,
+                character: [b'%', b'G', b'G']
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        invalid percent-encoding
+
+           Input: /hello%20world%GG
+                                ^^^
+
+        Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
+           Found: '%GG'
+        "###);
     }
 }
