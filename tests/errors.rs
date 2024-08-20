@@ -1,5 +1,10 @@
 use std::error::Error;
-use wayfind::{constraints::Constraint, errors::constraint::ConstraintError, router::Router};
+use wayfind::{
+    constraints::Constraint,
+    errors::{constraint::ConstraintError, decode::DecodeError},
+    path::Path,
+    router::Router,
+};
 
 struct ConstraintA;
 impl Constraint for ConstraintA {
@@ -20,11 +25,11 @@ impl Constraint for ConstraintB {
 }
 
 #[test]
-fn constraint_duplicate_name_errors() -> Result<(), Box<dyn Error>> {
+fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
     let mut router: Router<usize> = Router::new();
     router.constraint::<ConstraintA>()?;
 
-    let error = router.constraint::<ConstraintB>().unwrap_err();
+    let error = router.constraint::<ConstraintB>().err().unwrap();
     assert_eq!(
         error,
         ConstraintError::DuplicateName {
@@ -49,4 +54,27 @@ fn constraint_duplicate_name_errors() -> Result<(), Box<dyn Error>> {
     "###);
 
     Ok(())
+}
+
+#[test]
+fn decode_invalid_enconding_error() {
+    let error = Path::new("/hello%20world%GG").err().unwrap();
+    assert_eq!(
+        error,
+        DecodeError::InvalidEncoding {
+            input: "/hello%20world%GG".to_string(),
+            position: 14,
+            character: [b'%', b'G', b'G']
+        }
+    );
+
+    insta::assert_snapshot!(error, @r###"
+    error: invalid percent-encoding
+
+       Input: /hello%20world%GG
+                            ^^^
+
+    Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
+       Found: '%GG'
+    "###);
 }
