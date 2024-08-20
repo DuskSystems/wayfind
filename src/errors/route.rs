@@ -5,10 +5,10 @@ pub enum RouteError {
     EmptyPath,
 
     // Braces
-    EmptyBraces,
+    EmptyBraces { path: String, position: usize },
 
     // Escaping
-    UnescapedBrace,
+    UnescapedBrace { path: String, position: usize },
 
     // Parameter
     EmptyParameter,
@@ -27,13 +27,33 @@ impl Error for RouteError {}
 impl Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::EmptyPath => write!(f, "EmptyPath"),
+            Self::EmptyPath => write!(f, "error: empty path"),
 
             // Braces
-            Self::EmptyBraces => write!(f, "EmptyBraces"),
+            Self::EmptyBraces { path, position } => {
+                let underline = " ".repeat(*position) + "^^";
+                write!(
+                    f,
+                    r#"error: empty braces
+
+   Path: {path}
+         {underline}"#
+                )
+            }
 
             // Escaping
-            Self::UnescapedBrace => write!(f, "UnescapedBrace"),
+            Self::UnescapedBrace { path, position } => {
+                let underline = " ".repeat(*position) + "^";
+                write!(
+                    f,
+                    r#"error: unescaped brace
+
+   Path: {path}
+         {underline}
+
+tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}}' in the path"#
+                )
+            }
 
             // Parameter
             Self::EmptyParameter => write!(f, "EmptyParameter"),

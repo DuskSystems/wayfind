@@ -53,7 +53,12 @@ impl Parts {
 
                     cursor = Self::parse_parameter(path, cursor, &mut parts)?;
                 }
-                (b'}', _) => return Err(RouteError::UnescapedBrace),
+                (b'}', _) => {
+                    return Err(RouteError::UnescapedBrace {
+                        path: String::from_utf8_lossy(path).to_string(),
+                        position: cursor,
+                    })
+                }
                 (c, _) => {
                     current_static.push(c);
                     cursor += 1;
@@ -81,10 +86,16 @@ impl Parts {
             .iter()
             .position(|&c| c == b'}')
             .map(|pos| start + pos)
-            .ok_or(RouteError::UnescapedBrace)?;
+            .ok_or(RouteError::UnescapedBrace {
+                path: String::from_utf8_lossy(path).to_string(),
+                position: cursor,
+            })?;
 
         if start == end {
-            return Err(RouteError::EmptyBraces);
+            return Err(RouteError::EmptyBraces {
+                path: String::from_utf8_lossy(path).to_string(),
+                position: cursor,
+            });
         }
 
         let colon = path[start..end].iter().position(|&c| c == b':');
@@ -219,29 +230,83 @@ mod tests {
     fn test_parts_empty() {
         let error = Parts::new(b"").err().unwrap();
         assert_eq!(error, RouteError::EmptyPath);
-        insta::assert_snapshot!(error, @"EmptyPath");
+        insta::assert_snapshot!(error, @"error: empty path");
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
         let error = Parts::new(b"/{").err().unwrap();
-        assert_eq!(error, RouteError::UnescapedBrace);
-        insta::assert_snapshot!(error, @"UnescapedBrace");
+        assert_eq!(
+            error,
+            RouteError::UnescapedBrace {
+                path: "/{".to_string(),
+                position: 1,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: unescaped brace
+
+           Path: /{
+                  ^
+
+        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        "###);
 
         let error = Parts::new(b"/{name").err().unwrap();
-        assert_eq!(error, RouteError::UnescapedBrace);
-        insta::assert_snapshot!(error, @"UnescapedBrace");
+        assert_eq!(
+            error,
+            RouteError::UnescapedBrace {
+                path: "/{name".to_string(),
+                position: 1,
+            }
+        );
 
-        let error = Parts::new(b"/{name:constraint").err().unwrap();
-        assert_eq!(error, RouteError::UnescapedBrace);
-        insta::assert_snapshot!(error, @"UnescapedBrace");
+        insta::assert_snapshot!(error, @r###"
+        error: unescaped brace
+
+           Path: /{name
+                  ^
+
+        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        "###);
+
+        let error = Parts::new(b"/name}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::UnescapedBrace {
+                path: "/name}".to_string(),
+                position: 5,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: unescaped brace
+
+           Path: /name}
+                      ^
+
+        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        "###);
     }
 
     #[test]
     fn test_parts_empty_braces() {
         let error = Parts::new(b"/{}").err().unwrap();
-        assert_eq!(error, RouteError::EmptyBraces);
-        insta::assert_snapshot!(error, @"EmptyBraces");
+        assert_eq!(
+            error,
+            RouteError::EmptyBraces {
+                path: "/{}".to_string(),
+                position: 1,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty braces
+
+           Path: /{}
+                  ^^
+        "###);
     }
 
     #[test]
@@ -348,11 +413,39 @@ mod tests {
     #[test]
     fn test_parts_invalid_escaped() {
         let error = Parts::new(b"{name}}").err().unwrap();
-        assert_eq!(error, RouteError::UnescapedBrace);
-        insta::assert_snapshot!(error, @"UnescapedBrace");
+        assert_eq!(
+            error,
+            RouteError::UnescapedBrace {
+                path: "{name}}".to_string(),
+                position: 6,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: unescaped brace
+
+           Path: {name}}
+                       ^
+
+        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        "###);
 
         let error = Parts::new(b"{{name}").err().unwrap();
-        assert_eq!(error, RouteError::UnescapedBrace);
-        insta::assert_snapshot!(error, @"UnescapedBrace");
+        assert_eq!(
+            error,
+            RouteError::UnescapedBrace {
+                path: "{{name}".to_string(),
+                position: 6,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: unescaped brace
+
+           Path: {{name}
+                       ^
+
+        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        "###);
     }
 }
