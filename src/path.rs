@@ -19,3 +19,31 @@ impl<'path> Path<'path> {
         &self.decoded
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_path_invalid_encoding() {
+        let error = Path::new("/hello%20world%GG").err().unwrap();
+        assert_eq!(
+            error,
+            DecodeError::InvalidEncoding {
+                input: "/hello%20world%GG".to_string(),
+                position: 14,
+                character: [b'%', b'G', b'G']
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: invalid percent-encoding
+
+           Input: /hello%20world%GG
+                                ^^^
+
+        Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
+           Found: '%GG'
+        "###);
+    }
+}
