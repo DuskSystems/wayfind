@@ -59,27 +59,27 @@ impl Display for RouteError {
 
             // Braces
             Self::EmptyBraces { path, position } => {
-                let underline = " ".repeat(*position) + "^^";
+                let arrow = " ".repeat(*position) + "^^";
                 write!(
                     f,
                     r#"error: empty braces
 
    Path: {path}
-         {underline}"#
+         {arrow}"#
                 )
             }
 
             // Escaping
             Self::UnescapedBrace { path, position } => {
-                let underline = " ".repeat(*position) + "^";
+                let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
                     r#"error: unescaped brace
 
    Path: {path}
-         {underline}
+         {arrow}
 
-tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}}' in the path"#
+tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the path"#
                 )
             }
 
@@ -89,13 +89,13 @@ tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}
                 start,
                 length,
             } => {
-                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"error: empty parameter name
 
    Path: {path}
-         {underline}"#
+         {arrow}"#
                 )
             }
 
@@ -104,13 +104,13 @@ tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}
                 start,
                 length,
             } => {
-                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"error: invalid parameter name
 
    Path: {path}
-         {underline}
+         {arrow}
 
 tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
                 )
@@ -122,13 +122,13 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 start,
                 length,
             } => {
-                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"error: empty wildcard name
 
    Path: {path}
-         {underline}"#
+         {arrow}"#
                 )
             }
 
@@ -138,13 +138,13 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 start,
                 length,
             } => {
-                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"error: empty constraint name
 
    Path: {path}
-         {underline}"#
+         {arrow}"#
                 )
             }
 
@@ -153,13 +153,13 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 start,
                 length,
             } => {
-                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"error: invalid constraint name
 
    Path: {path}
-         {underline}
+         {arrow}
 
 tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
                 )

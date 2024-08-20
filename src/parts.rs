@@ -271,7 +271,7 @@ mod tests {
            Path: /{
                   ^
 
-        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
         let error = Parts::new(b"/{name").err().unwrap();
@@ -289,7 +289,7 @@ mod tests {
            Path: /{name
                   ^
 
-        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
         let error = Parts::new(b"/name}").err().unwrap();
@@ -307,7 +307,7 @@ mod tests {
            Path: /name}
                       ^
 
-        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
     }
 
@@ -581,7 +581,7 @@ mod tests {
            Path: {name}}
                        ^
 
-        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
         let error = Parts::new(b"{{name}").err().unwrap();
@@ -599,7 +599,7 @@ mod tests {
            Path: {{name}
                        ^
 
-        tip: Use '{{' to represent a literal '{' and '}}' to represent a literal '}' in the path
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
     }
 }
