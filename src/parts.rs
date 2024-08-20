@@ -217,63 +217,71 @@ mod tests {
 
     #[test]
     fn test_parts_empty() {
-        assert_eq!(Parts::new(b""), Err(RouteError::EmptyPath));
+        let error = Parts::new(b"").err().unwrap();
+        assert_eq!(error, RouteError::EmptyPath);
+        insta::assert_snapshot!(error, @"EmptyPath");
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
-        assert_eq!(Parts::new(b"/{"), Err(RouteError::UnescapedBrace));
-        assert_eq!(Parts::new(b"/{name"), Err(RouteError::UnescapedBrace));
-        assert_eq!(
-            Parts::new(b"/{name:constraint"),
-            Err(RouteError::UnescapedBrace)
-        );
+        let error = Parts::new(b"/{").err().unwrap();
+        assert_eq!(error, RouteError::UnescapedBrace);
+        insta::assert_snapshot!(error, @"UnescapedBrace");
+
+        let error = Parts::new(b"/{name").err().unwrap();
+        assert_eq!(error, RouteError::UnescapedBrace);
+        insta::assert_snapshot!(error, @"UnescapedBrace");
+
+        let error = Parts::new(b"/{name:constraint").err().unwrap();
+        assert_eq!(error, RouteError::UnescapedBrace);
+        insta::assert_snapshot!(error, @"UnescapedBrace");
     }
 
     #[test]
     fn test_parts_empty_braces() {
-        assert_eq!(Parts::new(b"/{}"), Err(RouteError::EmptyBraces));
+        let error = Parts::new(b"/{}").err().unwrap();
+        assert_eq!(error, RouteError::EmptyBraces);
+        insta::assert_snapshot!(error, @"EmptyBraces");
     }
 
     #[test]
     fn test_parts_empty_name() {
-        assert_eq!(
-            Parts::new(b"/{:constraint}"),
-            Err(RouteError::EmptyParameter)
-        );
+        let error = Parts::new(b"/{:constraint}").err().unwrap();
+        assert_eq!(error, RouteError::EmptyParameter);
+        insta::assert_snapshot!(error, @"EmptyParameter");
     }
 
     #[test]
     fn test_parts_empty_wildcard() {
-        assert_eq!(Parts::new(b"/{*}"), Err(RouteError::EmptyWildcard));
+        let error = Parts::new(b"/{*}").err().unwrap();
+        assert_eq!(error, RouteError::EmptyWildcard);
+        insta::assert_snapshot!(error, @"EmptyWildcard");
     }
 
     #[test]
     fn test_parts_empty_constraint() {
-        assert_eq!(Parts::new(b"/{name:}"), Err(RouteError::EmptyConstraint));
+        let error = Parts::new(b"/{name:}").err().unwrap();
+        assert_eq!(error, RouteError::EmptyConstraint);
+        insta::assert_snapshot!(error, @"EmptyConstraint");
     }
 
     #[test]
     fn test_parts_invalid_characters() {
-        assert_eq!(
-            Parts::new(b"/{name:with:colon}"),
-            Err(RouteError::InvalidConstraint)
-        );
+        let error = Parts::new(b"/{name:with:colon}").err().unwrap();
+        assert_eq!(error, RouteError::InvalidConstraint);
+        insta::assert_snapshot!(error, @"InvalidConstraint");
 
-        assert_eq!(
-            Parts::new(b"/{name/with/slash}"),
-            Err(RouteError::InvalidParameter)
-        );
+        let error = Parts::new(b"/{name/with/slash}").err().unwrap();
+        assert_eq!(error, RouteError::InvalidParameter);
+        insta::assert_snapshot!(error, @"InvalidParameter");
 
-        assert_eq!(
-            Parts::new(b"/{name{with{brace}"),
-            Err(RouteError::InvalidParameter)
-        );
+        let error = Parts::new(b"/{name{with{brace}").err().unwrap();
+        assert_eq!(error, RouteError::InvalidParameter);
+        insta::assert_snapshot!(error, @"InvalidParameter");
 
-        assert_eq!(
-            Parts::new(b"/{name{with}brace}"),
-            Err(RouteError::InvalidParameter)
-        );
+        let error = Parts::new(b"/{name{with}brace}").err().unwrap();
+        assert_eq!(error, RouteError::InvalidParameter);
+        insta::assert_snapshot!(error, @"InvalidParameter");
     }
 
     #[test]
@@ -339,7 +347,12 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_escaped() {
-        assert_eq!(Parts::new(b"{name}}"), Err(RouteError::UnescapedBrace));
-        assert_eq!(Parts::new(b"{{name}"), Err(RouteError::UnescapedBrace));
+        let error = Parts::new(b"{name}}").err().unwrap();
+        assert_eq!(error, RouteError::UnescapedBrace);
+        insta::assert_snapshot!(error, @"UnescapedBrace");
+
+        let error = Parts::new(b"{{name}").err().unwrap();
+        assert_eq!(error, RouteError::UnescapedBrace);
+        insta::assert_snapshot!(error, @"UnescapedBrace");
     }
 }
