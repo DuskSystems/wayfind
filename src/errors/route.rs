@@ -5,14 +5,29 @@ pub enum RouteError {
     EmptyPath,
 
     // Braces
-    EmptyBraces { path: String, position: usize },
+    EmptyBraces {
+        path: String,
+        position: usize,
+    },
 
     // Escaping
-    UnescapedBrace { path: String, position: usize },
+    UnescapedBrace {
+        path: String,
+        position: usize,
+    },
 
     // Parameter
-    EmptyParameter,
-    InvalidParameter,
+    EmptyParameter {
+        path: String,
+        start: usize,
+        length: usize,
+    },
+
+    InvalidParameter {
+        path: String,
+        start: usize,
+        length: usize,
+    },
 
     // Wildcard
     EmptyWildcard,
@@ -56,8 +71,37 @@ tip: Use '{{{{' to represent a literal '{{' and '}}}}' to represent a literal '}
             }
 
             // Parameter
-            Self::EmptyParameter => write!(f, "EmptyParameter"),
-            Self::InvalidParameter => write!(f, "InvalidParameter"),
+            Self::EmptyParameter {
+                path,
+                start,
+                length,
+            } => {
+                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"error: empty parameter name
+
+   Path: {path}
+         {underline}"#
+                )
+            }
+
+            Self::InvalidParameter {
+                path,
+                start,
+                length,
+            } => {
+                let underline = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"error: invalid parameter name
+
+   Path: {path}
+         {underline}
+
+tip: Parameter names must not contain the characters ':', '*', '?', '{{', '}}', or '/'"#
+                )
+            }
 
             // Wildcard
             Self::EmptyWildcard => write!(f, "EmptyWildcard"),

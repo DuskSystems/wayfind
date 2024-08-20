@@ -115,11 +115,19 @@ impl Parts {
                 return Err(RouteError::EmptyWildcard);
             }
 
-            return Err(RouteError::EmptyParameter);
+            return Err(RouteError::EmptyParameter {
+                path: String::from_utf8_lossy(path).to_string(),
+                start: cursor,
+                length: end - start + 2,
+            });
         }
 
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-            return Err(RouteError::InvalidParameter);
+            return Err(RouteError::InvalidParameter {
+                path: String::from_utf8_lossy(path).to_string(),
+                start: start - 1,
+                length: end - start + 2,
+            });
         }
 
         if let Some(constraint) = constraint {
@@ -311,9 +319,39 @@ mod tests {
 
     #[test]
     fn test_parts_empty_name() {
+        let error = Parts::new(b"/{:}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::EmptyParameter {
+                path: "/{:}".to_string(),
+                start: 1,
+                length: 3
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty parameter name
+
+           Path: /{:}
+                  ^^^
+        "###);
+
         let error = Parts::new(b"/{:constraint}").err().unwrap();
-        assert_eq!(error, RouteError::EmptyParameter);
-        insta::assert_snapshot!(error, @"EmptyParameter");
+        assert_eq!(
+            error,
+            RouteError::EmptyParameter {
+                path: "/{:constraint}".to_string(),
+                start: 1,
+                length: 13
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: empty parameter name
+
+           Path: /{:constraint}
+                  ^^^^^^^^^^^^^
+        "###);
     }
 
     #[test]
@@ -332,21 +370,66 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_characters() {
+        let error = Parts::new(b"/{name/with/slash}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::InvalidParameter {
+                path: "/{name/with/slash}".to_string(),
+                start: 1,
+                length: 17
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: invalid parameter name
+
+           Path: /{name/with/slash}
+                  ^^^^^^^^^^^^^^^^^
+
+        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        "###);
+
+        let error = Parts::new(b"/{name{with{brace}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::InvalidParameter {
+                path: "/{name{with{brace}".to_string(),
+                start: 1,
+                length: 17
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: invalid parameter name
+
+           Path: /{name{with{brace}
+                  ^^^^^^^^^^^^^^^^^
+
+        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        "###);
+
+        let error = Parts::new(b"/{name{with}brace}").err().unwrap();
+        assert_eq!(
+            error,
+            RouteError::InvalidParameter {
+                path: "/{name{with}brace}".to_string(),
+                start: 1,
+                length: 11
+            }
+        );
+
+        insta::assert_snapshot!(error, @r###"
+        error: invalid parameter name
+
+           Path: /{name{with}brace}
+                  ^^^^^^^^^^^
+
+        tip: Parameter names must not contain the characters ':', '*', '?', '{', '}', or '/'
+        "###);
+
         let error = Parts::new(b"/{name:with:colon}").err().unwrap();
         assert_eq!(error, RouteError::InvalidConstraint);
         insta::assert_snapshot!(error, @"InvalidConstraint");
-
-        let error = Parts::new(b"/{name/with/slash}").err().unwrap();
-        assert_eq!(error, RouteError::InvalidParameter);
-        insta::assert_snapshot!(error, @"InvalidParameter");
-
-        let error = Parts::new(b"/{name{with{brace}").err().unwrap();
-        assert_eq!(error, RouteError::InvalidParameter);
-        insta::assert_snapshot!(error, @"InvalidParameter");
-
-        let error = Parts::new(b"/{name{with}brace}").err().unwrap();
-        assert_eq!(error, RouteError::InvalidParameter);
-        insta::assert_snapshot!(error, @"InvalidParameter");
     }
 
     #[test]
