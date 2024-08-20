@@ -286,14 +286,14 @@ mod tests {
 
     #[test]
     fn test_parts_empty() {
-        let error = Parts::new(b"").err().unwrap();
+        let error = Parts::new(b"").unwrap_err();
         assert_eq!(error, RouteError::EmptyPath);
         insta::assert_snapshot!(error, @"empty path");
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
-        let error = Parts::new(b"/{").err().unwrap();
+        let error = Parts::new(b"/{").unwrap_err();
         assert_eq!(
             error,
             RouteError::UnescapedBrace {
@@ -311,7 +311,7 @@ mod tests {
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
-        let error = Parts::new(b"/{name").err().unwrap();
+        let error = Parts::new(b"/{name").unwrap_err();
         assert_eq!(
             error,
             RouteError::UnescapedBrace {
@@ -329,7 +329,7 @@ mod tests {
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
-        let error = Parts::new(b"/name}").err().unwrap();
+        let error = Parts::new(b"/name}").unwrap_err();
         assert_eq!(
             error,
             RouteError::UnescapedBrace {
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn test_parts_empty_braces() {
-        let error = Parts::new(b"/{}").err().unwrap();
+        let error = Parts::new(b"/{}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyBraces {
@@ -369,7 +369,7 @@ mod tests {
 
     #[test]
     fn test_parts_empty_name() {
-        let error = Parts::new(b"/{:}").err().unwrap();
+        let error = Parts::new(b"/{:}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyParameter {
@@ -386,7 +386,7 @@ mod tests {
                   ^^^
         "###);
 
-        let error = Parts::new(b"/{:constraint}").err().unwrap();
+        let error = Parts::new(b"/{:constraint}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyParameter {
@@ -406,7 +406,7 @@ mod tests {
 
     #[test]
     fn test_parts_empty_wildcard() {
-        let error = Parts::new(b"/{*}").err().unwrap();
+        let error = Parts::new(b"/{*}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyWildcard {
@@ -423,7 +423,7 @@ mod tests {
                   ^^^
         "###);
 
-        let error = Parts::new(b"/{*:constraint}").err().unwrap();
+        let error = Parts::new(b"/{*:constraint}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyWildcard {
@@ -443,7 +443,7 @@ mod tests {
 
     #[test]
     fn test_parts_empty_constraint() {
-        let error = Parts::new(b"/{name:}").err().unwrap();
+        let error = Parts::new(b"/{name:}").unwrap_err();
         assert_eq!(
             error,
             RouteError::EmptyConstraint {
@@ -463,7 +463,7 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_characters() {
-        let error = Parts::new(b"/{name/with/slash}").err().unwrap();
+        let error = Parts::new(b"/{name/with/slash}").unwrap_err();
         assert_eq!(
             error,
             RouteError::InvalidParameter {
@@ -482,7 +482,7 @@ mod tests {
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
-        let error = Parts::new(b"/{name{with{brace}").err().unwrap();
+        let error = Parts::new(b"/{name{with{brace}").unwrap_err();
         assert_eq!(
             error,
             RouteError::InvalidParameter {
@@ -501,7 +501,7 @@ mod tests {
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
-        let error = Parts::new(b"/{name{with}brace}").err().unwrap();
+        let error = Parts::new(b"/{name{with}brace}").unwrap_err();
         assert_eq!(
             error,
             RouteError::InvalidParameter {
@@ -520,7 +520,7 @@ mod tests {
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);
 
-        let error = Parts::new(b"/{name:with:colon}").err().unwrap();
+        let error = Parts::new(b"/{name:with:colon}").unwrap_err();
         assert_eq!(
             error,
             RouteError::InvalidConstraint {
@@ -624,7 +624,7 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_escaped() {
-        let error = Parts::new(b"{name}}").err().unwrap();
+        let error = Parts::new(b"{name}}").unwrap_err();
         assert_eq!(
             error,
             RouteError::UnescapedBrace {
@@ -642,7 +642,7 @@ mod tests {
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
         "###);
 
-        let error = Parts::new(b"{{name}").err().unwrap();
+        let error = Parts::new(b"{{name}").unwrap_err();
         assert_eq!(
             error,
             RouteError::UnescapedBrace {

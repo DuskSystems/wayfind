@@ -1,6 +1,7 @@
 use crate::{decode::percent_decode, errors::decode::DecodeError};
 use std::borrow::Cow;
 
+#[derive(Debug)]
 pub struct Path<'path> {
     decoded: Cow<'path, [u8]>,
 }
@@ -24,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_path_invalid_encoding() {
-        let error = Path::new("/hello%20world%GG").err().unwrap();
+        let error = Path::new("/hello%20world%GG").unwrap_err();
         assert_eq!(
             error,
             DecodeError::InvalidEncoding {
