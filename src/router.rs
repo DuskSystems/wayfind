@@ -91,14 +91,18 @@ impl<T> Router<T> {
     }
 
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        if route.as_bytes() != Path::new(route)?.decoded_bytes() {
-            return Err(InsertError::EncodedPath);
+        let decoded = Path::new(route)?;
+        if route.as_bytes() != decoded.decoded_bytes() {
+            return Err(InsertError::EncodedPath {
+                input: route.to_string(),
+                decoded: String::from_utf8_lossy(decoded.decoded_bytes()).to_string(),
+            });
         }
 
         let path = Arc::from(route);
         let mut parts = Parts::new(route.as_bytes())?;
 
-        for part in &parts.0 {
+        for part in &parts {
             if let Part::Dynamic {
                 constraint: Some(name),
                 ..
@@ -109,7 +113,9 @@ impl<T> Router<T> {
             } = part
             {
                 if !self.constraints.contains_key(name) {
-                    return Err(InsertError::UnknownConstraint);
+                    return Err(InsertError::UnknownConstraint {
+                        constraint: String::from_utf8_lossy(name).to_string(),
+                    });
                 }
             }
         }

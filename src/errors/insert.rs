@@ -5,9 +5,9 @@ use std::{error::Error, fmt::Display};
 pub enum InsertError {
     RouteError(RouteError),
     DecodeError(DecodeError),
-    EncodedPath,
-    DuplicatePath,
-    UnknownConstraint,
+    EncodedPath { input: String, decoded: String },
+    DuplicatePath { path: String },
+    UnknownConstraint { constraint: String },
 }
 
 impl Error for InsertError {}
@@ -17,9 +17,29 @@ impl Display for InsertError {
         match self {
             Self::RouteError(error) => error.fmt(f),
             Self::DecodeError(error) => error.fmt(f),
-            Self::EncodedPath => write!(f, "Encoded Path"),
-            Self::DuplicatePath => write!(f, "Duplicate Path"),
-            Self::UnknownConstraint => write!(f, "Unknown Constraint"),
+            Self::EncodedPath { input, decoded } => write!(
+                f,
+                r#"encoded path
+
+     Input: {input}
+   Decoded: {decoded}
+
+The router expects paths to be in their decoded form"#
+            ),
+            Self::DuplicatePath { path } => write!(
+                f,
+                r#"duplicate path
+
+   Path: {path}"#
+            ),
+            Self::UnknownConstraint { constraint } => write!(
+                f,
+                r#"unknown constraint
+
+   Constraint: {constraint}
+
+The router doesn't recognize this constraint"#
+            ),
         }
     }
 }

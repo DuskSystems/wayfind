@@ -152,23 +152,52 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "todo"]
 fn test_add_result() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<DigitString>()?;
 
-    assert!(router.insert("/a/b", 1).is_ok());
-    assert!(router.insert("/a/b", 2).is_err());
-    assert!(router.insert("/a/b/{p}/d", 1).is_ok());
-    assert!(router.insert("/a/b/c/d", 2).is_ok());
-    assert!(router.insert("/a/b/{p2}/d", 3).is_ok());
-    assert!(router.insert("/a/{*p}", 1).is_ok());
-    assert!(router.insert("/a/{*p}", 2).is_err());
-    assert!(router.insert("/a/b/{*p}", 1).is_ok());
-    assert!(router.insert("/a/b/{*p2}", 2).is_err());
-    assert!(router.insert("/k/h/{name:digit_string}", 1).is_ok());
+    router.insert("/a/b", 1)?;
 
-    insta::assert_snapshot!(router, @"");
+    let error = router.insert("/a/b", 2).unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    duplicate path
+
+       Path: /a/b
+    "###);
+
+    router.insert("/a/b/{p}/d", 1)?;
+    router.insert("/a/b/c/d", 2)?;
+    router.insert("/a/b/{p2}/d", 3)?;
+    router.insert("/a/{*p}", 1)?;
+
+    let error = router.insert("/a/{*p}", 2).unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    duplicate path
+
+       Path: /a/{*p}
+    "###);
+
+    router.insert("/k/h/{name:digit_string}", 1)?;
+
+    // FIXME
+    // assert!(router.insert("/a/b/{*p}", 1).is_ok());
+    // assert!(router.insert("/a/b/{*p2}", 2).is_err());
+
+    insta::assert_snapshot!(router, @r###"
+    $
+    ╰─ /
+       ├─ a/
+       │   ├─ b [*]
+       │   │  ╰─ /
+       │   │     ├─ c/d [*]
+       │   │     ├─ {p}
+       │   │     │    ╰─ /d [*]
+       │   │     ╰─ {p2}
+       │   │           ╰─ /d [*]
+       │   ╰─ {*p} [*]
+       ╰─ k/h/
+             ╰─ {name:digit_string} [*]
+    "###);
 
     Ok(())
 }

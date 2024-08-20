@@ -22,10 +22,13 @@ pub enum Part {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts(pub Vec<Part>);
+pub struct Parts<'a> {
+    pub path: &'a [u8],
+    pub inner: Vec<Part>,
+}
 
-impl Parts {
-    pub fn new(path: &[u8]) -> Result<Self, RouteError> {
+impl<'a> Parts<'a> {
+    pub fn new(path: &'a [u8]) -> Result<Self, RouteError> {
         if path.is_empty() {
             return Err(RouteError::EmptyPath);
         }
@@ -73,7 +76,7 @@ impl Parts {
         }
 
         parts.reverse();
-        Ok(Self(parts))
+        Ok(Self { path, inner: parts })
     }
 
     fn parse_parameter(
@@ -169,12 +172,34 @@ impl Parts {
     }
 
     pub fn pop(&mut self) -> Option<Part> {
-        self.0.pop()
+        self.inner.pop()
     }
 
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.inner.is_empty()
+    }
+
+    pub fn iter(&'a self) -> std::slice::Iter<'a, Part> {
+        self.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for Parts<'a> {
+    type Item = Part;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a Parts<'a> {
+    type Item = &'a Part;
+    type IntoIter = std::slice::Iter<'a, Part>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.iter()
     }
 }
 
@@ -186,9 +211,12 @@ mod tests {
     fn test_parts_static() {
         assert_eq!(
             Parts::new(b"/abcd"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"/abcd".to_vec()
-            }])),
+            Ok(Parts {
+                path: b"/abcd",
+                inner: vec![Part::Static {
+                    prefix: b"/abcd".to_vec()
+                }]
+            })
         );
     }
 
@@ -196,15 +224,18 @@ mod tests {
     fn test_parts_dynamic() {
         assert_eq!(
             Parts::new(b"/{name}"),
-            Ok(Parts(vec![
-                Part::Dynamic {
-                    name: b"name".to_vec(),
-                    constraint: None
-                },
-                Part::Static {
-                    prefix: b"/".to_vec()
-                },
-            ]))
+            Ok(Parts {
+                path: b"/{name}",
+                inner: vec![
+                    Part::Dynamic {
+                        name: b"name".to_vec(),
+                        constraint: None
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                ]
+            })
         );
     }
 
@@ -212,15 +243,18 @@ mod tests {
     fn test_parts_wildcard() {
         assert_eq!(
             Parts::new(b"/{*path}"),
-            Ok(Parts(vec![
-                Part::Wildcard {
-                    name: b"path".to_vec(),
-                    constraint: None
-                },
-                Part::Static {
-                    prefix: b"/".to_vec()
-                },
-            ]))
+            Ok(Parts {
+                path: b"/{*path}",
+                inner: vec![
+                    Part::Wildcard {
+                        name: b"path".to_vec(),
+                        constraint: None
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                ]
+            })
         );
     }
 
@@ -228,22 +262,25 @@ mod tests {
     fn test_parts_constraint() {
         assert_eq!(
             Parts::new(b"/{name:alpha}/{id:numeric}"),
-            Ok(Parts(vec![
-                Part::Dynamic {
-                    name: b"id".to_vec(),
-                    constraint: Some("numeric".into())
-                },
-                Part::Static {
-                    prefix: b"/".to_vec()
-                },
-                Part::Dynamic {
-                    name: b"name".to_vec(),
-                    constraint: Some("alpha".into())
-                },
-                Part::Static {
-                    prefix: b"/".to_vec()
-                },
-            ]))
+            Ok(Parts {
+                path: b"/{name:alpha}/{id:numeric}",
+                inner: vec![
+                    Part::Dynamic {
+                        name: b"id".to_vec(),
+                        constraint: Some(b"numeric".to_vec())
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                    Part::Dynamic {
+                        name: b"name".to_vec(),
+                        constraint: Some(b"alpha".to_vec())
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                ]
+            })
         );
     }
 
@@ -507,60 +544,81 @@ mod tests {
     fn test_parts_escaped() {
         assert_eq!(
             Parts::new(b"/{{name}}"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"/{name}".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"/{{name}}",
+                inner: vec![Part::Static {
+                    prefix: b"/{name}".to_vec()
+                }]
+            })
         );
 
         assert_eq!(
             Parts::new(b"/name}}"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"/name}".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"/name}}",
+                inner: vec![Part::Static {
+                    prefix: b"/name}".to_vec()
+                }]
+            })
         );
 
         assert_eq!(
             Parts::new(b"/name{{"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"/name{".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"/name{{",
+                inner: vec![Part::Static {
+                    prefix: b"/name{".to_vec()
+                }]
+            })
         );
 
         assert_eq!(
             Parts::new(b"/{{{name}}}"),
-            Ok(Parts(vec![
-                Part::Static {
-                    prefix: b"}".to_vec()
-                },
-                Part::Dynamic {
-                    name: b"name".to_vec(),
-                    constraint: None
-                },
-                Part::Static {
-                    prefix: b"/{".to_vec()
-                },
-            ]))
+            Ok(Parts {
+                path: b"/{{{name}}}",
+                inner: vec![
+                    Part::Static {
+                        prefix: b"}".to_vec()
+                    },
+                    Part::Dynamic {
+                        name: b"name".to_vec(),
+                        constraint: None
+                    },
+                    Part::Static {
+                        prefix: b"/{".to_vec()
+                    },
+                ]
+            })
         );
 
         assert_eq!(
             Parts::new(b"/{{{{name}}}}"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"/{{name}}".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"/{{{{name}}}}",
+                inner: vec![Part::Static {
+                    prefix: b"/{{name}}".to_vec()
+                }]
+            })
         );
 
         assert_eq!(
             Parts::new(b"{{}}"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"{}".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"{{}}",
+                inner: vec![Part::Static {
+                    prefix: b"{}".to_vec()
+                }]
+            })
         );
 
         assert_eq!(
             Parts::new(b"{{:}}"),
-            Ok(Parts(vec![Part::Static {
-                prefix: b"{:}".to_vec()
-            }]))
+            Ok(Parts {
+                path: b"{{:}}",
+                inner: vec![Part::Static {
+                    prefix: b"{:}".to_vec()
+                }]
+            })
         );
     }
 

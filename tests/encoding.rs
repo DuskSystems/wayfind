@@ -81,3 +81,18 @@ fn percent_encoding() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn percent_encoding_insert() {
+    let mut router = Router::new();
+
+    let error = router.insert("/hello%20world", 0).unwrap_err();
+    insta::assert_snapshot!(error, @r###"
+    encoded path
+
+         Input: /hello%20world
+       Decoded: /hello world
+
+    The router expects paths to be in their decoded form
+    "###);
+}

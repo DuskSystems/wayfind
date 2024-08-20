@@ -13,7 +13,7 @@ impl<T> Node<T> {
                     self.delete_dynamic(parts, &name, &constraint)
                 }
                 Part::Wildcard { name, constraint } if parts.is_empty() => {
-                    self.delete_end_wildcard(&name, &constraint)
+                    self.delete_end_wildcard(parts, &name, &constraint)
                 }
                 Part::Wildcard { name, constraint } => {
                     self.delete_wildcard(parts, &name, &constraint)
@@ -31,7 +31,9 @@ impl<T> Node<T> {
                 return Ok(());
             }
 
-            Err(DeleteError::NotFound)
+            Err(DeleteError::NotFound {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            })
         }
     }
 
@@ -43,7 +45,9 @@ impl<T> Node<T> {
                 prefix.len() >= child.prefix.len()
                     && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
-            .ok_or(DeleteError::NotFound)?;
+            .ok_or(DeleteError::NotFound {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            })?;
 
         let child = &mut self.static_children[index];
         let remaining_prefix = &prefix[child.prefix.len()..];
@@ -75,7 +79,9 @@ impl<T> Node<T> {
             .dynamic_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound)?;
+            .ok_or(DeleteError::NotFound {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            })?;
 
         let child = &mut self.dynamic_children[index];
         let result = child.delete(parts);
@@ -101,7 +107,9 @@ impl<T> Node<T> {
             .wildcard_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound)?;
+            .ok_or(DeleteError::NotFound {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            })?;
 
         let child = &mut self.wildcard_children[index];
         let result = child.delete(parts);
@@ -119,6 +127,7 @@ impl<T> Node<T> {
 
     fn delete_end_wildcard(
         &mut self,
+        parts: &mut Parts,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -126,7 +135,9 @@ impl<T> Node<T> {
             .end_wildcard_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound)?;
+            .ok_or(DeleteError::NotFound {
+                path: String::from_utf8_lossy(parts.path).to_string(),
+            })?;
 
         self.end_wildcard_children.remove(index);
         Ok(())
