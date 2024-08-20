@@ -7,6 +7,7 @@ use crate::{
 };
 use smallvec::smallvec;
 use std::{
+    any::type_name,
     collections::{hash_map::Entry, HashMap},
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
@@ -14,9 +15,15 @@ use std::{
 };
 
 #[derive(Clone)]
+pub struct StoredConstraint {
+    pub type_name: &'static str,
+    pub check: fn(&str) -> bool,
+}
+
+#[derive(Clone)]
 pub struct Router<T> {
     root: Node<T>,
-    constraints: HashMap<Vec<u8>, fn(&str) -> bool>,
+    constraints: HashMap<Vec<u8>, StoredConstraint>,
 }
 
 impl<T> Router<T> {
@@ -68,10 +75,18 @@ impl<T> Router<T> {
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
         match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
-                entry.insert(C::check);
+                entry.insert(StoredConstraint {
+                    type_name: type_name::<C>(),
+                    check: C::check,
+                });
+
                 Ok(())
             }
-            Entry::Occupied(_) => Err(ConstraintError::DuplicateName),
+            Entry::Occupied(entry) => Err(ConstraintError::DuplicateName {
+                name: C::NAME,
+                existing_type: entry.get().type_name,
+                new_type: type_name::<C>(),
+            }),
         }
     }
 

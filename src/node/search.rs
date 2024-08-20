@@ -1,4 +1,5 @@
 use super::{Node, NodeData};
+use crate::router::StoredConstraint;
 use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 
@@ -19,7 +20,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         if path.is_empty() {
             return if self.data.is_some() {
@@ -52,7 +53,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
@@ -75,7 +76,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         if self.quick_dynamic {
             self.search_dynamic_segment(path, parameters, constraints)
@@ -94,7 +95,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
@@ -142,7 +143,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -173,7 +174,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
@@ -236,7 +237,7 @@ impl<T> Node<T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_constraint(end_wildcard, path, constraints) {
@@ -261,7 +262,7 @@ impl<T> Node<T> {
     fn check_constraint(
         node: &Self,
         segment: &[u8],
-        constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> bool {
         let Some(name) = &node.constraint else {
             return true;
@@ -276,6 +277,6 @@ impl<T> Node<T> {
             return false;
         };
 
-        (constraint)(segment)
+        (constraint.check)(segment)
     }
 }
