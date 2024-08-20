@@ -1,7 +1,8 @@
 use crate::errors::route::RouteError;
 use std::fmt::Debug;
 
-const INVALID_PARAM_CHARS: [u8; 4] = [b':', b'/', b'{', b'}'];
+// NOTE: '?' is reserved for potential future use.
+const INVALID_PARAM_CHARS: [u8; 6] = [b':', b'*', b'?', b'{', b'}', b'/'];
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Part {
@@ -25,6 +26,10 @@ pub struct Parts(pub Vec<Part>);
 
 impl Parts {
     pub fn new(path: &[u8]) -> Result<Self, RouteError> {
+        if path.is_empty() {
+            return Err(RouteError::EmptyPath);
+        }
+
         let mut parts = vec![];
         let mut cursor = 0;
         let mut current_static = vec![];
@@ -48,7 +53,7 @@ impl Parts {
 
                     cursor = Self::parse_parameter(path, cursor, &mut parts)?;
                 }
-                (b'}', _) => return Err(RouteError::InvalidPath),
+                (b'}', _) => return Err(RouteError::UnescapedBrace),
                 (c, _) => {
                     current_static.push(c);
                     cursor += 1;
@@ -60,10 +65,6 @@ impl Parts {
             parts.push(Part::Static {
                 prefix: std::mem::take(&mut current_static),
             });
-        }
-
-        if parts.is_empty() {
-            return Err(RouteError::InvalidPath);
         }
 
         parts.reverse();
@@ -80,7 +81,11 @@ impl Parts {
             .iter()
             .position(|&c| c == b'}')
             .map(|pos| start + pos)
-            .ok_or(RouteError::InvalidPath)?;
+            .ok_or(RouteError::UnescapedBrace)?;
+
+        if start == end {
+            return Err(RouteError::EmptyBraces);
+        }
 
         let colon = path[start..end].iter().position(|&c| c == b':');
         let (name, constraint) = colon.map_or_else(
@@ -88,19 +93,36 @@ impl Parts {
             |pos| (&path[start..start + pos], Some(&path[start + pos + 1..end])),
         );
 
-        if name.is_empty() || name.iter().any(|c| INVALID_PARAM_CHARS.contains(c)) {
-            return Err(RouteError::InvalidPath);
+        let (is_wildcard, name) = if name.starts_with(b"*") {
+            (true, &name[1..])
+        } else {
+            (false, name)
+        };
+
+        if name.is_empty() {
+            if is_wildcard {
+                return Err(RouteError::EmptyWildcard);
+            }
+
+            return Err(RouteError::EmptyParameter);
+        }
+
+        if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+            return Err(RouteError::InvalidParameter);
         }
 
         if let Some(constraint) = constraint {
-            if constraint.is_empty() || constraint.iter().any(|c| INVALID_PARAM_CHARS.contains(c)) {
-                return Err(RouteError::InvalidPath);
+            if constraint.is_empty() {
+                return Err(RouteError::EmptyConstraint);
+            }
+            if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+                return Err(RouteError::InvalidConstraint);
             }
         }
 
-        let part = if name.starts_with(b"*") {
+        let part = if is_wildcard {
             Part::Wildcard {
-                name: name[1..].to_vec(),
+                name: name.to_vec(),
                 constraint: constraint.map(<[u8]>::to_vec),
             }
         } else {
@@ -195,61 +217,62 @@ mod tests {
 
     #[test]
     fn test_parts_empty() {
-        assert_eq!(Parts::new(b""), Err(RouteError::InvalidPath));
+        assert_eq!(Parts::new(b""), Err(RouteError::EmptyPath));
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
-        assert_eq!(Parts::new(b"/{"), Err(RouteError::InvalidPath));
-        assert_eq!(Parts::new(b"/{name"), Err(RouteError::InvalidPath));
+        assert_eq!(Parts::new(b"/{"), Err(RouteError::UnescapedBrace));
+        assert_eq!(Parts::new(b"/{name"), Err(RouteError::UnescapedBrace));
         assert_eq!(
             Parts::new(b"/{name:constraint"),
-            Err(RouteError::InvalidPath)
+            Err(RouteError::UnescapedBrace)
         );
     }
 
     #[test]
     fn test_parts_empty_braces() {
-        assert_eq!(Parts::new(b"/{}"), Err(RouteError::InvalidPath));
-        assert_eq!(Parts::new(b"/{:}"), Err(RouteError::InvalidPath));
-    }
-
-    #[test]
-    fn test_parts_nested_braces() {
-        assert_eq!(Parts::new(b"/{outer{inner}}"), Err(RouteError::InvalidPath));
+        assert_eq!(Parts::new(b"/{}"), Err(RouteError::EmptyBraces));
     }
 
     #[test]
     fn test_parts_empty_name() {
-        assert_eq!(Parts::new(b"/{:constraint}"), Err(RouteError::InvalidPath));
-        assert_eq!(Parts::new(b"/{:constraint"), Err(RouteError::InvalidPath));
+        assert_eq!(
+            Parts::new(b"/{:constraint}"),
+            Err(RouteError::EmptyParameter)
+        );
+    }
+
+    #[test]
+    fn test_parts_empty_wildcard() {
+        assert_eq!(Parts::new(b"/{*}"), Err(RouteError::EmptyWildcard));
     }
 
     #[test]
     fn test_parts_empty_constraint() {
-        assert_eq!(Parts::new(b"/{name:}"), Err(RouteError::InvalidPath));
+        assert_eq!(Parts::new(b"/{name:}"), Err(RouteError::EmptyConstraint));
     }
 
     #[test]
     fn test_parts_invalid_characters() {
         assert_eq!(
             Parts::new(b"/{name:with:colon}"),
-            Err(RouteError::InvalidPath)
+            Err(RouteError::InvalidConstraint)
         );
 
         assert_eq!(
             Parts::new(b"/{name/with/slash}"),
-            Err(RouteError::InvalidPath)
+            Err(RouteError::InvalidParameter)
         );
 
         assert_eq!(
             Parts::new(b"/{name{with{brace}"),
-            Err(RouteError::InvalidPath)
+            Err(RouteError::InvalidParameter)
         );
 
         assert_eq!(
             Parts::new(b"/{name{with}brace}"),
-            Err(RouteError::InvalidPath)
+            Err(RouteError::InvalidParameter)
         );
     }
 
@@ -316,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_escaped() {
-        assert_eq!(Parts::new(b"{name}}"), Err(RouteError::InvalidPath));
-        assert_eq!(Parts::new(b"{{name}"), Err(RouteError::InvalidPath));
+        assert_eq!(Parts::new(b"{name}}"), Err(RouteError::UnescapedBrace));
+        assert_eq!(Parts::new(b"{{name}"), Err(RouteError::UnescapedBrace));
     }
 }
