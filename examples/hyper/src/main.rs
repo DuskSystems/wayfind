@@ -66,7 +66,10 @@ async fn main() -> Result<(), anyhow::Error> {
                         async move {
                             let path = request.uri().path();
                             let wayfind_path = Path::new(path).expect("Invalid path!");
-                            let matches = router.search(&wayfind_path).expect("Failed to match!");
+                            let matches = router
+                                .search(&wayfind_path)
+                                .expect("Failed to match!")
+                                .expect("Failed to match!");
 
                             let handler = &matches.data.value;
                             let parameters = &matches.parameters;

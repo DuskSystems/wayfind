@@ -13,6 +13,9 @@ license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
@@ -60,9 +63,6 @@ categories.workspace = true
 
 [lints]
 workspace = true
-
-[dependencies]
-smallvec = "1.13"
 
 [dev-dependencies]
 # Snapshots

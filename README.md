@@ -6,6 +6,9 @@
 
 A speedy, flexible router for Rust.
 
+- Zero dependencies.
+- No unsafe code.
+
 > [!WARNING]
 > Currently in a pre-alpha state.
 
@@ -135,7 +138,7 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchma
 
 > [!NOTE]
 > For all benchmarks, we percent-decode the path before matching.
-> After matching, we convert any extracted parameters to strings.
+> After matching, we convert any extracted parameters to strings (`&str`).
 > Some routers perform these operations automatically, while others require them to be done manually.
 > We do this to try and match behaviour as best as possible.
 
@@ -145,14 +148,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      |
 |:-----------------|----------:|
-| wayfind          | 301.64 ns |
-| matchit          | 471.11 ns |
-| xitca-router     | 568.31 ns |
-| path-tree        | 586.17 ns |
-| ntex-router      | 1.79 µs   |
-| route-recognizer | 4.56 µs   |
-| routefinder      | 6.63 µs   |
-| actix-router     | 21.16 µs  |
+| wayfind          | 488.03 ns |
+| matchit          | 551.80 ns |
+| path-tree        | 658.74 ns |
+| xitca-router     | 675.19 ns |
+| ntex-router      | 2.15 µs   |
+| route-recognizer | 5.47 µs   |
+| routefinder      | 7.67 µs   |
+| actix-router     | 25.30 µs  |
 
 ### `path-tree` inspired benches
 
@@ -160,15 +163,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      |
 |:-----------------|----------:|
-| wayfind          | 3.92 µs   |
-| matchit          | 8.96 µs   |
-| path-tree        | 9.58 µs   |
-| xitca-router     | 10.88 µs  |
-| ntex-router      | 30.93 µs  |
-| route-recognizer | 90.96 µs  |
-| routefinder      | 98.77 µs  |
-| actix-router     | 178.40 µs |
-
+| wayfind          | 6.94 µs   |
+| matchit          | 10.59 µs  |
+| path-tree        | 11.52 µs  |
+| xitca-router     | 13.10 µs  |
+| ntex-router      | 36.56 µs  |
+| route-recognizer | 106.81 µs |
+| routefinder      | 118.42 µs |
+| actix-router     | 212.74 µs |
 
 ## Inspirations
 

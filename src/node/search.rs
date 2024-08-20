@@ -1,11 +1,11 @@
 use super::{Node, NodeData};
-use smallvec::{smallvec, SmallVec};
+use crate::errors::search::SearchError;
 use std::collections::HashMap;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'router, 'path, T> {
     pub data: &'router NodeData<T>,
-    pub parameters: SmallVec<[Parameter<'router, 'path>; 4]>,
+    pub parameters: Vec<Parameter<'router, 'path>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -18,42 +18,42 @@ impl<T> Node<T> {
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         if path.is_empty() {
             return if self.data.is_some() {
-                Some(self)
+                Ok(Some(self))
             } else {
-                None
+                Ok(None)
             };
         }
 
-        if let Some(search) = self.search_static(path, parameters, constraints) {
-            return Some(search);
+        if let Some(search) = self.search_static(path, parameters, constraints)? {
+            return Ok(Some(search));
         }
 
-        if let Some(search) = self.search_dynamic(path, parameters, constraints) {
-            return Some(search);
+        if let Some(search) = self.search_dynamic(path, parameters, constraints)? {
+            return Ok(Some(search));
         }
 
-        if let Some(search) = self.search_wildcard(path, parameters, constraints) {
-            return Some(search);
+        if let Some(search) = self.search_wildcard(path, parameters, constraints)? {
+            return Ok(Some(search));
         }
 
-        if let Some(search) = self.search_end_wildcard(path, parameters, constraints) {
-            return Some(search);
+        if let Some(search) = self.search_end_wildcard(path, parameters, constraints)? {
+            return Ok(Some(search));
         }
 
-        None
+        Ok(None)
     }
 
     fn search_static<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         for static_child in &self.static_children {
             // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
@@ -61,22 +61,22 @@ impl<T> Node<T> {
             {
                 let remaining_path = &path[static_child.prefix.len()..];
                 if let Some(node_data) =
-                    static_child.search(remaining_path, parameters, constraints)
+                    static_child.search(remaining_path, parameters, constraints)?
                 {
-                    return Some(node_data);
+                    return Ok(Some(node_data));
                 }
             }
         }
 
-        None
+        Ok(None)
     }
 
     fn search_dynamic<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         if self.quick_dynamic {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -93,14 +93,14 @@ impl<T> Node<T> {
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
             let mut last_match = None;
-            let mut last_match_parameters = smallvec![];
+            let mut last_match_parameters = vec![];
 
             while consumed < path.len() {
                 if path[consumed] == b'/' {
@@ -116,12 +116,12 @@ impl<T> Node<T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) },
-                    value: unsafe { std::str::from_utf8_unchecked(segment) },
+                    key: std::str::from_utf8(&dynamic_child.prefix)?,
+                    value: std::str::from_utf8(segment)?,
                 });
 
                 if let Some(node_data) =
-                    dynamic_child.search(&path[consumed..], &mut current_parameters, constraints)
+                    dynamic_child.search(&path[consumed..], &mut current_parameters, constraints)?
                 {
                     last_match = Some(node_data);
                     last_match_parameters = current_parameters;
@@ -130,20 +130,20 @@ impl<T> Node<T> {
 
             if let Some(node_data) = last_match {
                 *parameters = last_match_parameters;
-                return Some(node_data);
+                return Ok(Some(node_data));
             }
         }
 
-        None
+        Ok(None)
     }
 
     // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
     fn search_dynamic_segment<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -153,28 +153,28 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(segment) },
+                key: std::str::from_utf8(&dynamic_child.prefix)?,
+                value: std::str::from_utf8(segment)?,
             });
 
             if let Some(node_data) =
-                dynamic_child.search(&path[segment_end..], parameters, constraints)
+                dynamic_child.search(&path[segment_end..], parameters, constraints)?
             {
-                return Some(node_data);
+                return Ok(Some(node_data));
             }
 
             parameters.pop();
         }
 
-        None
+        Ok(None)
     }
 
     fn search_wildcard<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -209,14 +209,16 @@ impl<T> Node<T> {
                 }
 
                 parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(&wildcard_child.prefix) },
-                    value: unsafe { std::str::from_utf8_unchecked(segment) },
+                    key: std::str::from_utf8(&wildcard_child.prefix)?,
+                    value: std::str::from_utf8(segment)?,
                 });
 
-                if let Some(node_data) =
-                    wildcard_child.search(&remaining_path[segment_end..], parameters, constraints)
-                {
-                    return Some(node_data);
+                if let Some(node_data) = wildcard_child.search(
+                    &remaining_path[segment_end..],
+                    parameters,
+                    constraints,
+                )? {
+                    return Ok(Some(node_data));
                 }
 
                 parameters.pop();
@@ -229,33 +231,33 @@ impl<T> Node<T> {
             }
         }
 
-        None
+        Ok(None)
     }
 
     fn search_end_wildcard<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, fn(&str) -> bool>,
-    ) -> Option<&'router Self> {
+    ) -> Result<Option<&'router Self>, SearchError> {
         for end_wildcard in &self.end_wildcard_children {
             if !Self::check_constraint(end_wildcard, path, constraints) {
                 continue;
             }
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(&end_wildcard.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(path) },
+                key: std::str::from_utf8(&end_wildcard.prefix)?,
+                value: std::str::from_utf8(path)?,
             });
 
             return if end_wildcard.data.is_some() {
-                Some(end_wildcard)
+                Ok(Some(end_wildcard))
             } else {
-                None
+                Ok(None)
             };
         }
 
-        None
+        Ok(None)
     }
 
     fn check_constraint(

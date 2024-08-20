@@ -2210,7 +2210,6 @@ dependencies = [
  "percent-encoding",
  "route-recognizer",
  "routefinder",
- "smallvec",
  "xitca-router",
 ]
 
