@@ -7,28 +7,28 @@ pub(crate) fn percent_decode(input: &[u8]) -> Result<Cow<[u8]>, DecodeError> {
     }
 
     let mut output = Vec::with_capacity(input.len());
-    let mut i = 0;
+    let mut position = 0;
     let len = input.len();
 
-    while i < len {
-        if input[i] == b'%' && i + 2 < len {
-            let a = input[i + 1];
-            let b = input[i + 2];
+    while position < len {
+        if input[position] == b'%' && position + 2 < len {
+            let a = input[position + 1];
+            let b = input[position + 2];
 
             if let Some(decoded) = decode_hex(a, b) {
                 output.push(decoded);
             } else {
                 return Err(DecodeError::InvalidEncoding {
                     input: String::from_utf8_lossy(input).to_string(),
-                    position: i,
+                    position,
                     character: [b'%', a, b],
                 });
             }
 
-            i += 3;
+            position += 3;
         } else {
-            output.push(input[i]);
-            i += 1;
+            output.push(input[position]);
+            position += 1;
         }
     }
 

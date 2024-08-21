@@ -34,18 +34,18 @@ impl<'a> Parts<'a> {
         }
 
         let mut parts = vec![];
-        let mut cursor = 0;
+        let mut position = 0;
         let mut current_static = vec![];
 
-        while cursor < path.len() {
-            match (path[cursor], path.get(cursor + 1)) {
+        while position < path.len() {
+            match (path[position], path.get(position + 1)) {
                 (b'{', Some(b'{')) => {
                     current_static.push(b'{');
-                    cursor += 2;
+                    position += 2;
                 }
                 (b'}', Some(b'}')) => {
                     current_static.push(b'}');
-                    cursor += 2;
+                    position += 2;
                 }
                 (b'{', _) => {
                     if !current_static.is_empty() {
@@ -54,17 +54,17 @@ impl<'a> Parts<'a> {
                         });
                     }
 
-                    cursor = Self::parse_parameter(path, cursor, &mut parts)?;
+                    position = Self::parse_parameter(path, position, &mut parts)?;
                 }
                 (b'}', _) => {
                     return Err(RouteError::UnescapedBrace {
                         path: String::from_utf8_lossy(path).to_string(),
-                        position: cursor,
+                        position,
                     })
                 }
                 (c, _) => {
                     current_static.push(c);
-                    cursor += 1;
+                    position += 1;
                 }
             }
         }
@@ -81,23 +81,23 @@ impl<'a> Parts<'a> {
 
     fn parse_parameter(
         path: &[u8],
-        cursor: usize,
+        position: usize,
         parts: &mut Vec<Part>,
     ) -> Result<usize, RouteError> {
-        let start = cursor + 1;
+        let start = position + 1;
         let end = path[start..]
             .iter()
             .position(|&c| c == b'}')
             .map(|pos| start + pos)
             .ok_or(RouteError::UnescapedBrace {
                 path: String::from_utf8_lossy(path).to_string(),
-                position: cursor,
+                position,
             })?;
 
         if start == end {
             return Err(RouteError::EmptyBraces {
                 path: String::from_utf8_lossy(path).to_string(),
-                position: cursor,
+                position,
             });
         }
 
@@ -117,14 +117,14 @@ impl<'a> Parts<'a> {
             if is_wildcard {
                 return Err(RouteError::EmptyWildcard {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: cursor,
-                    length: end - cursor + 1,
+                    start: position,
+                    length: end - position + 1,
                 });
             }
 
             return Err(RouteError::EmptyParameter {
                 path: String::from_utf8_lossy(path).to_string(),
-                start: cursor,
+                start: position,
                 length: end - start + 2,
             });
         }
