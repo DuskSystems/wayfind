@@ -143,31 +143,31 @@ Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchma
 
 In a router of 130 routes, benchmark matching 4 paths.
 
-| Library          | Time      |
-|:-----------------|----------:|
-| wayfind          | 299.14 ns |
-| matchit          | 465.70 ns |
-| xitca-router     | 562.67 ns |
-| path-tree        | 583.24 ns |
-| ntex-router      | 1.7803 µs |
-| route-recognizer | 4.5356 µs |
-| routefinder      | 6.4985 µs |
-| actix-router     | 20.811 µs |
+| Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size | Grow Count | Grow Size |
+|:-----------------|----------:|------------:|-----------:|--------------:|-------------:|-----------:|----------:|
+| wayfind          | 300.61 ns | 4           | 265 B      | 4             | 265 B        | 0          | N/A       |
+| matchit          | 468.29 ns | 4           | 416 B      | 4             | 448 B        | 1          | 32 B      |
+| xitca-router     | 565.00 ns | 7           | 800 B      | 7             | 832 B        | 1          | 32 B      |
+| path-tree        | 573.81 ns | 4           | 416 B      | 4             | 448 B        | 1          | 32 B      |
+| ntex-router      | 1.7806 µs | 18          | 1.248 KB   | 18            | 1.28 KB      | 1          | 32 B      |
+| route-recognizer | 4.6020 µs | 160         | 8.515 KB   | 160           | 8.547 KB     | 1          | 32 B      |
+| routefinder      | 6.5115 µs | 67          | 5.024 KB   | 67            | 5.056 KB     | 1          | 32 B      |
+| actix-router     | 21.123 µs | 214         | 13.93 KB   | 214           | 13.96 KB     | 1          | 32 B      |
 
 ### `path-tree` inspired benches
 
 In a router of 320 routes, benchmark matching 80 paths.
 
-| Library          | Time      |
-|:-----------------|----------:|
-| wayfind          | 3.8742 µs |
-| matchit          | 8.8435 µs |
-| path-tree        | 9.5325 µs |
-| xitca-router     | 10.753 µs |
-| ntex-router      | 30.610 µs |
-| route-recognizer | 89.968 µs |
-| routefinder      | 97.513 µs |
-| actix-router     | 177.33 µs |
+| Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size | Grow Count | Grow Size |
+|:-----------------|----------:|------------:|-----------:|--------------:|-------------:|-----------:|----------:|
+| wayfind          | 4.0274 µs | 59          | 2.567 KB   | 59            | 2.567 KB     | 0          | N/A       |
+| matchit          | 8.8889 µs | 140         | 17.81 KB   | 140           | 17.83 KB     | 1          | 23 B      |
+| path-tree        | 9.5200 µs | 59          | 7.447 KB   | 59            | 7.47 KB      | 1          | 23 B      |
+| xitca-router     | 10.920 µs | 209         | 25.51 KB   | 209           | 25.53 KB     | 1          | 23 B      |
+| ntex-router      | 30.716 µs | 201         | 19.54 KB   | 201           | 19.56 KB     | 1          | 23 B      |
+| route-recognizer | 91.087 µs | 2872        | 191.8 KB   | 2872          | 205 KB       | 93         | 13.17 KB  |
+| routefinder      | 98.884 µs | 525         | 48.4 KB    | 525           | 48.43 KB     | 1          | 23 B      |
+| actix-router     | 179.22 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     | 1          | 23 B      |
 
 ## Inspirations
 

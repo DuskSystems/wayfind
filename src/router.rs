@@ -91,11 +91,11 @@ impl<T> Router<T> {
     }
 
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        let decoded = Path::new(route)?;
-        if route.as_bytes() != decoded.decoded_bytes() {
+        let path = Path::new(route)?;
+        if route.as_bytes() != path.decoded_bytes() {
             return Err(InsertError::EncodedPath {
                 input: route.to_string(),
-                decoded: String::from_utf8_lossy(decoded.decoded_bytes()).to_string(),
+                decoded: String::from_utf8_lossy(path.decoded_bytes()).to_string(),
             });
         }
 
