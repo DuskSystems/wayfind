@@ -6,36 +6,138 @@ pub trait Constraint {
     fn check(segment: &str) -> bool;
 }
 
-macro_rules! impl_constraint_fromstr {
-    ($type:ty, $name:expr) => {
-        impl Constraint for $type {
-            const NAME: &'static str = $name;
+impl Constraint for u8 {
+    const NAME: &'static str = "u8";
 
-            fn check(segment: &str) -> bool {
-                <$type as std::str::FromStr>::from_str(segment).is_ok()
-            }
-        }
-    };
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
 }
 
-impl_constraint_fromstr!(u8, "u8");
-impl_constraint_fromstr!(u16, "u16");
-impl_constraint_fromstr!(u32, "u32");
-impl_constraint_fromstr!(u64, "u64");
-impl_constraint_fromstr!(u128, "u128");
-impl_constraint_fromstr!(usize, "usize");
+impl Constraint for u16 {
+    const NAME: &'static str = "u16";
 
-impl_constraint_fromstr!(i8, "i8");
-impl_constraint_fromstr!(i16, "i16");
-impl_constraint_fromstr!(i32, "i32");
-impl_constraint_fromstr!(i64, "i64");
-impl_constraint_fromstr!(i128, "i128");
-impl_constraint_fromstr!(isize, "isize");
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
 
-impl_constraint_fromstr!(f32, "f32");
-impl_constraint_fromstr!(f64, "f64");
+impl Constraint for u32 {
+    const NAME: &'static str = "u32";
 
-impl_constraint_fromstr!(bool, "bool");
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
 
-impl_constraint_fromstr!(Ipv4Addr, "ipv4");
-impl_constraint_fromstr!(Ipv6Addr, "ipv6");
+impl Constraint for u64 {
+    const NAME: &'static str = "u64";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for u128 {
+    const NAME: &'static str = "u128";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for usize {
+    const NAME: &'static str = "usize";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for i8 {
+    const NAME: &'static str = "i8";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for i16 {
+    const NAME: &'static str = "i16";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for i32 {
+    const NAME: &'static str = "i32";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for i64 {
+    const NAME: &'static str = "i64";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for i128 {
+    const NAME: &'static str = "i128";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for isize {
+    const NAME: &'static str = "isize";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for f32 {
+    const NAME: &'static str = "f32";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for f64 {
+    const NAME: &'static str = "f64";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for bool {
+    const NAME: &'static str = "bool";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for Ipv4Addr {
+    const NAME: &'static str = "ipv4";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}
+
+impl Constraint for Ipv6Addr {
+    const NAME: &'static str = "ipv6";
+
+    fn check(segment: &str) -> bool {
+        segment.parse::<Self>().is_ok()
+    }
+}

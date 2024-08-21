@@ -53,19 +53,15 @@ impl<T> Router<T> {
         router.constraint::<u64>().unwrap();
         router.constraint::<u128>().unwrap();
         router.constraint::<usize>().unwrap();
-
         router.constraint::<i8>().unwrap();
         router.constraint::<i16>().unwrap();
         router.constraint::<i32>().unwrap();
         router.constraint::<i64>().unwrap();
         router.constraint::<i128>().unwrap();
         router.constraint::<isize>().unwrap();
-
         router.constraint::<f32>().unwrap();
         router.constraint::<f64>().unwrap();
-
         router.constraint::<bool>().unwrap();
-
         router.constraint::<Ipv4Addr>().unwrap();
         router.constraint::<Ipv6Addr>().unwrap();
 
