@@ -73,6 +73,7 @@ insta = "1.39.0"
 percent-encoding = "2.3"
 
 # Benchmarking
+divan = "0.1"
 criterion = { version = "0.5", features = ["html_reports"] }
 # NOTE: Keep in sync with `cargo-codspeed` Nix package.
 codspeed-criterion-compat = "2.6.0"
@@ -87,9 +88,17 @@ routefinder = "0.5.4"
 xitca-router = "0.3.0"
 
 [[bench]]
-name = "matchit"
+name = "matchit_criterion"
 harness = false
 
 [[bench]]
-name = "path_tree"
+name = "matchit_divan"
+harness = false
+
+[[bench]]
+name = "path_tree_criterion"
+harness = false
+
+[[bench]]
+name = "path_tree_divan"
 harness = false
