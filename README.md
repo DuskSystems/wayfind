@@ -1,6 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![Documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
-[![rustc 1.56.0](https://img.shields.io/badge/rust-1.56%2B-orange.svg)](https://img.shields.io/badge/rust-1.56%2B-orange.svg)
+[![rustc 1.56](https://img.shields.io/badge/rust-1.56%2B-orange.svg)](https://img.shields.io/badge/rust-1.56%2B-orange.svg)
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
 
 # `wayfind`

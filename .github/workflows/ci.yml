@@ -105,6 +105,10 @@ jobs:
       - name: Run the tasks
         run: |
           set -eufo pipefail
+
+          # wayfind
+          cargo fmt --check
+          cargo clippy
           cargo check
           cargo build
           cargo test

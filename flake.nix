@@ -41,14 +41,21 @@
       };
 
       rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".minimal;
+
       rust-toolchain-ci = pkgs.rust-bin.stable."1.80.1".minimal.override {
         extensions = [
           "clippy"
           "rustfmt"
         ];
       };
-      rust-toolchain-msrv = pkgs.rust-bin.stable."1.56.0".minimal;
-      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".minimal;
+
+      rust-toolchain-msrv = pkgs.rust-bin.stable."1.56.0".minimal.override {
+        extensions = [
+          "clippy"
+          "rustfmt"
+        ];
+      };
     in {
       devShells = {
         # nix develop

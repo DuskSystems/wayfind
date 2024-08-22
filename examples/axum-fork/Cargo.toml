@@ -5,6 +5,11 @@ version = "0.7.5"
 edition = "2021"
 publish = false
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+  'cfg(nightly_error_messages)',
+] }
+
 [features]
 default = [
   "form",
