@@ -50,6 +50,9 @@ jobs:
         run: |
           set -eufo pipefail
 
+          rm -rf target
+          rm -rf ~/.cargo
+
           # debug
           which rustc
           which cargo
@@ -57,7 +60,6 @@ jobs:
           which cargo-clippy
 
           # wayfind
-          cargo clean
           cargo fmt --check
           cargo clippy
           cargo check
@@ -115,6 +117,7 @@ jobs:
           set -eufo pipefail
 
           rm -rf target
+          rm -rf ~/.cargo
 
           # debug
           which rustc
@@ -123,7 +126,6 @@ jobs:
           which cargo-clippy
 
           # wayfind
-          cargo clean
           cargo fmt --check
           cargo clippy
           cargo check
