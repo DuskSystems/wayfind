@@ -2,6 +2,7 @@
 name = "wayfind-axum"
 description = "Fork of `axum` that uses `wayfind`."
 version = "0.7.5"
+edition = "2021"
 publish = false
 
 [features]

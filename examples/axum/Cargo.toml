@@ -2,6 +2,7 @@
 [package]
 name = "wayfind-axum-example"
 description = "Example of using `wayfind` with `axum`."
+edition = "2021"
 publish = false
 
 [dependencies]

@@ -48,18 +48,29 @@ jobs:
       - name: Run the tasks
         run: |
           set -eufo pipefail
-          cargo fmt --all --check
+
+          # wayfind
+          cargo fmt --check
           cargo clippy
-          cargo check --workspace
-          cargo build --workspace
-          cargo codspeed build
-          cargo test --all-targets
+          cargo check
+          cargo build
+          cargo test
+
+          # benchmarks
+          cd benchmarks && cargo codspeed build
+
+          # examples
+          cd examples/axum && cargo build
+          cd examples/hyper && cargo build
+
+          # fuzz
+          cd fuzz && cargo build
 
       - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
         with:
           shell: nix develop .#ci --command bash {0}
-          run: cargo codspeed run
+          run: cd benchmarks && cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
 
       - name: Show SCCache stats
