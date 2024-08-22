@@ -126,7 +126,7 @@ jobs:
           which cargo-clippy
 
           # wayfind
-          cargo fmt --check
+          cargo fmt -- --check
           cargo clippy
           cargo check
           cargo build
