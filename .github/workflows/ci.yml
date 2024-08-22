@@ -57,14 +57,14 @@ jobs:
           cargo test
 
           # benchmarks
-          cd benchmarks && cargo codspeed build
+          (cd benchmarks && cargo codspeed build)
 
           # examples
-          cd examples/axum && cargo build
-          cd examples/hyper && cargo build
+          (cd examples/axum && cargo build)
+          (cd examples/hyper && cargo build)
 
           # fuzz
-          cd fuzz && cargo build
+          (cd fuzz && cargo build)
 
       - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
