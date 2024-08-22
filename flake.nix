@@ -39,26 +39,6 @@
           })
         ];
       };
-
-      rust-toolchain = pkgs.rust-bin.stable."1.80.1".minimal.override {
-        extensions = [
-          "clippy"
-          "rust-analyzer"
-          "rust-docs"
-          "rust-src"
-          "rustfmt"
-        ];
-      };
-
-      rust-toolchain-ci = pkgs.rust-bin.stable."1.80.1".minimal.override {
-        extensions = [
-          "clippy"
-          "rustfmt"
-        ];
-      };
-
-      rust-toolchain-msrv = pkgs.rust-bin.stable."1.66.0".minimal;
-      rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".minimal;
     in {
       devShells = {
         # nix develop
@@ -70,12 +50,20 @@
 
           buildInputs = with pkgs; [
             # Rust
-            rust-toolchain
+            (pkgs.rust-bin.stable."1.80.1".minimal.override {
+              extensions = [
+                "clippy"
+                "rust-analyzer"
+                "rust-docs"
+                "rust-src"
+                "rustfmt"
+              ];
+            })
             sccache
-            cargo-codspeed
             cargo-insta
 
             # Benchmarking
+            cargo-codspeed
             gnuplot
 
             # Nix
@@ -94,9 +82,68 @@
 
           buildInputs = with pkgs; [
             # Rust
-            rust-toolchain-ci
+            (pkgs.rust-bin.stable."1.80.1".minimal.override {
+              extensions = [
+                "clippy"
+                "rustfmt"
+              ];
+            })
             sccache
+          ];
+        };
+
+        # nix develop .#benchmarks
+        benchmarks = pkgs.mkShell {
+          name = "wayfind-benchmarks-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            (pkgs.rust-bin.stable."1.80.1".minimal)
+            sccache
+
+            # Benchmarks
             cargo-codspeed
+          ];
+        };
+
+        # nix develop .#coverage
+        coverage = pkgs.mkShell {
+          name = "wayfind-coverage-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            (pkgs.rust-bin.stable."1.80.1".minimal.override {
+              extensions = [
+                "llvm-tools"
+              ];
+            })
+            sccache
+
+            # Coverage
+            cargo-nextest
+            cargo-llvm-cov
+          ];
+        };
+
+        # nix develop .#fuzz
+        fuzz = pkgs.mkShell {
+          name = "wayfind-fuzz-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            (pkgs.rust-bin.nightly."2024-07-25".minimal)
+
+            # Fuzzing
+            cargo-fuzz
           ];
         };
 
@@ -109,21 +156,8 @@
 
           buildInputs = with pkgs; [
             # Rust
-            rust-toolchain-msrv
+            (pkgs.rust-bin.stable."1.66.0".minimal)
             sccache
-          ];
-        };
-
-        # nix develop .#fuzz
-        fuzz = pkgs.mkShell {
-          name = "wayfind-fuzz-shell";
-
-          buildInputs = with pkgs; [
-            # Rust
-            rust-toolchain-nightly
-
-            # Fuzzing
-            cargo-fuzz
           ];
         };
       };

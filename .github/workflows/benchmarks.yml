@@ -1,4 +1,4 @@
-name: ci
+name: benchmarks
 
 on:
   workflow_dispatch:
@@ -21,11 +21,11 @@ env:
   SCCACHE_GHA_VERSION: "1"
 
 jobs:
-  ci:
+  benchmarks:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        shell: nix develop .#ci --command bash {0}
+        shell: nix develop .#benchmarks --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,16 +44,17 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Initialize Nix shell
-        run: nix develop .#ci
+        run: nix develop .#benchmarks
 
-      - name: Run checks
-        run: |
-          set -eufo pipefail
-          cargo fmt --all --check
-          cargo clippy
-          cargo check --workspace
-          cargo build --workspace
-          cargo test --all-targets
+      - name: Build benchmarks
+        run: cargo codspeed build
+
+      - name: Upload benchmark results to CodSpeed
+        uses: CathalMullan/action@main
+        with:
+          shell: nix develop .#benchmarks --command bash {0}
+          run: cargo codspeed run
+          token: "${{ secrets.CODSPEED_TOKEN }}"
 
       - name: Show SCCache stats
         if: always() && !cancelled()
