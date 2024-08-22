@@ -1,5 +1,0 @@
-# https://rust-lang.github.io/rustup-components-history
-[toolchain]
-channel = "1.80.1"
-profile = "minimal"
-components = ["clippy", "rust-analyzer", "rust-docs", "rust-src", "rustfmt"]
