@@ -54,8 +54,10 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
     let path = Path::new(input).expect("Invalid path!");
-    let Some(Match { data, parameters }) = router.search(&path) else {
-        assert!(expected.is_none(), "No match found for input: {input}");
+    let (data, parameters) = if let Some(Match { data, parameters }) = router.search(&path) {
+        (data, parameters)
+    } else {
+        assert!(expected.is_none(), "No match found for input: {}", input);
         return;
     };
 

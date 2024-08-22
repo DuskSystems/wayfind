@@ -1,0 +1,41 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind-benches"
+description = "Benches of `wayfind` and other routers."
+publish = false
+
+[dev-dependencies]
+# Encoding
+percent-encoding = "2.3"
+
+# Benchmarking
+divan = "0.1"
+criterion = { version = "0.5", features = ["html_reports"] }
+# NOTE: Keep in sync with `cargo-codspeed` Nix package.
+codspeed-criterion-compat = "2.6.0"
+
+# Routers
+wayfind = { path = ".." }
+actix-router = "0.5.3"
+matchit = "0.8.3"
+ntex-router = "0.5.3"
+path-tree = "0.8.1"
+route-recognizer = "0.3.1"
+routefinder = "0.5.4"
+xitca-router = "0.3.0"
+
+[[bench]]
+name = "matchit_criterion"
+harness = false
+
+[[bench]]
+name = "matchit_divan"
+harness = false
+
+[[bench]]
+name = "path_tree_criterion"
+harness = false
+
+[[bench]]
+name = "path_tree_divan"
+harness = false

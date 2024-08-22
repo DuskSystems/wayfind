@@ -264,17 +264,26 @@ impl<T> Node<T> {
         segment: &[u8],
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> bool {
-        let Some(name) = &node.constraint else {
-            return true;
+        let name = match &node.constraint {
+            Some(name) => name,
+            _ => {
+                return true;
+            }
         };
 
-        let Some(constraint) = constraints.get(name) else {
-            // FIXME: Should be an error?
-            unreachable!();
-        };
+        let constraint = constraints.get(name).map_or_else(
+            || {
+                // FIXME: Should be an error?
+                unreachable!();
+            },
+            |constraint| constraint,
+        );
 
-        let Ok(segment) = std::str::from_utf8(segment) else {
-            return false;
+        let segment = match std::str::from_utf8(segment) {
+            Ok(segment) => segment,
+            _ => {
+                return false;
+            }
         };
 
         (constraint.check)(segment)

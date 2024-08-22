@@ -26,11 +26,12 @@ impl Display for DecodeError {
                     f,
                     r#"invalid percent-encoding
 
-   Input: {input}
-          {arrow}
+   Input: {}
+          {}
 
 Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
-   Found: '{character}'"#,
+   Found: '{}'"#,
+                    input, arrow, character
                 )
             }
         }

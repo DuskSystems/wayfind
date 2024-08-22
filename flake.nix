@@ -47,7 +47,7 @@
           "rustfmt"
         ];
       };
-      rust-toolchain-msrv = pkgs.rust-bin.stable."1.66.0".minimal;
+      rust-toolchain-msrv = pkgs.rust-bin.stable."1.56.0".minimal;
       rust-toolchain-nightly = pkgs.rust-bin.nightly."2024-07-25".minimal;
     in {
       devShells = {

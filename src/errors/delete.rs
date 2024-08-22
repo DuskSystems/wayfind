@@ -17,9 +17,10 @@ impl Display for DeleteError {
                 f,
                 r#"not found
 
-   Path: {path}
+   Path: {}
 
-The specified path does not exist in the router"#
+The specified path does not exist in the router"#,
+                path
             ),
         }
     }

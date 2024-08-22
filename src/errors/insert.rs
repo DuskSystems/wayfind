@@ -21,24 +21,27 @@ impl Display for InsertError {
                 f,
                 r#"encoded path
 
-     Input: {input}
-   Decoded: {decoded}
+     Input: {}
+   Decoded: {}
 
-The router expects paths to be in their decoded form"#
+The router expects paths to be in their decoded form"#,
+                input, decoded,
             ),
             Self::DuplicatePath { path } => write!(
                 f,
                 r#"duplicate path
 
-   Path: {path}"#
+   Path: {}"#,
+                path
             ),
             Self::UnknownConstraint { constraint } => write!(
                 f,
                 r#"unknown constraint
 
-   Constraint: {constraint}
+   Constraint: {}
 
-The router doesn't recognize this constraint"#
+The router doesn't recognize this constraint"#,
+                constraint
             ),
         }
     }

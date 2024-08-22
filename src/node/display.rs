@@ -22,15 +22,15 @@ impl<T> Display for Node<T> {
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     constraint.map_or_else(
-                        || format!("{{{name}}}"),
-                        |constraint| format!("{{{name}:{constraint}}}"),
+                        || format!("{{{}}}", name),
+                        |constraint| format!("{{{}:{}}}", name, constraint),
                     )
                 }
                 NodeKind::Wildcard | NodeKind::EndWildcard => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     constraint.map_or_else(
-                        || format!("{{*{name}}}"),
-                        |constraint| format!("{{*{name}:{constraint}}}"),
+                        || format!("{{*{}}}", name),
+                        |constraint| format!("{{*{}:{}}}", name, constraint),
                     )
                 }
             };
@@ -41,10 +41,10 @@ impl<T> Display for Node<T> {
                 .map_or(String::new(), |_node_data| " [*]".to_string());
 
             if is_root {
-                writeln!(f, "{key}")?;
+                writeln!(f, "{}", key)?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                writeln!(f, "{padding}{branch} {key}{value}")?;
+                writeln!(f, "{}{} {}{}", padding, branch, key, value)?;
             }
 
             // Ensure we align children correctly
@@ -52,9 +52,9 @@ impl<T> Display for Node<T> {
             let new_prefix = if is_root {
                 padding.to_string()
             } else if is_last {
-                format!("{padding}   {extra_spacing}")
+                format!("{}   {}", padding, extra_spacing)
             } else {
-                format!("{padding}│  {extra_spacing}")
+                format!("{}│  {}", padding, extra_spacing)
             };
 
             let has_dynamic_children = !node.dynamic_children.is_empty();

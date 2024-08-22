@@ -1,5 +1,6 @@
 [![Crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![Documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
+[![rustc 1.56.0](https://img.shields.io/badge/rust-1.56%2B-orange.svg)](https://img.shields.io/badge/rust-1.56%2B-orange.svg)
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
 
 # `wayfind`
@@ -168,6 +169,10 @@ In a router of 320 routes, benchmark matching 80 paths.
 | route-recognizer | 91.087 µs | 2872        | 191.8 KB   | 2872          | 205 KB       |
 | routefinder      | 98.884 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
 | actix-router     | 179.22 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+
+## Minimum Supported Rust Version (MSRV)
+
+The MSRV is 1.56.
 
 ## Inspirations
 

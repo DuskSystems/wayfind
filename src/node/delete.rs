@@ -144,25 +144,57 @@ impl<T> Node<T> {
     }
 
     fn optimize(&mut self) {
-        self.static_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
+        self.static_children = self
+            .static_children
+            .drain(..)
+            .filter_map(|mut child| {
+                child.optimize();
+                if child.is_empty() {
+                    None
+                } else {
+                    Some(child)
+                }
+            })
+            .collect();
 
-        self.dynamic_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
+        self.dynamic_children = self
+            .dynamic_children
+            .drain(..)
+            .filter_map(|mut child| {
+                child.optimize();
+                if child.is_empty() {
+                    None
+                } else {
+                    Some(child)
+                }
+            })
+            .collect();
 
-        self.wildcard_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
+        self.wildcard_children = self
+            .wildcard_children
+            .drain(..)
+            .filter_map(|mut child| {
+                child.optimize();
+                if child.is_empty() {
+                    None
+                } else {
+                    Some(child)
+                }
+            })
+            .collect();
 
-        self.end_wildcard_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
+        self.end_wildcard_children = self
+            .end_wildcard_children
+            .drain(..)
+            .filter_map(|mut child| {
+                child.optimize();
+                if child.is_empty() {
+                    None
+                } else {
+                    Some(child)
+                }
+            })
+            .collect();
 
         self.update_quicks();
     }

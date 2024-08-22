@@ -22,15 +22,16 @@ impl Display for ConstraintError {
                 f,
                 "duplicate constraint name
 
-The constraint name '{name}' is already in use:
-    - existing constraint type: '{existing_type}'
-    - new constraint type: '{new_type}'
+The constraint name '{}' is already in use:
+    - existing constraint type: '{}'
+    - new constraint type: '{}'
 
 help: each constraint must have a unique name
 
 try:
     - Check if you have accidentally added the same constraint twice
     - Ensure different constraints have different names",
+                name, existing_type, new_type
             ),
         }
     }

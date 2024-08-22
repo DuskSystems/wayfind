@@ -42,16 +42,47 @@ impl<T> Node<T> {
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
-        let Some(child) = self
+        match self
             .static_children
             .iter_mut()
             .find(|child| child.prefix[0] == prefix[0])
-        else {
-            self.static_children.push({
-                let mut new_child = Self {
+        {
+            Some(child) => {
+                let common_prefix = prefix
+                    .iter()
+                    .zip(&child.prefix)
+                    .take_while(|&(x, y)| x == y)
+                    .count();
+
+                if common_prefix >= child.prefix.len() {
+                    if common_prefix >= prefix.len() {
+                        child.insert(parts, data)?;
+                    } else {
+                        child.insert_static(parts, data, &prefix[common_prefix..])?;
+                    }
+
+                    return Ok(());
+                }
+
+                let new_child_a = Self {
                     kind: NodeKind::Static,
 
-                    prefix: prefix.to_vec(),
+                    prefix: child.prefix[common_prefix..].to_vec(),
+                    data: child.data.take(),
+                    constraint: None,
+
+                    static_children: std::mem::take(&mut child.static_children),
+                    dynamic_children: std::mem::take(&mut child.dynamic_children),
+                    wildcard_children: std::mem::take(&mut child.wildcard_children),
+                    end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
+
+                    quick_dynamic: false,
+                };
+
+                let new_child_b = Self {
+                    kind: NodeKind::Static,
+
+                    prefix: prefix[common_prefix..].to_vec(),
                     data: None,
                     constraint: None,
 
@@ -63,67 +94,34 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
-                new_child
-            });
+                child.prefix = child.prefix[..common_prefix].to_vec();
 
-            return Ok(());
-        };
-
-        let common_prefix = prefix
-            .iter()
-            .zip(&child.prefix)
-            .take_while(|&(x, y)| x == y)
-            .count();
-
-        if common_prefix >= child.prefix.len() {
-            if common_prefix >= prefix.len() {
-                child.insert(parts, data)?;
-            } else {
-                child.insert_static(parts, data, &prefix[common_prefix..])?;
+                if prefix[common_prefix..].is_empty() {
+                    child.static_children = vec![new_child_a];
+                    child.insert(parts, data)?;
+                } else {
+                    child.static_children = vec![new_child_a, new_child_b];
+                    child.static_children[1].insert(parts, data)?;
+                }
             }
+            None => {
+                self.static_children.push({
+                    let mut new_child = Self {
+                        kind: NodeKind::Static,
+                        prefix: prefix.to_vec(),
+                        data: None,
+                        constraint: None,
+                        static_children: vec![],
+                        dynamic_children: vec![],
+                        wildcard_children: vec![],
+                        end_wildcard_children: vec![],
+                        quick_dynamic: false,
+                    };
 
-            return Ok(());
-        }
-
-        let new_child_a = Self {
-            kind: NodeKind::Static,
-
-            prefix: child.prefix[common_prefix..].to_vec(),
-            data: child.data.take(),
-            constraint: None,
-
-            static_children: std::mem::take(&mut child.static_children),
-            dynamic_children: std::mem::take(&mut child.dynamic_children),
-            wildcard_children: std::mem::take(&mut child.wildcard_children),
-            end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
-
-            quick_dynamic: false,
-        };
-
-        let new_child_b = Self {
-            kind: NodeKind::Static,
-
-            prefix: prefix[common_prefix..].to_vec(),
-            data: None,
-            constraint: None,
-
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard_children: vec![],
-
-            quick_dynamic: false,
-        };
-
-        child.prefix = child.prefix[..common_prefix].to_vec();
-
-        if prefix[common_prefix..].is_empty() {
-            child.static_children = vec![new_child_a];
-            child.insert(parts, data)?;
-        } else {
-            child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(parts, data)?;
+                    new_child.insert(parts, data)?;
+                    new_child
+                });
+            }
         }
 
         Ok(())

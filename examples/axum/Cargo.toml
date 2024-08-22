@@ -4,18 +4,6 @@ name = "wayfind-axum-example"
 description = "Example of using `wayfind` with `axum`."
 publish = false
 
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-repository.workspace = true
-license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-
-[lints]
-workspace = true
-
 [dependencies]
 wayfind-axum = { path = "../axum-fork" }
 

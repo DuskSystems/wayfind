@@ -4,19 +4,6 @@ description = "Fork of `axum` that uses `wayfind`."
 version = "0.7.5"
 publish = false
 
-authors.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-repository.workspace = true
-license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = [
-  'cfg(nightly_error_messages)',
-] }
-
 [features]
 default = [
   "form",

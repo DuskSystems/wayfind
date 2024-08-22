@@ -4,18 +4,6 @@ name = "wayfind-hyper-example"
 description = "Example of using `wayfind` with `hyper`."
 publish = false
 
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-repository.workspace = true
-license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-
-[lints]
-workspace = true
-
 [dependencies]
 wayfind = { path = "../.." }
 

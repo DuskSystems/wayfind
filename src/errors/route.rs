@@ -64,8 +64,9 @@ impl Display for RouteError {
                     f,
                     r#"empty braces
 
-   Path: {path}
-         {arrow}"#
+   Path: {}
+         {}"#,
+                    path, arrow,
                 )
             }
 
@@ -76,10 +77,11 @@ impl Display for RouteError {
                     f,
                     r#"unescaped brace
 
-   Path: {path}
-         {arrow}
+   Path: {}
+         {}
 
-tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the path"#
+tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the path"#,
+                    path, arrow
                 )
             }
 
@@ -94,8 +96,9 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     f,
                     r#"empty parameter name
 
-   Path: {path}
-         {arrow}"#
+   Path: {}
+         {}"#,
+                    path, arrow
                 )
             }
 
@@ -109,10 +112,11 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     f,
                     r#"invalid parameter name
 
-   Path: {path}
-         {arrow}
+   Path: {}
+         {}
 
-tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
+tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#,
+                    path, arrow
                 )
             }
 
@@ -127,8 +131,9 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"empty wildcard name
 
-   Path: {path}
-         {arrow}"#
+   Path: {}
+         {}"#,
+                    path, arrow
                 )
             }
 
@@ -143,8 +148,9 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"empty constraint name
 
-   Path: {path}
-         {arrow}"#
+   Path: {}
+         {}"#,
+                    path, arrow
                 )
             }
 
@@ -158,10 +164,11 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"invalid constraint name
 
-   Path: {path}
-         {arrow}
+   Path: {}
+         {}
 
-tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
+tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#,
+                    path, arrow
                 )
             }
         }
