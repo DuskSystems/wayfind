@@ -1,4 +1,4 @@
-name: ci
+name: coverage
 
 on:
   workflow_dispatch:
@@ -21,11 +21,11 @@ env:
   SCCACHE_GHA_VERSION: "1"
 
 jobs:
-  ci:
+  coverage:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        shell: nix develop .#ci --command bash {0}
+        shell: nix develop .#coverage --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,16 +44,24 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Initialize Nix shell
-        run: nix develop .#ci
+        run: nix develop .#coverage
 
-      - name: Run checks
-        run: |
-          set -eufo pipefail
-          cargo fmt --all --check
-          cargo clippy
-          cargo check --workspace
-          cargo build --workspace
-          cargo test --all-targets
+      - name: Generate coverage
+        run: cargo llvm-cov nextest --codecov --output-path target/nextest/default/codecov.json
+
+      - name: Upload test results to Codecov
+        uses: codecov/test-results-action@v1
+        with:
+          files: target/nextest/default/junit.xml
+          fail_ci_if_error: true
+          token: "${{ secrets.CODECOV_TOKEN }}"
+
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: target/nextest/default/codecov.json
+          fail_ci_if_error: true
+          token: "${{ secrets.CODECOV_TOKEN }}"
 
       - name: Show SCCache stats
         if: always() && !cancelled()
