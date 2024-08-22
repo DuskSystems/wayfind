@@ -107,6 +107,7 @@ jobs:
           set -eufo pipefail
           cargo check
           cargo build
+          cargo test
 
       - name: Show SCCache stats
         if: always() && !cancelled()
