@@ -6,8 +6,12 @@
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
 use percent_encoding::percent_decode;
+use std::hint::black_box;
 
 pub mod matchit_routes;
+
+criterion_group!(benches, benchmark);
+criterion_main!(benches);
 
 fn benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("matchit benchmarks");
@@ -19,14 +23,16 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let path = wayfind::path::Path::new(route).unwrap();
                 let search = wayfind.search(&path).unwrap();
-                let _ = search
-                    .parameters
-                    .iter()
-                    .map(|p| (p.key, p.value))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    search
+                        .parameters
+                        .iter()
+                        .map(|p| (p.key, p.value))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -39,14 +45,15 @@ fn benchmark(criterion: &mut Criterion) {
         let actix = actix.finish();
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let mut path = actix_router::Path::new(route.as_ref());
                 actix.recognize(&mut path).unwrap();
-                let _ = path
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    path.iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -58,14 +65,15 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let at = matchit.at(route.as_ref()).unwrap();
-                let _ = at
-                    .params
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    at.params
+                        .iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -78,14 +86,15 @@ fn benchmark(criterion: &mut Criterion) {
         let ntex = ntex.finish();
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let mut path = ntex_router::Path::new(route.as_ref());
                 ntex.recognize(&mut path).unwrap();
-                let _ = path
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    path.iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -97,14 +106,16 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let route = path_tree.find(route.as_ref()).unwrap();
-                let _ = route
-                    .1
-                    .params_iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    route
+                        .1
+                        .params_iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -116,14 +127,16 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let recognize = route_recognizer.recognize(route.as_ref()).unwrap();
-                let _ = recognize
-                    .params()
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    recognize
+                        .params()
+                        .iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -135,14 +148,16 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let best_match = routefinder.best_match(route.as_ref()).unwrap();
-                let _ = best_match
-                    .captures()
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    best_match
+                        .captures()
+                        .iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
@@ -154,20 +169,18 @@ fn benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in paths() {
+            for route in black_box(paths()) {
                 let route = percent_decode(route.as_bytes()).decode_utf8().unwrap();
                 let at = xitca.at(route.as_ref()).unwrap();
-                let _ = at
-                    .params
-                    .iter()
-                    .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                let _parameters = black_box(
+                    at.params
+                        .iter()
+                        .map(|p| (p.0, p.1))
+                        .collect::<Vec<(&str, &str)>>(),
+                );
             }
         });
     });
 
     group.finish();
 }
-
-criterion_group!(benches, benchmark);
-criterion_main!(benches);

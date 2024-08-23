@@ -6,6 +6,7 @@
 use divan::AllocProfiler;
 use path_tree_routes::paths;
 use percent_encoding::percent_decode;
+use std::hint::black_box;
 
 pub mod path_tree_routes;
 
@@ -24,15 +25,16 @@ fn wayfind(bencher: divan::Bencher) {
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = wayfind::path::Path::new(path).unwrap();
             let search = wayfind.search(&path).unwrap();
-            assert_eq!(search.data.value, index);
-            let _ = search
-                .parameters
-                .iter()
-                .map(|p| (p.key, p.value))
-                .collect::<Vec<(&str, &str)>>();
+            let _parameters = black_box(
+                search
+                    .parameters
+                    .iter()
+                    .map(|p| (p.key, p.value))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -46,15 +48,15 @@ fn actix_router(bencher: divan::Bencher) {
     let router = router.finish();
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let mut path = actix_router::Path::new(path.as_ref());
-            let n = router.recognize(&mut path).unwrap();
-            assert_eq!(*n.0, index);
-            let _ = path
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            router.recognize(&mut path).unwrap();
+            let _parameters = black_box(
+                path.iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -63,19 +65,19 @@ fn actix_router(bencher: divan::Bencher) {
 fn matchit(bencher: divan::Bencher) {
     let mut matcher = matchit::Router::new();
     for (index, route) in routes!(brackets).iter().enumerate() {
-        let _ = matcher.insert(*route, index);
+        matcher.insert(*route, index).unwrap();
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let n = matcher.at(path.as_ref()).unwrap();
-            assert_eq!(*n.value, index);
-            let _ = n
-                .params
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            let _parameters = black_box(
+                n.params
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -89,35 +91,35 @@ fn ntex_router(bencher: divan::Bencher) {
     let router = router.finish();
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let mut path = ntex_router::Path::new(path.as_ref());
-            let n = router.recognize(&mut path).unwrap();
-            assert_eq!(*n.0, index);
-            let _ = path
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            router.recognize(&mut path).unwrap();
+            let _parameters = black_box(
+                path.iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
 
 #[divan::bench(name = "path-tree")]
 fn path_tree(bencher: divan::Bencher) {
-    let mut tree = path_tree::PathTree::new();
+    let mut path_tree = path_tree::PathTree::new();
     for (index, route) in routes!(colon).iter().enumerate() {
-        let _ = tree.insert(route, index);
+        let _ = path_tree.insert(route, index);
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
-            let n = tree.find(path.as_ref()).unwrap();
-            assert_eq!(*n.0, index);
-            let _ =
+            let n = path_tree.find(path.as_ref()).unwrap();
+            let _ = black_box(
                 n.1.params_iter()
                     .map(|p| (p.0, p.1))
-                    .collect::<Vec<(&str, &str)>>();
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -130,15 +132,15 @@ fn route_recognizer(bencher: divan::Bencher) {
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let n = router.recognize(path.as_ref()).unwrap();
-            assert_eq!(**n.handler(), index);
-            let _ = n
-                .params()
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            let _parameters = black_box(
+                n.params()
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -151,15 +153,15 @@ fn routefinder(bencher: divan::Bencher) {
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let n = router.best_match(path.as_ref()).unwrap();
-            assert_eq!(*n, index);
-            let _ = n
-                .captures()
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            let _parameters = black_box(
+                n.captures()
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
@@ -172,15 +174,15 @@ fn xitca_router(bencher: divan::Bencher) {
     }
 
     bencher.bench(|| {
-        for (index, path) in paths() {
+        for path in black_box(paths()) {
             let path = percent_decode(path.as_bytes()).decode_utf8().unwrap();
             let n = xitca.at(path.as_ref()).unwrap();
-            assert_eq!(*n.value, index);
-            let _ = n
-                .params
-                .iter()
-                .map(|p| (p.0, p.1))
-                .collect::<Vec<(&str, &str)>>();
+            let _parameters = black_box(
+                n.params
+                    .iter()
+                    .map(|p| (p.0, p.1))
+                    .collect::<Vec<(&str, &str)>>(),
+            );
         }
     });
 }
