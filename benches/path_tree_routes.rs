@@ -1,5 +1,5 @@
 #[must_use]
-pub fn paths() -> impl IntoIterator<Item = (usize, &'static str)> {
+pub fn paths() -> impl IntoIterator<Item = &'static str> {
     [
         "/app",
         "/app-manifests/0/conversions",
@@ -82,8 +82,6 @@ pub fn paths() -> impl IntoIterator<Item = (usize, &'static str)> {
         "/orgs/rust-lang/repos",
         "/orgs/rust-lang/teams",
     ]
-    .into_iter()
-    .enumerate()
 }
 
 #[macro_export]
