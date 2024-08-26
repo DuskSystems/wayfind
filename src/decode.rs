@@ -1,7 +1,7 @@
 use crate::errors::decode::DecodeError;
 use std::borrow::Cow;
 
-pub(crate) fn percent_decode(input: &[u8]) -> Result<Cow<[u8]>, DecodeError> {
+pub fn percent_decode(input: &[u8]) -> Result<Cow<[u8]>, DecodeError> {
     if !input.contains(&b'%') {
         return Ok(Cow::Borrowed(input));
     }

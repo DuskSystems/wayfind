@@ -3,7 +3,7 @@ use axum_core::response::IntoResponse;
 use std::{borrow::Cow, collections::HashMap, convert::Infallible, fmt, sync::Arc};
 use tower_layer::Layer;
 use tower_service::Service;
-use wayfind::{errors::insert::InsertError, node::search::Match, path::Path, router::Router};
+use wayfind::{errors::InsertError, Match, Path, Router};
 
 use super::{
     future::RouteFuture, not_found::NotFound, strip_prefix::StripPrefix, url_params, Endpoint,

@@ -4,7 +4,7 @@
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
 use std::error::Error;
-use wayfind::router::Router;
+use wayfind::Router;
 
 #[test]
 fn normalized() -> Result<(), Box<dyn Error>> {

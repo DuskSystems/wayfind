@@ -1,9 +1,5 @@
 use std::{fmt::Debug, sync::Arc};
-use wayfind::{
-    node::search::{Match, Parameter},
-    path::Path,
-    router::Router,
-};
+use wayfind::{Match, Parameter, Path, Router};
 
 #[macro_export]
 macro_rules! assert_router_matches {
@@ -28,7 +24,7 @@ macro_rules! assert_router_matches {
             value: $value,
             params: vec![
                 $(
-                    $( wayfind::node::search::Parameter {
+                    $( wayfind::Parameter {
                         key: $param_key,
                         value: $param_value,
                     } ),+

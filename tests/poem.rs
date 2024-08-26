@@ -4,7 +4,7 @@
 #![allow(clippy::too_many_lines)]
 
 use std::error::Error;
-use wayfind::{constraints::Constraint, router::Router};
+use wayfind::{Constraint, Router};
 
 #[path = "./common.rs"]
 mod common;

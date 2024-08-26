@@ -15,7 +15,7 @@ use std::{
     sync::Arc,
 };
 use tokio::{net::TcpListener, task::JoinSet};
-use wayfind::{node::search::Parameter, path::Path, router::Router};
+use wayfind::{Parameter, Path, Router};
 
 type BoxFuture<'a> = Pin<
     Box<
