@@ -44,6 +44,7 @@ pub struct ExpectedMatch<'k, 'v, T> {
     pub params: Vec<Parameter<'k, 'v>>,
 }
 
+#[allow(clippy::missing_panics_doc)]
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
     router: &'a Router<T>,
     input: &'a str,
