@@ -23,7 +23,9 @@ impl<'path> Path<'path> {
     /// ## Valid
     ///
     /// ```rust
-    /// let path = wayfind::Path::new("/hello%20world").unwrap();
+    /// use wayfind::Path;
+    ///
+    /// let path = Path::new("/hello%20world").unwrap();
     /// assert_eq!(path.raw_bytes(), b"/hello%20world");
     /// assert_eq!(path.decoded_bytes(), b"/hello world");
     /// ```
@@ -31,18 +33,14 @@ impl<'path> Path<'path> {
     /// ## Invalid
     ///
     /// ```rust
-    /// let path = wayfind::Path::new("/hello%GGworld").unwrap_err();
-    /// let error = "
-    /// invalid percent-encoding
+    /// use wayfind::{Path, errors::DecodeError};
     ///
-    ///    Input: /hello%GGworld
-    ///                 ^^^
-    ///
-    /// Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
-    ///    Found: '%GG'
-    /// ";
-    ///
-    /// assert_eq!(path.to_string(), error.trim());
+    /// let path = Path::new("/hello%GGworld").unwrap_err();
+    /// assert_eq!(path, DecodeError::InvalidEncoding {
+    ///     input: "/hello%GGworld".to_string(),
+    ///     position: 6,
+    ///     character: [b'%', b'G', b'G'],
+    /// });
     /// ```
     pub fn new(path: &'path str) -> Result<Self, DecodeError> {
         Ok(Self {

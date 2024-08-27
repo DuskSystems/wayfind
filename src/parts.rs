@@ -141,15 +141,14 @@ impl<'a> Parts<'a> {
             if constraint.is_empty() {
                 return Err(RouteError::EmptyConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: start + name.len() + 1,
-                    length: 1,
+                    position: colon.unwrap() + 2,
                 });
             }
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
                 return Err(RouteError::InvalidConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: start + name.len() + 1,
+                    start: colon.unwrap() + 3,
                     length: constraint.len(),
                 });
             }
@@ -379,7 +378,7 @@ mod tests {
         empty constraint name
 
            Path: /{name:}
-                        ^
+                       ^
         "###);
     }
 

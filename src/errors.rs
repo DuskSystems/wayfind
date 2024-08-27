@@ -1,3 +1,7 @@
+//! Error types for `wayfind`.
+//!
+//! All errors contain a user-friendly display method.
+
 pub(crate) mod constraint;
 pub use constraint::ConstraintError;
 
