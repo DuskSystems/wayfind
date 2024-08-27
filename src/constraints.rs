@@ -1,8 +1,34 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-pub trait Constraint {
+/// A constraint that can be used for custom path routing logic.
+///
+/// Must be a stateless, static check.
+/// In the future, we may support stateful constraints.
+///
+/// Constraints can be registered within a [`Router`](crate::Router) via the [`constraint`](crate::Router::constraint) function.
+///
+/// # Example
+///
+/// ```rust
+/// struct HelloConstraint;
+/// impl Constraint for HelloConstraint {
+///     fn name() -> &'static str {
+///         "hello"
+///     }
+///
+///     fn check(&self, segment: &str) -> bool {
+///         segment == "hello"
+///     }
+/// }
+/// ```
+pub trait Constraint: Send + Sync {
+    /// The name of the constraint.
+    ///
+    /// Must be unique within a given router.
+    /// Try and avoid generic constraint names like `id`.
     const NAME: &'static str;
 
+    /// Checks if a given segment matches this constraint.
     fn check(segment: &str) -> bool;
 }
 
