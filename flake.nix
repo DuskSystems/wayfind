@@ -61,6 +61,7 @@
             })
             sccache
             cargo-insta
+            cargo-watch
 
             # Benchmarking
             cargo-codspeed

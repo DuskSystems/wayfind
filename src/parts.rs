@@ -1,9 +1,10 @@
 use crate::errors::route::RouteError;
 use std::fmt::Debug;
 
-// NOTE: '?' is reserved for potential future use.
+/// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 6] = [b':', b'*', b'?', b'{', b'}', b'/'];
 
+/// A parsed section of a path.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Part {
     Static {
@@ -21,9 +22,14 @@ pub enum Part {
     },
 }
 
+/// A parsed path.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
+    /// The original path.
     pub path: &'a [u8],
+
+    /// The parsed parts of the path, in reverse order.
+    /// We may want these to simply be indicies of the original path in the future, to reduce allocations.
     pub inner: Vec<Part>,
 }
 
@@ -118,7 +124,7 @@ impl<'a> Parts<'a> {
                 return Err(RouteError::EmptyWildcard {
                     path: String::from_utf8_lossy(path).to_string(),
                     start: cursor,
-                    length: end - cursor + 1,
+                    length: end - start + 2,
                 });
             }
 
@@ -132,6 +138,7 @@ impl<'a> Parts<'a> {
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
             return Err(RouteError::InvalidParameter {
                 path: String::from_utf8_lossy(path).to_string(),
+                name: String::from_utf8_lossy(name).to_string(),
                 start: start - 1,
                 length: end - start + 2,
             });
@@ -141,16 +148,17 @@ impl<'a> Parts<'a> {
             if constraint.is_empty() {
                 return Err(RouteError::EmptyConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: start + name.len() + 1,
-                    length: 1,
+                    start: start - 1,
+                    length: end - start + 2,
                 });
             }
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
                 return Err(RouteError::InvalidConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: start + name.len() + 1,
-                    length: constraint.len(),
+                    name: String::from_utf8_lossy(constraint).to_string(),
+                    start: start - 1,
+                    length: end - start + 2,
                 });
             }
         }
@@ -379,7 +387,7 @@ mod tests {
         empty constraint name
 
            Path: /{name:}
-                        ^
+                  ^^^^^^^
         "###);
     }
 
@@ -420,7 +428,7 @@ mod tests {
         invalid constraint name
 
            Path: /{name:with:colon}
-                        ^^^^^^^^^^
+                  ^^^^^^^^^^^^^^^^^
 
         tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);

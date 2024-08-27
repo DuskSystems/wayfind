@@ -1,9 +1,5 @@
 use std::{fmt::Debug, sync::Arc};
-use wayfind::{
-    node::search::{Match, Parameter},
-    path::Path,
-    router::Router,
-};
+use wayfind::{Match, Parameter, Path, Router};
 
 #[macro_export]
 macro_rules! assert_router_matches {
@@ -28,7 +24,7 @@ macro_rules! assert_router_matches {
             value: $value,
             params: vec![
                 $(
-                    $( wayfind::node::search::Parameter {
+                    $( wayfind::Parameter {
                         key: $param_key,
                         value: $param_value,
                     } ),+
@@ -48,6 +44,7 @@ pub struct ExpectedMatch<'k, 'v, T> {
     pub params: Vec<Parameter<'k, 'v>>,
 }
 
+#[allow(clippy::missing_panics_doc)]
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
     router: &'a Router<T>,
     input: &'a str,

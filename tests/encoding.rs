@@ -1,5 +1,5 @@
 use std::error::Error;
-use wayfind::router::Router;
+use wayfind::Router;
 
 #[path = "./common.rs"]
 mod common;

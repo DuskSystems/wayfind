@@ -54,6 +54,7 @@ jobs:
           cargo check --workspace
           cargo build --workspace
           cargo test --all-targets
+          cargo test --doc
 
       - name: Show SCCache stats
         if: always() && !cancelled()

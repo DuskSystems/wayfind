@@ -5,6 +5,12 @@ use crate::{
 };
 
 impl<T> Node<T> {
+    /// Deletes a route from the node tree.
+    ///
+    /// This method recursively traverses the tree to find and remove the specified route.
+    /// Logic should match that used by the insert method.
+    ///
+    /// If the route is found and deleted, we re-optimize the tree structure.
     pub fn delete(&mut self, parts: &mut Parts) -> Result<(), DeleteError> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
@@ -143,6 +149,9 @@ impl<T> Node<T> {
         Ok(())
     }
 
+    /// Re-optimize the tree after a deletion.
+    ///
+    /// This method removes empty children, then updates quick search flags.
     fn optimize(&mut self) {
         self.static_children.retain_mut(|child| {
             child.optimize();
