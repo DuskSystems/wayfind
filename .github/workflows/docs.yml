@@ -1,8 +1,6 @@
-name: ci
+name: docs
 
 on:
-  workflow_dispatch:
-  pull_request:
   push:
     branches: [main]
     paths:
@@ -11,6 +9,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  pages: write
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -21,11 +20,11 @@ env:
   SCCACHE_GHA_VERSION: "1"
 
 jobs:
-  ci:
+  docs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        shell: nix develop .#ci --command bash {0}
+        shell: nix develop .#docs --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,17 +43,32 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Initialize Nix shell
-        run: nix develop .#ci
+        run: nix develop .#docs
 
-      - name: Run checks
+      - name: Build docs
         run: |
           set -eufo pipefail
-          cargo fmt --all --check
-          cargo clippy
-          cargo check --workspace
-          cargo build --workspace
-          cargo test --all-targets
+          cargo doc --no-deps
+          rm target/doc/.lock
+          echo '<meta http-equiv="refresh" content="0; url=wayfind/index.html">' > target/doc/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/doc
+          retention-days: 30
 
       - name: Show SCCache stats
         if: always() && !cancelled()
         run: sccache --show-stats
+
+  deploy:
+    needs: docs
+    runs-on: ubuntu-22.04
+    environment:
+      name: github-pages
+      url: "${{ steps.deployment.outputs.page_url }}"
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

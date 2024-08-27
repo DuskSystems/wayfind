@@ -9,8 +9,8 @@ on:
       - "**/*.rs"
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
