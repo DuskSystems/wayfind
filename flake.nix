@@ -73,6 +73,23 @@
           ];
         };
 
+        # nix develop .#benchmarks
+        benchmarks = pkgs.mkShell {
+          name = "wayfind-benchmarks-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            (pkgs.rust-bin.stable."1.80.1".minimal)
+            sccache
+
+            # Benchmarks
+            cargo-codspeed
+          ];
+        };
+
         # nix develop .#ci
         ci = pkgs.mkShell {
           name = "wayfind-ci-shell";
@@ -89,23 +106,6 @@
               ];
             })
             sccache
-          ];
-        };
-
-        # nix develop .#benchmarks
-        benchmarks = pkgs.mkShell {
-          name = "wayfind-benchmarks-shell";
-
-          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-          CARGO_INCREMENTAL = "0";
-
-          buildInputs = with pkgs; [
-            # Rust
-            (pkgs.rust-bin.stable."1.80.1".minimal)
-            sccache
-
-            # Benchmarks
-            cargo-codspeed
           ];
         };
 
@@ -128,6 +128,20 @@
             # Coverage
             cargo-nextest
             cargo-llvm-cov
+          ];
+        };
+
+        # nix develop .#docs
+        docs = pkgs.mkShell {
+          name = "wayfind-docs-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            # Rust
+            (pkgs.rust-bin.stable."1.80.1".minimal)
+            sccache
           ];
         };
 
