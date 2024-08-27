@@ -1,4 +1,4 @@
-//! Error types for `wayfind`.
+//! Error types for [`wayfind`](crate).
 //!
 //! All errors contain a user-friendly display method.
 

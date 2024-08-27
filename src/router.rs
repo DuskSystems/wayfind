@@ -14,21 +14,32 @@ use std::{
     sync::Arc,
 };
 
+/// A constraint with its type name.
 #[derive(Clone)]
 pub struct StoredConstraint {
     pub type_name: &'static str,
     pub check: fn(&str) -> bool,
 }
 
+/// The [`wayfind`](crate) router.
+///
+/// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
 pub struct Router<T> {
+    /// The root node of the tree.
     root: Node<T>,
+
+    /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<Vec<u8>, StoredConstraint>,
 }
 
 impl<T> Router<T> {
+    /// Creates a new Router with default constraints.
+    ///
+    /// # Panics
+    ///
+    /// Can only panic if the default constraint registrations fail, which should never happen.
     #[must_use]
-    #[allow(clippy::missing_panics_doc)]
     pub fn new() -> Self {
         let mut router = Self {
             root: Node {
@@ -69,7 +80,11 @@ impl<T> Router<T> {
         router
     }
 
-    #[allow(clippy::missing_errors_doc)]
+    /// Registers a new constraint to the router.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ConstraintError`] if the constraint could not be added.
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
         match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
@@ -88,7 +103,13 @@ impl<T> Router<T> {
         }
     }
 
-    #[allow(clippy::missing_errors_doc)]
+    /// Inserts a new route with an associated value into the router.
+    ///
+    /// The route should not contain any percent-encoded characters.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`InsertError`] if the route is invalid or uses unknown constraints.
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
         let path = Path::new(route)?;
         if route.as_bytes() != path.decoded_bytes() {
@@ -122,12 +143,21 @@ impl<T> Router<T> {
         self.root.insert(&mut parts, NodeData { path, value })
     }
 
-    #[allow(clippy::missing_errors_doc)]
+    /// Deletes a route from the router.
+    ///
+    /// The route provided must exactly match the route inserted.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`DeleteError`] if the route cannot be deleted, or cannot be found.
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
         let mut parts = Parts::new(route.as_bytes())?;
         self.root.delete(&mut parts)
     }
 
+    /// Searches for a matching route in the router.
+    ///
+    /// Returns a [`Match`] if a matching route is found, or [`None`] otherwise.
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path Path,
