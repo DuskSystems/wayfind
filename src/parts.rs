@@ -118,7 +118,7 @@ impl<'a> Parts<'a> {
                 return Err(RouteError::EmptyWildcard {
                     path: String::from_utf8_lossy(path).to_string(),
                     start: cursor,
-                    length: end - cursor + 1,
+                    length: end - start + 2,
                 });
             }
 
@@ -132,6 +132,7 @@ impl<'a> Parts<'a> {
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
             return Err(RouteError::InvalidParameter {
                 path: String::from_utf8_lossy(path).to_string(),
+                name: String::from_utf8_lossy(name).to_string(),
                 start: start - 1,
                 length: end - start + 2,
             });
@@ -141,15 +142,17 @@ impl<'a> Parts<'a> {
             if constraint.is_empty() {
                 return Err(RouteError::EmptyConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    position: colon.unwrap() + 2,
+                    start: start - 1,
+                    length: end - start + 2,
                 });
             }
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
                 return Err(RouteError::InvalidConstraint {
                     path: String::from_utf8_lossy(path).to_string(),
-                    start: colon.unwrap() + 3,
-                    length: constraint.len(),
+                    name: String::from_utf8_lossy(constraint).to_string(),
+                    start: start - 1,
+                    length: end - start + 2,
                 });
             }
         }
@@ -378,7 +381,7 @@ mod tests {
         empty constraint name
 
            Path: /{name:}
-                       ^
+                  ^^^^^^^
         "###);
     }
 
@@ -419,7 +422,7 @@ mod tests {
         invalid constraint name
 
            Path: /{name:with:colon}
-                        ^^^^^^^^^^
+                  ^^^^^^^^^^^^^^^^^
 
         tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "###);

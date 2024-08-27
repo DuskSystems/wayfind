@@ -30,7 +30,7 @@ pub enum RouteError {
     EmptyBraces {
         /// The path containing empty braces.
         path: String,
-        /// The position where the empty braces were found.
+        /// The position of the empty brace.
         position: usize,
     },
 
@@ -38,7 +38,7 @@ pub enum RouteError {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::UnescapedBrace {
@@ -58,7 +58,7 @@ pub enum RouteError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     UnescapedBrace {
-        /// The path constaining an unescaped brace.
+        /// The path containing an unescaped brace.
         path: String,
         /// The position of the unescaped brace.
         position: usize,
@@ -68,7 +68,7 @@ pub enum RouteError {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::EmptyParameter {
@@ -87,11 +87,11 @@ pub enum RouteError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     EmptyParameter {
-        /// The path constaining an empty parameter.
+        /// The path containing an empty parameter.
         path: String,
-        /// The position of the empty parameter.
+        /// The position of the parameter with a empty name.
         start: usize,
-        /// The length of the empty parameter (including braces).
+        /// The length of the parameter (including braces).
         length: usize,
     },
 
@@ -99,11 +99,12 @@ pub enum RouteError {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::InvalidParameter {
     ///     path: "/{a/b}".to_string(),
+    ///     name: "a/b".to_string(),
     ///     start: 1,
     ///     length: 5,
     /// };
@@ -120,19 +121,21 @@ pub enum RouteError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     InvalidParameter {
-        /// The path constaining an invalid parameter.
+        /// The path containing an invalid parameter.
         path: String,
-        /// The position of the invalid parameter.
+        /// The invalid parameter name.
+        name: String,
+        /// The position of the parameter with a invalid name.
         start: usize,
-        /// The length of the invalid parameter (including braces).
+        /// The length of the parameter (including braces).
         length: usize,
     },
 
-    /// An empty wildcard parameter was found in the path.
+    /// A wildcard parameter with no name was found in the path.
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::EmptyWildcard {
@@ -151,11 +154,11 @@ pub enum RouteError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     EmptyWildcard {
-        /// The path constaining an empty wildcard parameter.
+        /// The path containing an empty wildcard parameter.
         path: String,
-        /// The position of the empty wildcard parameter.
+        /// The position of the wildcard parameter with a empty name.
         start: usize,
-        /// The length of the empty wildcard parameter (including braces).
+        /// The length of the parameter (including braces).
         length: usize,
     },
 
@@ -163,48 +166,52 @@ pub enum RouteError {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::EmptyConstraint {
     ///     path: "/{a:}".to_string(),
-    ///     position: 3,
+    ///     start: 1,
+    ///     length: 4,
     /// };
     ///
     /// let display = "
     /// empty constraint name
     ///
     ///    Path: /{a:}
-    ///             ^
+    ///           ^^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     EmptyConstraint {
-        /// The path constaining an empty constraint.
+        /// The path containing an empty constraint.
         path: String,
-        /// The position of the empty constraint delimiter (i.e. ':').
-        position: usize,
+        /// The position of the parameter with an empty constraint.
+        start: usize,
+        /// The length of the parameter (including braces).
+        length: usize,
     },
 
     /// An invalid constraint name was found in the path.
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```rust
     /// use wayfind::errors::RouteError;
     ///
     /// let error = RouteError::InvalidConstraint {
     ///     path: "/{a:b/c}".to_string(),
-    ///     start: 4,
-    ///     length: 3,
+    ///     name: "b/c".to_string(),
+    ///     start: 1,
+    ///     length: 7,
     /// };
     ///
     /// let display = "
     /// invalid constraint name
     ///
     ///    Path: /{a:b/c}
-    ///              ^^^
+    ///           ^^^^^^^
     ///
     /// tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
     /// ";
@@ -212,11 +219,13 @@ pub enum RouteError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     InvalidConstraint {
-        /// The path constaining an invalid constraint.
+        /// The path containing an invalid constraint.
         path: String,
-        /// The position of the invalid constraint.
+        /// The invalid constraint name.
+        name: String,
+        /// The position of the parameter with an invalid constraint.
         start: usize,
-        /// The length of the invalid constraint.
+        /// The length of the parameter (including braces).
         length: usize,
     },
 }
@@ -228,7 +237,6 @@ impl Display for RouteError {
         match self {
             Self::EmptyPath => write!(f, "empty path"),
 
-            // Braces
             Self::EmptyBraces { path, position } => {
                 let arrow = " ".repeat(*position) + "^^";
                 write!(
@@ -240,7 +248,6 @@ impl Display for RouteError {
                 )
             }
 
-            // Escaping
             Self::UnescapedBrace { path, position } => {
                 let arrow = " ".repeat(*position) + "^";
                 write!(
@@ -254,7 +261,6 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                 )
             }
 
-            // Parameter
             Self::EmptyParameter {
                 path,
                 start,
@@ -274,6 +280,7 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                 path,
                 start,
                 length,
+                ..
             } => {
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
@@ -287,7 +294,6 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 )
             }
 
-            // Wildcard
             Self::EmptyWildcard {
                 path,
                 start,
@@ -303,9 +309,12 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 )
             }
 
-            // Constraint
-            Self::EmptyConstraint { path, position } => {
-                let arrow = " ".repeat(*position) + "^";
+            Self::EmptyConstraint {
+                path,
+                start,
+                length,
+            } => {
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
                     r#"empty constraint name
@@ -319,6 +328,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                 path,
                 start,
                 length,
+                ..
             } => {
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
