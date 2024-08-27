@@ -1,9 +1,10 @@
 use crate::errors::route::RouteError;
 use std::fmt::Debug;
 
-// NOTE: '?' is reserved for potential future use.
+/// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 6] = [b':', b'*', b'?', b'{', b'}', b'/'];
 
+/// A parsed section of a path.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Part {
     Static {
@@ -21,9 +22,14 @@ pub enum Part {
     },
 }
 
+/// A parsed path.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parts<'a> {
+    /// The original path.
     pub path: &'a [u8],
+
+    /// The parsed parts of the path, in reverse order.
+    /// We may want these to simply be indicies of the original path in the future, to reduce allocations.
     pub inner: Vec<Part>,
 }
 

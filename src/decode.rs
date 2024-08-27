@@ -1,6 +1,8 @@
 use crate::errors::decode::DecodeError;
 use std::borrow::Cow;
 
+/// Try and percent-decode input bytes.
+/// Does not do any sort of normalization, simply decodes hex characters.
 pub fn percent_decode(input: &[u8]) -> Result<Cow<[u8]>, DecodeError> {
     if !input.contains(&b'%') {
         return Ok(Cow::Borrowed(input));
