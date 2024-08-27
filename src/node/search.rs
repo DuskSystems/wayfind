@@ -3,12 +3,20 @@ use crate::router::StoredConstraint;
 use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 
+/// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'router, 'path, T> {
+    /// A reference to the data stored at the end matching node.
     pub data: &'router NodeData<T>,
+
+    /// Key-value pairs of parameters, extracted from the route.
     pub parameters: SmallVec<[Parameter<'router, 'path>; 4]>,
 }
 
+/// A key-value parameter pair.
+///
+/// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
+/// Meanwhile, the value is extracted from the path.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Parameter<'router, 'path> {
     pub key: &'router str,
@@ -16,6 +24,10 @@ pub struct Parameter<'router, 'path> {
 }
 
 impl<T> Node<T> {
+    /// Searches for a matching route in the node tree.
+    ///
+    /// This method traverses the tree to find a node that matches the given path, collecting parameters along the way.
+    /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -56,7 +68,7 @@ impl<T> Node<T> {
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Option<&'router Self> {
         for static_child in &self.static_children {
-            // NOTE: This was previously a "starts_with" call, but turns out this is much faster.
+            // This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
                 && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
@@ -85,12 +97,8 @@ impl<T> Node<T> {
         }
     }
 
-    // Dynamic with support for inline dynamic sections, e.g. `{name}.{extension}`
-    // NOTE: Parameters are greedy in nature:
-    //   Route: `{name}.{extension}`
-    //   Path: `my.long.file.txt`
-    //   Name: `my.long.file`
-    //   Ext: `txt`
+    /// Can handle complex dynamic routes like `{name}.{extension}`.
+    /// It uses a greedy matching approach for parameters.
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -138,7 +146,7 @@ impl<T> Node<T> {
         None
     }
 
-    // Doesn't support inline dynamic sections, e.g. `{name}.{extension}`, only `/{segment}/`
+    /// Can only handle simple dynamic routes like `/{segment}/`.
     fn search_dynamic_segment<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -268,11 +276,7 @@ impl<T> Node<T> {
             return true;
         };
 
-        let Some(constraint) = constraints.get(name) else {
-            // FIXME: Should be an error?
-            unreachable!();
-        };
-
+        let constraint = constraints.get(name).unwrap();
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };

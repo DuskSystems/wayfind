@@ -6,6 +6,10 @@ use crate::{
 use std::cmp::Ordering;
 
 impl<T> Node<T> {
+    /// Inserts a new route into the node tree with associated data.
+    ///
+    /// Recursively traverses the node tree, creating new nodes as necessary.
+    /// Will error is there's already data at the end node.
     pub fn insert(&mut self, parts: &mut Parts, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
@@ -42,6 +46,7 @@ impl<T> Node<T> {
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
+        // Check if the first byte is already a child here.
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -76,6 +81,7 @@ impl<T> Node<T> {
             .take_while(|&(x, y)| x == y)
             .count();
 
+        // If the new prefix matches or extends the existing prefix, we can just insert it directly.
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
                 child.insert(parts, data)?;
@@ -86,6 +92,7 @@ impl<T> Node<T> {
             return Ok(());
         }
 
+        // Not a clean insert, need to split the existing child node.
         let new_child_a = Self {
             kind: NodeKind::Static,
 
@@ -240,6 +247,9 @@ impl<T> Node<T> {
         Ok(())
     }
 
+    /// Check if we can short-cut our searching logic for dynamic children.
+    /// Instead of walking each path byte-by-byte, we can instead just to the next '/' character.
+    /// This only works if there are no inline dynamic children, e.g. `/{name}.{ext}`.
     pub(super) fn update_quicks(&mut self) {
         self.quick_dynamic = self.dynamic_children.iter().all(|child| {
             // Leading slash?
@@ -281,6 +291,8 @@ impl<T> Node<T> {
         }
     }
 
+    /// Static nodes are sorted via their prefix.
+    /// Dynamic/wildcard nodes are sorted by constraint first, then prefix.
     fn sort_children(&mut self) {
         self.static_children.sort_by(|a, b| a.prefix.cmp(&b.prefix));
 

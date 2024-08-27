@@ -10,13 +10,13 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 /// # Example
 ///
 /// ```rust
+/// use wayfind::Constraint;
+///
 /// struct HelloConstraint;
 /// impl Constraint for HelloConstraint {
-///     fn name() -> &'static str {
-///         "hello"
-///     }
+///     const NAME: &'static str = "hello";
 ///
-///     fn check(&self, segment: &str) -> bool {
+///     fn check(segment: &str) -> bool {
 ///         segment == "hello"
 ///     }
 /// }
