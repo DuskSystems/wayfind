@@ -4,7 +4,7 @@ use std::borrow::Cow;
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug)]
 pub struct Path<'path> {
-    /// Original, unaltered path.
+    /// Original, unaltered path bytes.
     raw: &'path [u8],
 
     /// Percent-decoded path bytes.
@@ -33,20 +33,20 @@ impl<'path> Path<'path> {
     /// ## Invalid Encoding
     ///
     /// ```rust
-    /// use wayfind::{Path, errors::{PathError, DecodeError}};
+    /// use wayfind::{Path, errors::PathError};
     ///
     /// let path = Path::new("/hello%GGworld").unwrap_err();
-    /// assert_eq!(path, PathError::DecodeError(DecodeError::InvalidEncoding {
+    /// assert_eq!(path, PathError::InvalidEncoding {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
     ///     character: [b'%', b'G', b'G'],
-    /// }));
+    /// });
     /// ```
     ///
     /// ## Invalid UTF-8
     ///
     /// ```rust
-    /// use wayfind::{Path, errors::{PathError, DecodeError}};
+    /// use wayfind::{Path, errors::PathError};
     ///
     /// let path = Path::new("/hello%FF").unwrap_err();
     /// assert_eq!(path, PathError::Utf8Error {

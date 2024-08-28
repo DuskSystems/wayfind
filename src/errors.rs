@@ -5,9 +5,6 @@
 pub(crate) mod constraint;
 pub use constraint::ConstraintError;
 
-pub(crate) mod decode;
-pub use decode::DecodeError;
-
 pub(crate) mod delete;
 pub use delete::DeleteError;
 
