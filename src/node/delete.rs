@@ -1,5 +1,5 @@
 use crate::{
-    errors::delete::DeleteError,
+    errors::DeleteError,
     node::Node,
     parts::{Part, Parts},
 };

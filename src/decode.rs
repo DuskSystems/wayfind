@@ -1,4 +1,4 @@
-use crate::errors::decode::DecodeError;
+use crate::errors::DecodeError;
 use std::borrow::Cow;
 
 /// Try and percent-decode input bytes.

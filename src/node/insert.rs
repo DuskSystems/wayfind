@@ -1,6 +1,6 @@
 use super::{Node, NodeData, NodeKind};
 use crate::{
-    errors::insert::InsertError,
+    errors::InsertError,
     parts::{Part, Parts},
 };
 use std::cmp::Ordering;
