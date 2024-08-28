@@ -119,7 +119,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (pkgs.rust-bin.stable."1.80.1".minimal.override {
+            (pkgs.rust-bin.nightly."2024-07-25".minimal.override {
               extensions = [
                 "llvm-tools"
               ];
@@ -127,7 +127,6 @@
             sccache
 
             # Coverage
-            cargo-nextest
             cargo-llvm-cov
           ];
         };

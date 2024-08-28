@@ -47,19 +47,12 @@ jobs:
         run: nix develop .#coverage
 
       - name: Generate coverage
-        run: cargo llvm-cov nextest --codecov --output-path target/nextest/default/codecov.json
-
-      - name: Upload test results to Codecov
-        uses: codecov/test-results-action@v1
-        with:
-          files: target/nextest/default/junit.xml
-          fail_ci_if_error: true
-          token: "${{ secrets.CODECOV_TOKEN }}"
+        run: cargo llvm-cov --doctests --codecov --output-path codecov.json
 
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: target/nextest/default/codecov.json
+          files: codecov.json
           fail_ci_if_error: true
           token: "${{ secrets.CODECOV_TOKEN }}"
 
