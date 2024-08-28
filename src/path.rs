@@ -1,10 +1,10 @@
-use crate::{decode::percent_decode, errors::decode::DecodeError};
+use crate::{decode::percent_decode, errors::PathError};
 use std::borrow::Cow;
 
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug)]
 pub struct Path<'path> {
-    /// Original, unaltered path bytes.
+    /// Original, unaltered path.
     raw: &'path [u8],
 
     /// Percent-decoded path bytes.
@@ -16,7 +16,7 @@ impl<'path> Path<'path> {
     ///
     /// # Errors
     ///
-    /// Will error if the path fails percent-decoding.
+    /// Will error if the path can't be created, due to invalid percent-encoding, or invalid UTF-8 post-decoding.
     ///
     /// # Examples
     ///
@@ -30,22 +30,37 @@ impl<'path> Path<'path> {
     /// assert_eq!(path.decoded_bytes(), b"/hello world");
     /// ```
     ///
-    /// ## Invalid
+    /// ## Invalid Encoding
     ///
     /// ```rust
-    /// use wayfind::{Path, errors::DecodeError};
+    /// use wayfind::{Path, errors::{PathError, DecodeError}};
     ///
     /// let path = Path::new("/hello%GGworld").unwrap_err();
-    /// assert_eq!(path, DecodeError::InvalidEncoding {
+    /// assert_eq!(path, PathError::DecodeError(DecodeError::InvalidEncoding {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
     ///     character: [b'%', b'G', b'G'],
+    /// }));
+    /// ```
+    ///
+    /// ## Invalid UTF-8
+    ///
+    /// ```rust
+    /// use wayfind::{Path, errors::{PathError, DecodeError}};
+    ///
+    /// let path = Path::new("/hello%FF").unwrap_err();
+    /// assert_eq!(path, PathError::Utf8Error {
+    ///     valid_up_to: 6,
+    ///     error_len: Some(1),
     /// });
     /// ```
-    pub fn new(path: &'path str) -> Result<Self, DecodeError> {
+    pub fn new(path: &'path str) -> Result<Self, PathError> {
+        let decoded = percent_decode(path.as_bytes())?;
+        std::str::from_utf8(&decoded)?;
+
         Ok(Self {
             raw: path.as_bytes(),
-            decoded: percent_decode(path.as_bytes())?,
+            decoded,
         })
     }
 
@@ -56,6 +71,7 @@ impl<'path> Path<'path> {
     }
 
     /// Returns a reference to the percent-decoded path bytes.
+    /// Guaranteed to be valid UTF-8, via a check in [`Path::new`].
     #[must_use]
     pub fn decoded_bytes(&'path self) -> &'path [u8] {
         &self.decoded

@@ -1,14 +1,14 @@
-use super::{decode::DecodeError, route::RouteError};
+use super::{route::RouteError, PathError};
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
+    /// A [`PathError`] that occurred at the start of the insert operation.
+    PathError(PathError),
+
     /// A [`RouteError`] that occurred during the insert operation.
     RouteError(RouteError),
-
-    /// A [`DecodeError`] that occurred during the insert operation.
-    DecodeError(DecodeError),
 
     /// The path provided was percent-encoded.
     ///
@@ -96,8 +96,8 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::PathError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
-            Self::DecodeError(error) => error.fmt(f),
             Self::EncodedPath { input, decoded } => write!(
                 f,
                 r#"encoded path
@@ -125,14 +125,14 @@ The router doesn't recognize this constraint"#
     }
 }
 
-impl From<RouteError> for InsertError {
-    fn from(error: RouteError) -> Self {
-        Self::RouteError(error)
+impl From<PathError> for InsertError {
+    fn from(error: PathError) -> Self {
+        Self::PathError(error)
     }
 }
 
-impl From<DecodeError> for InsertError {
-    fn from(error: DecodeError) -> Self {
-        Self::DecodeError(error)
+impl From<RouteError> for InsertError {
+    fn from(error: RouteError) -> Self {
+        Self::RouteError(error)
     }
 }

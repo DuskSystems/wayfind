@@ -1,4 +1,4 @@
-use crate::errors::route::RouteError;
+use crate::errors::RouteError;
 use std::fmt::Debug;
 
 /// Characters that are not allowed in parameter names or constraints.

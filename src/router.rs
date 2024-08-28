@@ -1,6 +1,6 @@
 use crate::{
     constraints::Constraint,
-    errors::{constraint::ConstraintError, delete::DeleteError, insert::InsertError},
+    errors::{ConstraintError, DeleteError, InsertError},
     node::{search::Match, Node, NodeData, NodeKind},
     parts::{Part, Parts},
     path::Path,
