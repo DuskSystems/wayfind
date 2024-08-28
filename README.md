@@ -27,10 +27,13 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ### Dynamic Routing
 
-Dynamic parameters support matching any byte, except the path delimiter `/`.
-We support both whole segment dynamic parameters, and inline dynamic parameters.
+Dynamic parameters allow matching for any byte, excluding the path delimiter `/`.
 
-Inline dynamic parameters are greedy in nature, and will attempt to match as many bytes as possible.
+We support both:
+- Whole segment parameters: `/{name}/`
+- Inline parameters: `/{year}-{month}-{day}/`
+
+Inline dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
 
 #### Example
 
@@ -65,8 +68,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### Wildcard Routing
 
-Wildcard parameters enable matching of multiple segments within a route.
-These can be used either mid-route to capture several segments, or at the end as a catch-all.
+Wildcard parameters enable matching of one or more segments within a path.
+
+We support both:
+- mid-route wildcards: `/api/{*path}/help`
+- end-route catch-all: `/{*catch_all}`
 
 #### Example
 
@@ -79,13 +85,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/files/{*slug}/delete", 1)?;
     router.insert("/{*catch_all}", 2)?;
 
-    let path = Path::new("/files/documents/reports/annual.pdf/delete").unwrap();
+    let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
     let search = router.search(&path).unwrap();
     assert_eq!(search.data.value, 1);
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
 
-    let path = Path::new("/any/other/path").unwrap();
+    let path = Path::new("/any/other/path")?;
     let search = router.search(&path).unwrap();
     assert_eq!(search.data.value, 2);
     assert_eq!(search.parameters[0].key, "catch_all");
@@ -99,15 +105,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 Constraints allow for custom logic to be injected into the routing process.
 
-Once registered to a router, a constraint can be attached to any parameter via the following syntax:
-- `/{name:constraint}`
-- `/{*name:constraint}`
+We support constraints for all types of parameters:
+- Dynamic constraint: `/{name:constraint}`
+- Wildcard constraint: `/{*name:constraint}`
 
 The typical use-case for constraints would be to run a regex, or a simple `FromStr` implementation, against a path segment.
 
 A common mistake would be to use these for validation of parameters. This should be avoided.
 
-If a constraint fails to match, and no other suitable match exists, the equivalent HTTP response code would be a `404 Not Found`, rather than a `400 Bad Request`.
+If a constraint fails to match, and no other suitable match exists, it results in a `Not Found` response, rather than any sort of `Bad Request`.
 
 They act as an escape-hatch for when you need to disambiguate routes.
 
@@ -142,21 +148,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2", 1)?;
     router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
 
-    let path = Path::new("/v2").unwrap();
+    let path = Path::new("/v2")?;
     let search = router.search(&path).unwrap();
     assert_eq!(search.data.value, 1);
 
-    let path = Path::new("/v2/my-repo/blobs/sha256:1234567890").unwrap();
+    let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
     let search = router.search(&path).unwrap();
     assert_eq!(search.data.value, 2);
     assert_eq!(search.parameters[0].key, "name");
-    assert_eq!(search.parameters[0].value, "my-repo");
+    assert_eq!(search.parameters[0].value, "my-org/my-repo");
     assert_eq!(search.parameters[1].key, "type");
     assert_eq!(search.parameters[1].value, "sha256");
     assert_eq!(search.parameters[2].key, "digest");
     assert_eq!(search.parameters[2].value, "1234567890");
 
-    let path = Path::new("/v2/invalid repo/blobs/uploads").unwrap();
+    let path = Path::new("/v2/invalid repo/blobs/uploads")?;
     assert!(router.search(&path).is_none());
 
     Ok(())
@@ -218,7 +224,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### Router Display
 
-Routers can print their routes as an diagram, via a display implementation.
+Routers can print their routes as an tree diagram.
 
 `[*]` here represents nodes within the route tree that can be matched against.
 
@@ -278,23 +284,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ## Performance
 
-`wayfind` is fast, and appears competitive against other top performers in all benchmarks we currently run.
+`wayfind` is fast, and appears to be competitive against other top performers in all benchmarks we currently run.
 
 This is due to a number of reasons:
 - use of recursion, rather than manual walking of a tree, which seems to perform better.
-- use of `smallvec`, allowing for storage of small parameters lists on the stack.
+- use of `smallvec`, allowing for storage of small parameter lists on the stack.
 - enforcement of UTF-8 upfront, which can prevent duplicate UTF-8 checks internally while extracting parameters (via `unsafe` usage).
 
-Even without the use of `smallvec` and `unsafe`, we still perform very well on the benchmarks.
-
 However, as is often the case, your mileage may vary (YMMV).
-Benchmarks, especially micro-benchmarks, should never be trusted.
-
-Speed was never the primary goal, just a fortunate accident we seem to have stumbled upon.
+Benchmarks, especially micro-benchmarks, should be taken with a grain of salt.
 
 ### Benchmarks
 
-All benchmarks ran on a `MacOS` M1 Pro laptop.
+All benchmarks ran on a M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
