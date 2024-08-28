@@ -1,4 +1,4 @@
-//! Hello world!
+#![doc = include_str!("../README.md")]
 
 pub(crate) mod constraints;
 pub use constraints::Constraint;

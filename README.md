@@ -10,12 +10,11 @@
 
 A speedy, flexible router for Rust.
 
-> [!WARNING]
-> Currently in a pre-alpha state.
+Currently in a pre-alpha state.
 
 ## Why another router?
 
-`wayfind` tries to bridge the gap between existing Rust router options:
+`wayfind` attempts to bridge the gap between existing Rust router options:
 
 - fast routers, lacking in flexibility
 - flexible routers, lacking in speed
@@ -24,37 +23,209 @@ Real-world projects often need fancy routing capabilities, such as projects port
 
 The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
 
-## Examples
+## Features
 
-### [Swagger Petstore](https://petstore.swagger.io)
+### Dynamic Routing
 
-Simple routing, with only static and dynamic sections.
+Dynamic parameters support matching any byte, except the path delimiter `/`.
+We support both whole segment dynamic parameters, and inline dynamic parameters.
+
+Inline dynamic parameters are greedy in nature, and will attempt to match as many bytes as possible.
+
+#### Example
 
 ```rust
+use std::error::Error;
+use wayfind::{Path, Router};
+
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/users/{id}", 1)?;
+    router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
 
-    router.insert("/pet", 1)?;
-    router.insert("/pet/findByStatus", 2)?;
-    router.insert("/pet/findByTags", 3)?;
-    router.insert("/pet/{petId}", 4)?;
-    router.insert("/pet/{petId}/uploadImage", 5)?;
+    let path = Path::new("/users/123")?;
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 1);
+    assert_eq!(search.parameters[0].key, "id");
+    assert_eq!(search.parameters[0].value, "123");
 
-    router.insert("/store/inventory", 6)?;
-    router.insert("/store/order", 7)?;
-    router.insert("/store/order/{orderId}", 8)?;
-
-    router.insert("/user", 9)?;
-    router.insert("/user/createWithList", 10)?;
-    router.insert("/user/login", 11)?;
-    router.insert("/user/logout", 12)?;
-    router.insert("/user/{username}", 13)?;
+    let path = Path::new("/users/123/files/my.document.pdf")?;
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 2);
+    assert_eq!(search.parameters[0].key, "id");
+    assert_eq!(search.parameters[0].value, "123");
+    assert_eq!(search.parameters[1].key, "filename");
+    assert_eq!(search.parameters[1].value, "my.document");
+    assert_eq!(search.parameters[2].key, "extension");
+    assert_eq!(search.parameters[2].value, "pdf");
 
     Ok(())
 }
 ```
 
+### Wildcard Routing
+
+Wildcard parameters enable matching of multiple segments within a route.
+These can be used either mid-route to capture several segments, or at the end as a catch-all.
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::{Path, Router};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/files/{*slug}/delete", 1)?;
+    router.insert("/{*catch_all}", 2)?;
+
+    let path = Path::new("/files/documents/reports/annual.pdf/delete").unwrap();
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 1);
+    assert_eq!(search.parameters[0].key, "slug");
+    assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
+
+    let path = Path::new("/any/other/path").unwrap();
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 2);
+    assert_eq!(search.parameters[0].key, "catch_all");
+    assert_eq!(search.parameters[0].value, "any/other/path");
+
+    Ok(())
+}
 ```
+
+### Constraints
+
+Constraints allow for custom logic to be injected into the routing process.
+
+Once registered to a router, a constraint can be attached to any parameter via the following syntax: `/{name:constraint}` or `/{*name:constraint}`.
+
+The typical use-case for constraints would be to run a regex, or a simple `FromStr` implementation, against a path segment.
+
+A common mistake would be to use these for validation of parameters. This should be avoided.
+
+If a constraint fails to match, and no other suitable match exists, the equivalent HTTP response code would be a `404 Not Found`, rather than a `400 Bad Request`.
+
+They act as an escape-hatch for when you need to disambiguate routes.
+
+The current constraint implementation has a number of limitations:
+- constraints cannot take parameters
+- checks cannot make use of any prior state
+- checks cannot store data after a successful check
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::{Constraint, Path, Router};
+
+struct NamespaceConstraint;
+impl Constraint for NamespaceConstraint {
+    const NAME: &'static str = "namespace";
+
+    fn check(segment: &str) -> bool {
+        segment
+            .split('/')
+            .all(|part| {
+                !part.is_empty() && part.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '_' || c == '-')
+            })
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+
+    router.constraint::<NamespaceConstraint>()?;
+
+    router.insert("/v2", 1)?;
+    router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
+
+    let path = Path::new("/v2").unwrap();
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 1);
+
+    let path = Path::new("/v2/my-repo/blobs/sha256:1234567890").unwrap();
+    let search = router.search(&path).unwrap();
+    assert_eq!(search.data.value, 2);
+    assert_eq!(search.parameters[0].key, "name");
+    assert_eq!(search.parameters[0].value, "my-repo");
+    assert_eq!(search.parameters[1].key, "type");
+    assert_eq!(search.parameters[1].value, "sha256");
+    assert_eq!(search.parameters[2].key, "digest");
+    assert_eq!(search.parameters[2].value, "1234567890");
+
+    let path = Path::new("/v2/invalid repo/blobs/uploads").unwrap();
+    assert!(router.search(&path).is_none());
+
+    Ok(())
+}
+```
+
+### User-Friendly Error Messages
+
+Where possible, we try to provide user-friendly error display implementations.
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::{Constraint, Router, errors::ConstraintError};
+
+const ERROR_DISPLAY: &str = "
+duplicate constraint name
+
+The constraint name 'my_constraint' is already in use:
+    - existing constraint type: 'rust_out::ConstraintA'
+    - new constraint type: 'rust_out::ConstraintB'
+
+help: each constraint must have a unique name
+
+try:
+    - Check if you have accidentally added the same constraint twice
+    - Ensure different constraints have different names
+";
+
+struct ConstraintA;
+impl Constraint for ConstraintA {
+    const NAME: &'static str = "my_constraint";
+    fn check(_segment: &str) -> bool {
+        true
+    }
+}
+
+struct ConstraintB;
+impl Constraint for ConstraintB {
+    const NAME: &'static str = "my_constraint";
+    fn check(_segment: &str) -> bool {
+        true
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut router: Router<usize> = Router::new();
+    router.constraint::<ConstraintA>()?;
+
+    let error = router.constraint::<ConstraintB>().unwrap_err();
+    assert_eq!(error.to_string(), ERROR_DISPLAY.trim());
+
+    Ok(())
+}
+```
+
+### Router Display
+
+Routers can print their routes as an diagram, via a display implementation.
+
+`[*]` here represents nodes within the route tree that can be matched against.
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::Router;
+
+const ROUTER_DISPLAY: &str = "
 $
 ╰─ /
    ├─ pet [*]
@@ -76,74 +247,64 @@ $
             │    ├─ in [*]
             │    ╰─ out [*]
             ╰─ {username} [*]
-```
-
-### [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec)
-
-Complex routing, with wildcard sections and custom constraints.
-
-```rust
-struct NamespaceConstraint;
-impl Constraint for NamespaceConstraint {
-    const NAME: &'static str = "namespace";
-
-    fn check(segment: &str) -> bool {
-        segment
-            .split('/')
-            .all(|part| {
-                !part.is_empty() && part.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '_' || c == '-')
-            })
-    }
-}
+";
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.constraint::<NamespaceConstraint>()?;
+    router.insert("/pet", 1)?;
+    router.insert("/pet/findByStatus", 2)?;
+    router.insert("/pet/findByTags", 3)?;
+    router.insert("/pet/{petId}", 4)?;
+    router.insert("/pet/{petId}/uploadImage", 5)?;
 
-    router.insert("/v2", 1)?;
-    router.insert("/v2/{*name:namespace}/blobs/{digest}", 2)?;
-    router.insert("/v2/{*name:namespace}/manifests/{reference}", 3)?;
-    router.insert("/v2/{*name:namespace}/blobs/uploads", 4)?;
-    router.insert("/v2/{*name:namespace}/blobs/uploads/{reference}", 5)?;
-    router.insert("/v2/{*name:namespace}/tags/list", 6)?;
-    router.insert("/v2/{*name:namespace}/referrers/{digest}", 7)?;
+    router.insert("/store/inventory", 6)?;
+    router.insert("/store/order", 7)?;
+    router.insert("/store/order/{orderId}", 8)?;
 
+    router.insert("/user", 9)?;
+    router.insert("/user/createWithList", 10)?;
+    router.insert("/user/login", 11)?;
+    router.insert("/user/logout", 12)?;
+    router.insert("/user/{username}", 13)?;
+
+    assert_eq!(router.to_string(), ROUTER_DISPLAY.trim_start());
     Ok(())
 }
 ```
 
-```
-$
-╰─ /v2 [*]
-     ╰─ /
-        ╰─ {*name:namespace}
-                           ╰─ /
-                              ├─ blobs/
-                              │       ├─ uploads [*]
-                              │       │        ╰─ /
-                              │       │           ╰─ {reference} [*]
-                              │       ╰─ {digest} [*]
-                              ├─ manifests/
-                              │           ╰─ {reference} [*]
-                              ├─ referrers/
-                              │           ╰─ {digest} [*]
-                              ╰─ tags/list [*]
-```
+## Performance
 
-## Benchmarks
+`wayfind` is performant, and "wins" in all benchmarks we currently run.
 
-All benchmarks ran on a MacOS M1 Pro laptop.
+This is due to a number of reasons:
+- use of recursion, rather than manual walking of a tree, which seems to perform better.
+- use of `smallvec`, allowing for storage of small parameters lists on the stack.
+- enforcement of UTF-8 up-front, which can prevent duplicate UTF-8 checks internally while extracting parameters (via `unsafe` usage).
+
+Even without the use of `smallvec` and `unsafe`, we still tend to "win" the benchmarks.
+
+However, as is often the case, your mileage may vary (YMMV).
+Benchmarks, especially micro-benchmarks, should never be trusted.
+
+Speed was never the primary goal, just a fortunate accident we seem to have stumbled upon.
+
+### Benchmarks
+
+All benchmarks ran on a `MacOS` M1 Pro laptop.
 
 Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
 
-> [!NOTE]
-> For all benchmarks, we percent-decode the path before matching.
-> After matching, we convert any extracted parameters to strings.
-> Some routers perform these operations automatically, while others require them to be done manually.
-> We do this to try and match behaviour as best as possible.
+#### Context
 
-### `matchit` inspired benches
+For all benchmarks, we percent-decode the path before matching.
+After matching, we convert any extracted parameters to strings.
+
+Some routers perform these operations automatically, while others require them to be done manually.
+
+We do this to try and match behaviour as best as possible. This is as close to an "apples-to-apples" comparison as we can get.
+
+#### `matchit` inspired benches
 
 In a router of 130 routes, benchmark matching 4 paths.
 
@@ -158,7 +319,7 @@ In a router of 130 routes, benchmark matching 4 paths.
 | routefinder      | 6.4449 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
 | actix-router     | 21.180 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
-### `path-tree` inspired benches
+#### `path-tree` inspired benches
 
 In a router of 320 routes, benchmark matching 80 paths.
 
