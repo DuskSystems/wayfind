@@ -99,7 +99,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 Constraints allow for custom logic to be injected into the routing process.
 
-Once registered to a router, a constraint can be attached to any parameter via the following syntax: `/{name:constraint}` or `/{*name:constraint}`.
+Once registered to a router, a constraint can be attached to any parameter via the following syntax:
+- `/{name:constraint}`
+- `/{*name:constraint}`
 
 The typical use-case for constraints would be to run a regex, or a simple `FromStr` implementation, against a path segment.
 
@@ -135,7 +137,6 @@ impl Constraint for NamespaceConstraint {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
     router.constraint::<NamespaceConstraint>()?;
 
     router.insert("/v2", 1)?;
@@ -164,7 +165,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### User-Friendly Error Messages
 
-Where possible, we try to provide user-friendly error display implementations.
+Where possible, we try to provide user-friendly error messages.
 
 #### Example
 
@@ -189,16 +190,18 @@ try:
 struct ConstraintA;
 impl Constraint for ConstraintA {
     const NAME: &'static str = "my_constraint";
-    fn check(_segment: &str) -> bool {
-        true
+
+    fn check(segment: &str) -> bool {
+        segment == "a"
     }
 }
 
 struct ConstraintB;
 impl Constraint for ConstraintB {
     const NAME: &'static str = "my_constraint";
-    fn check(_segment: &str) -> bool {
-        true
+
+    fn check(segment: &str) -> bool {
+        segment == "b"
     }
 }
 
@@ -275,14 +278,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ## Performance
 
-`wayfind` is performant, and "wins" in all benchmarks we currently run.
+`wayfind` is fast, and appears competitive against other top performers in all benchmarks we currently run.
 
 This is due to a number of reasons:
 - use of recursion, rather than manual walking of a tree, which seems to perform better.
 - use of `smallvec`, allowing for storage of small parameters lists on the stack.
-- enforcement of UTF-8 up-front, which can prevent duplicate UTF-8 checks internally while extracting parameters (via `unsafe` usage).
+- enforcement of UTF-8 upfront, which can prevent duplicate UTF-8 checks internally while extracting parameters (via `unsafe` usage).
 
-Even without the use of `smallvec` and `unsafe`, we still tend to "win" the benchmarks.
+Even without the use of `smallvec` and `unsafe`, we still perform very well on the benchmarks.
 
 However, as is often the case, your mileage may vary (YMMV).
 Benchmarks, especially micro-benchmarks, should never be trusted.

@@ -85,6 +85,24 @@ impl<T> Router<T> {
     /// # Errors
     ///
     /// Returns a [`ConstraintError`] if the constraint could not be added.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::{Constraint, Router};
+    ///
+    /// struct HelloConstraint;
+    /// impl Constraint for HelloConstraint {
+    ///     const NAME: &'static str = "hello";
+    ///
+    ///     fn check(segment: &str) -> bool {
+    ///         segment == "hello"
+    ///     }
+    /// }
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.constraint::<HelloConstraint>().unwrap();
+    /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
         match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
@@ -110,6 +128,16 @@ impl<T> Router<T> {
     /// # Errors
     ///
     /// Returns an [`InsertError`] if the route is invalid or uses unknown constraints.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::{Constraint, Router};
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    /// router.insert("/hello/{world}", 2).unwrap();
+    /// ```
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
         let path = Path::new(route)?;
         if route.as_bytes() != path.decoded_bytes() {
@@ -150,6 +178,16 @@ impl<T> Router<T> {
     /// # Errors
     ///
     /// Returns a [`DeleteError`] if the route cannot be deleted, or cannot be found.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::{Constraint, Router};
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    /// router.delete("/hello").unwrap();
+    /// ```
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
         let mut parts = Parts::new(route.as_bytes())?;
         self.root.delete(&mut parts)
@@ -158,6 +196,18 @@ impl<T> Router<T> {
     /// Searches for a matching route in the router.
     ///
     /// Returns a [`Match`] if a matching route is found, or [`None`] otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::{Constraint, Path, Router};
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    ///
+    /// let path = Path::new("/hello").unwrap();
+    /// let search = router.search(&path).unwrap();
+    /// ```
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path Path,
