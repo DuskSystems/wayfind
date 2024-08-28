@@ -48,15 +48,22 @@ impl<'path> Path<'path> {
     /// ```rust
     /// use wayfind::{Path, errors::PathError};
     ///
-    /// let path = Path::new("/hello%FF").unwrap_err();
+    /// let path = Path::new("/hello%FFworld").unwrap_err();
     /// assert_eq!(path, PathError::Utf8Error {
-    ///     valid_up_to: 6,
-    ///     error_len: Some(1),
+    ///     input: "/hello%FFworld".to_string(),
+    ///     decoded: "/hello�world".to_string(),
+    ///     position: 6,
+    ///     length: 1,
     /// });
     /// ```
     pub fn new(path: &'path str) -> Result<Self, PathError> {
         let decoded = percent_decode(path.as_bytes())?;
-        std::str::from_utf8(&decoded)?;
+        std::str::from_utf8(&decoded).map_err(|err| PathError::Utf8Error {
+            input: path.to_string(),
+            decoded: String::from_utf8_lossy(&decoded).to_string(),
+            position: err.valid_up_to(),
+            length: err.error_len().unwrap_or(1),
+        })?;
 
         Ok(Self {
             raw: path.as_bytes(),

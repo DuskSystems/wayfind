@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Display, str::Utf8Error};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to decode and validate  path.
 #[derive(Debug, PartialEq, Eq)]
@@ -37,11 +37,43 @@ pub enum PathError {
         character: [u8; 3],
     },
 
-    // TODO: Consider having a custom error here.
-    /// A [`Utf8Error`] that occurred during the path creation.
+    /// Invalid UTF-8 sequence encountered.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::PathError;
+    ///
+    /// let error = PathError::Utf8Error {
+    ///     input: "/hello%FFworld".to_string(),
+    ///     decoded: "/hello�world".to_string(),
+    ///     position: 6,
+    ///     length: 1,
+    /// };
+    ///
+    /// let display = "
+    /// invalid UTF-8 sequence
+    ///
+    /// Original: /hello%FFworld
+    ///  Decoded: /hello�world
+    ///                 ^
+    ///
+    /// Expected: valid UTF-8 encoded characters
+    ///    Found: invalid byte sequence at position 6 after decoding
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
     Utf8Error {
-        valid_up_to: usize,
-        error_len: Option<usize>,
+        /// The unaltered input string.
+        input: String,
+        /// The post-decoded input string.
+        /// This will contain UTF-8 replacement symbols.
+        decoded: String,
+        /// The position in the decoded string where the invalid UTF-8 was found.
+        position: usize,
+        /// The length of the invalid UTF-8 sequence.
+        length: usize,
     },
 }
 
@@ -60,25 +92,34 @@ impl Display for PathError {
 
                 write!(
                     f,
-                    r#"invalid percent-encoding
+                    "invalid percent-encoding
 
    Input: {input}
           {arrow}
 
 Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
-   Found: '{character}'"#,
+   Found: '{character}'",
                 )
             }
-            Self::Utf8Error { .. } => todo!(),
-        }
-    }
-}
+            Self::Utf8Error {
+                input,
+                decoded,
+                position,
+                length,
+            } => {
+                let arrow = " ".repeat(*position) + &"^".repeat(*length);
+                write!(
+                    f,
+                    "invalid UTF-8 sequence
 
-impl From<Utf8Error> for PathError {
-    fn from(error: Utf8Error) -> Self {
-        Self::Utf8Error {
-            valid_up_to: error.valid_up_to(),
-            error_len: error.error_len(),
+Original: {input}
+ Decoded: {decoded}
+          {arrow}
+
+Expected: valid UTF-8 encoded characters
+   Found: invalid byte sequence at position {position} after decoding",
+                )
+            }
         }
     }
 }
