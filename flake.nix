@@ -67,6 +67,9 @@
             cargo-codspeed
             gnuplot
 
+            # Release
+            cargo-semver-checks
+
             # Nix
             alejandra
             statix
@@ -82,11 +85,8 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.stable."1.80.1".minimal)
             sccache
-
-            # Benchmarks
             cargo-codspeed
           ];
         };
@@ -99,7 +99,6 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.stable."1.80.1".minimal.override {
               extensions = [
                 "clippy"
@@ -118,15 +117,12 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.nightly."2024-07-25".minimal.override {
               extensions = [
                 "llvm-tools"
               ];
             })
             sccache
-
-            # Coverage
             cargo-llvm-cov
           ];
         };
@@ -139,7 +135,6 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.stable."1.80.1".minimal)
             sccache
           ];
@@ -153,10 +148,8 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.nightly."2024-07-25".minimal)
-
-            # Fuzzing
+            sccache
             cargo-fuzz
           ];
         };
@@ -169,7 +162,6 @@
           CARGO_INCREMENTAL = "0";
 
           buildInputs = with pkgs; [
-            # Rust
             (pkgs.rust-bin.stable."1.66.0".minimal)
             sccache
           ];
