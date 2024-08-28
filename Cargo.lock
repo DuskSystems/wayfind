@@ -2284,7 +2284,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "actix-router",
  "codspeed-criterion-compat",
@@ -2349,7 +2349,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-axum-example"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -2368,7 +2368,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-hyper-example"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytes",

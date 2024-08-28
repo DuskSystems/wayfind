@@ -4,7 +4,7 @@ resolver = "2"
 members = [".", "examples/*", "fuzz"]
 
 [workspace.package]
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Cathal Mullan <contact@cathal.dev>"]
 edition = "2021"
 rust-version = "1.66"
@@ -40,9 +40,10 @@ include = [
   "/fuzz",
   "/src",
   "/tests",
-  "LICENSE-APACHE",
-  "LICENSE-MIT",
-  "README.md",
+  "/CHANGELOG.md",
+  "/LICENSE-APACHE",
+  "/LICENSE-MIT",
+  "/README.md",
 ]
 
 version.workspace = true
