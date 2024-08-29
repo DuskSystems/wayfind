@@ -28,6 +28,16 @@ impl<T> Node<T> {
     ///
     /// This method traverses the tree to find a node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
+    ///
+    /// # Safety
+    ///
+    /// This method uses unsafe when converting parameter names to strings.
+    /// These are guaranteed to be strings as part of the [`Router`](crate::Router) insert process.
+    ///
+    /// # Panics
+    ///
+    /// In debug builds, this method will panic if it encounters invalid UTF-8.
+    /// Based on the above invariant, this should never happen.
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -129,8 +139,10 @@ impl<T> Node<T> {
                         debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
                         unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
                     },
-                    value: std::str::from_utf8(segment)
-                        .map_err(|_| SearchError::InvalidParameter)?,
+                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
+                        value: String::from_utf8_lossy(segment).to_string(),
+                    })?,
                 });
 
                 if let Some(node_data) =
@@ -170,7 +182,10 @@ impl<T> Node<T> {
                     debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
                     unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
                 },
-                value: std::str::from_utf8(segment).map_err(|_| SearchError::InvalidParameter)?,
+                value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
+                    key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
+                    value: String::from_utf8_lossy(segment).to_string(),
+                })?,
             });
 
             if let Some(node_data) =
@@ -229,8 +244,10 @@ impl<T> Node<T> {
                         debug_assert!(std::str::from_utf8(&wildcard_child.prefix).is_ok());
                         unsafe { std::str::from_utf8_unchecked(&wildcard_child.prefix) }
                     },
-                    value: std::str::from_utf8(segment)
-                        .map_err(|_| SearchError::InvalidParameter)?,
+                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
+                        value: String::from_utf8_lossy(segment).to_string(),
+                    })?,
                 });
 
                 if let Some(node_data) = wildcard_child.search(
@@ -270,7 +287,10 @@ impl<T> Node<T> {
                     debug_assert!(std::str::from_utf8(&end_wildcard_child.prefix).is_ok());
                     unsafe { std::str::from_utf8_unchecked(&end_wildcard_child.prefix) }
                 },
-                value: std::str::from_utf8(path).map_err(|_| SearchError::InvalidParameter)?,
+                value: std::str::from_utf8(path).map_err(|_| SearchError::Utf8Error {
+                    key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
+                    value: String::from_utf8_lossy(path).to_string(),
+                })?,
             });
 
             return if end_wildcard_child.data.is_some() {
