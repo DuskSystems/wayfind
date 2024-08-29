@@ -21,7 +21,7 @@ pub enum SearchError {
     ///      Key: parameter
     ///    Value: hello�world
     ///
-    /// Expected: valid UTF-8 encoded characters
+    /// Expected: valid UTF-8 characters
     ///    Found: invalid byte sequence
     /// ";
     ///
@@ -29,9 +29,10 @@ pub enum SearchError {
     /// ```
     Utf8Error {
         /// The parameter key.
+        /// This may contain UTF-8 replacement symbols.
         key: String,
-        /// The invalid parameter value.
-        /// This will contain UTF-8 replacement symbols.
+        /// The parameter value.
+        /// This may contain UTF-8 replacement symbols.
         value: String,
     },
 }
@@ -49,7 +50,7 @@ impl Display for SearchError {
      Key: {key}
    Value: {value}
 
-Expected: valid UTF-8 encoded characters
+Expected: valid UTF-8 characters
    Found: invalid byte sequence",
                 )
             }
