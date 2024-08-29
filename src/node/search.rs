@@ -125,8 +125,10 @@ impl<T> Node<T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: std::str::from_utf8(&dynamic_child.prefix)
-                        .map_err(|_| SearchError::InvalidParameter)?,
+                    key: {
+                        debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
+                    },
                     value: std::str::from_utf8(segment)
                         .map_err(|_| SearchError::InvalidParameter)?,
                 });
@@ -164,8 +166,10 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&dynamic_child.prefix)
-                    .map_err(|_| SearchError::InvalidParameter)?,
+                key: {
+                    debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
+                },
                 value: std::str::from_utf8(segment).map_err(|_| SearchError::InvalidParameter)?,
             });
 
@@ -221,8 +225,10 @@ impl<T> Node<T> {
                 }
 
                 parameters.push(Parameter {
-                    key: std::str::from_utf8(&wildcard_child.prefix)
-                        .map_err(|_| SearchError::InvalidParameter)?,
+                    key: {
+                        debug_assert!(std::str::from_utf8(&wildcard_child.prefix).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(&wildcard_child.prefix) }
+                    },
                     value: std::str::from_utf8(segment)
                         .map_err(|_| SearchError::InvalidParameter)?,
                 });
@@ -254,19 +260,21 @@ impl<T> Node<T> {
         parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for end_wildcard in &self.end_wildcard_children {
-            if !Self::check_constraint(end_wildcard, path, constraints) {
+        for end_wildcard_child in &self.end_wildcard_children {
+            if !Self::check_constraint(end_wildcard_child, path, constraints) {
                 continue;
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&end_wildcard.prefix)
-                    .map_err(|_| SearchError::InvalidParameter)?,
+                key: {
+                    debug_assert!(std::str::from_utf8(&end_wildcard_child.prefix).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(&end_wildcard_child.prefix) }
+                },
                 value: std::str::from_utf8(path).map_err(|_| SearchError::InvalidParameter)?,
             });
 
-            return if end_wildcard.data.is_some() {
-                Ok(Some(end_wildcard))
+            return if end_wildcard_child.data.is_some() {
+                Ok(Some(end_wildcard_child))
             } else {
                 Ok(None)
             };
