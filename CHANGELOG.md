@@ -11,9 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2024-08-29
 
+### Changed
+
 - Search method now returns a Result.
-- Remove all usages of unsafe code.
-- Remove smallvec dependency.
+
+### Removed
+
+- Removed all usages of unsafe code.
+- Removed smallvec dependency.
+
+### Security
+
+- Resolved incorrect unsafe usage in parameter extraction.
 
 ## [0.1.0] - 2024-08-29
 
