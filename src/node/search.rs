@@ -1,6 +1,5 @@
 use super::{Node, NodeData};
 use crate::{errors::SearchError, router::StoredConstraint};
-use smallvec::{smallvec, SmallVec};
 use std::collections::HashMap;
 
 /// Stores data from a successful router match.
@@ -10,7 +9,7 @@ pub struct Match<'router, 'path, T> {
     pub data: &'router NodeData<T>,
 
     /// Key-value pairs of parameters, extracted from the route.
-    pub parameters: SmallVec<[Parameter<'router, 'path>; 4]>,
+    pub parameters: Vec<Parameter<'router, 'path>>,
 }
 
 /// A key-value parameter pair.
@@ -31,7 +30,7 @@ impl<T> Node<T> {
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if path.is_empty() {
@@ -64,7 +63,7 @@ impl<T> Node<T> {
     fn search_static<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for static_child in &self.static_children {
@@ -87,7 +86,7 @@ impl<T> Node<T> {
     fn search_dynamic<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.quick_dynamic {
@@ -102,14 +101,14 @@ impl<T> Node<T> {
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
             let mut last_match = None;
-            let mut last_match_parameters = smallvec![];
+            let mut last_match_parameters = vec![];
 
             while consumed < path.len() {
                 if path[consumed] == b'/' {
@@ -158,7 +157,7 @@ impl<T> Node<T> {
     fn search_dynamic_segment<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in &self.dynamic_children {
@@ -197,7 +196,7 @@ impl<T> Node<T> {
     fn search_wildcard<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in &self.wildcard_children {
@@ -270,7 +269,7 @@ impl<T> Node<T> {
     fn search_end_wildcard<'router, 'path>(
         &'router self,
         path: &'path [u8],
-        parameters: &mut SmallVec<[Parameter<'router, 'path>; 4]>,
+        parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for end_wildcard_child in &self.end_wildcard_children {

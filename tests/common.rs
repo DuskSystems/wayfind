@@ -63,8 +63,7 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
             "Value mismatch for input: {input}"
         );
         assert_eq!(
-            parameters.to_vec(),
-            expected.params,
+            parameters, expected.params,
             "Parameters mismatch for input: {input}"
         );
     } else {
