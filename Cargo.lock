@@ -1326,7 +1326,7 @@ checksum = "c62a0a307cb4a311d3a07867860911ca130c3494e8c2719593806c08bc5d0484"
 
 [[package]]
 name = "wayfind"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "actix-router",
  "codspeed-criterion-compat",
@@ -1352,7 +1352,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-hyper-example"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "bytes",
