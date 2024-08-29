@@ -228,6 +228,8 @@ Routers can print their routes as an tree diagram.
 
 `[*]` here represents nodes within the route tree that can be matched against.
 
+Currenty, this doesn't handle split multi-byte characters well.
+
 #### Example
 
 ```rust

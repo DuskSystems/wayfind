@@ -28,6 +28,20 @@ impl<T> Node<T> {
     ///
     /// This method traverses the tree to find a node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
+    ///
+    /// # Safety
+    ///
+    /// This method relies on the following invariants:
+    ///
+    /// 1. All parameter nodes in the tree MUST be valid UTF-8.
+    /// 2. The path MUST be valid UTF-8.
+    ///
+    /// These are enforced as part of the insert/searches methods at the [`Router`](crate::Router) level.
+    ///
+    /// # Panics
+    ///
+    /// In debug builds, this method will panic if it encounters invalid UTF-8.
+    /// Based on the above invariants, this should never happen.
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -125,8 +139,14 @@ impl<T> Node<T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) },
-                    value: unsafe { std::str::from_utf8_unchecked(segment) },
+                    key: {
+                        debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
+                    },
+                    value: {
+                        debug_assert!(std::str::from_utf8(segment).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(segment) }
+                    },
                 });
 
                 if let Some(node_data) =
@@ -162,8 +182,14 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(segment) },
+                key: {
+                    debug_assert!(std::str::from_utf8(&dynamic_child.prefix).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(&dynamic_child.prefix) }
+                },
+                value: {
+                    debug_assert!(std::str::from_utf8(segment).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(segment) }
+                },
             });
 
             if let Some(node_data) =
@@ -218,8 +244,14 @@ impl<T> Node<T> {
                 }
 
                 parameters.push(Parameter {
-                    key: unsafe { std::str::from_utf8_unchecked(&wildcard_child.prefix) },
-                    value: unsafe { std::str::from_utf8_unchecked(segment) },
+                    key: {
+                        debug_assert!(std::str::from_utf8(&wildcard_child.prefix).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(&wildcard_child.prefix) }
+                    },
+                    value: {
+                        debug_assert!(std::str::from_utf8(segment).is_ok());
+                        unsafe { std::str::from_utf8_unchecked(segment) }
+                    },
                 });
 
                 if let Some(node_data) =
@@ -253,8 +285,14 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: unsafe { std::str::from_utf8_unchecked(&end_wildcard.prefix) },
-                value: unsafe { std::str::from_utf8_unchecked(path) },
+                key: {
+                    debug_assert!(std::str::from_utf8(&end_wildcard.prefix).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(&end_wildcard.prefix) }
+                },
+                value: {
+                    debug_assert!(std::str::from_utf8(path).is_ok());
+                    unsafe { std::str::from_utf8_unchecked(path) }
+                },
             });
 
             return if end_wildcard.data.is_some() {
