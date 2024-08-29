@@ -14,8 +14,8 @@ libfuzzer-sys = "0.4"
 path = ".."
 
 [[bin]]
-name = "insert"
-path = "fuzz_targets/insert.rs"
+name = "e2e"
+path = "fuzz_targets/e2e.rs"
 test = false
 doc = false
 bench = false
