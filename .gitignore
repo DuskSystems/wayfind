@@ -13,11 +13,7 @@ target
 # Insta
 *.pending-snap
 
-# Tests
-junit.xml
-
 # Coverage
-lcov.info
 codecov.json
 
 # Fuzz
@@ -35,3 +31,4 @@ result-bin
 
 # Dir Env
 .direnv
+g

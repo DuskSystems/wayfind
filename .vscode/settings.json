@@ -17,7 +17,6 @@
   "search.exclude": {
     ".direnv": true,
     ".idea": true,
-    "examples/axum-fork": true,
     "LICENSE*": true,
     "flake.lock": true,
     "Cargo.lock": true

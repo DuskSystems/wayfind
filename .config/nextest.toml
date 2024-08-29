@@ -1,5 +1,0 @@
-[store]
-dir = "target/nextest"
-
-[profile.default.junit]
-path = "junit.xml"
