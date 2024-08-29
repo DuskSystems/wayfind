@@ -5,7 +5,6 @@ use crate::{
     parts::{Part, Parts},
     path::Path,
 };
-use smallvec::smallvec;
 use std::{
     any::type_name,
     collections::{hash_map::Entry, HashMap},
@@ -217,7 +216,7 @@ impl<T> Router<T> {
         &'router self,
         path: &'path Path,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
-        let mut parameters = smallvec![];
+        let mut parameters = vec![];
         let Some(node) =
             self.root
                 .search(path.decoded_bytes(), &mut parameters, &self.constraints)?
