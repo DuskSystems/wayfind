@@ -16,3 +16,6 @@ pub use path::PathError;
 
 pub(crate) mod route;
 pub use route::RouteError;
+
+pub(crate) mod search;
+pub use search::SearchError;

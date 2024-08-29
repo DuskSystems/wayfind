@@ -47,13 +47,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
 
     let path = Path::new("/users/123")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/users/123/files/my.document.pdf")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
@@ -86,13 +86,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/{*catch_all}", 2)?;
 
     let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
 
     let path = Path::new("/any/other/path")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
     assert_eq!(search.parameters[0].key, "catch_all");
     assert_eq!(search.parameters[0].value, "any/other/path");
@@ -149,11 +149,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
 
     let path = Path::new("/v2")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
 
     let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
-    let search = router.search(&path).unwrap();
+    let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
     assert_eq!(search.parameters[0].key, "name");
     assert_eq!(search.parameters[0].value, "my-org/my-repo");
@@ -163,7 +163,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(search.parameters[2].value, "1234567890");
 
     let path = Path::new("/v2/invalid repo/blobs/uploads")?;
-    assert!(router.search(&path).is_none());
+    assert!(router.search(&path)?.is_none());
 
     Ok(())
 }
@@ -288,11 +288,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 `wayfind` is fast, and appears to be competitive against other top performers in all benchmarks we currently run.
 
-This is due to a number of reasons:
-- use of recursion, rather than manual walking of a tree, which seems to perform better.
-- use of `smallvec`, allowing for storage of small parameter lists on the stack.
-- enforcement of UTF-8 upfront, which can prevent duplicate UTF-8 checks internally while extracting parameters (via `unsafe` usage).
-
 However, as is often the case, your mileage may vary (YMMV).
 Benchmarks, especially micro-benchmarks, should be taken with a grain of salt.
 
@@ -317,14 +312,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 393.27 ns | 4           | 265 B      | 4             | 265 B        |
-| matchit          | 457.42 ns | 4           | 416 B      | 4             | 448 B        |
-| xitca-router     | 565.32 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 586.64 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.7999 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 4.6049 µs | 160         | 8.515 KB   | 160           | 8.547 KB     |
-| routefinder      | 6.4261 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 21.356 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| matchit          | 458.45 ns | 4           | 416 B      | 4             | 448 B        |
+| wayfind          | 469.26 ns | 4           | 265 B      | 4             | 265 B        |
+| xitca-router     | 564.45 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 586.60 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.8006 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 4.6234 µs | 160         | 8.515 KB   | 160           | 8.547 KB     |
+| routefinder      | 6.4700 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 21.198 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -332,14 +327,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.7827 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
-| matchit          | 8.9428 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| path-tree        | 9.5266 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| xitca-router     | 10.871 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 30.850 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| route-recognizer | 91.922 µs | 2872        | 191.8 KB   | 2872          | 205 KB       |
-| routefinder      | 99.100 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| actix-router     | 178.52 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 6.6642 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| matchit          | 9.1211 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 9.5522 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 11.207 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 30.467 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 91.276 µs | 2872        | 191.8 KB   | 2872          | 205 KB       |
+| routefinder      | 99.490 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 179.74 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## Minimum Supported Rust Version (MSRV)
 
