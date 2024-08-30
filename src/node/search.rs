@@ -16,6 +16,8 @@ pub struct Match<'router, 'path, T> {
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
+///
+/// TODO: Consider simply storing these as Strings.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Parameter<'router, 'path> {
     pub key: &'router str,

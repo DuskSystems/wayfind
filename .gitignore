@@ -21,6 +21,10 @@ corpus
 artifacts
 coverage
 
+# OCI
+junit.xml
+report.html
+
 # Nix
 result
 result-dev

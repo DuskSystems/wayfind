@@ -20,7 +20,7 @@ rustPlatform.buildRustPackage rec {
     description = "A Cargo subcommand for snapshot testing.";
     mainProgram = "cargo-insta";
     homepage = "https://github.com/mitsuhiko/insta";
-    changelog = "https://github.com/mitsuhiko/insta/blob/${version}/CHANGELOG.md";
+    changelog = "https://github.com/mitsuhiko/insta/releases";
     license = licenses.asl20;
     platforms = platforms.all;
   };
