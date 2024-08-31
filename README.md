@@ -280,7 +280,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/user/logout", 12)?;
     router.insert("/user/{username}", 13)?;
 
-    assert_eq!(router.to_string(), ROUTER_DISPLAY.trim_start());
+    assert_eq!(router.to_string(), ROUTER_DISPLAY.trim_end());
     Ok(())
 }
 ```

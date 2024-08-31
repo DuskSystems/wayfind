@@ -238,7 +238,7 @@ impl<T> Default for Router<T> {
     }
 }
 
-impl<T: Display> Display for Router<T> {
+impl<T> Display for Router<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }
