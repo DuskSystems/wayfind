@@ -58,7 +58,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
         let router = Arc::clone(&router);
         join_set.spawn(async move {
-            let _ = Builder::new(TokioExecutor::new())
+            let _unused = Builder::new(TokioExecutor::new())
                 .serve_connection(
                     TokioIo::new(stream),
                     service_fn(move |request: Request<Incoming>| {

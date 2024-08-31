@@ -10,7 +10,7 @@ impl<T> Node<T> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error is there's already data at the end node.
-    pub fn insert(&mut self, parts: &mut Parts, data: NodeData<T>) -> Result<(), InsertError> {
+    pub fn insert(&mut self, parts: &mut Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
                 Part::Static { prefix } => self.insert_static(parts, data, &prefix)?,
@@ -42,7 +42,7 @@ impl<T> Node<T> {
 
     fn insert_static(
         &mut self,
-        parts: &mut Parts,
+        parts: &mut Parts<'_>,
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
@@ -138,7 +138,7 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        parts: &mut Parts,
+        parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -176,7 +176,7 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        parts: &mut Parts,
+        parts: &mut Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -214,7 +214,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
-        parts: &mut Parts,
+        parts: &Parts<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,

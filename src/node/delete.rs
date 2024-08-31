@@ -11,7 +11,7 @@ impl<T> Node<T> {
     /// Logic should match that used by the insert method.
     ///
     /// If the route is found and deleted, we re-optimize the tree structure.
-    pub fn delete(&mut self, parts: &mut Parts) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, parts: &mut Parts<'_>) -> Result<(), DeleteError> {
         if let Some(segment) = parts.pop() {
             let result = match segment {
                 Part::Static { prefix } => self.delete_static(parts, &prefix),
@@ -43,7 +43,7 @@ impl<T> Node<T> {
         }
     }
 
-    fn delete_static(&mut self, parts: &mut Parts, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, parts: &mut Parts<'_>, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -77,7 +77,7 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        parts: &mut Parts,
+        parts: &mut Parts<'_>,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -105,7 +105,7 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        parts: &mut Parts,
+        parts: &mut Parts<'_>,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -133,7 +133,7 @@ impl<T> Node<T> {
 
     fn delete_end_wildcard(
         &mut self,
-        parts: &mut Parts,
+        parts: &Parts<'_>,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {

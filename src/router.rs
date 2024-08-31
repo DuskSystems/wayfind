@@ -214,7 +214,7 @@ impl<T> Router<T> {
     /// ```
     pub fn search<'router, 'path>(
         &'router self,
-        path: &'path Path,
+        path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
         let mut parameters = vec![];
         let Some(node) =

@@ -18,7 +18,7 @@ fn main() {
 }
 
 #[divan::bench(name = "wayfind")]
-fn wayfind(bencher: divan::Bencher) {
+fn wayfind(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     for (index, route) in routes!(brackets).iter().enumerate() {
         router.insert(route, index).unwrap();
@@ -35,7 +35,7 @@ fn wayfind(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "actix-router")]
-fn actix_router(bencher: divan::Bencher) {
+fn actix_router(bencher: divan::Bencher<'_, '_>) {
     let mut router = actix_router::Router::<usize>::build();
     for (index, route) in routes!(brackets).iter().enumerate() {
         router.path(*route, index);
@@ -54,7 +54,7 @@ fn actix_router(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "matchit")]
-fn matchit(bencher: divan::Bencher) {
+fn matchit(bencher: divan::Bencher<'_, '_>) {
     let mut router = matchit::Router::new();
     for (index, route) in routes!(brackets).iter().enumerate() {
         router.insert(*route, index).unwrap();
@@ -71,7 +71,7 @@ fn matchit(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "ntex-router")]
-fn ntex_router(bencher: divan::Bencher) {
+fn ntex_router(bencher: divan::Bencher<'_, '_>) {
     let mut router = ntex_router::Router::<usize>::build();
     for (index, route) in routes!(brackets).iter().enumerate() {
         router.path(*route, index);
@@ -90,7 +90,7 @@ fn ntex_router(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "path-tree")]
-fn path_tree(bencher: divan::Bencher) {
+fn path_tree(bencher: divan::Bencher<'_, '_>) {
     let mut router = path_tree::PathTree::new();
     for (index, route) in routes!(colon).iter().enumerate() {
         let _ = router.insert(route, index);
@@ -107,7 +107,7 @@ fn path_tree(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "route-recognizer")]
-fn route_recognizer(bencher: divan::Bencher) {
+fn route_recognizer(bencher: divan::Bencher<'_, '_>) {
     let mut router = route_recognizer::Router::<usize>::new();
     for (index, route) in routes!(colon).iter().enumerate() {
         router.add(route, index);
@@ -124,7 +124,7 @@ fn route_recognizer(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "routefinder")]
-fn routefinder(bencher: divan::Bencher) {
+fn routefinder(bencher: divan::Bencher<'_, '_>) {
     let mut router = routefinder::Router::new();
     for (index, route) in routes!(colon).iter().enumerate() {
         router.add(*route, index).unwrap();
@@ -141,7 +141,7 @@ fn routefinder(bencher: divan::Bencher) {
 }
 
 #[divan::bench(name = "xitca-router")]
-fn xitca_router(bencher: divan::Bencher) {
+fn xitca_router(bencher: divan::Bencher<'_, '_>) {
     let mut router = xitca_router::Router::new();
     for (index, route) in routes!(colon).iter().enumerate() {
         router.insert(*route, index).unwrap();

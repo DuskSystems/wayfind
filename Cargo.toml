@@ -13,9 +13,21 @@ license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 
+# https://doc.rust-lang.org/rustc/lints/groups.html
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
+unused = { level = "deny", priority = -2 }
+future-incompatible = { level = "deny", priority = -1 }
+keyword-idents = { level = "deny", priority = -1 }
+let-underscore = { level = "deny", priority = -1 }
+nonstandard-style = { level = "deny", priority = -1 }
+refining-impl-trait = { level = "deny", priority = -1 }
+rust-2018-compatibility = { level = "deny", priority = -1 }
+rust-2018-idioms = { level = "deny", priority = -1 }
+rust-2021-compatibility = { level = "deny", priority = -1 }
+
+# https://rust-lang.github.io/rust-clippy/master/index.html
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
