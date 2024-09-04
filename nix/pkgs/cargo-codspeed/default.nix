@@ -20,9 +20,9 @@ rustPlatform.buildRustPackage rec {
 
   cargoHash = "sha256-ihkmD48EG1fWJ38AAt4Hy6dpATIgnEb6kApDfsTKxwA=";
 
-  nativeBuildInputs = [pkg-config];
+  nativeBuildInputs = [ pkg-config ];
   buildInputs =
-    [openssl]
+    [ openssl ]
     ++ lib.optionals stdenv.isDarwin [
       darwin.apple_sdk.frameworks.SystemConfiguration
       darwin.apple_sdk.frameworks.CoreServices
@@ -35,7 +35,10 @@ rustPlatform.buildRustPackage rec {
     mainProgram = "cargo-codspeed";
     homepage = "https://github.com/CodSpeedHQ/codspeed-rust";
     changelog = "https://github.com/CodSpeedHQ/codspeed-rust/releases/tag/v${version}";
-    license = [licenses.mit licenses.asl20];
+    license = [
+      licenses.mit
+      licenses.asl20
+    ];
     platforms = platforms.all;
   };
 }

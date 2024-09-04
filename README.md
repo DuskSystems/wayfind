@@ -1,6 +1,6 @@
 [![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
-[![rust: 1.66+](https://img.shields.io/badge/rust-1.66-orange.svg)](https://img.shields.io/badge/rust-1.66-orange.svg)
+[![rust: 1.66+](https://img.shields.io/badge/rust-1.66+-orange.svg)](https://img.shields.io/badge/rust-1.66-orange.svg)
 ![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-brightgreen.svg)
 ![license: MIT/Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)
 

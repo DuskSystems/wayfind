@@ -52,14 +52,18 @@
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
 
-  // kamadorueda.alejandra
-  "alejandra.program": "alejandra",
-
-  "[nix]": {
-    "editor.defaultFormatter": "kamadorueda.alejandra"
-  },
-
   // jnoortheen.nix-ide
   "nix.enableLanguageServer": true,
-  "nix.serverPath": "nil"
+  "nix.serverPath": "nixd",
+  "nix.serverSettings": {
+    "nixd": {
+      "formatting": {
+        "command": ["nixfmt", "--width=120"]
+      }
+    }
+  },
+
+  "[nix]": {
+    "editor.defaultFormatter": "jnoortheen.nix-ide"
+  },
 }

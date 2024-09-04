@@ -15,6 +15,5 @@
     // Nix
     "mkhl.direnv",
     "jnoortheen.nix-ide",
-    "kamadorueda.alejandra",
   ]
 }
