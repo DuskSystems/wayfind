@@ -22,16 +22,15 @@ wayfind = { path = "../.." }
 bytes = "1.5"
 http = "1.0"
 http-body-util = "0.1"
-hyper = { version = "1.1", features = ["full"] }
-hyper-util = { version = "0.1", features = ["full"] }
-tokio = { version = "1.40", features = ["full"] }
+hyper = "1.1"
+hyper-util = { version = "0.1", features = ["tokio", "server-auto"] }
+tokio = { version = "1.40", features = ["macros", "rt-multi-thread"] }
 
 # Logging
 tracing = "0.1"
 tracing-subscriber = "0.3"
 
 # Serde
-serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Errors
