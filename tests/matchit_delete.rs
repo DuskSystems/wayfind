@@ -25,40 +25,40 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     router.insert("/s/s/{y}/d", 13)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ s [*]
-       │  ╰─ /s [*]
+       ├─ s ○
+       │  ╰─ /s ○
        │      ╰─ /
-       │         ├─ s [*]
-       │         │  ╰─ /s [*]
+       │         ├─ s ○
+       │         │  ╰─ /s ○
        │         ├─ {s}
-       │         │    ╰─ /x [*]
+       │         │    ╰─ /x ○
        │         ╰─ {y}
-       │              ╰─ /d [*]
+       │              ╰─ /d ○
        ├─ x/
        │   ├─ {bar}
-       │   │      ╰─ /baz [*]
+       │   │      ╰─ /baz ○
        │   ╰─ {foo}
-       │          ╰─ /bar [*]
+       │          ╰─ /bar ○
        ├─ {bar}
        │      ╰─ /
        │         ╰─ {bay}
-       │                ╰─ /bay [*]
+       │                ╰─ /bay ○
        ├─ {fod}
        │      ╰─ /
-       │         ├─ baz/bax/foo [*]
+       │         ├─ baz/bax/foo ○
        │         ╰─ {baz}
        │                ╰─ /
        │                   ╰─ {bax}
-       │                          ╰─ /foo [*]
+       │                          ╰─ /foo ○
        ╰─ {foo}
               ╰─ /
-                 ├─ baz/bax [*]
+                 ├─ baz/bax ○
                  ├─ {bar}
-                 │      ╰─ /baz [*]
+                 │      ╰─ /baz ○
                  ╰─ {baz}
-                        ╰─ /bax [*]
+                        ╰─ /bax ○
     "###);
 
     assert_eq!(router.delete("/x/{foo}/bar"), Ok(()));
@@ -76,9 +76,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     assert_eq!(router.delete("/s/s/{s}/x"), Ok(()));
     assert_eq!(router.delete("/s/s/{y}/d"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    "###);
+    insta::assert_snapshot!(router, @"▽");
 
     Ok(())
 }
@@ -90,10 +88,10 @@ fn test() -> Result<(), Box<dyn Error>> {
     router.insert("/home/{id}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /home [*]
+    ▽
+    ╰─ /home ○
            ╰─ /
-              ╰─ {id} [*]
+              ╰─ {id} ○
     "###);
 
     assert_eq!(router.delete("/home"), Ok(()));
@@ -116,9 +114,7 @@ fn test() -> Result<(), Box<dyn Error>> {
     The specified path does not exist in the router
     "###);
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    "###);
+    insta::assert_snapshot!(router, @"▽");
 
     Ok(())
 }
@@ -134,20 +130,20 @@ fn blog() -> Result<(), Box<dyn Error>> {
     router.insert("/favicon.ico", 5)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ favicon.ico [*]
+       ├─ favicon.ico ○
        ├─ posts/
        │       ╰─ {year}
        │               ╰─ /
-       │                  ├─ top [*]
+       │                  ├─ top ○
        │                  ╰─ {month}
        │                           ╰─ /
-       │                              ├─ index [*]
-       │                              ╰─ {post} [*]
+       │                              ├─ index ○
+       │                              ╰─ {post} ○
        ├─ static/
-       │        ╰─ {*path} [*]
-       ╰─ {page} [*]
+       │        ╰─ {*path} ○
+       ╰─ {page} ○
     "###);
 
     assert_eq!(router.delete("/{page}"), Ok(()));
@@ -157,9 +153,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     assert_eq!(router.delete("/static/{*path}"), Ok(()));
     assert_eq!(router.delete("/favicon.ico"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    "###);
+    insta::assert_snapshot!(router, @"▽");
 
     Ok(())
 }
@@ -173,46 +167,46 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     router.insert("/bar/{*catchall}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ bar [*]
-       │    ╰─ / [*]
-       │       ╰─ {*catchall} [*]
+       ├─ bar ○
+       │    ╰─ / ○
+       │       ╰─ {*catchall} ○
        ╰─ foo/
-             ╰─ {*catchall} [*]
+             ╰─ {*catchall} ○
     "###);
 
     assert_eq!(router.delete("/foo/{*catchall}"), Ok(()));
     assert_eq!(router.delete("/bar/"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ╰─ bar [*]
+       ╰─ bar ○
             ╰─ /
-               ╰─ {*catchall} [*]
+               ╰─ {*catchall} ○
     "###);
 
     router.insert("/foo/{*catchall}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ bar [*]
+       ├─ bar ○
        │    ╰─ /
-       │       ╰─ {*catchall} [*]
+       │       ╰─ {*catchall} ○
        ╰─ foo/
-             ╰─ {*catchall} [*]
+             ╰─ {*catchall} ○
     "###);
 
     assert_eq!(router.delete("/bar/{*catchall}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ bar [*]
+       ├─ bar ○
        ╰─ foo/
-             ╰─ {*catchall} [*]
+             ╰─ {*catchall} ○
     "###);
 
     Ok(())
@@ -232,394 +226,394 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     router.insert("/articles/{category}/{id}", 8)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/home"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
+       │                           ╰─ {id} ○
        ├─ home
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/home", 9)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/home/{id}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
-       ╰─ users [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/home/{id}", 10)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/users"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
+       │        ╰─ {id} ○
        ╰─ users
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/users", 11)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/users/{id}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
                  ╰─ {id}
-                       ╰─ /posts [*]
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/users/{id}", 12)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/users/{id}/posts"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
+                 ╰─ {id} ○
                        ╰─ /posts
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/users/{id}/posts", 13)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/users/{id}/posts/{post_id}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
     "###);
 
     router.insert("/users/{id}/posts/{post_id}", 14)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/articles"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ articles
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/articles", 15)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/articles/{category}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
        │            ╰─ {category}
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/articles/{category}", 16)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     assert_eq!(router.delete("/articles/{category}/{id}"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
-       ├─ home [*]
+       │            ╰─ {category} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     router.insert("/articles/{category}/{id}", 17)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ articles [*]
+       ├─ articles ○
        │         ╰─ /
-       │            ╰─ {category} [*]
+       │            ╰─ {category} ○
        │                        ╰─ /
-       │                           ╰─ {id} [*]
-       ├─ home [*]
+       │                           ╰─ {id} ○
+       ├─ home ○
        │     ╰─ /
-       │        ╰─ {id} [*]
-       ╰─ users [*]
+       │        ╰─ {id} ○
+       ╰─ users ○
               ╰─ /
-                 ╰─ {id} [*]
-                       ╰─ /posts [*]
+                 ╰─ {id} ○
+                       ╰─ /posts ○
                                ╰─ /
-                                  ╰─ {post_id} [*]
+                                  ╰─ {post_id} ○
     "###);
 
     Ok(())
@@ -632,11 +626,11 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/foo", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ foo [*]
+       ├─ foo ○
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     let error = router.delete("/").unwrap_err();
@@ -649,11 +643,11 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ foo [*]
+       ├─ foo ○
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     let error = router.delete("/{home}").unwrap_err();
@@ -666,11 +660,11 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ foo [*]
+       ├─ foo ○
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     let error = router.delete("/foo/").unwrap_err();
@@ -683,20 +677,20 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ foo [*]
+       ├─ foo ○
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     assert_eq!(router.delete("/foo"), Ok(()));
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     let error = router.delete("/{home}").unwrap_err();
@@ -709,17 +703,15 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ╰─ {home}
-               ╰─ / [*]
+               ╰─ / ○
     "###);
 
     assert_eq!(router.delete("/{home}/"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    "###);
+    insta::assert_snapshot!(router, @"▽");
 
     Ok(())
 }
@@ -730,15 +722,13 @@ fn remove_root() -> Result<(), Box<dyn Error>> {
     router.insert("/", 0)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
+    ▽
+    ╰─ / ○
     "###);
 
     assert_eq!(router.delete("/"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
-    $
-    "###);
+    insta::assert_snapshot!(router, @"▽");
 
     Ok(())
 }
@@ -753,23 +743,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     router.insert("/baz/{product}/{user}/{id}", 4)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     let error = router.delete("/foo/{a}").unwrap_err();
@@ -782,23 +772,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     let error = router.delete("/foo/{a}/bar").unwrap_err();
@@ -811,23 +801,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     let error = router.delete("/bar/{a}/{b}").unwrap_err();
@@ -840,23 +830,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     let error = router.delete("/bar/{a}/{b}/baz").unwrap_err();
@@ -869,23 +859,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     let error = router.delete("/baz/{a}/{b}/{c}").unwrap_err();
@@ -898,23 +888,23 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     "###);
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ ba
        │   ├─ r/
        │   │   ╰─ {user}
        │   │           ╰─ /
-       │   │              ╰─ {id} [*]
-       │   │                    ╰─ /baz [*]
+       │   │              ╰─ {id} ○
+       │   │                    ╰─ /baz ○
        │   ╰─ z/
        │       ╰─ {product}
        │                  ╰─ /
        │                     ╰─ {user}
        │                             ╰─ /
-       │                                ╰─ {id} [*]
+       │                                ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} [*]
-                   ╰─ /bar [*]
+             ╰─ {id} ○
+                   ╰─ /bar ○
     "###);
 
     Ok(())

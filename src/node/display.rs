@@ -13,7 +13,7 @@ impl<T> Display for Node<T> {
         ) -> std::fmt::Result {
             let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
             let key = match &node.kind {
-                NodeKind::Root => "$".to_string(),
+                NodeKind::Root => "▽".to_string(),
                 NodeKind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
                 NodeKind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
@@ -31,16 +31,15 @@ impl<T> Display for Node<T> {
                 }
             };
 
-            let value = node
-                .data
-                .as_ref()
-                .map_or(String::new(), |_node_data| " [*]".to_string());
-
             if is_root {
                 writeln!(output, "{key}")?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                writeln!(output, "{padding}{branch} {key}{value}")?;
+                if node.data.is_some() {
+                    writeln!(output, "{padding}{branch} {key} ○")?;
+                } else {
+                    writeln!(output, "{padding}{branch} {key}")?;
+                }
             }
 
             // Ensure we align children correctly
@@ -79,6 +78,6 @@ impl<T> Display for Node<T> {
         };
 
         debug_node(&mut output, self, &padding, true, true)?;
-        write!(f, "\n{}", output.trim_end())
+        write!(f, "{}", output.trim_end())
     }
 }

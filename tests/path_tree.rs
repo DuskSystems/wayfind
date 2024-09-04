@@ -26,21 +26,21 @@ fn statics() -> Result<(), Box<dyn Error>> {
     router.insert("/β", 11)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
-       ├─ a [*]
-       │  ╰─ b [*]
-       ├─ c [*]
-       │  ╰─ o [*]
-       │     ╰─ ntact [*]
-       ├─ doc/ [*]
+    ▽
+    ╰─ / ○
+       ├─ a ○
+       │  ╰─ b ○
+       ├─ c ○
+       │  ╰─ o ○
+       │     ╰─ ntact ○
+       ├─ doc/ ○
        │     ╰─ go
-       │         ├─ 1.html [*]
-       │         ╰─ _faq.html [*]
-       ├─ hi [*]
+       │         ├─ 1.html ○
+       │         ╰─ _faq.html ○
+       ├─ hi ○
        ╰─ �
-            ├─ � [*]
-            ╰─ � [*]
+            ├─ � ○
+            ╰─ � ○
     "###);
 
     assert_router_matches!(router, {
@@ -123,40 +123,40 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
     router.insert("/info/{user}/project/{project}", 19)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
+    ▽
+    ╰─ / ○
        ├─ cmd/
-       │     ├─ vet [*]
+       │     ├─ vet ○
        │     ╰─ {tool}
-       │             ╰─ / [*]
-       │                ╰─ {sub} [*]
-       ├─ doc/ [*]
+       │             ╰─ / ○
+       │                ╰─ {sub} ○
+       ├─ doc/ ○
        │     ╰─ rust
-       │           ├─ 1.html [*]
-       │           ╰─ _faq.html [*]
+       │           ├─ 1.html ○
+       │           ╰─ _faq.html ○
        ├─ files/
        │       ╰─ {dir}
        │              ╰─ /
-       │                 ╰─ {*filepath} [*]
+       │                 ╰─ {*filepath} ○
        ├─ info/
        │      ╰─ {user}
        │              ╰─ /p
        │                  ├─ roject/
-       │                  │        ╰─ {project} [*]
-       │                  ╰─ ublic [*]
+       │                  │        ╰─ {project} ○
+       │                  ╰─ ublic ○
        ├─ s
-       │  ├─ earch/ [*]
-       │  │       ├─ invalid [*]
-       │  │       ╰─ {query} [*]
+       │  ├─ earch/ ○
+       │  │       ├─ invalid ○
+       │  │       ╰─ {query} ○
        │  ╰─ rc
        │      ├─ /
-       │      │  ╰─ {*filepath} [*]
-       │      ╰─ 1/ [*]
-       │          ╰─ {*filepath} [*]
+       │      │  ╰─ {*filepath} ○
+       │      ╰─ 1/ ○
+       │          ╰─ {*filepath} ○
        ╰─ user_
-              ├─ x [*]
-              ╰─ {name} [*]
-                      ╰─ /about [*]
+              ├─ x ○
+              ╰─ {name} ○
+                      ╰─ /about ○
     "###);
 
     assert_router_matches!(router, {
@@ -243,9 +243,9 @@ fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/users/{id}", 0)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /users/
-             ╰─ {id} [*]
+             ╰─ {id} ○
     "###);
 
     assert_router_matches!(router, {
@@ -305,15 +305,15 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/{id}/c/e", "/{id}/c/e")?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ a/
-       │   ├─ b/c [*]
+       │   ├─ b/c ○
        │   ╰─ c/
-       │       ├─ a [*]
-       │       ╰─ d [*]
+       │       ├─ a ○
+       │       ╰─ d ○
        ╰─ {id}
-             ╰─ /c/e [*]
+             ╰─ /c/e ○
     "###);
 
     assert_router_matches!(router, {
@@ -349,12 +349,12 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     router.insert("/{id}", true)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ├─ {id} [*]
+       ├─ {id} ○
        ╰─ {lang}
                ╰─ /
-                  ╰─ {keyword} [*]
+                  ╰─ {keyword} ○
     "###);
 
     assert_router_matches!(router, {
@@ -388,9 +388,9 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/src/{*filepath}", "* files")?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /src/
-           ╰─ {*filepath} [*]
+           ╰─ {*filepath} ○
     "###);
 
     assert_router_matches!(router, {
@@ -418,9 +418,9 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/src/", "dir")?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /src/ [*]
-           ╰─ {*filepath} [*]
+    ▽
+    ╰─ /src/ ○
+           ╰─ {*filepath} ○
     "###);
 
     assert_router_matches!(router, {
@@ -522,13 +522,13 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/a/{*c}", "/a/*c")?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /a/
-         ├─ b/c [*]
+         ├─ b/c ○
          ├─ c/
-         │   ├─ a [*]
-         │   ╰─ d [*]
-         ╰─ {*c} [*]
+         │   ├─ a ○
+         │   ╰─ d ○
+         ╰─ {*c} ○
     "###);
 
     assert_router_matches!(router, {
@@ -565,11 +565,11 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     router.insert("/users/{*wildcard}", 3)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
+    ▽
+    ╰─ / ○
        ├─ users/
-       │       ╰─ {*wildcard} [*]
-       ╰─ {*wildcard} [*]
+       │       ╰─ {*wildcard} ○
+       ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -602,9 +602,9 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     router.insert("/{*wildcard}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ╰─ {*wildcard} [*]
+       ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -629,9 +629,9 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     router.insert("/", 0)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
-       ╰─ {*wildcard} [*]
+    ▽
+    ╰─ / ○
+       ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -652,12 +652,12 @@ fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
     router.insert("/matchme/{slug}/", 2)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
+    ▽
+    ╰─ / ○
        ├─ matchme/
        │         ╰─ {slug}
-       │                 ╰─ / [*]
-       ╰─ {*wildcard} [*]
+       │                 ╰─ / ○
+       ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -701,12 +701,12 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
     router.insert("/git/{*wildcard}", 2)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /git/
            ├─ {org}
            │      ╰─ /
-           │         ╰─ {repo} [*]
-           ╰─ {*wildcard} [*]
+           │         ╰─ {repo} ○
+           ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -736,11 +736,11 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/{param}/{*wildcard}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/v1/
               ╰─ {param}
                        ╰─ /
-                          ╰─ {*wildcard} [*]
+                          ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -799,8 +799,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/v1/some/resource/name:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /v1/some/resource/name:customVerb [*]
+    ▽
+    ╰─ /v1/some/resource/name:customVerb ○
     "###);
 
     assert_router_matches!(router, {
@@ -815,10 +815,10 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/v1/some/resource/{name}:customVerb", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /v1/some/resource/
                         ╰─ {name}
-                                ╰─ :customVerb [*]
+                                ╰─ :customVerb ○
     "###);
 
     assert_router_matches!(router, {
@@ -836,9 +836,9 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/{*wildcard}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/v1/
-              ╰─ {*wildcard} [*]
+              ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -872,9 +872,9 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/{param}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/v1/
-              ╰─ {param} [*]
+              ╰─ {param} ○
     "###);
 
     assert_router_matches!(router, {
@@ -900,21 +900,21 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/{param}:{param2}", 6)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/v1/
               ╰─ {param}
                        ├─ -
-                       │  ╰─ {param2} [*]
+                       │  ╰─ {param2} ○
                        ├─ .
-                       │  ╰─ {param2} [*]
+                       │  ╰─ {param2} ○
                        ├─ /
-                       │  ╰─ {param2} [*]
+                       │  ╰─ {param2} ○
                        ├─ :
-                       │  ╰─ {param2} [*]
+                       │  ╰─ {param2} ○
                        ├─ _
-                       │  ╰─ {param2} [*]
+                       │  ╰─ {param2} ○
                        ╰─ ~
-                          ╰─ {param2} [*]
+                          ╰─ {param2} ○
     "###);
 
     assert_router_matches!(router, {
@@ -982,8 +982,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/const", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ /api/v1/const [*]
+    ▽
+    ╰─ /api/v1/const ○
     "###);
 
     assert_router_matches!(router, {
@@ -1002,10 +1002,10 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/{param}/fixedEnd", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/
            ╰─ {param}
-                    ╰─ /fixedEnd [*]
+                    ╰─ /fixedEnd ○
     "###);
 
     assert_router_matches!(router, {
@@ -1023,13 +1023,13 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/shop/product/:{filter}/color:{color}/size:{size}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /shop/product/:
                      ╰─ {filter}
                                ╰─ /color:
                                         ╰─ {color}
                                                  ╰─ /size:
-                                                         ╰─ {size} [*]
+                                                         ╰─ {size} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1049,10 +1049,10 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/test{sign}{param}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /test
            ╰─ {sign}
-                   ╰─ {param} [*]
+                   ╰─ {param} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1070,21 +1070,21 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/{name}", 7)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ├─ -
-       │  ╰─ {name} [*]
+       │  ╰─ {name} ○
        ├─ .
-       │  ╰─ {name} [*]
+       │  ╰─ {name} ○
        ├─ @
-       │  ╰─ {name} [*]
+       │  ╰─ {name} ○
        ├─ _
-       │  ╰─ {name} [*]
+       │  ╰─ {name} ○
        ├─ name
-       │     ╰─ {name} [*]
+       │     ╰─ {name} ○
        ├─ ~
-       │  ╰─ {name} [*]
-       ╰─ {name} [*]
+       │  ╰─ {name} ○
+       ╰─ {name} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1143,11 +1143,11 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     router.insert("/api/v1/{param}/abc/{*wildcard}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /api/v1/
               ╰─ {param}
                        ╰─ /abc/
-                              ╰─ {*wildcard} [*]
+                              ╰─ {*wildcard} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1276,18 +1276,18 @@ fn basic() -> Result<(), Box<dyn Error>> {
     router.insert("/api/{*plus}", 13)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
+    ▽
+    ╰─ / ○
        ├─ api/
-       │     ╰─ {*plus} [*]
-       ├─ login [*]
+       │     ╰─ {*plus} ○
+       ├─ login ○
        ├─ public/
-       │        ╰─ {*any} [*]
+       │        ╰─ {*any} ○
        ├─ s
-       │  ├─ ettings [*]
+       │  ├─ ettings ○
        │  │        ╰─ /
-       │  │           ╰─ {page} [*]
-       │  ╰─ ignup [*]
+       │  │           ╰─ {page} ○
+       │  ╰─ ignup ○
        ├─ {org}
        │      ╰─ /
        │         ╰─ {repo}
@@ -1295,24 +1295,24 @@ fn basic() -> Result<(), Box<dyn Error>> {
        │                    ├─ actions/
        │                    │         ╰─ {name}
        │                    │                 ╰─ :
-       │                    │                    ╰─ {verb} [*]
+       │                    │                    ╰─ {verb} ○
        │                    ├─ releases/download/
        │                    │                   ╰─ {tag}
        │                    │                          ╰─ /
        │                    │                             ╰─ {filename}
        │                    │                                         ╰─ .
-       │                    │                                            ╰─ {ext} [*]
+       │                    │                                            ╰─ {ext} ○
        │                    ├─ tags/
        │                    │      ╰─ {day}
        │                    │             ╰─ -
        │                    │                ╰─ {month}
        │                    │                         ╰─ -
-       │                    │                            ╰─ {year} [*]
-       │                    ├─ {page} [*]
-       │                    ╰─ {*path} [*]
-       ╰─ {user} [*]
+       │                    │                            ╰─ {year} ○
+       │                    ├─ {page} ○
+       │                    ╰─ {*path} ○
+       ╰─ {user} ○
                ╰─ /
-                  ╰─ {repo} [*]
+                  ╰─ {repo} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1552,180 +1552,180 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
     )?;
 
     insta::assert_snapshot!(router, @r###"
-    $
-    ╰─ / [*]
-       ├─ 404 [*]
+    ▽
+    ╰─ / ○
+       ├─ 404 ○
        ├─ 50
-       │   ├─ 0 [*]
-       │   ╰─ 3 [*]
+       │   ├─ 0 ○
+       │   ╰─ 3 ○
        ├─ a
-       │  ├─ bout [*]
+       │  ├─ bout ○
        │  │     ╰─ /
-       │  │        ├─ careers [*]
-       │  │        ├─ diversity [*]
-       │  │        ╰─ press [*]
-       │  ╰─ pi [*]
+       │  │        ├─ careers ○
+       │  │        ├─ diversity ○
+       │  │        ╰─ press ○
+       │  ╰─ pi ○
        ├─ c
-       │  ├─ ollections [*]
-       │  ╰─ ustomer-stories [*]
+       │  ├─ ollections ○
+       │  ╰─ ustomer-stories ○
        ├─ e
-       │  ├─ nterprise [*]
-       │  ╰─ xplore [*]
-       ├─ features [*]
+       │  ├─ nterprise ○
+       │  ╰─ xplore ○
+       ├─ features ○
        │         ╰─ /
-       │            ├─ actions [*]
+       │            ├─ actions ○
        │            ├─ co
        │            │   ├─ de
-       │            │   │   ├─ -review [*]
-       │            │   │   ╰─ spaces [*]
-       │            │   ╰─ pilot [*]
-       │            ├─ discussions [*]
-       │            ├─ issues [*]
-       │            ├─ packages [*]
-       │            ╰─ security [*]
-       ├─ issues [*]
-       ├─ login [*]
-       ├─ marketplace [*]
-       ├─ new [*]
-       │    ╰─ /import [*]
+       │            │   │   ├─ -review ○
+       │            │   │   ╰─ spaces ○
+       │            │   ╰─ pilot ○
+       │            ├─ discussions ○
+       │            ├─ issues ○
+       │            ├─ packages ○
+       │            ╰─ security ○
+       ├─ issues ○
+       ├─ login ○
+       ├─ marketplace ○
+       ├─ new ○
+       │    ╰─ /import ○
        ├─ organizations/
-       │               ├─ new [*]
-       │               ╰─ plan [*]
+       │               ├─ new ○
+       │               ╰─ plan ○
        ├─ p
-       │  ├─ ricing [*]
-       │  ╰─ ulls [*]
-       ├─ readme [*]
+       │  ├─ ricing ○
+       │  ╰─ ulls ○
+       ├─ readme ○
        ├─ s
        │  ├─ e
-       │  │  ├─ arch [*]
-       │  │  ╰─ ttings [*]
+       │  │  ├─ arch ○
+       │  │  ╰─ ttings ○
        │  │          ╰─ /
        │  │             ├─ a
-       │  │             │  ├─ ccessibility [*]
-       │  │             │  ├─ dmin [*]
+       │  │             │  ├─ ccessibility ○
+       │  │             │  ├─ dmin ○
        │  │             │  ╰─ pp
-       │  │             │      ├─ earance [*]
-       │  │             │      ╰─ s [*]
+       │  │             │      ├─ earance ○
+       │  │             │      ╰─ s ○
        │  │             ├─ b
-       │  │             │  ├─ illing [*]
-       │  │             │  │       ╰─ /plans [*]
-       │  │             │  ╰─ locked_users [*]
+       │  │             │  ├─ illing ○
+       │  │             │  │       ╰─ /plans ○
+       │  │             │  ╰─ locked_users ○
        │  │             ├─ co
        │  │             │   ├─ de
-       │  │             │   │   ├─ _review_limits [*]
-       │  │             │   │   ╰─ spaces [*]
-       │  │             │   ╰─ pilot [*]
+       │  │             │   │   ├─ _review_limits ○
+       │  │             │   │   ╰─ spaces ○
+       │  │             │   ╰─ pilot ○
        │  │             ├─ de
-       │  │             │   ├─ leted_packages [*]
-       │  │             │   ╰─ velopers [*]
+       │  │             │   ├─ leted_packages ○
+       │  │             │   ╰─ velopers ○
        │  │             ├─ in
-       │  │             │   ├─ stallations [*]
-       │  │             │   ╰─ teraction_limits [*]
-       │  │             ├─ keys [*]
-       │  │             ├─ notifications [*]
-       │  │             ├─ organizations [*]
-       │  │             ├─ pages [*]
+       │  │             │   ├─ stallations ○
+       │  │             │   ╰─ teraction_limits ○
+       │  │             ├─ keys ○
+       │  │             ├─ notifications ○
+       │  │             ├─ organizations ○
+       │  │             ├─ pages ○
        │  │             ├─ re
-       │  │             │   ├─ minders [*]
+       │  │             │   ├─ minders ○
        │  │             │   ╰─ p
-       │  │             │      ├─ lies [*]
-       │  │             │      ╰─ ositories [*]
+       │  │             │      ├─ lies ○
+       │  │             │      ╰─ ositories ○
        │  │             ├─ s
-       │  │             │  ├─ ecurity [*]
-       │  │             │  │        ├─ -log [*]
-       │  │             │  │        ╰─ _analysis [*]
-       │  │             │  ╰─ ponsors-log [*]
-       │  │             ╰─ tokens [*]
-       │  ├─ ignup [*]
-       │  ╰─ ponsors [*]
+       │  │             │  ├─ ecurity ○
+       │  │             │  │        ├─ -log ○
+       │  │             │  │        ╰─ _analysis ○
+       │  │             │  ╰─ ponsors-log ○
+       │  │             ╰─ tokens ○
+       │  ├─ ignup ○
+       │  ╰─ ponsors ○
        │           ╰─ /
-       │              ├─ accounts [*]
-       │              ├─ explore [*]
-       │              ╰─ {repo} [*]
+       │              ├─ accounts ○
+       │              ├─ explore ○
+       │              ╰─ {repo} ○
        │                      ╰─ /
        │                         ├─ issues/
-       │                         │        ╰─ {*path} [*]
-       │                         ├─ {user} [*]
+       │                         │        ╰─ {*path} ○
+       │                         ├─ {user} ○
        │                         ├─ {*plus}
        │                         │        ╰─ /
-       │                         │           ├─ {file} [*]
+       │                         │           ├─ {file} ○
        │                         │           ╰─ {filename}
        │                         │                       ╰─ .
-       │                         │                          ╰─ {ext} [*]
-       │                         ╰─ {*plus} [*]
+       │                         │                          ╰─ {ext} ○
+       │                         ╰─ {*plus} ○
        ├─ t
-       │  ├─ eam [*]
-       │  ├─ opics [*]
-       │  ╰─ rending [*]
-       ╰─ {org} [*]
+       │  ├─ eam ○
+       │  ├─ opics ○
+       │  ╰─ rending ○
+       ╰─ {org} ○
               ╰─ /
-                 ╰─ {repo} [*]
+                 ╰─ {repo} ○
                          ╰─ /
-                            ├─ actions [*]
+                            ├─ actions ○
                             │        ╰─ /
                             │           ├─ runs/
-                            │           │      ╰─ {id} [*]
+                            │           │      ╰─ {id} ○
                             │           ╰─ workflows/
-                            │                       ╰─ {id} [*]
+                            │                       ╰─ {id} ○
                             ├─ com
                             │    ├─ m
                             │    │  ├─ it/
-                            │    │  │    ╰─ {id} [*]
-                            │    │  ╰─ unity [*]
-                            │    ╰─ pare [*]
-                            ├─ discussions [*]
+                            │    │  │    ╰─ {id} ○
+                            │    │  ╰─ unity ○
+                            │    ╰─ pare ○
+                            ├─ discussions ○
                             │            ╰─ /
-                            │               ╰─ {id} [*]
+                            │               ╰─ {id} ○
                             ├─ graphs/co
-                            │          ├─ de-frequency [*]
-                            │          ├─ mmit-activity [*]
-                            │          ╰─ ntributors [*]
-                            ├─ issues [*]
+                            │          ├─ de-frequency ○
+                            │          ├─ mmit-activity ○
+                            │          ╰─ ntributors ○
+                            ├─ issues ○
                             │       ╰─ /
-                            │          ├─ new [*]
-                            │          ╰─ {id} [*]
-                            ├─ network [*]
+                            │          ├─ new ○
+                            │          ╰─ {id} ○
+                            ├─ network ○
                             │        ╰─ /
                             │           ├─ dependen
-                            │           │         ├─ cies [*]
-                            │           │         ╰─ ts [*]
-                            │           ╰─ members [*]
+                            │           │         ├─ cies ○
+                            │           │         ╰─ ts ○
+                            │           ╰─ members ○
                             ├─ pul
                             │    ├─ l
                             │    │  ├─ /
-                            │    │  │  ╰─ {id} [*]
-                            │    │  ╰─ s [*]
-                            │    ╰─ se [*]
-                            ├─ releases [*]
+                            │    │  │  ╰─ {id} ○
+                            │    │  ╰─ s ○
+                            │    ╰─ se ○
+                            ├─ releases ○
                             │         ╰─ /
                             │            ├─ download/
                             │            │          ╰─ {tag}
                             │            │                 ╰─ /
                             │            │                    ╰─ {filename}
                             │            │                                ╰─ .
-                            │            │                                   ╰─ {ext} [*]
+                            │            │                                   ╰─ {ext} ○
                             │            ├─ tag/
-                            │            │     ╰─ {id} [*]
-                            │            ╰─ {*path} [*]
+                            │            │     ╰─ {id} ○
+                            │            ╰─ {*path} ○
                             ├─ s
-                            │  ├─ ecurity [*]
+                            │  ├─ ecurity ○
                             │  │        ╰─ /
-                            │  │           ├─ advisories [*]
-                            │  │           ╰─ policy [*]
-                            │  ╰─ targazers [*]
-                            │             ╰─ /yoou_know [*]
+                            │  │           ├─ advisories ○
+                            │  │           ╰─ policy ○
+                            │  ╰─ targazers ○
+                            │             ╰─ /yoou_know ○
                             ├─ t
-                            │  ├─ ags [*]
+                            │  ├─ ags ○
                             │  │    ╰─ /
-                            │  │       ╰─ {id} [*]
+                            │  │       ╰─ {id} ○
                             │  ╰─ ree/
-                            │        ╰─ {id} [*]
+                            │        ╰─ {id} ○
                             ├─ w
-                            │  ├─ atchers [*]
-                            │  ╰─ iki [*]
+                            │  ├─ atchers ○
+                            │  ╰─ iki ○
                             │       ╰─ /
-                            │          ╰─ {id} [*]
-                            ╰─ {*path} [*]
+                            │          ╰─ {id} ○
+                            ╰─ {*path} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1802,9 +1802,9 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
     router.insert("/{name}", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
-       ╰─ {name} [*]
+       ╰─ {name} ○
     "###);
 
     assert_router_matches!(router, {
@@ -1856,11 +1856,11 @@ fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
     router.insert("/{name}.js.gz", 1)?;
 
     insta::assert_snapshot!(router, @r###"
-    $
+    ▽
     ╰─ /
        ╰─ {name}
-               ╰─ .js [*]
-                    ╰─ .gz [*]
+               ╰─ .js ○
+                    ╰─ .gz ○
     "###);
 
     assert_router_matches!(router, {
