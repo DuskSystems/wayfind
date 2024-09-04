@@ -1,0 +1,54 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind-oci-example"
+description = "Example of using `wayfind` as an OCI registry."
+publish = false
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+wayfind = { path = "../.." }
+
+# Web
+bytes = "1.5"
+http = "1.0"
+http-body-util = "0.1"
+hyper = { version = "1.1", features = ["full"] }
+hyper-util = { version = "0.1", features = ["full"] }
+tokio = { version = "1.40", features = ["full"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Errors
+anyhow = "1.0"
+thiserror = "1.0"
+
+# UUID
+uuid = { version = "1.10", features = ["v4"] }
+
+# Hash
+sha2 = "0.10"
+
+# Encoding
+percent-encoding = "2.3"
+
+# Regex
+regex = "1.10"
+
+# Data Structures
+dashmap = "6.0"
