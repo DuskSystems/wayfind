@@ -121,6 +121,32 @@ The current constraint implementation has a number of limitations:
 - checks cannot make use of any prior state
 - checks cannot store data after a successful check
 
+#### Default Constraints
+
+`wayfind` ships with a number of default constraints.
+
+Curently, these can't be disabled.
+
+| Name    | Method               |
+|:--------|:---------------------|
+| `u8`    | `u8::from_str`       |
+| `u16`   | `u16::from_str`      |
+| `u32`   | `u32::from_str`      |
+| `u64`   | `u64::from_str`      |
+| `u128`  | `u128::from_str`     |
+| `usize` | `usize::from_str`    |
+| `i8`    | `i8::from_str`       |
+| `i16`   | `i16::from_str`      |
+| `i32`   | `i32::from_str`      |
+| `i64`   | `i64::from_str`      |
+| `i128`  | `i128::from_str`     |
+| `isize` | `isize::from_str`    |
+| `f32`   | `f32::from_str`      |
+| `f64`   | `f64::from_str`      |
+| `bool`  | `bool::from_str`     |
+| `ipv4`  | `Ipv4Addr::from_str` |
+| `ipv6`  | `Ipv6Addr::from_str` |
+
 #### Example
 
 ```rust
