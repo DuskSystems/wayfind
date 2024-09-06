@@ -11,14 +11,14 @@ rustPlatform.buildRustPackage rec {
   pname = "cargo-codspeed";
 
   # NOTE: Keep in sync with `codspeed-criterion-compat` Rust package.
-  version = "2.6.0";
+  version = "2.7.1";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-e4cDZ+sbylS3gaJpl6FLYPUVedBeAOGqtxDw8YbU9U8=";
+    hash = "sha256-crucisC3wCiEX5eXufricyBY/UuueJNDXQoyGY2+RF0=";
   };
 
-  cargoHash = "sha256-ihkmD48EG1fWJ38AAt4Hy6dpATIgnEb6kApDfsTKxwA=";
+  cargoHash = "sha256-47aJR4ZXax39fjhSu/0eVOtnCmmGw+S/8ea/I7/RAg0=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs =
@@ -31,14 +31,14 @@ rustPlatform.buildRustPackage rec {
   doCheck = false;
 
   meta = with lib; {
-    description = "A cargo subcommand for running CodSpeed on your project.";
-    mainProgram = "cargo-codspeed";
     homepage = "https://github.com/CodSpeedHQ/codspeed-rust";
-    changelog = "https://github.com/CodSpeedHQ/codspeed-rust/releases/tag/v${version}";
+    description = "A cargo subcommand for running CodSpeed on your project.";
+    changelog = "https://github.com/CodSpeedHQ/codspeed-rust/releases";
     license = [
       licenses.mit
       licenses.asl20
     ];
     platforms = platforms.all;
+    mainProgram = "cargo-codspeed";
   };
 }

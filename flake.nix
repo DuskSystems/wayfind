@@ -69,7 +69,7 @@
 
             buildInputs = with pkgs; [
               # Rust
-              (rust-bin.stable."1.80.1".minimal.override {
+              (rust-bin.stable."1.81.0".minimal.override {
                 extensions = [
                   "clippy"
                   "rust-analyzer"
@@ -80,6 +80,7 @@
               })
               sccache
               cargo-insta
+              cargo-outdated
               cargo-watch
 
               # Benchmarking
@@ -106,7 +107,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.80.1".minimal)
+              (rust-bin.stable."1.81.0".minimal)
               sccache
               cargo-codspeed
             ];
@@ -120,7 +121,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.80.1".minimal.override {
+              (rust-bin.stable."1.81.0".minimal.override {
                 extensions = [
                   "clippy"
                   "rustfmt"
@@ -152,7 +153,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.80.1".minimal)
+              (rust-bin.stable."1.81.0".minimal)
               sccache
             ];
           };
@@ -204,7 +205,7 @@
             OCI_HIDE_SKIPPED_WORKFLOWS = 1;
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.80.1".minimal)
+              (rust-bin.stable."1.81.0".minimal)
               sccache
               oci-distribution-spec-conformance
             ];

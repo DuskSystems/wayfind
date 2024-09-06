@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_lines)]
 
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
-//! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/benches/bench.rs>
+//! <https://github.com/ibraheemdev/matchit/blob/v0.8.4/benches/bench.rs>
 
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;

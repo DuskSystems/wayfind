@@ -1,5 +1,5 @@
 //! Tests sourced from `matchit` (MIT AND BSD-3-Clause)
-//! <https://github.com/ibraheemdev/matchit/blob/v0.8.3/tests/match.rs>
+//! <https://github.com/ibraheemdev/matchit/blob/v0.8.4/tests/match.rs>
 
 #![allow(clippy::too_many_lines)]
 

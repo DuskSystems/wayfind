@@ -28,11 +28,11 @@ buildGoModule rec {
   doCheck = false;
 
   meta = with lib; {
-    description = " OCI Distribution Specification Conformance Tests";
-    mainProgram = "oci-distribution-spec-conformance";
     homepage = "https://opencontainers.org";
+    description = " OCI Distribution Specification Conformance Tests";
     changelog = "https://github.com/opencontainers/distribution-spec/releases";
     license = licenses.asl20;
     platforms = platforms.all;
+    mainProgram = "oci-distribution-spec-conformance";
   };
 }
