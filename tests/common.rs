@@ -13,15 +13,15 @@ macro_rules! assert_router_matches {
     };
 
     (@parse_expected {
-        path: $path:expr,
-        value: $value:expr
+        route: $route:expr,
+        data: $data:expr
         $(, params: {
             $($param_key:expr => $param_value:expr),+
         })?
     }) => {
         Some($crate::common::ExpectedMatch {
-            path: std::sync::Arc::from($path),
-            value: $value,
+            route: std::sync::Arc::from($route),
+            data: $data,
             params: vec![
                 $(
                     $( wayfind::Parameter {
@@ -39,8 +39,8 @@ macro_rules! assert_router_matches {
 }
 
 pub struct ExpectedMatch<'k, 'v, T> {
-    pub path: Arc<str>,
-    pub value: T,
+    pub route: Arc<str>,
+    pub data: T,
     pub params: Vec<Parameter<'k, 'v>>,
 }
 
@@ -51,17 +51,19 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {
     let path = Path::new(input).expect("Invalid path!");
-    let Ok(Some(Match { data, parameters })) = router.search(&path) else {
+    let Ok(Some(Match {
+        route,
+        data,
+        parameters,
+    })) = router.search(&path)
+    else {
         assert!(expected.is_none(), "No match found for input: {input}");
         return;
     };
 
     if let Some(expected) = expected {
-        assert_eq!(data.path, expected.path, "Path mismatch for input: {input}");
-        assert_eq!(
-            data.value, expected.value,
-            "Value mismatch for input: {input}"
-        );
+        assert_eq!(route, expected.route, "Path mismatch for input: {input}");
+        assert_eq!(*data, expected.data, "Value mismatch for input: {input}");
         assert_eq!(
             parameters, expected.params,
             "Parameters mismatch for input: {input}"

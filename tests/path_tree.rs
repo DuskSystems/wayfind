@@ -45,52 +45,52 @@ fn statics() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 0
+            route: "/",
+            data: 0
         }
         "/hi" => {
-            path: "/hi",
-            value: 1
+            route: "/hi",
+            data: 1
         }
         "/contact" => {
-            path: "/contact",
-            value: 2
+            route: "/contact",
+            data: 2
         }
         "/co" => {
-            path: "/co",
-            value: 3
+            route: "/co",
+            data: 3
         }
         "/c" => {
-            path: "/c",
-            value: 4
+            route: "/c",
+            data: 4
         }
         "/a" => {
-            path: "/a",
-            value: 5
+            route: "/a",
+            data: 5
         }
         "/ab" => {
-            path: "/ab",
-            value: 6
+            route: "/ab",
+            data: 6
         }
         "/doc/" => {
-            path: "/doc/",
-            value: 7
+            route: "/doc/",
+            data: 7
         }
         "/doc/go_faq.html" => {
-            path: "/doc/go_faq.html",
-            value: 8
+            route: "/doc/go_faq.html",
+            data: 8
         }
         "/doc/go1.html" => {
-            path: "/doc/go1.html",
-            value: 9
+            route: "/doc/go1.html",
+            data: 9
         }
         "/α" => {
-            path: "/α",
-            value: 10
+            route: "/α",
+            data: 10
         }
         "/β" => {
-            path: "/β",
-            value: 11
+            route: "/β",
+            data: 11
         }
     });
 
@@ -161,19 +161,19 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 0
+            route: "/",
+            data: 0
         }
         "/cmd/test/" => {
-            path: "/cmd/{tool}/",
-            value: 2,
+            route: "/cmd/{tool}/",
+            data: 2,
             params: {
                 "tool" => "test"
             }
         }
         "/cmd/test/3" => {
-            path: "/cmd/{tool}/{sub}",
-            value: 1,
+            route: "/cmd/{tool}/{sub}",
+            data: 1,
             params: {
                 "tool" => "test",
                 "sub" => "3"
@@ -182,51 +182,51 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/src/{*filepath}"
         "/src/" => None
         "/src/some/file.png" => {
-            path: "/src/{*filepath}",
-            value: 4,
+            route: "/src/{*filepath}",
+            data: 4,
             params: {
                 "filepath" => "some/file.png"
             }
         }
         "/search/someth!ng+in+ünìcodé" => {
-            path: "/search/{query}",
-            value: 9,
+            route: "/search/{query}",
+            data: 9,
             params: {
                 "query" => "someth!ng+in+ünìcodé"
             }
         }
         "/user_rust" => {
-            path: "/user_{name}",
-            value: 11,
+            route: "/user_{name}",
+            data: 11,
             params: {
                 "name" => "rust"
             }
         }
         "/user_rust/about" => {
-            path: "/user_{name}/about",
-            value: 12,
+            route: "/user_{name}/about",
+            data: 12,
             params: {
                 "name" => "rust"
             }
         }
         "/files/js/inc/framework.js" => {
-            path: "/files/{dir}/{*filepath}",
-            value: 14,
+            route: "/files/{dir}/{*filepath}",
+            data: 14,
             params: {
                 "dir" => "js",
                 "filepath" => "inc/framework.js"
             }
         }
         "/info/gordon/public" => {
-            path: "/info/{user}/public",
-            value: 18,
+            route: "/info/{user}/public",
+            data: 18,
             params: {
                 "user" => "gordon"
             }
         }
         "/info/gordon/project/rust" => {
-            path: "/info/{user}/project/{project}",
-            value: 19,
+            route: "/info/{user}/project/{project}",
+            data: 19,
             params: {
                 "user" => "gordon",
                 "project" => "rust"
@@ -251,15 +251,15 @@ fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     assert_router_matches!(router, {
         "/" => None
         "/users/gordon" => {
-            path: "/users/{id}",
-            value: 0,
+            route: "/users/{id}",
+            data: 0,
             params: {
                 "id" => "gordon"
             }
         }
         "/users/you" => {
-            path: "/users/{id}",
-            value: 0,
+            route: "/users/{id}",
+            data: 0,
             params: {
                 "id" => "you"
             }
@@ -285,8 +285,8 @@ fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     // Possibly we'd be better off erroring here, since it's ambiguous.
     assert_router_matches!(router, {
         "/users/gordon" => {
-            path: "/users/{user_id}",
-            value: 1,
+            route: "/users/{user_id}",
+            data: 1,
             params: {
                 "user_id" => "gordon"
             }
@@ -319,20 +319,20 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     assert_router_matches!(router, {
         "/" => None
         "/a/b/c" => {
-            path: "/a/b/c",
-            value: "/a/b/c"
+            route: "/a/b/c",
+            data: "/a/b/c"
         }
         "/a/c/d" => {
-            path: "/a/c/d",
-            value: "/a/c/d"
+            route: "/a/c/d",
+            data: "/a/c/d"
         }
         "/a/c/a" => {
-            path: "/a/c/a",
-            value: "/a/c/a"
+            route: "/a/c/a",
+            data: "/a/c/a"
         }
         "/a/c/e" => {
-            path: "/{id}/c/e",
-            value: "/{id}/c/e",
+            route: "/{id}/c/e",
+            data: "/{id}/c/e",
             params: {
                 "id" => "a"
             }
@@ -363,16 +363,16 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
         "/rust/let/" => None
         "/rust/let/const" => None
         "/rust/let" => {
-            path: "/{lang}/{keyword}",
-            value: true,
+            route: "/{lang}/{keyword}",
+            data: true,
             params: {
                 "lang" => "rust",
                 "keyword" => "let"
             }
         }
         "/rust" => {
-            path: "/{id}",
-            value: true,
+            route: "/{id}",
+            data: true,
             params: {
                 "id" => "rust"
             }
@@ -398,15 +398,15 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/src/{*filepath}"
         "/src/" => None
         "/src/somefile.rs" => {
-            path: "/src/{*filepath}",
-            value: "* files",
+            route: "/src/{*filepath}",
+            data: "* files",
             params: {
                 "filepath" => "somefile.rs"
             }
         }
         "/src/subdir/somefile.rs" => {
-            path: "/src/{*filepath}",
-            value: "* files",
+            route: "/src/{*filepath}",
+            data: "* files",
             params: {
                 "filepath" => "subdir/somefile.rs"
             }
@@ -425,8 +425,8 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/src/" => {
-            path: "/src/",
-            value: "dir"
+            route: "/src/",
+            data: "dir"
         }
     });
 
@@ -446,19 +446,19 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/src/" => {
-            path: "/src/",
-            value: "dir"
+            route: "/src/",
+            data: "dir"
         }
         "/commit/123" => {
-            path: "/commit/{sha}",
-            value: "hex",
+            route: "/commit/{sha}",
+            data: "hex",
             params: {
                 "sha" => "123"
             }
         }
         "/commit/123/compare/321" => {
-            path: "/commit/{sha0}/compare/{sha1}",
-            value: "compare",
+            route: "/commit/{sha0}/compare/{sha1}",
+            data: "compare",
             params: {
                 "sha0" => "123",
                 "sha1" => "321"
@@ -466,44 +466,44 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
         }
         "/commit" => None
         "/commit_" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => ""
             }
         }
         "/commit_/" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => "/"
             }
         }
         "/commit_/foo" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => "/foo"
             }
         }
         "/commit123" => None
         "/commit_123" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => "123"
             }
         }
         "/commit_123/" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => "123/"
             }
         }
         "/commit_123/foo" => {
-            path: "/commit_{*sha}",
-            value: "* sha",
+            route: "/commit_{*sha}",
+            data: "* sha",
             params: {
                 "sha" => "123/foo"
             }
@@ -534,20 +534,20 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     assert_router_matches!(router, {
         "/" => None
         "/a/b/c" => {
-            path: "/a/b/c",
-            value: "/a/b/c"
+            route: "/a/b/c",
+            data: "/a/b/c"
         }
         "/a/c/d" => {
-            path: "/a/c/d",
-            value: "/a/c/d"
+            route: "/a/c/d",
+            data: "/a/c/d"
         }
         "/a/c/a" => {
-            path: "/a/c/a",
-            value: "/a/c/a"
+            route: "/a/c/a",
+            data: "/a/c/a"
         }
         "/a/c/e" => {
-            path: "/a/{*c}",
-            value: "/a/*c",
+            route: "/a/{*c}",
+            data: "/a/*c",
             params: {
                 "c" => "c/e"
             }
@@ -574,19 +574,19 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 1
+            route: "/",
+            data: 1
         }
         "/download" => {
-            path: "/{*wildcard}",
-            value: 2,
+            route: "/{*wildcard}",
+            data: 2,
             params: {
                 "wildcard" => "download"
             }
         }
         "/users/jordan" => {
-            path: "/users/{*wildcard}",
-            value: 3,
+            route: "/users/{*wildcard}",
+            data: 3,
             params: {
                 "wildcard" => "jordan"
             }
@@ -611,15 +611,15 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/{*wildcard}"
         "/" => None
         "/download" => {
-            path: "/{*wildcard}",
-            value: 1,
+            route: "/{*wildcard}",
+            data: 1,
             params: {
                 "wildcard" => "download"
             }
         }
         "/users/jordan" => {
-            path: "/{*wildcard}",
-            value: 1,
+            route: "/{*wildcard}",
+            data: 1,
             params: {
                 "wildcard" => "users/jordan"
             }
@@ -636,8 +636,8 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 0
+            route: "/",
+            data: 0
         }
     });
 
@@ -662,29 +662,29 @@ fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/matchme/abc-s-def/" => {
-            path: "/matchme/{slug}/",
-            value: 2,
+            route: "/matchme/{slug}/",
+            data: 2,
             params: {
                 "slug" => "abc-s-def"
             }
         }
         "/matchme/abc-ß-def/" => {
-            path: "/matchme/{slug}/",
-            value: 2,
+            route: "/matchme/{slug}/",
+            data: 2,
             params: {
                 "slug" => "abc-ß-def"
             }
         }
         "/matchme/abc-⭐-def/" => {
-            path: "/matchme/{slug}/",
-            value: 2,
+            route: "/matchme/{slug}/",
+            data: 2,
             params: {
                 "slug" => "abc-⭐-def"
             }
         }
         "/matchme/abc-def-ß/" => {
-            path: "/matchme/{slug}/",
-            value: 2,
+            route: "/matchme/{slug}/",
+            data: 2,
             params: {
                 "slug" => "abc-def-ß"
             }
@@ -711,16 +711,16 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/git/rust-lang/rust" => {
-            path: "/git/{org}/{repo}",
-            value: 1,
+            route: "/git/{org}/{repo}",
+            data: 1,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust"
             }
         }
         "/git/rust-lang" => {
-            path: "/git/{*wildcard}",
-            value: 2,
+            route: "/git/{*wildcard}",
+            data: 2,
             params: {
                 "wildcard" => "rust-lang"
             }
@@ -748,8 +748,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/api/v1/{param}/{*wildcard}"
         "/api/v1/entity/" => None
         "/api/v1/entity/1" => {
-            path: "/api/v1/{param}/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{param}/{*wildcard}",
+            data: 1,
             params: {
                 "param" => "entity",
                 "wildcard" => "1"
@@ -759,8 +759,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v2" => None
         "/api/v1/" => None
         "/api/v1/entity/1/foo/bar" => {
-            path: "/api/v1/{param}/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{param}/{*wildcard}",
+            data: 1,
             params: {
                 "param" => "entity",
                 "wildcard" => "1/foo/bar"
@@ -775,8 +775,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1/entity" => None
         "/api/v1/entity/" => None
         "/api/v1/entity/1" => {
-            path: "/api/v1/{param}/{*plus}",
-            value: 1,
+            route: "/api/v1/{param}/{*plus}",
+            data: 1,
             params: {
                 "param" => "entity",
                 "plus" => "1"
@@ -786,8 +786,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v2" => None
         "/api/v1/" => None
         "/api/v1/entity/1/foo/bar" => {
-            path: "/api/v1/{param}/{*plus}",
-            value: 1,
+            route: "/api/v1/{param}/{*plus}",
+            data: 1,
             params: {
                 "param" => "entity",
                 "plus" => "1/foo/bar"
@@ -805,8 +805,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/v1/some/resource/name:customVerb" => {
-            path: "/v1/some/resource/name:customVerb",
-            value: 1
+            route: "/v1/some/resource/name:customVerb",
+            data: 1
         }
         "/v1/some/resource/name:test" => None
     });
@@ -823,8 +823,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/v1/some/resource/test:customVerb" => {
-            path: "/v1/some/resource/{name}:customVerb",
-            value: 1,
+            route: "/v1/some/resource/{name}:customVerb",
+            data: 1,
             params: {
                 "name" => "test"
             }
@@ -846,22 +846,22 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/api/v1/{*wildcard}"
         "/api/v1/" => None
         "/api/v1/entity" => {
-            path: "/api/v1/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{*wildcard}",
+            data: 1,
             params: {
                 "wildcard" => "entity"
             }
         }
         "/api/v1/entity/1/2" => {
-            path: "/api/v1/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{*wildcard}",
+            data: 1,
             params: {
                 "wildcard" => "entity/1/2"
             }
         }
         "/api/v1/Entity/1/2" => {
-            path: "/api/v1/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{*wildcard}",
+            data: 1,
             params: {
                 "wildcard" => "Entity/1/2"
             }
@@ -881,8 +881,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1" => None
         "/api/v1/" => None
         "/api/v1/entity" => {
-            path: "/api/v1/{param}",
-            value: 1,
+            route: "/api/v1/{param}",
+            data: 1,
             params: {
                 "param" => "entity"
             }
@@ -919,48 +919,48 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/v1/entity-entity2" => {
-            path: "/api/v1/{param}-{param2}",
-            value: 1,
+            route: "/api/v1/{param}-{param2}",
+            data: 1,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
             }
         }
         "/api/v1/entity~entity2" => {
-            path: "/api/v1/{param}~{param2}",
-            value: 2,
+            route: "/api/v1/{param}~{param2}",
+            data: 2,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
             }
         }
         "/api/v1/entity.entity2" => {
-            path: "/api/v1/{param}.{param2}",
-            value: 4,
+            route: "/api/v1/{param}.{param2}",
+            data: 4,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
             }
         }
         "/api/v1/entity_entity2" => {
-            path: "/api/v1/{param}_{param2}",
-            value: 5,
+            route: "/api/v1/{param}_{param2}",
+            data: 5,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
             }
         }
         "/api/v1/entity:entity2" => {
-            path: "/api/v1/{param}:{param2}",
-            value: 6,
+            route: "/api/v1/{param}:{param2}",
+            data: 6,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
             }
         }
         "/api/v1/entity/entity2" => {
-            path: "/api/v1/{param}/{param2}",
-            value: 3,
+            route: "/api/v1/{param}/{param2}",
+            data: 3,
             params: {
                 "param" => "entity",
                 "param2" => "entity2"
@@ -969,8 +969,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/v1" => None
         "/api/v1/" => None
         "/api/v1/test.pdf" => {
-            path: "/api/v1/{param}.{param2}",
-            value: 4,
+            route: "/api/v1/{param}.{param2}",
+            data: 4,
             params: {
                 "param" => "test",
                 "param2" => "pdf"
@@ -988,8 +988,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/v1/const" => {
-            path: "/api/v1/const",
-            value: 1
+            route: "/api/v1/const",
+            data: 1
         }
         "/api/v1/cons" => None
         "/api/v1/conststatic" => None
@@ -1010,8 +1010,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/abc/fixedEnd" => {
-            path: "/api/{param}/fixedEnd",
-            value: 1,
+            route: "/api/{param}/fixedEnd",
+            data: 1,
             params: {
                 "param" => "abc"
             }
@@ -1034,8 +1034,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/shop/product/:test/color:blue/size:xs" => {
-            path: "/shop/product/:{filter}/color:{color}/size:{size}",
-            value: 1,
+            route: "/shop/product/:{filter}/color:{color}/size:{size}",
+            data: 1,
             params: {
                 "filter" => "test",
                 "color" => "blue",
@@ -1089,50 +1089,50 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/name:john" => {
-            path: "/name{name}",
-            value: 1,
+            route: "/name{name}",
+            data: 1,
             params: {
                 "name" => ":john"
             }
         }
         "/@john" => {
-            path: "/@{name}",
-            value: 2,
+            route: "/@{name}",
+            data: 2,
             params: {
                 "name" => "john"
             }
         }
         "/-john" => {
-            path: "/-{name}",
-            value: 3,
+            route: "/-{name}",
+            data: 3,
             params: {
                 "name" => "john"
             }
         }
         "/.john" => {
-            path: "/.{name}",
-            value: 4,
+            route: "/.{name}",
+            data: 4,
             params: {
                 "name" => "john"
             }
         }
         "/~john" => {
-            path: "/~{name}",
-            value: 5,
+            route: "/~{name}",
+            data: 5,
             params: {
                 "name" => "john"
             }
         }
         "/_john" => {
-            path: "/_{name}",
-            value: 6,
+            route: "/_{name}",
+            data: 6,
             params: {
                 "name" => "john"
             }
         }
         "/john" => {
-            path: "/{name}",
-            value: 7,
+            route: "/{name}",
+            data: 7,
             params: {
                 "name" => "john"
             }
@@ -1152,8 +1152,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/v1/well/abc/wildcard" => {
-            path: "/api/v1/{param}/abc/{*wildcard}",
-            value: 1,
+            route: "/api/v1/{param}/abc/{*wildcard}",
+            data: 1,
             params: {
                 "param" => "well",
                 "wildcard" => "wildcard"
@@ -1170,16 +1170,16 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/test/abc" => {
-            path: "/api/{*wildcard}/{param}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}",
+            data: 1,
             params: {
                 "wildcard" => "test",
                 "param" => "abc"
             }
         }
         "/api/joker/batman/robin/1" => {
-            path: "/api/{*wildcard}/{param}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}",
+            data: 1,
             params: {
                 "wildcard" => "joker/batman/robin",
                 "param" => "1"
@@ -1187,8 +1187,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
         // FIXME: This feels wrong. Maybe we should add a check for empty parts?
         "/api//joker" => {
-            path: "/api/{*wildcard}/{param}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}",
+            data: 1,
             params: {
                 "wildcard" => "",
                 "param" => "joker"
@@ -1203,8 +1203,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/api/test/abc/1" => {
-            path: "/api/{*wildcard}/{param}/{param2}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}/{param2}",
+            data: 1,
             params: {
                 "wildcard" => "test",
                 "param" => "abc",
@@ -1213,8 +1213,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         }
         "/api/joker/batman" => None
         "/api/joker/batman-robin/1" => {
-            path: "/api/{*wildcard}/{param}/{param2}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}/{param2}",
+            data: 1,
             params: {
                 "wildcard" => "joker",
                 "param" => "batman-robin",
@@ -1224,8 +1224,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
         "/api/joker-batman-robin-1" => None
         "/api/test/abc" => None
         "/api/joker/batman/robin" => {
-            path: "/api/{*wildcard}/{param}/{param2}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}/{param2}",
+            data: 1,
             params: {
                 "wildcard" => "joker",
                 "param" => "batman",
@@ -1233,8 +1233,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/joker/batman/robin/1" => {
-            path: "/api/{*wildcard}/{param}/{param2}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}/{param2}",
+            data: 1,
             params: {
                 "wildcard" => "joker/batman",
                 "param" => "robin",
@@ -1242,8 +1242,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
             }
         }
         "/api/joker/batman/robin/1/2" => {
-            path: "/api/{*wildcard}/{param}/{param2}",
-            value: 1,
+            route: "/api/{*wildcard}/{param}/{param2}",
+            data: 1,
             params: {
                 "wildcard" => "joker/batman/robin",
                 "param" => "1",
@@ -1317,38 +1317,38 @@ fn basic() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 0
+            route: "/",
+            data: 0
         }
         "/login" => {
-            path: "/login",
-            value: 1
+            route: "/login",
+            data: 1
         }
         "/settings/admin" => {
-            path: "/settings/{page}",
-            value: 4,
+            route: "/settings/{page}",
+            data: 4,
             params: {
                 "page" => "admin"
             }
         }
         "/viz-rs" => {
-            path: "/{user}",
-            value: 5,
+            route: "/{user}",
+            data: 5,
             params: {
                 "user" => "viz-rs"
             }
         }
         "/viz-rs/path-tree" => {
-            path: "/{user}/{repo}",
-            value: 6,
+            route: "/{user}/{repo}",
+            data: 6,
             params: {
                 "user" => "viz-rs",
                 "repo" => "path-tree"
             }
         }
         "/rust-lang/rust-analyzer/releases/download/2022-09-12/rust-analyzer-aarch64-apple-darwin.gz" => {
-            path: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
-            value: 8,
+            route: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
+            data: 8,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1358,8 +1358,8 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/tags/2022-09-12" => {
-            path: "/{org}/{repo}/tags/{day}-{month}-{year}",
-            value: 9,
+            route: "/{org}/{repo}/tags/{day}-{month}-{year}",
+            data: 9,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1369,8 +1369,8 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/actions/ci:bench" => {
-            path: "/{org}/{repo}/actions/{name}:{verb}",
-            value: 10,
+            route: "/{org}/{repo}/actions/{name}:{verb}",
+            data: 10,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1379,8 +1379,8 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/stargazers" => {
-            path: "/{org}/{repo}/{page}",
-            value: 11,
+            route: "/{org}/{repo}/{page}",
+            data: 11,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1388,8 +1388,8 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/stargazers/404" => {
-            path: "/{org}/{repo}/{*path}",
-            value: 12,
+            route: "/{org}/{repo}/{*path}",
+            data: 12,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1397,15 +1397,15 @@ fn basic() -> Result<(), Box<dyn Error>> {
             }
         }
         "/public/js/main.js" => {
-            path: "/public/{*any}",
-            value: 7,
+            route: "/public/{*any}",
+            data: 7,
             params: {
                 "any" => "js/main.js"
             }
         }
         "/api/v1" => {
-            path: "/api/{*plus}",
-            value: 13,
+            route: "/api/{*plus}",
+            data: 13,
             params: {
                 "plus" => "v1"
             }
@@ -1730,20 +1730,20 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/rust-lang/rust" => {
-            path: "/{org}/{repo}",
-            value: 2400,
+            route: "/{org}/{repo}",
+            data: 2400,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust"
             }
         }
         "/settings" => {
-            path: "/settings",
-            value: 20
+            route: "/settings",
+            data: 20
         }
         "/rust-lang/rust/actions/runs/1" => {
-            path: "/{org}/{repo}/actions/runs/{id}",
-            value: 2442,
+            route: "/{org}/{repo}/actions/runs/{id}",
+            data: 2442,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust",
@@ -1753,8 +1753,8 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: path-tree would match "/{org}/{repo}/{*path}"
         "/rust-lang/rust/" => None
         "/rust-lang/rust/any" => {
-            path: "/{org}/{repo}/{*path}",
-            value: 3000,
+            route: "/{org}/{repo}/{*path}",
+            data: 3000,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust",
@@ -1763,8 +1763,8 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
         }
         // NOTE: Different behaviour: path-tree would match "/{org}/{repo}/{*path}"
         "/rust-lang/rust/releases/" => {
-            path: "/{org}/{repo}/{*path}",
-            value: 3000,
+            route: "/{org}/{repo}/{*path}",
+            data: 3000,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust",
@@ -1772,8 +1772,8 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
             }
         }
         "/rust-lang/rust-analyzer/releases/download/2022-09-12/rust-analyzer-aarch64-apple-darwin.gz" => {
-            path: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
-            value: 3002,
+            route: "/{org}/{repo}/releases/download/{tag}/{filename}.{ext}",
+            data: 3002,
             params: {
                 "org" => "rust-lang",
                 "repo" => "rust-analyzer",
@@ -1809,8 +1809,8 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
-            path: "/{name}",
-            value: 1,
+            route: "/{name}",
+            data: 1,
             params: {
                 "name" => "abc.xyz.123"
             }
@@ -1831,15 +1831,15 @@ fn test_dots_ext() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/abc.xyz.123" => {
-            path: "/{+name}.123",
-            value: 2,
+            route: "/{+name}.123",
+            data: 2,
             params: {
                 "name" => "abc.xyz"
             }
         }
         "/abc.xyz.123.456" => {
-            path: "/{*name}.123.456",
-            value: 1,
+            route: "/{*name}.123.456",
+            data: 1,
             params: {
                 "name" => "abc.xyz"
             }
@@ -1865,36 +1865,36 @@ fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/node.js" => {
-            path: "/{name}.js",
-            value: 2,
+            route: "/{name}.js",
+            data: 2,
             params: {
                 "name" => "node"
             }
         }
         "/path.lib.js" => {
-            path: "/{name}.js",
-            value: 2,
+            route: "/{name}.js",
+            data: 2,
             params: {
                 "name" => "path.lib"
             }
         }
         "/node.js.js" => {
-            path: "/{name}.js",
-            value: 2,
+            route: "/{name}.js",
+            data: 2,
             params: {
                 "name" => "node.js"
             }
         }
         "/node.js.gz" => {
-            path: "/{name}.js.gz",
-            value: 1,
+            route: "/{name}.js.gz",
+            data: 1,
             params: {
                 "name" => "node"
             }
         }
         "/node.js.gz.js.gz" => {
-            path: "/{name}.js.gz",
-            value: 1,
+            route: "/{name}.js.gz",
+            data: 1,
             params: {
                 "name" => "node.js.gz"
             }

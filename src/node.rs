@@ -27,11 +27,19 @@ pub enum NodeKind {
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct NodeData<T> {
-    /// The full path from the root to this node.
-    pub path: Arc<str>,
-    /// The value associated with this node.
-    pub value: T,
+pub enum NodeData<T> {
+    /// Data is stored inline.
+    Inline {
+        /// The original route path.
+        route: Arc<str>,
+
+        /// The associated data.
+        value: T,
+    },
+
+    /// Data is stored at the router level, as it's shared between 2 or more nodes.
+    #[allow(dead_code)]
+    Reference(Arc<str>),
 }
 
 /// Represents a node in the tree structure.

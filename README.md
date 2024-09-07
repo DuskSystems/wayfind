@@ -47,15 +47,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 1);
-    assert_eq!(search.data.path, "/users/{id}".into());
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/users/{id}".into());
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/users/123/files/my.document.pdf")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 2);
-    assert_eq!(search.data.path, "/users/{id}/files/{filename}.{extension}".into());
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}".into());
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
     assert_eq!(search.parameters[1].key, "filename");
@@ -88,15 +88,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 1);
-    assert_eq!(search.data.path, "/files/{*slug}/delete".into());
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/files/{*slug}/delete".into());
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
 
     let path = Path::new("/any/other/path")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 2);
-    assert_eq!(search.data.path, "/{*catch_all}".into());
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/{*catch_all}".into());
     assert_eq!(search.parameters[0].key, "catch_all");
     assert_eq!(search.parameters[0].value, "any/other/path");
 
@@ -179,13 +179,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let path = Path::new("/v2")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 1);
-    assert_eq!(search.data.path, "/v2".into());
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/v2".into());
 
     let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
     let search = router.search(&path)?.unwrap();
-    assert_eq!(search.data.value, 2);
-    assert_eq!(search.data.path, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
     assert_eq!(search.parameters[0].key, "name");
     assert_eq!(search.parameters[0].value, "my-org/my-repo");
     assert_eq!(search.parameters[1].key, "type");
@@ -347,14 +347,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| matchit          | 462.33 ns | 4           | 416 B      | 4             | 448 B        |
-| wayfind          | 483.07 ns | 7           | 649 B      | 7             | 649 B        |
-| xitca-router     | 562.71 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 572.69 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.7347 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 4.6183 µs | 160         | 8.515 KB   | 160           | 8.547 KB     |
-| routefinder      | 6.5185 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 21.268 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| matchit          | 484.35 ns | 4           | 416 B      | 4             | 448 B        |
+| wayfind          | 513.07 ns | 7           | 649 B      | 7             | 649 B        |
+| xitca-router     | 556.80 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 576.46 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.7798 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 4.7831 µs | 160         | 8.515 KB   | 160           | 8.547 KB     |
+| routefinder      | 6.4484 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 22.061 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -362,14 +362,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 7.0411 µs | 117         | 9.991 KB   | 117           | 9.991 KB     |
-| matchit          | 8.8426 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| path-tree        | 9.2876 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| xitca-router     | 10.888 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 30.283 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| routefinder      | 99.873 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| route-recognizer | 107.16 µs | 2872        | 191.8 KB   | 2872          | 205 KB       |
-| actix-router     | 192.44 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 7.4842 µs | 117         | 9.991 KB   | 117           | 9.991 KB     |
+| matchit          | 8.8485 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 9.2987 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 10.813 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 29.732 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 91.251 µs | 2872        | 191.8 KB   | 2872          | 205 KB       |
+| routefinder      | 99.015 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 180.71 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

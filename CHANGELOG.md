@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Router display now uses different characters to represent root and matchable nodes.
+- Successful matches now return a flattened representation of node data.
 
 ## [0.2.1] - 2024-09-04
 
