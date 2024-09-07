@@ -30,7 +30,7 @@ pub struct Parameter<'router, 'path> {
 impl<T> Node<T> {
     /// Searches for a matching route in the node tree.
     ///
-    /// This method traverses the tree to find a node that matches the given path, collecting parameters along the way.
+    /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
     pub fn search<'router, 'path>(
         &'router self,

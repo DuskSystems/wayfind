@@ -1,8 +1,9 @@
 use crate::{
     constraints::Constraint,
+    decode::percent_decode,
     errors::{ConstraintError, DeleteError, InsertError, SearchError},
     node::{search::Match, Node, NodeData, NodeKind},
-    parts::{Part, Parts},
+    parser::{ParsedRoute, RoutePart},
     path::Path,
 };
 use std::{
@@ -143,23 +144,23 @@ impl<T> Router<T> {
     /// router.insert("/hello/{world}", 2).unwrap();
     /// ```
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        let route_path = Path::new(route)?;
-        if route.as_bytes() != route_path.decoded_bytes() {
-            return Err(InsertError::EncodedPath {
+        let decoded_route = percent_decode(route.as_bytes())?;
+        if route.as_bytes() != decoded_route.as_ref() {
+            return Err(InsertError::EncodedRoute {
                 input: route.to_string(),
-                decoded: String::from_utf8_lossy(route_path.decoded_bytes()).to_string(),
+                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             });
         }
 
         let route_arc = Arc::from(route);
-        let mut parts = Parts::new(route.as_bytes())?;
 
+        let mut parts = ParsedRoute::new(route.as_bytes())?;
         for part in &parts {
-            if let Part::Dynamic {
+            if let RoutePart::Dynamic {
                 constraint: Some(name),
                 ..
             }
-            | Part::Wildcard {
+            | RoutePart::Wildcard {
                 constraint: Some(name),
                 ..
             } = part
@@ -199,7 +200,7 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
-        let mut parts = Parts::new(route.as_bytes())?;
+        let mut parts = ParsedRoute::new(route.as_bytes())?;
         self.root.delete(&mut parts)
     }
 
@@ -210,7 +211,6 @@ impl<T> Router<T> {
     /// # Errors
     ///
     /// Returns a [`SearchError`] if the search resulted in invalid parameters.
-    ///
     ///
     /// # Examples
     ///

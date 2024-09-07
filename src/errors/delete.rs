@@ -7,7 +7,7 @@ pub enum DeleteError {
     /// A [`RouteError`] that occurred during the delete.
     RouteError(RouteError),
 
-    /// Path to be deleted was not found in the router.
+    /// Route to be deleted was not found in the router.
     ///
     /// # Examples
     ///
@@ -15,22 +15,22 @@ pub enum DeleteError {
     /// use wayfind::errors::DeleteError;
     ///
     /// let error = DeleteError::NotFound {
-    ///     path: "/not_found".to_string(),
+    ///     route: "/not_found".to_string(),
     /// };
     ///
     /// let display = "
     /// not found
     ///
-    ///    Path: /not_found
+    ///    Route: /not_found
     ///
-    /// The specified path does not exist in the router
+    /// The specified route does not exist in the router
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     NotFound {
-        /// The path that was not found in the router.
-        path: String,
+        /// The route that was not found in the router.
+        route: String,
     },
 }
 
@@ -40,13 +40,13 @@ impl Display for DeleteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::RouteError(error) => error.fmt(f),
-            Self::NotFound { path } => write!(
+            Self::NotFound { route } => write!(
                 f,
                 r#"not found
 
-   Path: {path}
+   Route: {route}
 
-The specified path does not exist in the router"#
+The specified route does not exist in the router"#
             ),
         }
     }

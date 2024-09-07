@@ -1,67 +1,67 @@
-use super::{route::RouteError, PathError};
+use super::{route::RouteError, EncodingError};
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
-    /// A [`PathError`] that occurred at the start of the insert operation.
-    PathError(PathError),
+    /// A [`EncodingError`] that occurred during the decoding.
+    EncodingError(EncodingError),
 
     /// A [`RouteError`] that occurred during the insert operation.
     RouteError(RouteError),
 
-    /// The path provided was percent-encoded.
+    /// The route provided was percent-encoded.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::InsertError;
     ///
-    /// let error = InsertError::EncodedPath {
+    /// let error = InsertError::EncodedRoute {
     ///     input: "/hello%20world".to_string(),
     ///     decoded: "/hello world".to_string(),
     /// };
     ///
     /// let display = "
-    /// encoded path
+    /// encoded route
     ///
     ///      Input: /hello%20world
     ///    Decoded: /hello world
     ///
-    /// The router expects paths to be in their decoded form
+    /// The router expects routes to be in their decoded form
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    EncodedPath {
-        /// The original encoded input path.
+    EncodedRoute {
+        /// The original encoded input route.
         input: String,
-        /// The decoded version of the path.
+        /// The decoded version of the route.
         decoded: String,
     },
 
-    /// The path being inserted already exists in the router.
+    /// The route being inserted already exists in the router.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::InsertError;
     ///
-    /// let error = InsertError::DuplicatePath {
-    ///     path: "/existing/path".to_string(),
+    /// let error = InsertError::DuplicateRoute {
+    ///     route: "/existing/route".to_string(),
     /// };
     ///
     /// let display = "
-    /// duplicate path
+    /// duplicate route
     ///
-    ///    Path: /existing/path
+    ///    Route: /existing/route
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    DuplicatePath {
-        /// The path that already exists in the router.
-        path: String,
+    DuplicateRoute {
+        /// The route that already exists in the router.
+        route: String,
     },
 
     /// The constraint specified in the route is not recognized by the router.
@@ -96,22 +96,22 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::PathError(error) => error.fmt(f),
+            Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
-            Self::EncodedPath { input, decoded } => write!(
+            Self::EncodedRoute { input, decoded } => write!(
                 f,
-                r#"encoded path
+                r#"encoded route
 
      Input: {input}
    Decoded: {decoded}
 
-The router expects paths to be in their decoded form"#
+The router expects routes to be in their decoded form"#
             ),
-            Self::DuplicatePath { path } => write!(
+            Self::DuplicateRoute { route } => write!(
                 f,
-                r#"duplicate path
+                r#"duplicate route
 
-   Path: {path}"#
+   Route: {route}"#
             ),
             Self::UnknownConstraint { constraint } => write!(
                 f,
@@ -125,9 +125,9 @@ The router doesn't recognize this constraint"#
     }
 }
 
-impl From<PathError> for InsertError {
-    fn from(error: PathError) -> Self {
-        Self::PathError(error)
+impl From<EncodingError> for InsertError {
+    fn from(error: EncodingError) -> Self {
+        Self::EncodingError(error)
     }
 }
 

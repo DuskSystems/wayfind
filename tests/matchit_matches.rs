@@ -16,12 +16,12 @@ fn partial_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/foo_bar", "Welcome!")?;
     router.insert("/foo/bar", "Welcome!")?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo
           ├─ /bar ○
           ╰─ _bar ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/" => None
@@ -31,11 +31,11 @@ fn partial_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/foo", "Welcome!")?;
     router.insert("/foo/bar", "Welcome!")?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo ○
           ╰─ /bar ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/" => None
@@ -51,12 +51,12 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/path/foo", "foo")?;
     router.insert("/path/{*rest}", "wildcard")?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /path/
             ├─ foo ○
             ╰─ {*rest} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/path/foo" => {
@@ -83,13 +83,13 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/path/foo/{arg}", "foo")?;
     router.insert("/path/{*rest}", "wildcard")?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /path/
             ├─ foo/
             │     ╰─ {arg} ○
             ╰─ {*rest} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/path/foo/myarg" => {
@@ -125,7 +125,7 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
     router.insert("/{object}/{id}", "object with id")?;
     router.insert("/secret/{id}/path", "secret with id and path")?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ secret/
@@ -134,7 +134,7 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
        ╰─ {object}
                  ╰─ /
                     ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
@@ -172,12 +172,12 @@ fn bare_catchall() -> Result<(), Box<dyn Error>> {
     router.insert("{*foo}", 1)?;
     router.insert("foo/{*bar}", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ├─ foo/
     │     ╰─ {*bar} ○
     ╰─ {*foo} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "x/y" => {
@@ -231,7 +231,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     router.insert("/s/s/{s}/x", 13)?;
     router.insert("/s/s/{y}/d", 14)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ s ○
@@ -266,7 +266,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
                  │      ╰─ /baz ○
                  ╰─ {baz}
                         ╰─ /bax ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/x/foo/bar" => {
@@ -383,7 +383,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     router.insert("/static/{*path}", 5)?;
     router.insert("/favicon.ico", 6)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ favicon.ico ○
@@ -398,7 +398,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
        ├─ static/
        │        ╰─ {*path} ○
        ╰─ {page} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/about" => {
@@ -459,7 +459,7 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/other/static/path", 6)?;
     router.insert("/other/long/static/path/", 7)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ other/
@@ -478,7 +478,7 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
        ╰─ {object}
                  ╰─ /
                     ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
@@ -538,7 +538,7 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     router.insert("/bar/", 3)?;
     router.insert("/bar/{*catchall}", 4)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ bar ○
@@ -546,7 +546,7 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
        │       ╰─ {*catchall} ○
        ╰─ foo/
              ╰─ {*catchall} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo" => None
@@ -592,7 +592,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/xxx/{*x}", 9)?;
     router.insert("/xxx/", 10)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
        ├─ ba
@@ -605,7 +605,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
        ├─ xxx/ ○
        │     ╰─ {*x} ○
        ╰─ {*bar} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo" => {
@@ -670,7 +670,7 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978/", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo/
            ├─ bar/baz ○
@@ -678,7 +678,7 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
            ╰─ {object}
                      ╰─ /
                         ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
@@ -705,7 +705,7 @@ fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo/
            ├─ bar/baz ○
@@ -713,7 +713,7 @@ fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
            ╰─ {object}
                      ╰─ /
                         ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => None
@@ -733,13 +733,13 @@ fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978/", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo/
            ├─ bar/baz ○
            ├─ secret/978/ ○
            ╰─ {*bar} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/secret/978" => {
@@ -765,13 +765,13 @@ fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     router.insert("/foo/bar/baz", 2)?;
     router.insert("/foo/secret/978", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo/
            ├─ bar/baz ○
            ├─ secret/978 ○
            ╰─ {*bar} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
@@ -801,7 +801,7 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/other/static/path", 6)?;
     router.insert("/other/long/static/path/", 7)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ other/
@@ -820,7 +820,7 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
        ╰─ {object}
                  ╰─ /
                     ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/secret/978/path/" => None
@@ -858,14 +858,14 @@ fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/foo/{x}/baz", 2)?;
     router.insert("/foo/bar/bar", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /foo/
            ├─ bar/bar ○
            ╰─ {x}
                 ╰─ /baz ○
                       ╰─ / ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/foo/x/baz/" => {
@@ -926,7 +926,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/api/baz/foo/bar", 30)?;
     router.insert("/foo/{p}", 31)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ 0/
@@ -982,7 +982,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
        │  ╰─ /y ○
        ╰─ y/ ○
            ╰─ z ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/hi/" => None
@@ -1031,7 +1031,7 @@ fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/a/{b}/{c}", 1)?;
     router.insert("/a/b/{c}/d/", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ b/
@@ -1040,7 +1040,7 @@ fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
          ╰─ {b}
               ╰─ /
                  ╰─ {c} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/b/c/d" => None
@@ -1056,13 +1056,13 @@ fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/bar", 2)?;
     router.insert("/{baz}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ bar ○
        ├─ foo ○
        ╰─ {baz} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/" => None
@@ -1077,13 +1077,13 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
     router.insert("/yyy/{*x}", 1)?;
     router.insert("/yyy{*x}", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /yyy
           ├─ /
           │  ╰─ {*x} ○
           ╰─ {*x} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/yyy/y" => {
@@ -1125,7 +1125,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
     router.insert("/xxx/", 15)?;
     // router.insert("/xxx/{x}}{{}}}}{{}}{{{{}}y}", 16)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
        ├─ baz/
@@ -1143,7 +1143,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
        │  ╰─ x ○
        ╰─ } ○
           ╰─ y{ ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/" => {
@@ -1279,7 +1279,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
     router.insert("/sd;here", 20)?;
     router.insert("/sd=here", 21)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ├─ /
     │  ├─ a ○
@@ -1305,7 +1305,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
     │      ╰─ =here ○
     ├─ ʯ ○
     ╰─ β ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a" => {
@@ -1445,7 +1445,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
     router.insert("/get/abc/123abf/{param}", 55)?;
     router.insert("/get/abc/123abfff/{param}", 56)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
        ├─ a
@@ -1550,7 +1550,7 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
                                            ├─ gg ○
                                            ╰─ {gg}
                                                  ╰─ /hh ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/" => {

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Router display now uses different characters to represent root and matchable nodes.
 - Successful matches now return a flattened representation of node data.
 
+### Fixed
+
+- Be consistent with the use of terms "path" and "route".
+
 ## [0.2.1] - 2024-09-04
 
 ### Changed

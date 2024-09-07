@@ -75,7 +75,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     router.insert("/profile/{username:length_3_to_10}.{ext:png_or_jpg}", 2)?;
     router.insert("/posts/{year:even_year}/{slug:valid_slug}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ p
@@ -91,7 +91,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
               ╰─ {name:length_3_to_10}
                                      ╰─ /
                                         ╰─ {id:year_1000_to_10000} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/user/john/1234" => {
@@ -164,13 +164,13 @@ fn test_unknown_constraints() {
     let mut router = Router::new();
 
     let error = router.insert("/{name:unknown}", 0).unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     unknown constraint
 
        Constraint: unknown
 
     The router doesn't recognize this constraint
-    "###);
+    "#);
 }
 
 struct ConstraintA;
@@ -197,7 +197,7 @@ fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
     router.constraint::<ConstraintA>()?;
 
     let error = router.constraint::<ConstraintB>().unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     duplicate constraint name
 
     The constraint name 'my_constraint' is already in use:
@@ -209,7 +209,7 @@ fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
     try:
         - Check if you have accidentally added the same constraint twice
         - Ensure different constraints have different names
-    "###);
+    "#);
 
     Ok(())
 }
