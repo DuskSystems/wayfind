@@ -1,12 +1,15 @@
-use super::{Node, NodeData};
+use super::Node;
 use crate::{errors::SearchError, router::StoredConstraint};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'router, 'path, T> {
-    /// A reference to the data stored at the end matching node.
-    pub data: &'router NodeData<T>,
+    /// The matching route.
+    pub route: Arc<str>,
+
+    /// A reference to the matching route data.
+    pub data: &'router T,
 
     /// Key-value pairs of parameters, extracted from the route.
     pub parameters: Vec<Parameter<'router, 'path>>,

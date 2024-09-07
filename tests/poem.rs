@@ -253,53 +253,53 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/ab/def" => {
-            path: "/ab/def",
-            value: 1
+            route: "/ab/def",
+            data: 1
         }
         "/abc/def" => {
-            path: "/abc/def",
-            value: 2
+            route: "/abc/def",
+            data: 2
         }
         "/abc/cde" => {
-            path: "/abc/{p1}",
-            value: 3,
+            route: "/abc/{p1}",
+            data: 3,
             params: {
                 "p1" => "cde"
             }
         }
         "/abc/cde/def" => {
-            path: "/abc/{p1}/def",
-            value: 4,
+            route: "/abc/{p1}/def",
+            data: 4,
             params: {
                 "p1" => "cde"
             }
         }
         "/abc/cde/hjk" => {
-            path: "/abc/{p1}/{p2}",
-            value: 5,
+            route: "/abc/{p1}/{p2}",
+            data: 5,
             params: {
                 "p1" => "cde",
                 "p2" => "hjk"
             }
         }
         "/abc/def/iop/123" => {
-            path: "/abc/def/{*p1}",
-            value: 6,
+            route: "/abc/def/{*p1}",
+            data: 6,
             params: {
                 "p1" => "iop/123"
             }
         }
         "/a/b/k/c" => {
-            path: "/a/{p1}/{p2}/c",
-            value: 8,
+            route: "/a/{p1}/{p2}/c",
+            data: 8,
             params: {
                 "p1" => "b",
                 "p2" => "k"
             }
         }
         "/kcd/uio" => {
-            path: "/{*p1}",
-            value: 9,
+            route: "/{*p1}",
+            data: 9,
             params: {
                 "p1" => "kcd/uio"
             }
@@ -307,22 +307,22 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
         // NOTE: Different behaviour: poem would match "/{*p1}"
         "/" => None
         "/abc/123/def" => {
-            path: "/abc/{param:digit_string}/def",
-            value: 10,
+            route: "/abc/{param:digit_string}/def",
+            data: 10,
             params: {
                 "param" => "123"
             }
         }
         "/kcd/567" => {
-            path: "/kcd/{p1:digit_string}",
-            value: 11,
+            route: "/kcd/{p1:digit_string}",
+            data: 11,
             params: {
                 "p1" => "567"
             }
         }
         "/is-number/-/is-number-7.0.0.tgz" => {
-            path: "/{package}/-/{package_tgz:ends_with_tgz}",
-            value: 12,
+            route: "/{package}/-/{package_tgz:ends_with_tgz}",
+            data: 12,
             params: {
                 "package" => "is-number",
                 "package_tgz" => "is-number-7.0.0.tgz"
@@ -348,8 +348,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/{*path}",
-            value: 2,
+            route: "/a/{*path}",
+            data: 2,
             params: {
                 "path" => "123"
             }
@@ -368,8 +368,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/{id}",
-            value: 3,
+            route: "/a/{id}",
+            data: 3,
             params: {
                 "id" => "123"
             }
@@ -390,8 +390,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/{id:digit_string}",
-            value: 4,
+            route: "/a/{id:digit_string}",
+            data: 4,
             params: {
                 "id" => "123"
             }
@@ -412,8 +412,8 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/123" => {
-            path: "/a/123",
-            value: 5
+            route: "/a/123",
+            data: 5
         }
     });
 
@@ -433,8 +433,8 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
-            path: "/a/{*path}",
-            value: 1,
+            route: "/a/{*path}",
+            data: 1,
             params: {
                 "path" => "b/c/123"
             }
@@ -453,8 +453,8 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
-            path: "/a/b/{*path}",
-            value: 2,
+            route: "/a/b/{*path}",
+            data: 2,
             params: {
                 "path" => "c/123"
             }
@@ -475,8 +475,8 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
-            path: "/a/b/c/{*path}",
-            value: 3,
+            route: "/a/b/c/{*path}",
+            data: 3,
             params: {
                 "path" => "123"
             }
@@ -503,15 +503,15 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/abc/a" => {
-            path: "/{id1}/a",
-            value: 1,
+            route: "/{id1}/a",
+            data: 1,
             params: {
                 "id1" => "abc"
             }
         }
         "/def/b" => {
-            path: "/{id2}/b",
-            value: 2,
+            route: "/{id2}/b",
+            data: 2,
             params: {
                 "id2" => "def"
             }
@@ -534,15 +534,15 @@ fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a/abc" => {
-            path: "/a/{id}",
-            value: 1,
+            route: "/a/{id}",
+            data: 1,
             params: {
                 "id" => "abc"
             }
         }
         "/a/%E4%BD%A0%E5%A5%BD" => {
-            path: "/a/{id}",
-            value: 1,
+            route: "/a/{id}",
+            data: 1,
             params: {
                 "id" => "你好"
             }

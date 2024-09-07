@@ -95,16 +95,16 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/user/john/1234" => {
-            path: "/user/{name:length_3_to_10}/{id:year_1000_to_10000}",
-            value: 1,
+            route: "/user/{name:length_3_to_10}/{id:year_1000_to_10000}",
+            data: 1,
             params: {
                 "name" => "john",
                 "id" => "1234"
             }
         }
         "/user/johndoe/10000" => {
-            path: "/user/{name:length_3_to_10}/{id:year_1000_to_10000}",
-            value: 1,
+            route: "/user/{name:length_3_to_10}/{id:year_1000_to_10000}",
+            data: 1,
             params: {
                 "name" => "johndoe",
                 "id" => "10000"
@@ -116,16 +116,16 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
         "/user/john/10001" => None
 
         "/profile/alice.png" => {
-            path: "/profile/{username:length_3_to_10}.{ext:png_or_jpg}",
-            value: 2,
+            route: "/profile/{username:length_3_to_10}.{ext:png_or_jpg}",
+            data: 2,
             params: {
                 "username" => "alice",
                 "ext" => "png"
             }
         }
         "/profile/bob.jpg" => {
-            path: "/profile/{username:length_3_to_10}.{ext:png_or_jpg}",
-            value: 2,
+            route: "/profile/{username:length_3_to_10}.{ext:png_or_jpg}",
+            data: 2,
             params: {
                 "username" => "bob",
                 "ext" => "jpg"
@@ -136,16 +136,16 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
         "/profile/alice.gif" => None
 
         "/posts/2022/hello" => {
-            path: "/posts/{year:even_year}/{slug:valid_slug}",
-            value: 3,
+            route: "/posts/{year:even_year}/{slug:valid_slug}",
+            data: 3,
             params: {
                 "year" => "2022",
                 "slug" => "hello"
             }
         }
         "/posts/2024/test-123" => {
-            path: "/posts/{year:even_year}/{slug:valid_slug}",
-            value: 3,
+            route: "/posts/{year:even_year}/{slug:valid_slug}",
+            data: 3,
             params: {
                 "year" => "2024",
                 "slug" => "test-123"

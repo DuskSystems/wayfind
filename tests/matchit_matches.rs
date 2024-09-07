@@ -60,19 +60,19 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/path/foo" => {
-            path: "/path/foo",
-            value: "foo"
+            route: "/path/foo",
+            data: "foo"
         }
         "/path/bar" => {
-            path: "/path/{*rest}",
-            value: "wildcard",
+            route: "/path/{*rest}",
+            data: "wildcard",
             params: {
                 "rest" => "bar"
             }
         }
         "/path/foo/" => {
-            path: "/path/{*rest}",
-            value: "wildcard",
+            route: "/path/{*rest}",
+            data: "wildcard",
             params: {
                 "rest" => "foo/"
             }
@@ -93,22 +93,22 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/path/foo/myarg" => {
-            path: "/path/foo/{arg}",
-            value: "foo",
+            route: "/path/foo/{arg}",
+            data: "foo",
             params: {
                 "arg" => "myarg"
             }
         }
         "/path/foo/myarg/" => {
-            path: "/path/{*rest}",
-            value: "wildcard",
+            route: "/path/{*rest}",
+            data: "wildcard",
             params: {
                 "rest" => "foo/myarg/"
             }
         }
         "/path/foo/myarg/bar/baz" => {
-            path: "/path/{*rest}",
-            value: "wildcard",
+            route: "/path/{*rest}",
+            data: "wildcard",
             params: {
                 "rest" => "foo/myarg/bar/baz"
             }
@@ -138,23 +138,23 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
-            path: "/secret/{id}/path",
-            value: "secret with id and path",
+            route: "/secret/{id}/path",
+            data: "secret with id and path",
             params: {
                 "id" => "978"
             }
         }
         "/something/978" => {
-            path: "/{object}/{id}",
-            value: "object with id",
+            route: "/{object}/{id}",
+            data: "object with id",
             params: {
                 "object" => "something",
                 "id" => "978"
             }
         }
         "/secret/978" => {
-            path: "/{object}/{id}",
-            value: "object with id",
+            route: "/{object}/{id}",
+            data: "object with id",
             params: {
                 "object" => "secret",
                 "id" => "978"
@@ -181,29 +181,29 @@ fn bare_catchall() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "x/y" => {
-            path: "{*foo}",
-            value: 1,
+            route: "{*foo}",
+            data: 1,
             params: {
                 "foo" => "x/y"
             }
         }
         "/x/y" => {
-            path: "{*foo}",
-            value: 1,
+            route: "{*foo}",
+            data: 1,
             params: {
                 "foo" => "/x/y"
             }
         }
         "/foo/x/y" => {
-            path: "{*foo}",
-            value: 1,
+            route: "{*foo}",
+            data: 1,
             params: {
                 "foo" => "/foo/x/y"
             }
         }
         "foo/x/y" => {
-            path: "foo/{*bar}",
-            value: 2,
+            route: "foo/{*bar}",
+            data: 2,
             params: {
                 "bar" => "x/y"
             }
@@ -270,53 +270,53 @@ fn normalized() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/x/foo/bar" => {
-            path: "/x/{foo}/bar",
-            value: 1,
+            route: "/x/{foo}/bar",
+            data: 1,
             params: {
                 "foo" => "foo"
             }
         }
         "/x/foo/baz" => {
-            path: "/x/{bar}/baz",
-            value: 2,
+            route: "/x/{bar}/baz",
+            data: 2,
             params: {
                 "bar" => "foo"
             }
         }
         "/y/foo/baz" => {
-            path: "/{foo}/{bar}/baz",
-            value: 4,
+            route: "/{foo}/{bar}/baz",
+            data: 4,
             params: {
                 "foo" => "y",
                 "bar" => "foo"
             }
         }
         "/y/foo/bax" => {
-            path: "/{foo}/{baz}/bax",
-            value: 3,
+            route: "/{foo}/{baz}/bax",
+            data: 3,
             params: {
                 "foo" => "y",
                 "baz" => "foo"
             }
         }
         "/y/baz/baz" => {
-            path: "/{foo}/{bar}/baz",
-            value: 4,
+            route: "/{foo}/{bar}/baz",
+            data: 4,
             params: {
                 "foo" => "y",
                 "bar" => "baz"
             }
         }
         "/y/baz/bax/foo" => {
-            path: "/{fod}/baz/bax/foo",
-            value: 6,
+            route: "/{fod}/baz/bax/foo",
+            data: 6,
             params: {
                 "fod" => "y"
             }
         }
         "/y/baz/b/foo" => {
-            path: "/{fod}/{baz}/{bax}/foo",
-            value: 5,
+            route: "/{fod}/{baz}/{bax}/foo",
+            data: 5,
             params: {
                 "fod" => "y",
                 "baz" => "baz",
@@ -324,46 +324,46 @@ fn normalized() -> Result<(), Box<dyn Error>> {
             }
         }
         "/y/baz/bax" => {
-            path: "/{foo}/baz/bax",
-            value: 7,
+            route: "/{foo}/baz/bax",
+            data: 7,
             params: {
                 "foo" => "y"
             }
         }
         "/z/bar/bay" => {
-            path: "/{bar}/{bay}/bay",
-            value: 8,
+            route: "/{bar}/{bay}/bay",
+            data: 8,
             params: {
                 "bar" => "z",
                 "bay" => "bar"
             }
         }
         "/s" => {
-            path: "/s",
-            value: 9
+            route: "/s",
+            data: 9
         }
         "/s/s" => {
-            path: "/s/s",
-            value: 10
+            route: "/s/s",
+            data: 10
         }
         "/s/s/s" => {
-            path: "/s/s/s",
-            value: 11
+            route: "/s/s/s",
+            data: 11
         }
         "/s/s/s/s" => {
-            path: "/s/s/s/s",
-            value: 12
+            route: "/s/s/s/s",
+            data: 12
         }
         "/s/s/s/x" => {
-            path: "/s/s/{s}/x",
-            value: 13,
+            route: "/s/s/{s}/x",
+            data: 13,
             params: {
                 "s" => "s"
             }
         }
         "/s/s/s/d" => {
-            path: "/s/s/{y}/d",
-            value: 14,
+            route: "/s/s/{y}/d",
+            data: 14,
             params: {
                 "y" => "s"
             }
@@ -402,15 +402,15 @@ fn blog() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/about" => {
-            path: "/{page}",
-            value: 1,
+            route: "/{page}",
+            data: 1,
             params: {
                 "page" => "about"
             }
         }
         "/posts/2021/01/rust" => {
-            path: "/posts/{year}/{month}/{post}",
-            value: 2,
+            route: "/posts/{year}/{month}/{post}",
+            data: 2,
             params: {
                 "year" => "2021",
                 "month" => "01",
@@ -418,30 +418,30 @@ fn blog() -> Result<(), Box<dyn Error>> {
             }
         }
         "/posts/2021/01/index" => {
-            path: "/posts/{year}/{month}/index",
-            value: 3,
+            route: "/posts/{year}/{month}/index",
+            data: 3,
             params: {
                 "year" => "2021",
                 "month" => "01"
             }
         }
         "/posts/2021/top" => {
-            path: "/posts/{year}/top",
-            value: 4,
+            route: "/posts/{year}/top",
+            data: 4,
             params: {
                 "year" => "2021"
             }
         }
         "/static/foo.png" => {
-            path: "/static/{*path}",
-            value: 5,
+            route: "/static/{*path}",
+            data: 5,
             params: {
                 "path" => "foo.png"
             }
         }
         "/favicon.ico" => {
-            path: "/favicon.ico",
-            value: 6
+            route: "/favicon.ico",
+            data: 6
         }
     });
 
@@ -482,28 +482,28 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/secret/978/path" => {
-            path: "/secret/{id}/path",
-            value: 2,
+            route: "/secret/{id}/path",
+            data: 2,
             params: {
                 "id" => "978"
             }
         }
         "/some_object/978" => {
-            path: "/{object}/{id}",
-            value: 1,
+            route: "/{object}/{id}",
+            data: 1,
             params: {
                 "object" => "some_object",
                 "id" => "978"
             }
         }
         "/secret/978" => {
-            path: "/secret/978",
-            value: 3
+            route: "/secret/978",
+            data: 3
         }
         "/super_secret/978/" => None
         "/other/object/1/" => {
-            path: "/other/{object}/{id}/",
-            value: 4,
+            route: "/other/{object}/{id}/",
+            data: 4,
             params: {
                 "object" => "object",
                 "id" => "1"
@@ -511,19 +511,19 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
         }
         "/other/object/1/2" => None
         "/other/an_object/1" => {
-            path: "/other/an_object/{id}",
-            value: 5,
+            route: "/other/an_object/{id}",
+            data: 5,
             params: {
                 "id" => "1"
             }
         }
         "/other/static/path" => {
-            path: "/other/static/path",
-            value: 6
+            route: "/other/static/path",
+            data: 6
         }
         "/other/long/static/path/" => {
-            path: "/other/long/static/path/",
-            value: 7
+            route: "/other/long/static/path/",
+            data: 7
         }
     });
 
@@ -552,23 +552,23 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
         "/foo" => None
         "/foo/" => None
         "/foo/x" => {
-            path: "/foo/{*catchall}",
-            value: 1,
+            route: "/foo/{*catchall}",
+            data: 1,
             params: {
                 "catchall" => "x"
             }
         }
         "/bar" => {
-            path: "/bar",
-            value: 2
+            route: "/bar",
+            data: 2
         }
         "/bar/" => {
-            path: "/bar/",
-            value: 3
+            route: "/bar/",
+            data: 3
         }
         "/bar/x" => {
-            path: "/bar/{*catchall}",
-            value: 4,
+            route: "/bar/{*catchall}",
+            data: 4,
             params: {
                 "catchall" => "x"
             }
@@ -609,51 +609,51 @@ fn overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/foo" => {
-            path: "/foo",
-            value: 1
+            route: "/foo",
+            data: 1
         }
         "/bar" => {
-            path: "/bar",
-            value: 2
+            route: "/bar",
+            data: 2
         }
         "/baz" => {
-            path: "/baz",
-            value: 4
+            route: "/baz",
+            data: 4
         }
         "/baz/" => {
-            path: "/baz/",
-            value: 5
+            route: "/baz/",
+            data: 5
         }
         "/baz/x" => {
-            path: "/baz/x",
-            value: 6
+            route: "/baz/x",
+            data: 6
         }
         "/???" => {
-            path: "/{*bar}",
-            value: 3,
+            route: "/{*bar}",
+            data: 3,
             params: {
                 "bar" => "???"
             }
         }
         "/" => {
-            path: "/",
-            value: 8
+            route: "/",
+            data: 8
         }
         "" => None
         "/xxx/y" => {
-            path: "/xxx/{*x}",
-            value: 9,
+            route: "/xxx/{*x}",
+            data: 9,
             params: {
                 "x" => "y"
             }
         }
         "/xxx/" => {
-            path: "/xxx/",
-            value: 10
+            route: "/xxx/",
+            data: 10
         }
         "/xxx" => {
-            path: "/{*bar}",
-            value: 3,
+            route: "/{*bar}",
+            data: 3,
             params: {
                 "bar" => "xxx"
             }
@@ -682,12 +682,12 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
-            path: "/foo/secret/978/",
-            value: 3
+            route: "/foo/secret/978/",
+            data: 3
         }
         "/foo/secret/978" => {
-            path: "/foo/{object}/{id}",
-            value: 1,
+            route: "/foo/{object}/{id}",
+            data: 1,
             params: {
                 "object" => "secret",
                 "id" => "978"
@@ -718,8 +718,8 @@ fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     assert_router_matches!(router, {
         "/foo/secret/978/" => None
         "/foo/secret/978" => {
-            path: "/foo/secret/978",
-            value: 3
+            route: "/foo/secret/978",
+            data: 3
         }
     });
 
@@ -743,15 +743,15 @@ fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/foo/secret/978" => {
-            path: "/foo/{*bar}",
-            value: 1,
+            route: "/foo/{*bar}",
+            data: 1,
             params: {
                 "bar" => "secret/978"
             }
         }
         "/foo/secret/978/" => {
-            path: "/foo/secret/978/",
-            value: 3
+            route: "/foo/secret/978/",
+            data: 3
         }
     });
 
@@ -775,15 +775,15 @@ fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/foo/secret/978/" => {
-            path: "/foo/{*bar}",
-            value: 1,
+            route: "/foo/{*bar}",
+            data: 1,
             params: {
                 "bar" => "secret/978/"
             }
         }
         "/foo/secret/978" => {
-            path: "/foo/secret/978",
-            value: 3
+            route: "/foo/secret/978",
+            data: 3
         }
     });
 
@@ -829,16 +829,16 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
         "/other/object/1" => None
         "/other/object/1/2" => None
         "/other/an_object/1/" => {
-            path: "/other/{object}/{id}/",
-            value: 4,
+            route: "/other/{object}/{id}/",
+            data: 4,
             params: {
                 "object" => "an_object",
                 "id" => "1"
             }
         }
         "/other/static/path/" => {
-            path: "/other/{object}/{id}/",
-            value: 4,
+            route: "/other/{object}/{id}/",
+            data: 4,
             params: {
                 "object" => "static",
                 "id" => "path"
@@ -869,22 +869,22 @@ fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/foo/x/baz/" => {
-            path: "/foo/{x}/baz/",
-            value: 1,
+            route: "/foo/{x}/baz/",
+            data: 1,
             params: {
                 "x" => "x"
             }
         }
         "/foo/x/baz" => {
-            path: "/foo/{x}/baz",
-            value: 2,
+            route: "/foo/{x}/baz",
+            data: 2,
             params: {
                 "x" => "x"
             }
         }
         "/foo/bar/bar" => {
-            path: "/foo/bar/bar",
-            value: 3
+            route: "/foo/bar/bar",
+            data: 3
         }
     });
 
@@ -1087,15 +1087,15 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/yyy/y" => {
-            path: "/yyy/{*x}",
-            value: 1,
+            route: "/yyy/{*x}",
+            data: 1,
             params: {
                 "x" => "y"
             }
         }
         "/yyy/" => {
-            path: "/yyy{*x}",
-            value: 2,
+            route: "/yyy{*x}",
+            data: 2,
             params: {
                 "x" => "/"
             }
@@ -1147,104 +1147,104 @@ fn escaped() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 1
+            route: "/",
+            data: 1
         }
         "/{" => {
-            path: "/{{",
-            value: 2
+            route: "/{{",
+            data: 2
         }
         "/}" => {
-            path: "/}}",
-            value: 3
+            route: "/}}",
+            data: 3
         }
         "/{x" => {
-            path: "/{{x",
-            value: 4
+            route: "/{{x",
+            data: 4
         }
         "/}y{" => {
-            path: "/}}y{{",
-            value: 5
+            route: "/}}y{{",
+            data: 5
         }
         "/xy{" => {
-            path: "/xy{{",
-            value: 6
+            route: "/xy{{",
+            data: 6
         }
         "/{/xyz" => {
-            path: "/{{/xyz",
-            value: 7
+            route: "/{{/xyz",
+            data: 7
         }
         // "/foo" => {
-        //     path: "/{ba{{r}",
-        //     value: 8,
+        //     route: "/{ba{{r}",
+        //     data: 8,
         //     params: {
         //         "ba{r" => "foo"
         //     }
         // }
         // "/{{" => {
-        //     path: "/{ba{{r}",
-        //     value: 8,
+        //     route: "/{ba{{r}",
+        //     data: 8,
         //     params: {
         //         "ba{r" => "{{"
         //     }
         // }
         // "/{{}}/" => {
-        //     path: "/{ba{{r}/",
-        //     value: 9,
+        //     route: "/{ba{{r}/",
+        //     data: 9,
         //     params: {
         //         "ba{r" => "{{}}"
         //     }
         // }
         // "/{{}}{{/x" => {
-        //     path: "/{ba{{r}/x",
-        //     value: 10,
+        //     route: "/{ba{{r}/x",
+        //     data: 10,
         //     params: {
         //         "ba{r" => "{{}}{{"
         //     }
         // }
         "/baz/x" => {
-            path: "/baz/{xxx}",
-            value: 11,
+            route: "/baz/{xxx}",
+            data: 11,
             params: {
                 "xxx" => "x"
             }
         }
         "/baz/x/xy{" => {
-            path: "/baz/{xxx}/xy{{",
-            value: 12,
+            route: "/baz/{xxx}/xy{{",
+            data: 12,
             params: {
                 "xxx" => "x"
             }
         }
         "/baz/x/xy{{" => None
         "/baz/x/}xy{{" => {
-            path: "/baz/{xxx}/}}xy{{{{",
-            value: 13,
+            route: "/baz/{xxx}/}}xy{{{{",
+            data: 13,
             params: {
                 "xxx" => "x"
             }
         }
         "/{/{{" => {
-            path: "/{{/{x}",
-            value: 14,
+            route: "/{{/{x}",
+            data: 14,
             params: {
                 "x" => "{{"
             }
         }
         // "/xxx" => {
-        //     path: "/{ba{{r}",
-        //     value: 8,
+        //     route: "/{ba{{r}",
+        //     data: 8,
         //     params: {
         //         "ba{r" => "xxx"
         //     }
         // }
         "/xxx/" => {
-            path: "/xxx/",
-            value: 15
+            route: "/xxx/",
+            data: 15
         }
         // "/xxx/foo" => {
-        //     path: "/xxx/{x}{{}}}}{{}}{{{{}}y}",
-        //     value: 16,
+        //     route: "/xxx/{x}{{}}}}{{}}{{{{}}y}",
+        //     data: 16,
         //     params: {
         //         "x}{}}{}{{}y" => "foo"
         //     }
@@ -1309,76 +1309,76 @@ fn basic() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/a" => {
-            path: "/a",
-            value: 5
+            route: "/a",
+            data: 5
         }
         "/" => None
         "/hi" => {
-            path: "/hi",
-            value: 1
+            route: "/hi",
+            data: 1
         }
         "/contact" => {
-            path: "/contact",
-            value: 2
+            route: "/contact",
+            data: 2
         }
         "/co" => {
-            path: "/co",
-            value: 3
+            route: "/co",
+            data: 3
         }
         "/con" => None
         "/cona" => None
         "/no" => None
         "/ab" => {
-            path: "/ab",
-            value: 6
+            route: "/ab",
+            data: 6
         }
         "ʯ" => {
-            path: "ʯ",
-            value: 10
+            route: "ʯ",
+            data: 10
         }
         "β" => {
-            path: "β",
-            value: 11
+            route: "β",
+            data: 11
         }
         "/sd!here" => {
-            path: "/sd!here",
-            value: 12
+            route: "/sd!here",
+            data: 12
         }
         "/sd$here" => {
-            path: "/sd$here",
-            value: 13
+            route: "/sd$here",
+            data: 13
         }
         "/sd&here" => {
-            path: "/sd&here",
-            value: 14
+            route: "/sd&here",
+            data: 14
         }
         "/sd'here" => {
-            path: "/sd'here",
-            value: 15
+            route: "/sd'here",
+            data: 15
         }
         "/sd(here" => {
-            path: "/sd(here",
-            value: 16
+            route: "/sd(here",
+            data: 16
         }
         "/sd)here" => {
-            path: "/sd)here",
-            value: 17
+            route: "/sd)here",
+            data: 17
         }
         "/sd+here" => {
-            path: "/sd+here",
-            value: 18
+            route: "/sd+here",
+            data: 18
         }
         "/sd,here" => {
-            path: "/sd,here",
-            value: 19
+            route: "/sd,here",
+            data: 19
         }
         "/sd;here" => {
-            path: "/sd;here",
-            value: 20
+            route: "/sd;here",
+            data: 20
         }
         "/sd=here" => {
-            path: "/sd=here",
-            value: 21
+            route: "/sd=here",
+            data: 21
         }
     });
 
@@ -1554,20 +1554,20 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/" => {
-            path: "/",
-            value: 1
+            route: "/",
+            data: 1
         }
         "/cmd/test" => None
         "/cmd/test/" => {
-            path: "/cmd/{tool}/",
-            value: 2,
+            route: "/cmd/{tool}/",
+            data: 2,
             params: {
                 "tool" => "test"
             }
         }
         "/cmd/test/3" => {
-            path: "/cmd/{tool2}/{sub}",
-            value: 3,
+            route: "/cmd/{tool2}/{sub}",
+            data: 3,
             params: {
                 "tool2" => "test",
                 "sub" => "3"
@@ -1575,26 +1575,26 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/cmd/who" => None
         "/cmd/who/" => {
-            path: "/cmd/{tool}/",
-            value: 2,
+            route: "/cmd/{tool}/",
+            data: 2,
             params: {
                 "tool" => "who"
             }
         }
         "/cmd/whoami" => {
-            path: "/cmd/whoami",
-            value: 4
+            route: "/cmd/whoami",
+            data: 4
         }
         "/cmd/whoami/" => {
-            path: "/cmd/{tool}/",
-            value: 2,
+            route: "/cmd/{tool}/",
+            data: 2,
             params: {
                 "tool" => "whoami"
             }
         }
         "/cmd/whoami/r" => {
-            path: "/cmd/{tool2}/{sub}",
-            value: 3,
+            route: "/cmd/{tool2}/{sub}",
+            data: 3,
             params: {
                 "tool2" => "whoami",
                 "sub" => "r"
@@ -1602,382 +1602,382 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
         }
         "/cmd/whoami/r/" => None
         "/cmd/whoami/root" => {
-            path: "/cmd/whoami/root",
-            value: 5
+            route: "/cmd/whoami/root",
+            data: 5
         }
         "/cmd/whoami/root/" => {
-            path: "/cmd/whoami/root/",
-            value: 6
+            route: "/cmd/whoami/root/",
+            data: 6
         }
         "/src" => {
-            path: "/src",
-            value: 7
+            route: "/src",
+            data: 7
         }
         "/src/" => {
-            path: "/src/",
-            value: 8
+            route: "/src/",
+            data: 8
         }
         "/src/some/file.png" => {
-            path: "/src/{*filepath}",
-            value: 9,
+            route: "/src/{*filepath}",
+            data: 9,
             params: {
                 "filepath" => "some/file.png"
             }
         }
         "/search/" => {
-            path: "/search/",
-            value: 10
+            route: "/search/",
+            data: 10
         }
         "/search/actix" => {
-            path: "/search/{query}",
-            value: 11,
+            route: "/search/{query}",
+            data: 11,
             params: {
                 "query" => "actix"
             }
         }
         "/search/actix-we" => {
-            path: "/search/actix-we",
-            value: 12
+            route: "/search/actix-we",
+            data: 12
         }
         "/search/someth!ng+in+ünìcodé" => {
-            path: "/search/{query}",
-            value: 11,
+            route: "/search/{query}",
+            data: 11,
             params: {
                 "query" => "someth!ng+in+ünìcodé"
             }
         }
         "/search/someth!ng+in+ünìcodé/" => None
         "/user_rustacean" => {
-            path: "/user_{name}",
-            value: 14,
+            route: "/user_{name}",
+            data: 14,
             params: {
                 "name" => "rustacean"
             }
         }
         "/user_rustacean/about" => {
-            path: "/user_{name}/about",
-            value: 15,
+            route: "/user_{name}/about",
+            data: 15,
             params: {
                 "name" => "rustacean"
             }
         }
         "/files/js/inc/framework.js" => {
-            path: "/files/{dir}/{*filepath}",
-            value: 16,
+            route: "/files/{dir}/{*filepath}",
+            data: 16,
             params: {
                 "dir" => "js",
                 "filepath" => "inc/framework.js"
             }
         }
         "/info/gordon/public" => {
-            path: "/info/{user}/public",
-            value: 20,
+            route: "/info/{user}/public",
+            data: 20,
             params: {
                 "user" => "gordon"
             }
         }
         "/info/gordon/project/rust" => {
-            path: "/info/{user}/project/{project}",
-            value: 21,
+            route: "/info/{user}/project/{project}",
+            data: 21,
             params: {
                 "user" => "gordon",
                 "project" => "rust"
             }
         }
         "/info/gordon/project/rustlang" => {
-            path: "/info/{user}/project/rustlang",
-            value: 22,
+            route: "/info/{user}/project/rustlang",
+            data: 22,
             params: {
                 "user" => "gordon"
             }
         }
         "/aa/" => None
         "/aa/aa" => {
-            path: "/aa/{*xx}",
-            value: 23,
+            route: "/aa/{*xx}",
+            data: 23,
             params: {
                 "xx" => "aa"
             }
         }
         "/ab/ab" => {
-            path: "/ab/{*xx}",
-            value: 24,
+            route: "/ab/{*xx}",
+            data: 24,
             params: {
                 "xx" => "ab"
             }
         }
         "/ab/hello-world" => {
-            path: "/ab/hello{*xx}",
-            value: 25,
+            route: "/ab/hello{*xx}",
+            data: 25,
             params: {
                 "xx" => "-world"
             }
         }
         "/a" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "a"
             }
         }
         "/all" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "all"
             }
         }
         "/d" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "d"
             }
         }
         "/ad" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "ad"
             }
         }
         "/dd" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "dd"
             }
         }
         "/dddaa" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "dddaa"
             }
         }
         "/aa" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "aa"
             }
         }
         "/aaa" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "aaa"
             }
         }
         "/aaa/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "aaa"
             }
         }
         "/a" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "a"
             }
         }
         "/ab" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "ab"
             }
         }
         "/abb/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "abb"
             }
         }
         "/allxxxx" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "allxxxx"
             }
         }
         "/alldd" => {
-            path: "/{cc}",
-            value: 26,
+            route: "/{cc}",
+            data: 26,
             params: {
                 "cc" => "alldd"
             }
         }
         "/all/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "all"
             }
         }
         "/a/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "a"
             }
         }
         "/c1/d/e" => {
-            path: "/c1/{dd}/e",
-            value: 27,
+            route: "/c1/{dd}/e",
+            data: 27,
             params: {
                 "dd" => "d"
             }
         }
         "/c1/d/e1" => {
-            path: "/c1/{dd}/e1",
-            value: 28,
+            route: "/c1/{dd}/e1",
+            data: 28,
             params: {
                 "dd" => "d"
             }
         }
         "/c1/d/ee" => {
-            path: "/{cc}/{dd}/ee",
-            value: 30,
+            route: "/{cc}/{dd}/ee",
+            data: 30,
             params: {
                 "cc" => "c1",
                 "dd" => "d"
             }
         }
         "/cc/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "cc"
             }
         }
         "/ccc/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "ccc"
             }
         }
         "/deedwjfs/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "deedwjfs"
             }
         }
         "/acllcc/cc" => {
-            path: "/{cc}/cc",
-            value: 29,
+            route: "/{cc}/cc",
+            data: 29,
             params: {
                 "cc" => "acllcc"
             }
         }
         "/get/test/abc/" => {
-            path: "/get/test/abc/",
-            value: 34
+            route: "/get/test/abc/",
+            data: 34
         }
         "/get/te/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "te"
             }
         }
         "/get/testaa/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "testaa"
             }
         }
         "/get/xx/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "xx"
             }
         }
         "/get/tt/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "tt"
             }
         }
         "/get/a/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "a"
             }
         }
         "/get/t/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "t"
             }
         }
         "/get/aa/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "aa"
             }
         }
         "/get/abas/abc/" => {
-            path: "/get/{param}/abc/",
-            value: 35,
+            route: "/get/{param}/abc/",
+            data: 35,
             params: {
                 "param" => "abas"
             }
         }
         "/something/secondthing/test" => {
-            path: "/something/secondthing/test",
-            value: 37
+            route: "/something/secondthing/test",
+            data: 37
         }
         "/something/abcdad/thirdthing" => {
-            path: "/something/{paramname}/thirdthing",
-            value: 36,
+            route: "/something/{paramname}/thirdthing",
+            data: 36,
             params: {
                 "paramname" => "abcdad"
             }
         }
         "/something/secondthingaaaa/thirdthing" => {
-            path: "/something/{paramname}/thirdthing",
-            value: 36,
+            route: "/something/{paramname}/thirdthing",
+            data: 36,
             params: {
                 "paramname" => "secondthingaaaa"
             }
         }
         "/something/se/thirdthing" => {
-            path: "/something/{paramname}/thirdthing",
-            value: 36,
+            route: "/something/{paramname}/thirdthing",
+            data: 36,
             params: {
                 "paramname" => "se"
             }
         }
         "/something/s/thirdthing" => {
-            path: "/something/{paramname}/thirdthing",
-            value: 36,
+            route: "/something/{paramname}/thirdthing",
+            data: 36,
             params: {
                 "paramname" => "s"
             }
         }
         "/c/d/ee" => {
-            path: "/{cc}/{dd}/ee",
-            value: 30,
+            route: "/{cc}/{dd}/ee",
+            data: 30,
             params: {
                 "cc" => "c",
                 "dd" => "d"
             }
         }
         "/c/d/e/ff" => {
-            path: "/{cc}/{dd}/{ee}/ff",
-            value: 31,
+            route: "/{cc}/{dd}/{ee}/ff",
+            data: 31,
             params: {
                 "cc" => "c",
                 "dd" => "d",
@@ -1985,8 +1985,8 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/c/d/e/f/gg" => {
-            path: "/{cc}/{dd}/{ee}/{ff}/gg",
-            value: 32,
+            route: "/{cc}/{dd}/{ee}/{ff}/gg",
+            data: 32,
             params: {
                 "cc" => "c",
                 "dd" => "d",
@@ -1995,8 +1995,8 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/c/d/e/f/g/hh" => {
-            path: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
-            value: 33,
+            route: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
+            data: 33,
             params: {
                 "cc" => "c",
                 "dd" => "d",
@@ -2006,8 +2006,8 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/cc/dd/ee/ff/gg/hh" => {
-            path: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
-            value: 33,
+            route: "/{cc}/{dd}/{ee}/{ff}/{gg}/hh",
+            data: 33,
             params: {
                 "cc" => "cc",
                 "dd" => "dd",
@@ -2017,284 +2017,284 @@ fn wildcard() -> Result<(), Box<dyn Error>> {
             }
         }
         "/get/abc" => {
-            path: "/get/abc",
-            value: 38
+            route: "/get/abc",
+            data: 38
         }
         "/get/a" => {
-            path: "/get/{param}",
-            value: 39,
+            route: "/get/{param}",
+            data: 39,
             params: {
                 "param" => "a"
             }
         }
         "/get/abz" => {
-            path: "/get/{param}",
-            value: 39,
+            route: "/get/{param}",
+            data: 39,
             params: {
                 "param" => "abz"
             }
         }
         "/get/12a" => {
-            path: "/get/{param}",
-            value: 39,
+            route: "/get/{param}",
+            data: 39,
             params: {
                 "param" => "12a"
             }
         }
         "/get/abcd" => {
-            path: "/get/{param}",
-            value: 39,
+            route: "/get/{param}",
+            data: 39,
             params: {
                 "param" => "abcd"
             }
         }
         "/get/abc/123abc" => {
-            path: "/get/abc/123abc",
-            value: 40
+            route: "/get/abc/123abc",
+            data: 40
         }
         "/get/abc/12" => {
-            path: "/get/abc/{param}",
-            value: 41,
+            route: "/get/abc/{param}",
+            data: 41,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123a" => {
-            path: "/get/abc/{param}",
-            value: 41,
+            route: "/get/abc/{param}",
+            data: 41,
             params: {
                 "param" => "123a"
             }
         }
         "/get/abc/xyz" => {
-            path: "/get/abc/{param}",
-            value: 41,
+            route: "/get/abc/{param}",
+            data: 41,
             params: {
                 "param" => "xyz"
             }
         }
         "/get/abc/123abcddxx" => {
-            path: "/get/abc/{param}",
-            value: 41,
+            route: "/get/abc/{param}",
+            data: 41,
             params: {
                 "param" => "123abcddxx"
             }
         }
         "/get/abc/123abc/xxx8" => {
-            path: "/get/abc/123abc/xxx8",
-            value: 42
+            route: "/get/abc/123abc/xxx8",
+            data: 42
         }
         "/get/abc/123abc/x" => {
-            path: "/get/abc/123abc/{param}",
-            value: 43,
+            route: "/get/abc/123abc/{param}",
+            data: 43,
             params: {
                 "param" => "x"
             }
         }
         "/get/abc/123abc/xxx" => {
-            path: "/get/abc/123abc/{param}",
-            value: 43,
+            route: "/get/abc/123abc/{param}",
+            data: 43,
             params: {
                 "param" => "xxx"
             }
         }
         "/get/abc/123abc/abc" => {
-            path: "/get/abc/123abc/{param}",
-            value: 43,
+            route: "/get/abc/123abc/{param}",
+            data: 43,
             params: {
                 "param" => "abc"
             }
         }
         "/get/abc/123abc/xxx8xxas" => {
-            path: "/get/abc/123abc/{param}",
-            value: 43,
+            route: "/get/abc/123abc/{param}",
+            data: 43,
             params: {
                 "param" => "xxx8xxas"
             }
         }
         "/get/abc/123abc/xxx8/1234" => {
-            path: "/get/abc/123abc/xxx8/1234",
-            value: 44
+            route: "/get/abc/123abc/xxx8/1234",
+            data: 44
         }
         "/get/abc/123abc/xxx8/1" => {
-            path: "/get/abc/123abc/xxx8/{param}",
-            value: 45,
+            route: "/get/abc/123abc/xxx8/{param}",
+            data: 45,
             params: {
                 "param" => "1"
             }
         }
         "/get/abc/123abc/xxx8/123" => {
-            path: "/get/abc/123abc/xxx8/{param}",
-            value: 45,
+            route: "/get/abc/123abc/xxx8/{param}",
+            data: 45,
             params: {
                 "param" => "123"
             }
         }
         "/get/abc/123abc/xxx8/78k" => {
-            path: "/get/abc/123abc/xxx8/{param}",
-            value: 45,
+            route: "/get/abc/123abc/xxx8/{param}",
+            data: 45,
             params: {
                 "param" => "78k"
             }
         }
         "/get/abc/123abc/xxx8/1234xxxd" => {
-            path: "/get/abc/123abc/xxx8/{param}",
-            value: 45,
+            route: "/get/abc/123abc/xxx8/{param}",
+            data: 45,
             params: {
                 "param" => "1234xxxd"
             }
         }
         "/get/abc/123abc/xxx8/1234/ffas" => {
-            path: "/get/abc/123abc/xxx8/1234/ffas",
-            value: 46
+            route: "/get/abc/123abc/xxx8/1234/ffas",
+            data: 46
         }
         "/get/abc/123abc/xxx8/1234/f" => {
-            path: "/get/abc/123abc/xxx8/1234/{param}",
-            value: 47,
+            route: "/get/abc/123abc/xxx8/1234/{param}",
+            data: 47,
             params: {
                 "param" => "f"
             }
         }
         "/get/abc/123abc/xxx8/1234/ffa" => {
-            path: "/get/abc/123abc/xxx8/1234/{param}",
-            value: 47,
+            route: "/get/abc/123abc/xxx8/1234/{param}",
+            data: 47,
             params: {
                 "param" => "ffa"
             }
         }
         "/get/abc/123abc/xxx8/1234/kka" => {
-            path: "/get/abc/123abc/xxx8/1234/{param}",
-            value: 47,
+            route: "/get/abc/123abc/xxx8/1234/{param}",
+            data: 47,
             params: {
                 "param" => "kka"
             }
         }
         "/get/abc/123abc/xxx8/1234/ffas321" => {
-            path: "/get/abc/123abc/xxx8/1234/{param}",
-            value: 47,
+            route: "/get/abc/123abc/xxx8/1234/{param}",
+            data: 47,
             params: {
                 "param" => "ffas321"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/12c" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/12c",
-            value: 48
+            route: "/get/abc/123abc/xxx8/1234/kkdd/12c",
+            data: 48
         }
         "/get/abc/123abc/xxx8/1234/kkdd/1" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
-            value: 49,
+            route: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
+            data: 49,
             params: {
                 "param" => "1"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/12" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
-            value: 49,
+            route: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
+            data: 49,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/34" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
-            value: 49,
+            route: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
+            data: 49,
             params: {
                 "param" => "34"
             }
         }
         "/get/abc/123abc/xxx8/1234/kkdd/12c2e3" => {
-            path: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
-            value: 49,
+            route: "/get/abc/123abc/xxx8/1234/kkdd/{param}",
+            data: 49,
             params: {
                 "param" => "12c2e3"
             }
         }
         "/get/abc/12/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "12"
             }
         }
         "/get/abc/123abdd/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123abdd"
             }
         }
         "/get/abc/123abdddf/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123abdddf"
             }
         }
         "/get/abc/123ab/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123ab"
             }
         }
         "/get/abc/123abgg/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123abgg"
             }
         }
         "/get/abc/123abff/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123abff"
             }
         }
         "/get/abc/123abffff/test" => {
-            path: "/get/abc/{param}/test",
-            value: 50,
+            route: "/get/abc/{param}/test",
+            data: 50,
             params: {
                 "param" => "123abffff"
             }
         }
         "/get/abc/123abd/test" => {
-            path: "/get/abc/123abd/{param}",
-            value: 51,
+            route: "/get/abc/123abd/{param}",
+            data: 51,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123abddd/test" => {
-            path: "/get/abc/123abddd/{param}",
-            value: 52,
+            route: "/get/abc/123abddd/{param}",
+            data: 52,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123/test22" => {
-            path: "/get/abc/123/{param}",
-            value: 53,
+            route: "/get/abc/123/{param}",
+            data: 53,
             params: {
                 "param" => "test22"
             }
         }
         "/get/abc/123abg/test" => {
-            path: "/get/abc/123abg/{param}",
-            value: 54,
+            route: "/get/abc/123abg/{param}",
+            data: 54,
             params: {
                 "param" => "test"
             }
         }
         "/get/abc/123abf/testss" => {
-            path: "/get/abc/123abf/{param}",
-            value: 55,
+            route: "/get/abc/123abf/{param}",
+            data: 55,
             params: {
                 "param" => "testss"
             }
         }
         "/get/abc/123abfff/te" => {
-            path: "/get/abc/123abfff/{param}",
-            value: 56,
+            route: "/get/abc/123abfff/{param}",
+            data: 56,
             params: {
                 "param" => "te"
             }

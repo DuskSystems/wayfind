@@ -18,64 +18,64 @@ fn percent_encoding() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/hello%40world" => {
-            path: "/hello@world",
-            value: 1
+            route: "/hello@world",
+            data: 1
         }
         "/hello@world" => {
-            path: "/hello@world",
-            value: 1
+            route: "/hello@world",
+            data: 1
         }
         "/hello-world.com" => {
-            path: "/hello-world.com",
-            value: 2
+            route: "/hello-world.com",
+            data: 2
         }
         "/hello%20world" => {
-            path: "/hello world",
-            value: 3
+            route: "/hello world",
+            data: 3
         }
         "/hello world" => {
-            path: "/hello world",
-            value: 3
+            route: "/hello world",
+            data: 3
         }
         "/%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" => {
-            path: "/こんにちは",
-            value: 4
+            route: "/こんにちは",
+            data: 4
         }
         "/こんにちは" => {
-            path: "/こんにちは",
-            value: 4
+            route: "/こんにちは",
+            data: 4
         }
         "/50%25" => {
-            path: "/50%",
-            value: 5
+            route: "/50%",
+            data: 5
         }
         "/50%" => {
-            path: "/50%",
-            value: 5
+            route: "/50%",
+            data: 5
         }
         "/hello%20world%40example.com" => {
-            path: "/hello world@example.com",
-            value: 6
+            route: "/hello world@example.com",
+            data: 6
         }
         "/hello world@example.com" => {
-            path: "/hello world@example.com",
-            value: 6
+            route: "/hello world@example.com",
+            data: 6
         }
         "/path/to/resource%20with%20spaces" => {
-            path: "/path/to/resource with spaces",
-            value: 7
+            route: "/path/to/resource with spaces",
+            data: 7
         }
         "/path/to/resource with spaces" => {
-            path: "/path/to/resource with spaces",
-            value: 7
+            route: "/path/to/resource with spaces",
+            data: 7
         }
         "/encoded%2Fslash" => {
-            path: "/encoded/slash",
-            value: 8
+            route: "/encoded/slash",
+            data: 8
         }
         "/encoded/slash" => {
-            path: "/encoded/slash",
-            value: 8
+            route: "/encoded/slash",
+            data: 8
         }
     });
 

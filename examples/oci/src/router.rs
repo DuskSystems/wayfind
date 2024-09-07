@@ -94,9 +94,9 @@ impl AppRouter {
             return StatusCode::NOT_FOUND.into_response();
         };
 
-        let handler = &search.data.value;
+        let handler = &search.data;
 
-        let route = search.data.path.to_string();
+        let route = search.route.to_string();
         let route = RouteInner(route);
 
         let parameters: Vec<(String, String)> = search

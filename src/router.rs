@@ -30,6 +30,10 @@ pub struct Router<T> {
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<Vec<u8>, StoredConstraint>,
+
+    /// Shared route data.
+    /// Only used when multiple nodes require the same data storage.
+    data: HashMap<Arc<str>, T>,
 }
 
 impl<T> Router<T> {
@@ -56,6 +60,7 @@ impl<T> Router<T> {
                 quick_dynamic: false,
             },
             constraints: HashMap::new(),
+            data: HashMap::new(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -138,15 +143,15 @@ impl<T> Router<T> {
     /// router.insert("/hello/{world}", 2).unwrap();
     /// ```
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        let path = Path::new(route)?;
-        if route.as_bytes() != path.decoded_bytes() {
+        let route_path = Path::new(route)?;
+        if route.as_bytes() != route_path.decoded_bytes() {
             return Err(InsertError::EncodedPath {
                 input: route.to_string(),
-                decoded: String::from_utf8_lossy(path.decoded_bytes()).to_string(),
+                decoded: String::from_utf8_lossy(route_path.decoded_bytes()).to_string(),
             });
         }
 
-        let path = Arc::from(route);
+        let route_arc = Arc::from(route);
         let mut parts = Parts::new(route.as_bytes())?;
 
         for part in &parts {
@@ -167,7 +172,13 @@ impl<T> Router<T> {
             }
         }
 
-        self.root.insert(&mut parts, NodeData { path, value })
+        // TODO: Using Parts, determine whether we need to store inline or not.
+        let node_data = NodeData::Inline {
+            route: Arc::clone(&route_arc),
+            value,
+        };
+
+        self.root.insert(&mut parts, node_data)
     }
 
     /// Deletes a route from the router.
@@ -224,11 +235,23 @@ impl<T> Router<T> {
             return Ok(None);
         };
 
-        let Some(data) = node.data.as_ref() else {
-            return Ok(None);
+        let (route, data) = match &node.data {
+            Some(NodeData::Inline { route, value }) => (Arc::clone(route), value),
+            Some(NodeData::Reference(key)) => {
+                let Some(data) = self.data.get(key) else {
+                    return Ok(None);
+                };
+
+                (Arc::clone(key), data)
+            }
+            None => return Ok(None),
         };
 
-        Ok(Some(Match { data, parameters }))
+        Ok(Some(Match {
+            route,
+            data,
+            parameters,
+        }))
     }
 }
 
