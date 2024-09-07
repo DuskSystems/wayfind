@@ -35,12 +35,12 @@ fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
     router.insert("/abcdef", 2)?;
     router.insert("/abcdefgh", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /abc ○
           ╰─ def ○
                ╰─ gh ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -53,7 +53,7 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
     router.insert("/ab1256", 3)?;
     router.insert("/ab125678", 4)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /ab
          ├─ 12
@@ -61,7 +61,7 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
          │   ╰─ 56 ○
          │       ╰─ 78 ○
          ╰─ cd ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -72,11 +72,11 @@ fn test_insert_static_child_3() -> Result<(), Box<dyn Error>> {
     router.insert("/abc", 1)?;
     router.insert("/ab", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /ab ○
          ╰─ c ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -88,14 +88,14 @@ fn test_insert_param_child() -> Result<(), Box<dyn Error>> {
     router.insert("/abc/{p1}/p2", 2)?;
     router.insert("/abc/{p1}/{p3}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /abc/
            ╰─ {p1} ○
                  ╰─ /
                     ├─ p2 ○
                     ╰─ {p3} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -106,13 +106,13 @@ fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
     router.insert("/abc/{*p1}", 1)?;
     router.insert("/ab/de", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /ab
          ├─ /de ○
          ╰─ c/
              ╰─ {*p1} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -122,10 +122,10 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("{*p1}", 1)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ {*p1} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -139,14 +139,14 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     router.insert("/abc/{name:digit_string}/def", 1)?;
     router.insert("/abc/def/{name:digit_string}", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /abc/
            ├─ def/
            │     ╰─ {name:digit_string} ○
            ╰─ {name:digit_string}
                                 ╰─ /def ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -159,11 +159,11 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     router.insert("/a/b", 1)?;
 
     let error = router.insert("/a/b", 2).unwrap_err();
-    insta::assert_snapshot!(error, @r###"
-    duplicate path
+    insta::assert_snapshot!(error, @r#"
+    duplicate route
 
-       Path: /a/b
-    "###);
+       Route: /a/b
+    "#);
 
     router.insert("/a/b/{p}/d", 1)?;
     router.insert("/a/b/c/d", 2)?;
@@ -171,11 +171,11 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     router.insert("/a/{*p}", 1)?;
 
     let error = router.insert("/a/{*p}", 2).unwrap_err();
-    insta::assert_snapshot!(error, @r###"
-    duplicate path
+    insta::assert_snapshot!(error, @r#"
+    duplicate route
 
-       Path: /a/{*p}
-    "###);
+       Route: /a/{*p}
+    "#);
 
     router.insert("/k/h/{name:digit_string}", 1)?;
 
@@ -183,7 +183,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     // assert!(router.insert("/a/b/{*p}", 1).is_ok());
     // assert!(router.insert("/a/b/{*p2}", 2).is_err());
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ a/
@@ -197,7 +197,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
        │   ╰─ {*p} ○
        ╰─ k/h/
              ╰─ {name:digit_string} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -221,7 +221,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     router.insert("/kcd/{p1:digit_string}", 11)?;
     router.insert("/{package}/-/{package_tgz:ends_with_tgz}", 12)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ a
@@ -249,7 +249,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │          ╰─ /-/
        │               ╰─ {package_tgz:ends_with_tgz} ○
        ╰─ {*p1} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/ab/def" => {
@@ -339,12 +339,12 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     router.insert("/a/bc", 1)?;
     router.insert("/a/{*path}", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ bc ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/123" => {
@@ -358,13 +358,13 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     router.insert("/a/{id}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ bc ○
          ├─ {id} ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/123" => {
@@ -379,14 +379,14 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     router.constraint::<DigitString>()?;
     router.insert("/a/{id:digit_string}", 4)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ bc ○
          ├─ {id:digit_string} ○
          ├─ {id} ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/123" => {
@@ -400,7 +400,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
 
     router.insert("/a/123", 5)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ 123 ○
@@ -408,7 +408,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
          ├─ {id:digit_string} ○
          ├─ {id} ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/123" => {
@@ -425,11 +425,11 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/{*path}", 1)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
@@ -443,13 +443,13 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
     router.insert("/a/b/{*path}", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ b/
          │   ╰─ {*path} ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
@@ -463,7 +463,7 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
 
     router.insert("/a/b/c/{*path}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ├─ b/
@@ -471,7 +471,7 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
          │   │   ╰─ {*path} ○
          │   ╰─ {*path} ○
          ╰─ {*path} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/b/c/123" => {
@@ -492,14 +492,14 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
     router.insert("/{id1}/a", 1)?;
     router.insert("/{id2}/b", 2)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ {id1}
        │      ╰─ /a ○
        ╰─ {id2}
               ╰─ /b ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/abc/a" => {
@@ -526,11 +526,11 @@ fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/{id}", 1)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /a/
          ╰─ {id} ○
-    "###);
+    "#);
 
     assert_router_matches!(router, {
         "/a/abc" => {

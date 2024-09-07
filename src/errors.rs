@@ -8,6 +8,9 @@ pub use constraint::ConstraintError;
 pub(crate) mod delete;
 pub use delete::DeleteError;
 
+pub(crate) mod encoding;
+pub use encoding::EncodingError;
+
 pub(crate) mod insert;
 pub use insert::InsertError;
 

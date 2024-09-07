@@ -1,7 +1,7 @@
 use super::{Node, NodeData, NodeKind};
 use crate::{
     errors::InsertError,
-    parts::{Part, Parts},
+    parser::{ParsedRoute, RoutePart},
 };
 use std::cmp::Ordering;
 
@@ -10,24 +10,28 @@ impl<T> Node<T> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error is there's already data at the end node.
-    pub fn insert(&mut self, parts: &mut Parts<'_>, data: NodeData<T>) -> Result<(), InsertError> {
+    pub fn insert(
+        &mut self,
+        parts: &mut ParsedRoute<'_>,
+        data: NodeData<T>,
+    ) -> Result<(), InsertError> {
         if let Some(segment) = parts.pop() {
             match segment {
-                Part::Static { prefix } => self.insert_static(parts, data, &prefix)?,
-                Part::Dynamic { name, constraint } => {
+                RoutePart::Static { prefix } => self.insert_static(parts, data, &prefix)?,
+                RoutePart::Dynamic { name, constraint } => {
                     self.insert_dynamic(parts, data, &name, constraint)?;
                 }
-                Part::Wildcard { name, constraint } if parts.is_empty() => {
+                RoutePart::Wildcard { name, constraint } if parts.is_empty() => {
                     self.insert_end_wildcard(parts, data, &name, constraint)?;
                 }
-                Part::Wildcard { name, constraint } => {
+                RoutePart::Wildcard { name, constraint } => {
                     self.insert_wildcard(parts, data, &name, constraint)?;
                 }
             };
         } else {
             if self.data.is_some() {
-                return Err(InsertError::DuplicatePath {
-                    path: String::from_utf8_lossy(parts.path).to_string(),
+                return Err(InsertError::DuplicateRoute {
+                    route: String::from_utf8_lossy(parts.route).to_string(),
                 });
             }
 
@@ -42,7 +46,7 @@ impl<T> Node<T> {
 
     fn insert_static(
         &mut self,
-        parts: &mut Parts<'_>,
+        parts: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
@@ -138,7 +142,7 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        parts: &mut Parts<'_>,
+        parts: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -176,7 +180,7 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        parts: &mut Parts<'_>,
+        parts: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -214,7 +218,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
-        parts: &Parts<'_>,
+        parts: &ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -224,8 +228,8 @@ impl<T> Node<T> {
             .iter()
             .any(|child| child.prefix == name && child.constraint == constraint)
         {
-            return Err(InsertError::DuplicatePath {
-                path: String::from_utf8_lossy(parts.path).to_string(),
+            return Err(InsertError::DuplicateRoute {
+                route: String::from_utf8_lossy(parts.route).to_string(),
             });
         }
 

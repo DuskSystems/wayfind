@@ -4,9 +4,9 @@ use std::fmt::Debug;
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 6] = [b':', b'*', b'?', b'{', b'}', b'/'];
 
-/// A parsed section of a path.
+/// A parsed section of a route.
 #[derive(Debug, PartialEq, Eq)]
-pub enum Part {
+pub enum RoutePart {
     Static {
         prefix: Vec<u8>,
     },
@@ -22,29 +22,29 @@ pub enum Part {
     },
 }
 
-/// A parsed path.
+/// A parsed route.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parts<'a> {
-    /// The original path.
-    pub path: &'a [u8],
+pub struct ParsedRoute<'a> {
+    /// The original route.
+    pub route: &'a [u8],
 
-    /// The parsed parts of the path, in reverse order.
-    /// We may want these to simply be indicies of the original path in the future, to reduce allocations.
-    pub inner: Vec<Part>,
+    /// The parsed parts of the route, in reverse order.
+    /// We may want these to simply be indicies of the original route in the future, to reduce allocations.
+    pub parts: Vec<RoutePart>,
 }
 
-impl<'a> Parts<'a> {
-    pub fn new(path: &'a [u8]) -> Result<Self, RouteError> {
-        if path.is_empty() {
-            return Err(RouteError::EmptyPath);
+impl<'a> ParsedRoute<'a> {
+    pub fn new(route: &'a [u8]) -> Result<Self, RouteError> {
+        if route.is_empty() {
+            return Err(RouteError::EmptyRoute);
         }
 
         let mut parts = vec![];
         let mut cursor = 0;
         let mut current_static = vec![];
 
-        while cursor < path.len() {
-            match (path[cursor], path.get(cursor + 1)) {
+        while cursor < route.len() {
+            match (route[cursor], route.get(cursor + 1)) {
                 (b'{', Some(b'{')) => {
                     current_static.push(b'{');
                     cursor += 2;
@@ -55,16 +55,16 @@ impl<'a> Parts<'a> {
                 }
                 (b'{', _) => {
                     if !current_static.is_empty() {
-                        parts.push(Part::Static {
+                        parts.push(RoutePart::Static {
                             prefix: std::mem::take(&mut current_static),
                         });
                     }
 
-                    cursor = Self::parse_parameter(path, cursor, &mut parts)?;
+                    cursor = Self::parse_parameter(route, cursor, &mut parts)?;
                 }
                 (b'}', _) => {
                     return Err(RouteError::UnescapedBrace {
-                        path: String::from_utf8_lossy(path).to_string(),
+                        route: String::from_utf8_lossy(route).to_string(),
                         position: cursor,
                     })
                 }
@@ -76,41 +76,46 @@ impl<'a> Parts<'a> {
         }
 
         if !current_static.is_empty() {
-            parts.push(Part::Static {
+            parts.push(RoutePart::Static {
                 prefix: std::mem::take(&mut current_static),
             });
         }
 
         parts.reverse();
-        Ok(Self { path, inner: parts })
+        Ok(Self { route, parts })
     }
 
     fn parse_parameter(
-        path: &[u8],
+        route: &[u8],
         cursor: usize,
-        parts: &mut Vec<Part>,
+        parts: &mut Vec<RoutePart>,
     ) -> Result<usize, RouteError> {
         let start = cursor + 1;
-        let end = path[start..]
+        let end = route[start..]
             .iter()
             .position(|&c| c == b'}')
             .map(|pos| start + pos)
             .ok_or(RouteError::UnescapedBrace {
-                path: String::from_utf8_lossy(path).to_string(),
+                route: String::from_utf8_lossy(route).to_string(),
                 position: cursor,
             })?;
 
         if start == end {
             return Err(RouteError::EmptyBraces {
-                path: String::from_utf8_lossy(path).to_string(),
+                route: String::from_utf8_lossy(route).to_string(),
                 position: cursor,
             });
         }
 
-        let colon = path[start..end].iter().position(|&c| c == b':');
+        let colon = route[start..end].iter().position(|&c| c == b':');
         let (name, constraint) = colon.map_or_else(
-            || (&path[start..end], None),
-            |pos| (&path[start..start + pos], Some(&path[start + pos + 1..end])),
+            || (&route[start..end], None),
+            |pos| {
+                (
+                    &route[start..start + pos],
+                    Some(&route[start + pos + 1..end]),
+                )
+            },
         );
 
         let (is_wildcard, name) = if name.starts_with(b"*") {
@@ -122,14 +127,14 @@ impl<'a> Parts<'a> {
         if name.is_empty() {
             if is_wildcard {
                 return Err(RouteError::EmptyWildcard {
-                    path: String::from_utf8_lossy(path).to_string(),
+                    route: String::from_utf8_lossy(route).to_string(),
                     start: cursor,
                     length: end - start + 2,
                 });
             }
 
             return Err(RouteError::EmptyParameter {
-                path: String::from_utf8_lossy(path).to_string(),
+                route: String::from_utf8_lossy(route).to_string(),
                 start: cursor,
                 length: end - start + 2,
             });
@@ -137,7 +142,7 @@ impl<'a> Parts<'a> {
 
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
             return Err(RouteError::InvalidParameter {
-                path: String::from_utf8_lossy(path).to_string(),
+                route: String::from_utf8_lossy(route).to_string(),
                 name: String::from_utf8_lossy(name).to_string(),
                 start: start - 1,
                 length: end - start + 2,
@@ -147,7 +152,7 @@ impl<'a> Parts<'a> {
         if let Some(constraint) = constraint {
             if constraint.is_empty() {
                 return Err(RouteError::EmptyConstraint {
-                    path: String::from_utf8_lossy(path).to_string(),
+                    route: String::from_utf8_lossy(route).to_string(),
                     start: start - 1,
                     length: end - start + 2,
                 });
@@ -155,7 +160,7 @@ impl<'a> Parts<'a> {
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
                 return Err(RouteError::InvalidConstraint {
-                    path: String::from_utf8_lossy(path).to_string(),
+                    route: String::from_utf8_lossy(route).to_string(),
                     name: String::from_utf8_lossy(constraint).to_string(),
                     start: start - 1,
                     length: end - start + 2,
@@ -164,12 +169,12 @@ impl<'a> Parts<'a> {
         }
 
         let part = if is_wildcard {
-            Part::Wildcard {
+            RoutePart::Wildcard {
                 name: name.to_vec(),
                 constraint: constraint.map(<[u8]>::to_vec),
             }
         } else {
-            Part::Dynamic {
+            RoutePart::Dynamic {
                 name: name.to_vec(),
                 constraint: constraint.map(<[u8]>::to_vec),
             }
@@ -179,35 +184,35 @@ impl<'a> Parts<'a> {
         Ok(end + 1)
     }
 
-    pub fn pop(&mut self) -> Option<Part> {
-        self.inner.pop()
+    pub fn pop(&mut self) -> Option<RoutePart> {
+        self.parts.pop()
     }
 
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
+        self.parts.is_empty()
     }
 
-    pub fn iter(&'a self) -> std::slice::Iter<'a, Part> {
+    pub fn iter(&'a self) -> std::slice::Iter<'a, RoutePart> {
         self.into_iter()
     }
 }
 
-impl<'a> IntoIterator for Parts<'a> {
-    type Item = Part;
+impl<'a> IntoIterator for ParsedRoute<'a> {
+    type Item = RoutePart;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
+        self.parts.into_iter()
     }
 }
 
-impl<'a> IntoIterator for &'a Parts<'a> {
-    type Item = &'a Part;
-    type IntoIter = std::slice::Iter<'a, Part>;
+impl<'a> IntoIterator for &'a ParsedRoute<'a> {
+    type Item = &'a RoutePart;
+    type IntoIter = std::slice::Iter<'a, RoutePart>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.inner.iter()
+        self.parts.iter()
     }
 }
 
@@ -218,10 +223,10 @@ mod tests {
     #[test]
     fn test_parts_static() {
         assert_eq!(
-            Parts::new(b"/abcd"),
-            Ok(Parts {
-                path: b"/abcd",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"/abcd"),
+            Ok(ParsedRoute {
+                route: b"/abcd",
+                parts: vec![RoutePart::Static {
                     prefix: b"/abcd".to_vec()
                 }]
             })
@@ -231,15 +236,15 @@ mod tests {
     #[test]
     fn test_parts_dynamic() {
         assert_eq!(
-            Parts::new(b"/{name}"),
-            Ok(Parts {
-                path: b"/{name}",
-                inner: vec![
-                    Part::Dynamic {
+            ParsedRoute::new(b"/{name}"),
+            Ok(ParsedRoute {
+                route: b"/{name}",
+                parts: vec![
+                    RoutePart::Dynamic {
                         name: b"name".to_vec(),
                         constraint: None
                     },
-                    Part::Static {
+                    RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
                 ]
@@ -250,15 +255,15 @@ mod tests {
     #[test]
     fn test_parts_wildcard() {
         assert_eq!(
-            Parts::new(b"/{*path}"),
-            Ok(Parts {
-                path: b"/{*path}",
-                inner: vec![
-                    Part::Wildcard {
-                        name: b"path".to_vec(),
+            ParsedRoute::new(b"/{*route}"),
+            Ok(ParsedRoute {
+                route: b"/{*route}",
+                parts: vec![
+                    RoutePart::Wildcard {
+                        name: b"route".to_vec(),
                         constraint: None
                     },
-                    Part::Static {
+                    RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
                 ]
@@ -269,22 +274,22 @@ mod tests {
     #[test]
     fn test_parts_constraint() {
         assert_eq!(
-            Parts::new(b"/{name:alpha}/{id:numeric}"),
-            Ok(Parts {
-                path: b"/{name:alpha}/{id:numeric}",
-                inner: vec![
-                    Part::Dynamic {
+            ParsedRoute::new(b"/{name:alpha}/{id:numeric}"),
+            Ok(ParsedRoute {
+                route: b"/{name:alpha}/{id:numeric}",
+                parts: vec![
+                    RoutePart::Dynamic {
                         name: b"id".to_vec(),
                         constraint: Some(b"numeric".to_vec())
                     },
-                    Part::Static {
+                    RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
-                    Part::Dynamic {
+                    RoutePart::Dynamic {
                         name: b"name".to_vec(),
                         constraint: Some(b"alpha".to_vec())
                     },
-                    Part::Static {
+                    RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
                 ]
@@ -294,191 +299,191 @@ mod tests {
 
     #[test]
     fn test_parts_empty() {
-        let error = Parts::new(b"").unwrap_err();
-        insta::assert_snapshot!(error, @"empty path");
+        let error = ParsedRoute::new(b"").unwrap_err();
+        insta::assert_snapshot!(error, @"empty route");
     }
 
     #[test]
     fn test_parts_unclosed_braces() {
-        let error = Parts::new(b"/{").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         unescaped brace
 
-           Path: /{
+           Route: /{
                   ^
 
-        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
-        "###);
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
 
-        let error = Parts::new(b"/{name").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         unescaped brace
 
-           Path: /{name
+           Route: /{name
                   ^
 
-        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
-        "###);
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
 
-        let error = Parts::new(b"/name}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/name}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         unescaped brace
 
-           Path: /name}
+           Route: /name}
                       ^
 
-        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
-        "###);
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
     }
 
     #[test]
     fn test_parts_empty_braces() {
-        let error = Parts::new(b"/{}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty braces
 
-           Path: /{}
+           Route: /{}
                   ^^
-        "###);
+        "#);
     }
 
     #[test]
     fn test_parts_empty_name() {
-        let error = Parts::new(b"/{:}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{:}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty parameter name
 
-           Path: /{:}
+           Route: /{:}
                   ^^^
-        "###);
+        "#);
 
-        let error = Parts::new(b"/{:constraint}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{:constraint}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty parameter name
 
-           Path: /{:constraint}
+           Route: /{:constraint}
                   ^^^^^^^^^^^^^
-        "###);
+        "#);
     }
 
     #[test]
     fn test_parts_empty_wildcard() {
-        let error = Parts::new(b"/{*}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{*}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty wildcard name
 
-           Path: /{*}
+           Route: /{*}
                   ^^^
-        "###);
+        "#);
 
-        let error = Parts::new(b"/{*:constraint}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{*:constraint}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty wildcard name
 
-           Path: /{*:constraint}
+           Route: /{*:constraint}
                   ^^^^^^^^^^^^^^
-        "###);
+        "#);
     }
 
     #[test]
     fn test_parts_empty_constraint() {
-        let error = Parts::new(b"/{name:}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name:}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         empty constraint name
 
-           Path: /{name:}
+           Route: /{name:}
                   ^^^^^^^
-        "###);
+        "#);
     }
 
     #[test]
     fn test_parts_invalid_characters() {
-        let error = Parts::new(b"/{name/with/slash}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name/with/slash}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         invalid parameter name
 
-           Path: /{name/with/slash}
+           Route: /{name/with/slash}
                   ^^^^^^^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
-        "###);
+        "#);
 
-        let error = Parts::new(b"/{name{with{brace}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name{with{brace}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         invalid parameter name
 
-           Path: /{name{with{brace}
+           Route: /{name{with{brace}
                   ^^^^^^^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
-        "###);
+        "#);
 
-        let error = Parts::new(b"/{name{with}brace}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name{with}brace}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         invalid parameter name
 
-           Path: /{name{with}brace}
+           Route: /{name{with}brace}
                   ^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
-        "###);
+        "#);
 
-        let error = Parts::new(b"/{name:with:colon}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"/{name:with:colon}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         invalid constraint name
 
-           Path: /{name:with:colon}
+           Route: /{name:with:colon}
                   ^^^^^^^^^^^^^^^^^
 
         tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
-        "###);
+        "#);
     }
 
     #[test]
     fn test_parts_escaped() {
         assert_eq!(
-            Parts::new(b"/{{name}}"),
-            Ok(Parts {
-                path: b"/{{name}}",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"/{{name}}"),
+            Ok(ParsedRoute {
+                route: b"/{{name}}",
+                parts: vec![RoutePart::Static {
                     prefix: b"/{name}".to_vec()
                 }]
             })
         );
 
         assert_eq!(
-            Parts::new(b"/name}}"),
-            Ok(Parts {
-                path: b"/name}}",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"/name}}"),
+            Ok(ParsedRoute {
+                route: b"/name}}",
+                parts: vec![RoutePart::Static {
                     prefix: b"/name}".to_vec()
                 }]
             })
         );
 
         assert_eq!(
-            Parts::new(b"/name{{"),
-            Ok(Parts {
-                path: b"/name{{",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"/name{{"),
+            Ok(ParsedRoute {
+                route: b"/name{{",
+                parts: vec![RoutePart::Static {
                     prefix: b"/name{".to_vec()
                 }]
             })
         );
 
         assert_eq!(
-            Parts::new(b"/{{{name}}}"),
-            Ok(Parts {
-                path: b"/{{{name}}}",
-                inner: vec![
-                    Part::Static {
+            ParsedRoute::new(b"/{{{name}}}"),
+            Ok(ParsedRoute {
+                route: b"/{{{name}}}",
+                parts: vec![
+                    RoutePart::Static {
                         prefix: b"}".to_vec()
                     },
-                    Part::Dynamic {
+                    RoutePart::Dynamic {
                         name: b"name".to_vec(),
                         constraint: None
                     },
-                    Part::Static {
+                    RoutePart::Static {
                         prefix: b"/{".to_vec()
                     },
                 ]
@@ -486,30 +491,30 @@ mod tests {
         );
 
         assert_eq!(
-            Parts::new(b"/{{{{name}}}}"),
-            Ok(Parts {
-                path: b"/{{{{name}}}}",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"/{{{{name}}}}"),
+            Ok(ParsedRoute {
+                route: b"/{{{{name}}}}",
+                parts: vec![RoutePart::Static {
                     prefix: b"/{{name}}".to_vec()
                 }]
             })
         );
 
         assert_eq!(
-            Parts::new(b"{{}}"),
-            Ok(Parts {
-                path: b"{{}}",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"{{}}"),
+            Ok(ParsedRoute {
+                route: b"{{}}",
+                parts: vec![RoutePart::Static {
                     prefix: b"{}".to_vec()
                 }]
             })
         );
 
         assert_eq!(
-            Parts::new(b"{{:}}"),
-            Ok(Parts {
-                path: b"{{:}}",
-                inner: vec![Part::Static {
+            ParsedRoute::new(b"{{:}}"),
+            Ok(ParsedRoute {
+                route: b"{{:}}",
+                parts: vec![RoutePart::Static {
                     prefix: b"{:}".to_vec()
                 }]
             })
@@ -518,24 +523,24 @@ mod tests {
 
     #[test]
     fn test_parts_invalid_escaped() {
-        let error = Parts::new(b"{name}}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"{name}}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         unescaped brace
 
-           Path: {name}}
+           Route: {name}}
                        ^
 
-        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
-        "###);
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
 
-        let error = Parts::new(b"{{name}").unwrap_err();
-        insta::assert_snapshot!(error, @r###"
+        let error = ParsedRoute::new(b"{{name}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
         unescaped brace
 
-           Path: {{name}
+           Route: {{name}
                        ^
 
-        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the path
-        "###);
+        tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
     }
 }

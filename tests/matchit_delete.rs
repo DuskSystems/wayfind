@@ -24,7 +24,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     router.insert("/s/s/{s}/x", 12)?;
     router.insert("/s/s/{y}/d", 13)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ s ○
@@ -59,7 +59,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
                  │      ╰─ /baz ○
                  ╰─ {baz}
                         ╰─ /bax ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/x/{foo}/bar"), Ok(()));
     assert_eq!(router.delete("/x/{bar}/baz"), Ok(()));
@@ -87,32 +87,32 @@ fn test() -> Result<(), Box<dyn Error>> {
     router.insert("/home", 0)?;
     router.insert("/home/{id}", 1)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /home ○
            ╰─ /
               ╰─ {id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/home"), Ok(()));
     let error = router.delete("/home").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /home
+       Route: /home
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
     assert_eq!(router.delete("/home/{id}"), Ok(()));
     let error = router.delete("/home/{id}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /home/{id}
+       Route: /home/{id}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
     insta::assert_snapshot!(router, @"▽");
 
@@ -129,7 +129,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     router.insert("/static/{*path}", 4)?;
     router.insert("/favicon.ico", 5)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ favicon.ico ○
@@ -144,7 +144,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
        ├─ static/
        │        ╰─ {*path} ○
        ╰─ {page} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/{page}"), Ok(()));
     assert_eq!(router.delete("/posts/{year}/{month}/{post}"), Ok(()));
@@ -166,7 +166,7 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     router.insert("/bar/", 2)?;
     router.insert("/bar/{*catchall}", 3)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ bar ○
@@ -174,22 +174,22 @@ fn catchall() -> Result<(), Box<dyn Error>> {
        │       ╰─ {*catchall} ○
        ╰─ foo/
              ╰─ {*catchall} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/foo/{*catchall}"), Ok(()));
     assert_eq!(router.delete("/bar/"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ╰─ bar ○
             ╰─ /
                ╰─ {*catchall} ○
-    "###);
+    "#);
 
     router.insert("/foo/{*catchall}", 4)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ bar ○
@@ -197,17 +197,17 @@ fn catchall() -> Result<(), Box<dyn Error>> {
        │       ╰─ {*catchall} ○
        ╰─ foo/
              ╰─ {*catchall} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/bar/{*catchall}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ bar ○
        ╰─ foo/
              ╰─ {*catchall} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -225,7 +225,7 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     router.insert("/articles/{category}", 7)?;
     router.insert("/articles/{category}/{id}", 8)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -242,11 +242,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/home"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -263,11 +263,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/home", 9)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -284,11 +284,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/home/{id}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -303,11 +303,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/home/{id}", 10)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -324,11 +324,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/users"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -345,11 +345,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/users", 11)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -366,11 +366,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/users/{id}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -387,11 +387,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/users/{id}", 12)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -408,11 +408,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/users/{id}/posts"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -429,11 +429,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/users/{id}/posts", 13)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -450,11 +450,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/users/{id}/posts/{post_id}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -469,11 +469,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
               ╰─ /
                  ╰─ {id} ○
                        ╰─ /posts ○
-    "###);
+    "#);
 
     router.insert("/users/{id}/posts/{post_id}", 14)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -490,11 +490,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/articles"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles
@@ -511,11 +511,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/articles", 15)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -532,11 +532,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/articles/{category}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -553,11 +553,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/articles/{category}", 16)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -574,11 +574,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/articles/{category}/{id}"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -593,11 +593,11 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     router.insert("/articles/{category}/{id}", 17)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ articles ○
@@ -614,7 +614,7 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
                        ╰─ /posts ○
                                ╰─ /
                                   ╰─ {post_id} ○
-    "###);
+    "#);
 
     Ok(())
 }
@@ -625,89 +625,89 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     router.insert("/{home}/", 0)?;
     router.insert("/foo", 1)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ foo ○
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     let error = router.delete("/").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /
+       Route: /
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ foo ○
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     let error = router.delete("/{home}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /{home}
+       Route: /{home}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ foo ○
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     let error = router.delete("/foo/").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /foo/
+       Route: /foo/
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ foo ○
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/foo"), Ok(()));
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     let error = router.delete("/{home}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /{home}
+       Route: /{home}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ╰─ {home}
                ╰─ / ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/{home}/"), Ok(()));
 
@@ -721,10 +721,10 @@ fn remove_root() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
-    "###);
+    "#);
 
     assert_eq!(router.delete("/"), Ok(()));
 
@@ -742,7 +742,7 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     router.insert("/bar/{user}/{id}/baz", 3)?;
     router.insert("/baz/{product}/{user}/{id}", 4)?;
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -760,18 +760,18 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     let error = router.delete("/foo/{a}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /foo/{a}
+       Route: /foo/{a}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -789,18 +789,18 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     let error = router.delete("/foo/{a}/bar").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /foo/{a}/bar
+       Route: /foo/{a}/bar
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -818,18 +818,18 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     let error = router.delete("/bar/{a}/{b}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /bar/{a}/{b}
+       Route: /bar/{a}/{b}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -847,18 +847,18 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     let error = router.delete("/bar/{a}/{b}/baz").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /bar/{a}/{b}/baz
+       Route: /bar/{a}/{b}/baz
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -876,18 +876,18 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     let error = router.delete("/baz/{a}/{b}/{c}").unwrap_err();
-    insta::assert_snapshot!(error, @r###"
+    insta::assert_snapshot!(error, @r#"
     not found
 
-       Path: /baz/{a}/{b}/{c}
+       Route: /baz/{a}/{b}/{c}
 
-    The specified path does not exist in the router
-    "###);
+    The specified route does not exist in the router
+    "#);
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
        ├─ ba
@@ -905,7 +905,7 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
        ╰─ foo/
              ╰─ {id} ○
                    ╰─ /bar ○
-    "###);
+    "#);
 
     Ok(())
 }

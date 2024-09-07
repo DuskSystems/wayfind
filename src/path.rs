@@ -32,14 +32,14 @@ impl<'path> Path<'path> {
     /// ## Invalid
     ///
     /// ```rust
-    /// use wayfind::{Path, errors::PathError};
+    /// use wayfind::{Path, errors::{EncodingError, PathError}};
     ///
     /// let path = Path::new("/hello%GGworld").unwrap_err();
-    /// assert_eq!(path, PathError::InvalidEncoding {
+    /// assert_eq!(path, PathError::EncodingError(EncodingError::InvalidEncoding {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
     ///     character: [b'%', b'G', b'G'],
-    /// });
+    /// }));
     /// ```
     pub fn new(path: &'path str) -> Result<Self, PathError> {
         let decoded = percent_decode(path.as_bytes())?;
