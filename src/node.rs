@@ -9,20 +9,19 @@ pub mod search;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeKind {
     /// The root node of the tree.
-    /// Must only be used in the router new method.
+    /// Must only be used in the [`Router::new`](crate::Router::new) method.
     Root,
 
-    /// A static node with a fixed path segment.
+    /// A node with a fixed path segment.
     Static,
 
-    /// A dynamic node that can match any bytes, excluding b'/'.
+    /// A node that can match any bytes, excluding b'/'.
     Dynamic,
 
-    /// A wildcard node that can match any bytes, including b'/'.
+    /// A node that can match any bytes, including b'/'.
     Wildcard,
 
-    /// An end wildcard node that matches the whole remaining path.
-    /// Must only exist at the end of a tree.
+    /// A node that matches the whole remaining path.
     EndWildcard,
 }
 

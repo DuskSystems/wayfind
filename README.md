@@ -48,12 +48,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
+    assert_eq!(search.data.path, "/users/{id}".into());
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/users/123/files/my.document.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
+    assert_eq!(search.data.path, "/users/{id}/files/{filename}.{extension}".into());
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
     assert_eq!(search.parameters[1].key, "filename");
@@ -87,12 +89,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
+    assert_eq!(search.data.path, "/files/{*slug}/delete".into());
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
 
     let path = Path::new("/any/other/path")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
+    assert_eq!(search.data.path, "/{*catch_all}".into());
     assert_eq!(search.parameters[0].key, "catch_all");
     assert_eq!(search.parameters[0].value, "any/other/path");
 
@@ -176,10 +180,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/v2")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 1);
+    assert_eq!(search.data.path, "/v2".into());
 
     let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(search.data.value, 2);
+    assert_eq!(search.data.path, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
     assert_eq!(search.parameters[0].key, "name");
     assert_eq!(search.parameters[0].value, "my-org/my-repo");
     assert_eq!(search.parameters[1].key, "type");
