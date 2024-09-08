@@ -5,7 +5,7 @@ use wayfind::Router;
 mod utils;
 
 #[test]
-fn test_depth_matching_simple() -> Result<(), Box<dyn Error>> {
+fn test_specific_matching_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{file}", 1)?;
     router.insert("/{file}.{extension}", 1)?;
@@ -40,7 +40,7 @@ fn test_depth_matching_simple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_depth_matching_complex() -> Result<(), Box<dyn Error>> {
+fn test_specific_matching_complex() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{year}", 1)?;
     router.insert("/{year}-{month}", 1)?;

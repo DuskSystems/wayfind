@@ -11,19 +11,19 @@ impl<T> Node<T> {
     /// Logic should match that used by the insert method.
     ///
     /// If the route is found and deleted, we re-optimize the tree structure.
-    pub fn delete(&mut self, route: &mut ParsedRoute<'_>) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, route: &mut ParsedRoute) -> Result<(), DeleteError> {
         if let Some(part) = route.parts.pop_front() {
             let result = match part {
                 RoutePart::Static { prefix } => self.delete_static(route, &prefix),
-                RoutePart::Dynamic { name, constraint } => {
-                    self.delete_dynamic(route, &name, &constraint)
-                }
-                RoutePart::Wildcard { name, constraint } if route.parts.is_empty() => {
-                    self.delete_end_wildcard(route, &name, &constraint)
-                }
-                RoutePart::Wildcard { name, constraint } => {
-                    self.delete_wildcard(route, &name, &constraint)
-                }
+                RoutePart::Dynamic {
+                    name, constraint, ..
+                } => self.delete_dynamic(route, &name, &constraint),
+                RoutePart::Wildcard {
+                    name, constraint, ..
+                } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
+                RoutePart::Wildcard {
+                    name, constraint, ..
+                } => self.delete_wildcard(route, &name, &constraint),
             };
 
             if result.is_ok() {
@@ -38,16 +38,12 @@ impl<T> Node<T> {
             }
 
             Err(DeleteError::NotFound {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             })
         }
     }
 
-    fn delete_static(
-        &mut self,
-        route: &mut ParsedRoute<'_>,
-        prefix: &[u8],
-    ) -> Result<(), DeleteError> {
+    fn delete_static(&mut self, route: &mut ParsedRoute, prefix: &[u8]) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -56,7 +52,7 @@ impl<T> Node<T> {
                     && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
             .ok_or(DeleteError::NotFound {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
         let child = &mut self.static_children[index];
@@ -81,7 +77,7 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -90,7 +86,7 @@ impl<T> Node<T> {
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
             .ok_or(DeleteError::NotFound {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
         let child = &mut self.dynamic_children[index];
@@ -109,7 +105,7 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -118,7 +114,7 @@ impl<T> Node<T> {
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
             .ok_or(DeleteError::NotFound {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
         let child = &mut self.wildcard_children[index];
@@ -137,7 +133,7 @@ impl<T> Node<T> {
 
     fn delete_end_wildcard(
         &mut self,
-        route: &ParsedRoute<'_>,
+        route: &ParsedRoute,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -146,7 +142,7 @@ impl<T> Node<T> {
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
             .ok_or(DeleteError::NotFound {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
         self.end_wildcard_children.remove(index);

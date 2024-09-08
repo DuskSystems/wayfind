@@ -7,6 +7,8 @@ pub(crate) mod decode;
 
 pub mod errors;
 
+pub(crate) mod expander;
+
 pub(crate) mod node;
 pub use node::search::{Match, Parameter};
 

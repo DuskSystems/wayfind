@@ -12,26 +12,32 @@ impl<T> Node<T> {
     /// Will error is there's already data at the end node.
     pub fn insert(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         data: NodeData<T>,
     ) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop_front() {
             match part {
                 RoutePart::Static { prefix } => self.insert_static(route, data, &prefix)?,
-                RoutePart::Dynamic { name, constraint } => {
+                RoutePart::Dynamic {
+                    name, constraint, ..
+                } => {
                     self.insert_dynamic(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard { name, constraint } if route.parts.is_empty() => {
+                RoutePart::Wildcard {
+                    name, constraint, ..
+                } if route.parts.is_empty() => {
                     self.insert_end_wildcard(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard { name, constraint } => {
+                RoutePart::Wildcard {
+                    name, constraint, ..
+                } => {
                     self.insert_wildcard(route, data, &name, constraint)?;
                 }
             };
         } else {
             if self.data.is_some() {
                 return Err(InsertError::DuplicateRoute {
-                    route: String::from_utf8_lossy(route.raw).to_string(),
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
                 });
             }
 
@@ -46,7 +52,7 @@ impl<T> Node<T> {
 
     fn insert_static(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
@@ -142,7 +148,7 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -180,7 +186,7 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -218,7 +224,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
-        route: &ParsedRoute<'_>,
+        route: &ParsedRoute,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -229,7 +235,7 @@ impl<T> Node<T> {
             .any(|child| child.prefix == name && child.constraint == constraint)
         {
             return Err(InsertError::DuplicateRoute {
-                route: String::from_utf8_lossy(route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.raw).to_string(),
             });
         }
 

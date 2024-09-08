@@ -8,6 +8,9 @@ pub struct Match<'router, 'path, T> {
     /// The matching route.
     pub route: Arc<str>,
 
+    /// The expanded route, if applicable.
+    pub expanded: Option<Arc<str>>,
+
     /// A reference to the matching route data.
     pub data: &'router T,
 
@@ -175,7 +178,8 @@ impl<T> Node<T> {
         };
 
         match data {
-            NodeData::Inline { route, .. } | NodeData::Shared { route, .. } => route.len(),
+            NodeData::Inline { route, .. } => route.len(),
+            NodeData::Shared { expanded, .. } => expanded.len(),
         }
     }
 
