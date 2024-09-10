@@ -10,36 +10,6 @@ pub enum InsertError {
     /// A [`RouteError`] that occurred during the insert operation.
     RouteError(RouteError),
 
-    /// The route provided was percent-encoded.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::InsertError;
-    ///
-    /// let error = InsertError::EncodedRoute {
-    ///     input: "/hello%20world".to_string(),
-    ///     decoded: "/hello world".to_string(),
-    /// };
-    ///
-    /// let display = "
-    /// encoded route
-    ///
-    ///      Input: /hello%20world
-    ///    Decoded: /hello world
-    ///
-    /// The router expects routes to be in their decoded form
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    EncodedRoute {
-        /// The original encoded input route.
-        input: String,
-        /// The decoded version of the route.
-        decoded: String,
-    },
-
     /// The route being inserted already exists in the router.
     ///
     /// # Examples
@@ -98,15 +68,6 @@ impl Display for InsertError {
         match self {
             Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
-            Self::EncodedRoute { input, decoded } => write!(
-                f,
-                r#"encoded route
-
-     Input: {input}
-   Decoded: {decoded}
-
-The router expects routes to be in their decoded form"#
-            ),
             Self::DuplicateRoute { route } => write!(
                 f,
                 r#"duplicate route

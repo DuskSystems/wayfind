@@ -36,6 +36,36 @@ pub enum EncodingError {
         /// The invalid character sequence.
         character: [u8; 3],
     },
+
+    /// The route provided was percent-encoded.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::EncodingError;
+    ///
+    /// let error = EncodingError::EncodedRoute {
+    ///     input: "/hello%20world".to_string(),
+    ///     decoded: "/hello world".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// encoded route
+    ///
+    ///      Input: /hello%20world
+    ///    Decoded: /hello world
+    ///
+    /// The router expects routes to be in their decoded form
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    EncodedRoute {
+        /// The original encoded input route.
+        input: String,
+        /// The decoded version of the route.
+        decoded: String,
+    },
 }
 
 impl Error for EncodingError {}
@@ -62,6 +92,15 @@ Expected: '%' followed by two hexadecimal digits (a-F, 0-9)
    Found: '{character}'",
                 )
             }
+            Self::EncodedRoute { input, decoded } => write!(
+                f,
+                r#"encoded route
+
+     Input: {input}
+   Decoded: {decoded}
+
+The router expects routes to be in their decoded form"#
+            ),
         }
     }
 }

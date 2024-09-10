@@ -1,7 +1,7 @@
 use crate::{
     constraints::Constraint,
     decode::percent_decode,
-    errors::{ConstraintError, DeleteError, InsertError, SearchError},
+    errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
     node::{search::Match, Node, NodeData, NodeKind},
     parser::{ParsedRoute, RoutePart},
     path::Path,
@@ -146,10 +146,10 @@ impl<T> Router<T> {
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
         let decoded_route = percent_decode(route.as_bytes())?;
         if route.as_bytes() != decoded_route.as_ref() {
-            return Err(InsertError::EncodedRoute {
+            return Err(EncodingError::EncodedRoute {
                 input: route.to_string(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
-            });
+            })?;
         }
 
         let route_arc = Arc::from(route);
@@ -200,6 +200,14 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
+        let decoded_route = percent_decode(route.as_bytes())?;
+        if route.as_bytes() != decoded_route.as_ref() {
+            return Err(EncodingError::EncodedRoute {
+                input: route.to_string(),
+                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
+            })?;
+        }
+
         let mut route = ParsedRoute::new(route.as_bytes())?;
         self.root.delete(&mut route)
     }

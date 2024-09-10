@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Router display now uses different characters to represent root and matchable nodes.
 - Successful matches now return a flattened representation of node data.
+- Route encoding errors now live in the encoding error enum.
+- Router display now uses different characters to represent root and matchable nodes.
 
 ### Fixed
 
+- Router delete method now checks for encoded routes.
 - Be consistent with the use of terms "path" and "route".
 
 ## [0.2.1] - 2024-09-04
@@ -30,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Search method now returns a Result.
+- Search method now returns a result.
 
 ### Removed
 
