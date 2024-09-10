@@ -1,5 +1,5 @@
 use crate::errors::RouteError;
-use std::fmt::Debug;
+use std::{collections::VecDeque, fmt::Debug};
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 6] = [b':', b'*', b'?', b'{', b'}', b'/'];
@@ -22,15 +22,49 @@ pub enum RoutePart {
     },
 }
 
+/// The parsed parts of the route, in order.
+/// We may want these to simply be indicies of the original route in the future, to reduce allocations.
+#[derive(Debug, PartialEq, Eq)]
+pub struct RouteParts(pub VecDeque<RoutePart>);
+
+impl RouteParts {
+    pub fn pop_front(&mut self) -> Option<RoutePart> {
+        self.0.pop_front()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn iter(&self) -> std::collections::vec_deque::Iter<'_, RoutePart> {
+        self.into_iter()
+    }
+}
+
+impl IntoIterator for RouteParts {
+    type Item = RoutePart;
+    type IntoIter = std::collections::vec_deque::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a RouteParts {
+    type Item = &'a RoutePart;
+    type IntoIter = std::collections::vec_deque::Iter<'a, RoutePart>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
+    }
+}
+
 /// A parsed route.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParsedRoute<'a> {
-    /// The original route.
-    pub route: &'a [u8],
-
-    /// The parsed parts of the route, in reverse order.
-    /// We may want these to simply be indicies of the original route in the future, to reduce allocations.
-    pub parts: Vec<RoutePart>,
+    pub raw: &'a [u8],
+    pub parts: RouteParts,
 }
 
 impl<'a> ParsedRoute<'a> {
@@ -39,7 +73,7 @@ impl<'a> ParsedRoute<'a> {
             return Err(RouteError::EmptyRoute);
         }
 
-        let mut parts = vec![];
+        let mut parts = VecDeque::new();
         let mut cursor = 0;
         let mut current_static = vec![];
 
@@ -55,7 +89,7 @@ impl<'a> ParsedRoute<'a> {
                 }
                 (b'{', _) => {
                     if !current_static.is_empty() {
-                        parts.push(RoutePart::Static {
+                        parts.push_back(RoutePart::Static {
                             prefix: std::mem::take(&mut current_static),
                         });
                     }
@@ -76,19 +110,21 @@ impl<'a> ParsedRoute<'a> {
         }
 
         if !current_static.is_empty() {
-            parts.push(RoutePart::Static {
+            parts.push_back(RoutePart::Static {
                 prefix: std::mem::take(&mut current_static),
             });
         }
 
-        parts.reverse();
-        Ok(Self { route, parts })
+        Ok(Self {
+            raw: route,
+            parts: RouteParts(parts),
+        })
     }
 
     fn parse_parameter(
         route: &[u8],
         cursor: usize,
-        parts: &mut Vec<RoutePart>,
+        parts: &mut VecDeque<RoutePart>,
     ) -> Result<usize, RouteError> {
         let start = cursor + 1;
         let end = route[start..]
@@ -118,14 +154,14 @@ impl<'a> ParsedRoute<'a> {
             },
         );
 
-        let (is_wildcard, name) = if name.starts_with(b"*") {
+        let (wildcard, name) = if name.starts_with(b"*") {
             (true, &name[1..])
         } else {
             (false, name)
         };
 
         if name.is_empty() {
-            if is_wildcard {
+            if wildcard {
                 return Err(RouteError::EmptyWildcard {
                     route: String::from_utf8_lossy(route).to_string(),
                     start: cursor,
@@ -168,7 +204,7 @@ impl<'a> ParsedRoute<'a> {
             }
         }
 
-        let part = if is_wildcard {
+        let part = if wildcard {
             RoutePart::Wildcard {
                 name: name.to_vec(),
                 constraint: constraint.map(<[u8]>::to_vec),
@@ -180,39 +216,8 @@ impl<'a> ParsedRoute<'a> {
             }
         };
 
-        parts.push(part);
+        parts.push_back(part);
         Ok(end + 1)
-    }
-
-    pub fn pop(&mut self) -> Option<RoutePart> {
-        self.parts.pop()
-    }
-
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.parts.is_empty()
-    }
-
-    pub fn iter(&'a self) -> std::slice::Iter<'a, RoutePart> {
-        self.into_iter()
-    }
-}
-
-impl<'a> IntoIterator for ParsedRoute<'a> {
-    type Item = RoutePart;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.parts.into_iter()
-    }
-}
-
-impl<'a> IntoIterator for &'a ParsedRoute<'a> {
-    type Item = &'a RoutePart;
-    type IntoIter = std::slice::Iter<'a, RoutePart>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.parts.iter()
     }
 }
 
@@ -226,10 +231,10 @@ mod tests {
         assert_eq!(
             ParsedRoute::new(b"/abcd"),
             Ok(ParsedRoute {
-                route: b"/abcd",
-                parts: vec![RoutePart::Static {
+                raw: b"/abcd",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/abcd".to_vec()
-                }]
+                }]))
             })
         );
     }
@@ -239,16 +244,16 @@ mod tests {
         assert_eq!(
             ParsedRoute::new(b"/{name}"),
             Ok(ParsedRoute {
-                route: b"/{name}",
-                parts: vec![
+                raw: b"/{name}",
+                parts: RouteParts(VecDeque::from(vec![
+                    RoutePart::Static {
+                        prefix: b"/".to_vec()
+                    },
                     RoutePart::Dynamic {
                         name: b"name".to_vec(),
                         constraint: None
                     },
-                    RoutePart::Static {
-                        prefix: b"/".to_vec()
-                    },
-                ]
+                ]))
             })
         );
     }
@@ -258,16 +263,16 @@ mod tests {
         assert_eq!(
             ParsedRoute::new(b"/{*route}"),
             Ok(ParsedRoute {
-                route: b"/{*route}",
-                parts: vec![
+                raw: b"/{*route}",
+                parts: RouteParts(VecDeque::from(vec![
+                    RoutePart::Static {
+                        prefix: b"/".to_vec()
+                    },
                     RoutePart::Wildcard {
                         name: b"route".to_vec(),
                         constraint: None
                     },
-                    RoutePart::Static {
-                        prefix: b"/".to_vec()
-                    },
-                ]
+                ]))
             })
         );
     }
@@ -277,12 +282,8 @@ mod tests {
         assert_eq!(
             ParsedRoute::new(b"/{name:alpha}/{id:numeric}"),
             Ok(ParsedRoute {
-                route: b"/{name:alpha}/{id:numeric}",
-                parts: vec![
-                    RoutePart::Dynamic {
-                        name: b"id".to_vec(),
-                        constraint: Some(b"numeric".to_vec())
-                    },
+                raw: b"/{name:alpha}/{id:numeric}",
+                parts: RouteParts(VecDeque::from(vec![
                     RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
@@ -293,7 +294,11 @@ mod tests {
                     RoutePart::Static {
                         prefix: b"/".to_vec()
                     },
-                ]
+                    RoutePart::Dynamic {
+                        name: b"id".to_vec(),
+                        constraint: Some(b"numeric".to_vec())
+                    },
+                ]))
             })
         );
     }
@@ -445,79 +450,79 @@ mod tests {
         assert_eq!(
             ParsedRoute::new(b"/{{name}}"),
             Ok(ParsedRoute {
-                route: b"/{{name}}",
-                parts: vec![RoutePart::Static {
+                raw: b"/{{name}}",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/{name}".to_vec()
-                }]
+                }]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"/name}}"),
             Ok(ParsedRoute {
-                route: b"/name}}",
-                parts: vec![RoutePart::Static {
+                raw: b"/name}}",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/name}".to_vec()
-                }]
+                }]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"/name{{"),
             Ok(ParsedRoute {
-                route: b"/name{{",
-                parts: vec![RoutePart::Static {
+                raw: b"/name{{",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/name{".to_vec()
-                }]
+                }]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"/{{{name}}}"),
             Ok(ParsedRoute {
-                route: b"/{{{name}}}",
-                parts: vec![
+                raw: b"/{{{name}}}",
+                parts: RouteParts(VecDeque::from(vec![
                     RoutePart::Static {
-                        prefix: b"}".to_vec()
+                        prefix: b"/{".to_vec()
                     },
                     RoutePart::Dynamic {
                         name: b"name".to_vec(),
                         constraint: None
                     },
                     RoutePart::Static {
-                        prefix: b"/{".to_vec()
+                        prefix: b"}".to_vec()
                     },
-                ]
+                ]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"/{{{{name}}}}"),
             Ok(ParsedRoute {
-                route: b"/{{{{name}}}}",
-                parts: vec![RoutePart::Static {
+                raw: b"/{{{{name}}}}",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/{{name}}".to_vec()
-                }]
+                }]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"{{}}"),
             Ok(ParsedRoute {
-                route: b"{{}}",
-                parts: vec![RoutePart::Static {
+                raw: b"{{}}",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"{}".to_vec()
-                }]
+                }]))
             })
         );
 
         assert_eq!(
             ParsedRoute::new(b"{{:}}"),
             Ok(ParsedRoute {
-                route: b"{{:}}",
-                parts: vec![RoutePart::Static {
+                raw: b"{{:}}",
+                parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"{:}".to_vec()
-                }]
+                }]))
             })
         );
     }

@@ -15,13 +15,13 @@ impl<T> Node<T> {
         route: &mut ParsedRoute<'_>,
         data: NodeData<T>,
     ) -> Result<(), InsertError> {
-        if let Some(part) = route.pop() {
+        if let Some(part) = route.parts.pop_front() {
             match part {
                 RoutePart::Static { prefix } => self.insert_static(route, data, &prefix)?,
                 RoutePart::Dynamic { name, constraint } => {
                     self.insert_dynamic(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard { name, constraint } if route.is_empty() => {
+                RoutePart::Wildcard { name, constraint } if route.parts.is_empty() => {
                     self.insert_end_wildcard(route, data, &name, constraint)?;
                 }
                 RoutePart::Wildcard { name, constraint } => {
@@ -31,7 +31,7 @@ impl<T> Node<T> {
         } else {
             if self.data.is_some() {
                 return Err(InsertError::DuplicateRoute {
-                    route: String::from_utf8_lossy(route.route).to_string(),
+                    route: String::from_utf8_lossy(route.raw).to_string(),
                 });
             }
 
@@ -229,7 +229,7 @@ impl<T> Node<T> {
             .any(|child| child.prefix == name && child.constraint == constraint)
         {
             return Err(InsertError::DuplicateRoute {
-                route: String::from_utf8_lossy(route.route).to_string(),
+                route: String::from_utf8_lossy(route.raw).to_string(),
             });
         }
 

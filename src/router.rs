@@ -154,8 +154,8 @@ impl<T> Router<T> {
 
         let route_arc = Arc::from(route);
 
-        let mut parts = ParsedRoute::new(route.as_bytes())?;
-        for part in &parts {
+        let mut route = ParsedRoute::new(route.as_bytes())?;
+        for part in &route.parts {
             if let RoutePart::Dynamic {
                 constraint: Some(name),
                 ..
@@ -179,7 +179,7 @@ impl<T> Router<T> {
             value,
         };
 
-        self.root.insert(&mut parts, node_data)
+        self.root.insert(&mut route, node_data)
     }
 
     /// Deletes a route from the router.
@@ -200,8 +200,8 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
-        let mut parts = ParsedRoute::new(route.as_bytes())?;
-        self.root.delete(&mut parts)
+        let mut route = ParsedRoute::new(route.as_bytes())?;
+        self.root.delete(&mut route)
     }
 
     /// Searches for a matching route in the router.
