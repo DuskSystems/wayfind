@@ -31,10 +31,6 @@ pub struct Router<T> {
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<Vec<u8>, StoredConstraint>,
-
-    /// Shared route data.
-    /// Only used when multiple nodes require the same data storage.
-    data: HashMap<Arc<str>, T>,
 }
 
 impl<T> Router<T> {
@@ -61,7 +57,6 @@ impl<T> Router<T> {
                 quick_dynamic: false,
             },
             constraints: HashMap::new(),
-            data: HashMap::new(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -245,13 +240,7 @@ impl<T> Router<T> {
 
         let (route, data) = match &node.data {
             Some(NodeData::Inline { route, value }) => (Arc::clone(route), value),
-            Some(NodeData::Reference(key)) => {
-                let Some(data) = self.data.get(key) else {
-                    return Ok(None);
-                };
-
-                (Arc::clone(key), data)
-            }
+            Some(NodeData::Shared { route, value, .. }) => (Arc::clone(route), value.as_ref()),
             None => return Ok(None),
         };
 

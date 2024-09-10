@@ -30,16 +30,22 @@ pub enum NodeKind {
 pub enum NodeData<T> {
     /// Data is stored inline.
     Inline {
-        /// The original route path.
+        /// The original route.
         route: Arc<str>,
 
         /// The associated data.
         value: T,
     },
 
-    /// Data is stored at the router level, as it's shared between 2 or more nodes.
+    /// Data is shared between 2 or more nodes.
     #[allow(dead_code)]
-    Reference(Arc<str>),
+    Shared {
+        /// The original route.
+        route: Arc<str>,
+
+        /// The associated data, shared.
+        value: Arc<T>,
+    },
 }
 
 /// Represents a node in the tree structure.

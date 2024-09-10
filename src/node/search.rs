@@ -175,7 +175,7 @@ impl<T> Node<T> {
         };
 
         match data {
-            NodeData::Inline { route, .. } | NodeData::Reference(route) => route.len(),
+            NodeData::Inline { route, .. } | NodeData::Shared { route, .. } => route.len(),
         }
     }
 
