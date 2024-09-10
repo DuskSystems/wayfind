@@ -12,26 +12,26 @@ impl<T> Node<T> {
     /// Will error is there's already data at the end node.
     pub fn insert(
         &mut self,
-        parts: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute<'_>,
         data: NodeData<T>,
     ) -> Result<(), InsertError> {
-        if let Some(segment) = parts.pop() {
-            match segment {
-                RoutePart::Static { prefix } => self.insert_static(parts, data, &prefix)?,
+        if let Some(part) = route.pop() {
+            match part {
+                RoutePart::Static { prefix } => self.insert_static(route, data, &prefix)?,
                 RoutePart::Dynamic { name, constraint } => {
-                    self.insert_dynamic(parts, data, &name, constraint)?;
+                    self.insert_dynamic(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard { name, constraint } if parts.is_empty() => {
-                    self.insert_end_wildcard(parts, data, &name, constraint)?;
+                RoutePart::Wildcard { name, constraint } if route.is_empty() => {
+                    self.insert_end_wildcard(route, data, &name, constraint)?;
                 }
                 RoutePart::Wildcard { name, constraint } => {
-                    self.insert_wildcard(parts, data, &name, constraint)?;
+                    self.insert_wildcard(route, data, &name, constraint)?;
                 }
             };
         } else {
             if self.data.is_some() {
                 return Err(InsertError::DuplicateRoute {
-                    route: String::from_utf8_lossy(parts.route).to_string(),
+                    route: String::from_utf8_lossy(route.route).to_string(),
                 });
             }
 
@@ -46,7 +46,7 @@ impl<T> Node<T> {
 
     fn insert_static(
         &mut self,
-        parts: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
@@ -72,7 +72,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
 
@@ -88,9 +88,9 @@ impl<T> Node<T> {
         // If the new prefix matches or extends the existing prefix, we can just insert it directly.
         if common_prefix >= child.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(parts, data)?;
+                child.insert(route, data)?;
             } else {
-                child.insert_static(parts, data, &prefix[common_prefix..])?;
+                child.insert_static(route, data, &prefix[common_prefix..])?;
             }
 
             return Ok(());
@@ -131,10 +131,10 @@ impl<T> Node<T> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = vec![new_child_a];
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             child.static_children = vec![new_child_a, new_child_b];
-            child.static_children[1].insert(parts, data)?;
+            child.static_children[1].insert(route, data)?;
         }
 
         Ok(())
@@ -142,7 +142,7 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        parts: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -152,7 +152,7 @@ impl<T> Node<T> {
             .iter_mut()
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
@@ -170,7 +170,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
         }
@@ -180,7 +180,7 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        parts: &mut ParsedRoute<'_>,
+        route: &mut ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -190,7 +190,7 @@ impl<T> Node<T> {
             .iter_mut()
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
-            child.insert(parts, data)?;
+            child.insert(route, data)?;
         } else {
             self.wildcard_children.push({
                 let mut new_child = Self {
@@ -208,7 +208,7 @@ impl<T> Node<T> {
                     quick_dynamic: false,
                 };
 
-                new_child.insert(parts, data)?;
+                new_child.insert(route, data)?;
                 new_child
             });
         }
@@ -218,7 +218,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
-        parts: &ParsedRoute<'_>,
+        route: &ParsedRoute<'_>,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -229,7 +229,7 @@ impl<T> Node<T> {
             .any(|child| child.prefix == name && child.constraint == constraint)
         {
             return Err(InsertError::DuplicateRoute {
-                route: String::from_utf8_lossy(parts.route).to_string(),
+                route: String::from_utf8_lossy(route.route).to_string(),
             });
         }
 
