@@ -2,6 +2,7 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
+    expander::ExpandedRoutes,
     node::{search::Match, Node, NodeData, NodeKind},
     parser::{ParsedRoute, RoutePart},
     path::Path,
@@ -168,13 +169,38 @@ impl<T> Router<T> {
             }
         }
 
-        // TODO: Using Parts, determine whether we need to store inline or not.
-        let node_data = NodeData::Inline {
-            route: Arc::clone(&route_arc),
-            value,
+        let expanded = ExpandedRoutes::new(route.clone());
+        if expanded.routes.len() > 1 {
+            let value = Arc::new(value);
+            for mut route in expanded.routes {
+                let expanded = Arc::from(route.parts.to_string());
+
+                if let Err(err) = self.root.insert(
+                    &mut route,
+                    NodeData::Shared {
+                        route: Arc::clone(&route_arc),
+                        expanded,
+                        value: Arc::clone(&value),
+                    },
+                ) {
+                    // Attempt to clean up any prior inserts on failure.
+                    // TODO: Consider adding tracing/log support?
+                    // TODO: Consider returning a vec of errors?
+                    drop(self.delete(&route_arc));
+                    return Err(err);
+                }
+            }
+        } else {
+            self.root.insert(
+                &mut route,
+                NodeData::Inline {
+                    route: Arc::clone(&route_arc),
+                    value,
+                },
+            )?;
         };
 
-        self.root.insert(&mut route, node_data)
+        Ok(())
     }
 
     /// Deletes a route from the router.
@@ -183,7 +209,7 @@ impl<T> Router<T> {
     ///
     /// # Errors
     ///
-    /// Returns a [`DeleteError`] if the route cannot be deleted, or cannot be found.
+    /// Returns a [`DeleteError`] if the route is invalid, cannot be deleted, or cannot be found.
     ///
     /// # Examples
     ///
@@ -204,12 +230,30 @@ impl<T> Router<T> {
         }
 
         let mut route = ParsedRoute::new(route.as_bytes())?;
-        self.root.delete(&mut route)
+
+        let expanded = ExpandedRoutes::new(route.clone());
+        if expanded.routes.len() > 1 {
+            let mut failure: Option<DeleteError> = None;
+            for mut expanded_route in expanded.routes {
+                // If a delete fails, keep trying the remaining paths, then return the first error.
+                // TODO: Consider adding tracing/log support?
+                // TODO: Consider returning a vec of errors?
+                if let Err(err) = self.root.delete(&mut expanded_route) {
+                    failure = Some(err);
+                }
+            }
+
+            if let Some(err) = failure {
+                return Err(err);
+            }
+        } else {
+            self.root.delete(&mut route)?;
+        }
+
+        Ok(())
     }
 
     /// Searches for a matching route in the router.
-    ///
-    /// Returns a [`Match`] if a matching route is found, or [`None`] otherwise.
     ///
     /// # Errors
     ///
@@ -238,14 +282,23 @@ impl<T> Router<T> {
             return Ok(None);
         };
 
-        let (route, data) = match &node.data {
-            Some(NodeData::Inline { route, value }) => (Arc::clone(route), value),
-            Some(NodeData::Shared { route, value, .. }) => (Arc::clone(route), value.as_ref()),
+        let (route, expanded, data) = match &node.data {
+            Some(NodeData::Inline { route, value }) => (Arc::clone(route), None, value),
+            Some(NodeData::Shared {
+                route,
+                expanded,
+                value,
+            }) => (
+                Arc::clone(route),
+                Some(Arc::clone(expanded)),
+                value.as_ref(),
+            ),
             None => return Ok(None),
         };
 
         Ok(Some(Match {
             route,
+            expanded,
             data,
             parameters,
         }))

@@ -38,10 +38,12 @@ pub enum NodeData<T> {
     },
 
     /// Data is shared between 2 or more nodes.
-    #[allow(dead_code)]
     Shared {
         /// The original route.
         route: Arc<str>,
+
+        /// The expanded route.
+        expanded: Arc<str>,
 
         /// The associated data, shared.
         value: Arc<T>,

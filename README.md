@@ -29,8 +29,8 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 Dynamic parameters allow matching for any byte, excluding the path delimiter `/`.
 
 We support both:
-- Whole segment parameters: `/{name}/`
-- Inline parameters: `/{year}-{month}-{day}/`
+- whole segment parameters: `/{name}/`
+- inline parameters: `/{year}-{month}-{day}/`
 
 Inline dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
 
@@ -99,6 +99,75 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(search.route, "/{*catch_all}".into());
     assert_eq!(search.parameters[0].key, "catch_all");
     assert_eq!(search.parameters[0].value, "any/other/path");
+
+    Ok(())
+}
+```
+
+### Optional Parameters
+
+`wayfind` supports marking a parameter as optional.
+
+We support:
+- optional dynamic segments: `/users/{user?}`
+- optional dynamic inlines: `/release/v{major}.{minor?}.{patch?}`
+- optional wildcard segments: `/files/{*file?}/info`
+
+Optional parameters work as syntactic sugar for equivilant, simplified routes.
+
+`/users/{user?}`:
+- `/users/{user}`
+- `/users`
+
+`/release/v{major}.{minor?}.{patch?}`:
+- `/release/v{major}.{minor}.{patch}`
+- `/release/v{major}.{minor}`
+- `/release/v{major}`
+
+`/files/{*file?}/info`:
+- `/files/{*file}/info`
+- `/files/info`
+
+There is a small overhead to using optionals, due to `Arc` usage internally for data storage.
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::{Path, Router};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/users/{id?}", 1)?;
+    router.insert("/files/{*slug}/{file}.{extension?}", 2)?;
+
+    let path = Path::new("/users")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 1);
+
+    let path = Path::new("/users/123")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.parameters[0].key, "id");
+    assert_eq!(search.parameters[0].value, "123");
+
+    let path = Path::new("/files/documents/folder/report.pdf")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.parameters[0].key, "slug");
+    assert_eq!(search.parameters[0].value, "documents/folder");
+    assert_eq!(search.parameters[1].key, "file");
+    assert_eq!(search.parameters[1].value, "report");
+    assert_eq!(search.parameters[2].key, "extension");
+    assert_eq!(search.parameters[2].value, "pdf");
+
+    let path = Path::new("/files/documents/folder/readme")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.parameters[0].key, "slug");
+    assert_eq!(search.parameters[0].value, "documents/folder");
+    assert_eq!(search.parameters[1].key, "file");
+    assert_eq!(search.parameters[1].value, "readme");
 
     Ok(())
 }
