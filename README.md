@@ -144,16 +144,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/users")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/users/{id?}".into());
+    assert_eq!(search.expanded, Some("/users".into()));
 
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/users/{id?}".into());
+    assert_eq!(search.expanded, Some("/users/{id}".into()));
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/files/documents/folder/report.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/files/{*slug}/{file}.{extension?}".into());
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}".into()));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
     assert_eq!(search.parameters[1].key, "file");
@@ -164,6 +170,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/folder/readme")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/files/{*slug}/{file}.{extension?}".into());
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}".into()));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
     assert_eq!(search.parameters[1].key, "file");
@@ -264,6 +272,55 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let path = Path::new("/v2/invalid repo/blobs/uploads")?;
     assert!(router.search(&path)?.is_none());
+
+    Ok(())
+}
+```
+
+### Optional Trailing Slashes
+
+`wayfind` supports optional trailing slashes.
+
+This works via adding `{/}` to the end of a route.
+
+#### Example
+
+```rust
+use std::error::Error;
+use wayfind::{Path, Router};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/users{/}", 1)?;
+    router.insert("/posts/{id}{/}", 2)?;
+
+    let path = Path::new("/users")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/users{/}".into());
+    assert_eq!(search.expanded, Some("/users".into()));
+
+    let path = Path::new("/users/")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 1);
+    assert_eq!(search.route, "/users{/}".into());
+    assert_eq!(search.expanded, Some("/users/".into()));
+
+    let path = Path::new("/posts/123")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/posts/{id}{/}".into());
+    assert_eq!(search.expanded, Some("/posts/{id}".into()));
+    assert_eq!(search.parameters[0].key, "id");
+    assert_eq!(search.parameters[0].value, "123");
+
+    let path = Path::new("/posts/123/")?;
+    let search = router.search(&path)?.unwrap();
+    assert_eq!(*search.data, 2);
+    assert_eq!(search.route, "/posts/{id}{/}".into());
+    assert_eq!(search.expanded, Some("/posts/{id}/".into()));
+    assert_eq!(search.parameters[0].key, "id");
+    assert_eq!(search.parameters[0].value, "123");
 
     Ok(())
 }

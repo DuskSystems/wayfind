@@ -22,7 +22,7 @@ pub enum RouteError {
     /// empty braces
     ///
     ///    Route: /{}
-    ///           ^^
+    ///            ^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -50,7 +50,7 @@ pub enum RouteError {
     /// unescaped brace
     ///
     ///    Route: /{
-    ///           ^
+    ///            ^
     ///
     /// tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
     /// ";
@@ -81,7 +81,7 @@ pub enum RouteError {
     /// empty parameter name
     ///
     ///    Route: /{:}
-    ///           ^^^
+    ///            ^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -113,7 +113,7 @@ pub enum RouteError {
     /// invalid parameter name
     ///
     ///    Route: /{a/b}
-    ///           ^^^^^
+    ///            ^^^^^
     ///
     /// tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
     /// ";
@@ -148,7 +148,7 @@ pub enum RouteError {
     /// empty wildcard name
     ///
     ///    Route: /{*}
-    ///           ^^^
+    ///            ^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -179,7 +179,7 @@ pub enum RouteError {
     /// empty constraint name
     ///
     ///    Route: /{a:}
-    ///           ^^^^
+    ///            ^^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -211,7 +211,7 @@ pub enum RouteError {
     /// invalid constraint name
     ///
     ///    Route: /{a:b/c}
-    ///           ^^^^^^^
+    ///            ^^^^^^^
     ///
     /// tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
     /// ";
@@ -228,11 +228,72 @@ pub enum RouteError {
         /// The length of the parameter (including braces).
         length: usize,
     },
+
+    /// An invalid trailing slash parameter was found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::InvalidTrailingSlash {
+    ///     route: "/users/{/}/posts".to_string(),
+    ///     position: 7,
+    /// };
+    ///
+    /// let display = r#"
+    /// invalid trailing slash
+    ///
+    ///    Route: /users/{/}/posts
+    ///                  ^^^
+    ///
+    /// tip: Trailing slash parameters must occur at the end of a route
+    /// "#;
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    InvalidTrailingSlash {
+        /// The route containing an invalid trailing slash.
+        route: String,
+        /// The position of the trailing slash.
+        position: usize,
+    },
+
+    /// A conflicting trailing slash parameter was found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::ConflictingTrailingSlash {
+    ///     route: "/users/{id}/{/}/".to_string(),
+    ///     position: 15,
+    /// };
+    ///
+    /// let display = r#"
+    /// conflicting trailing slash
+    ///
+    ///    Route: /users/{id}/{/}/
+    ///                          ^
+    ///
+    /// tip: Remove the existing trailing slash to allow optional occurrence
+    /// "#;
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    ConflictingTrailingSlash {
+        /// The route containing a conflicting trailing slash.
+        route: String,
+        /// The position of the raw trailing slash character.
+        position: usize,
+    },
 }
 
 impl Error for RouteError {}
 
 impl Display for RouteError {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EmptyRoute => write!(f, "empty route"),
@@ -244,7 +305,7 @@ impl Display for RouteError {
                     r#"empty braces
 
    Route: {route}
-         {arrow}"#
+          {arrow}"#
                 )
             }
 
@@ -255,7 +316,7 @@ impl Display for RouteError {
                     r#"unescaped brace
 
    Route: {route}
-         {arrow}
+          {arrow}
 
 tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the route"#
                 )
@@ -272,7 +333,7 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     r#"empty parameter name
 
    Route: {route}
-         {arrow}"#
+          {arrow}"#
                 )
             }
 
@@ -288,7 +349,7 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     r#"invalid parameter name
 
    Route: {route}
-         {arrow}
+          {arrow}
 
 tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
                 )
@@ -305,7 +366,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     r#"empty wildcard name
 
    Route: {route}
-         {arrow}"#
+          {arrow}"#
                 )
             }
 
@@ -320,7 +381,7 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     r#"empty constraint name
 
    Route: {route}
-         {arrow}"#
+          {arrow}"#
                 )
             }
 
@@ -336,9 +397,35 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     r#"invalid constraint name
 
    Route: {route}
-         {arrow}
+          {arrow}
 
 tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
+                )
+            }
+
+            Self::InvalidTrailingSlash { route, position } => {
+                let arrow = " ".repeat(*position) + "^^^";
+                write!(
+                    f,
+                    r#"invalid trailing slash
+
+   Route: {route}
+          {arrow}
+
+tip: Trailing slash parameters must occur at the end of a route"#
+                )
+            }
+
+            Self::ConflictingTrailingSlash { route, position } => {
+                let arrow = " ".repeat(*position) + "^";
+                write!(
+                    f,
+                    r#"conflicting trailing slash
+
+   Route: {route}
+          {arrow}
+
+tip: Remove the existing trailing slash to allow optional occurrence"#
                 )
             }
         }
