@@ -3,8 +3,8 @@
 use std::error::Error;
 use wayfind::{Constraint, Router};
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 struct LengthBetween3And10;
 impl Constraint for LengthBetween3And10 {

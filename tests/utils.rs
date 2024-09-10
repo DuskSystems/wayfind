@@ -1,3 +1,4 @@
+use similar_asserts::assert_eq;
 use std::{fmt::Debug, sync::Arc};
 use wayfind::{Match, Parameter, Path, Router};
 
@@ -8,7 +9,7 @@ macro_rules! assert_router_matches {
     }) => {
         $({
             let expected = assert_router_matches!(@parse_expected $expected);
-            $crate::common::assert_router_match(&$router, $input, expected);
+            $crate::utils::assert_router_match(&$router, $input, expected);
         })+
     };
 
@@ -19,7 +20,7 @@ macro_rules! assert_router_matches {
             $($param_key:expr => $param_value:expr),+
         })?
     }) => {
-        Some($crate::common::ExpectedMatch {
+        Some($crate::utils::ExpectedMatch {
             route: std::sync::Arc::from($route),
             data: $data,
             params: vec![

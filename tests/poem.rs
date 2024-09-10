@@ -6,8 +6,8 @@
 use std::error::Error;
 use wayfind::{Constraint, Router};
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 struct DigitString;
 impl Constraint for DigitString {

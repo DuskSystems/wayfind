@@ -219,6 +219,7 @@ impl<'a> IntoIterator for &'a ParsedRoute<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use similar_asserts::assert_eq;
 
     #[test]
     fn test_parts_static() {

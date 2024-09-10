@@ -3,8 +3,8 @@
 use std::error::Error;
 use wayfind::Router;
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 #[test]
 fn uncommon() -> Result<(), Box<dyn Error>> {

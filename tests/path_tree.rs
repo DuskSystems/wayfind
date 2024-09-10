@@ -3,11 +3,12 @@
 
 #![allow(clippy::too_many_lines)]
 
+use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::Router;
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 #[test]
 fn statics() -> Result<(), Box<dyn Error>> {

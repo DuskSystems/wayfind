@@ -3,6 +3,7 @@
 
 #![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 
+use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::Router;
 

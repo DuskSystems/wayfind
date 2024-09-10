@@ -6,8 +6,8 @@
 use std::error::Error;
 use wayfind::Router;
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 // https://github.com/ibraheemdev/matchit/issues/22
 #[test]

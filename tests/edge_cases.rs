@@ -1,8 +1,8 @@
 use std::error::Error;
 use wayfind::Router;
 
-#[path = "./common.rs"]
-mod common;
+#[path = "./utils.rs"]
+mod utils;
 
 #[test]
 fn test_depth_matching_simple() -> Result<(), Box<dyn Error>> {
