@@ -1,4 +1,4 @@
-use super::Node;
+use super::{Node, NodeData};
 use crate::{errors::SearchError, router::StoredConstraint};
 use std::{collections::HashMap, sync::Arc};
 
@@ -19,8 +19,6 @@ pub struct Match<'router, 'path, T> {
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
-///
-/// TODO: Consider simply storing these as Strings.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Parameter<'router, 'path> {
     pub key: &'router str,
@@ -77,10 +75,8 @@ impl<T> Node<T> {
                 && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
                 let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node_data) =
-                    static_child.search(remaining_path, parameters, constraints)?
-                {
-                    return Ok(Some(node_data));
+                if let Some(node) = static_child.search(remaining_path, parameters, constraints)? {
+                    return Ok(Some(node));
                 }
             }
         }
@@ -103,6 +99,7 @@ impl<T> Node<T> {
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
     /// It uses a greedy matching approach for parameters.
+    /// We also prefer longer routes to shorter routes.
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -112,8 +109,10 @@ impl<T> Node<T> {
         for dynamic_child in &self.dynamic_children {
             let mut consumed = 0;
 
-            let mut last_match = None;
-            let mut last_match_parameters = vec![];
+            // Often the last match, except for when we have multiple options on the same branch.
+            // In that case, the longer route is chosen.
+            let mut best_match: Option<&Self> = None;
+            let mut best_match_parameters = vec![];
 
             while consumed < path.len() {
                 if path[consumed] == b'/' {
@@ -141,21 +140,43 @@ impl<T> Node<T> {
                     })?,
                 });
 
-                if let Some(node_data) =
-                    dynamic_child.search(&path[consumed..], &mut current_parameters, constraints)?
-                {
-                    last_match = Some(node_data);
-                    last_match_parameters = current_parameters;
+                let Some(node) = dynamic_child.search(
+                    &path[consumed..],
+                    &mut current_parameters,
+                    constraints,
+                )?
+                else {
+                    continue;
+                };
+
+                if let Some(best) = &best_match {
+                    if node.route_length() >= best.route_length() {
+                        best_match = Some(node);
+                        best_match_parameters = current_parameters;
+                    }
+                } else {
+                    best_match = Some(node);
+                    best_match_parameters = current_parameters;
                 }
             }
 
-            if let Some(node_data) = last_match {
-                *parameters = last_match_parameters;
-                return Ok(Some(node_data));
+            if let Some(node) = best_match {
+                *parameters = best_match_parameters;
+                return Ok(Some(node));
             }
         }
 
         Ok(None)
+    }
+
+    fn route_length(&self) -> usize {
+        let Some(data) = self.data.as_ref() else {
+            return 0;
+        };
+
+        match data {
+            NodeData::Inline { route, .. } | NodeData::Reference(route) => route.len(),
+        }
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
@@ -186,10 +207,10 @@ impl<T> Node<T> {
                 })?,
             });
 
-            if let Some(node_data) =
+            if let Some(node) =
                 dynamic_child.search(&path[segment_end..], parameters, constraints)?
             {
-                return Ok(Some(node_data));
+                return Ok(Some(node));
             }
 
             parameters.pop();
@@ -250,12 +271,12 @@ impl<T> Node<T> {
                     })?,
                 });
 
-                if let Some(node_data) = wildcard_child.search(
+                if let Some(node) = wildcard_child.search(
                     &remaining_path[segment_end..],
                     parameters,
                     constraints,
                 )? {
-                    return Ok(Some(node_data));
+                    return Ok(Some(node));
                 }
 
                 parameters.pop();
