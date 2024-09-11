@@ -238,7 +238,7 @@ impl<T> Router<T> {
                 // If a delete fails, keep trying the remaining paths, then return the first error.
                 // TODO: Consider adding tracing/log support?
                 // TODO: Consider returning a vec of errors?
-                if let Err(err) = self.root.delete(&mut expanded_route) {
+                if let Err(err) = self.root.delete(&mut expanded_route, true) {
                     failure = Some(err);
                 }
             }
@@ -247,7 +247,7 @@ impl<T> Router<T> {
                 return Err(err);
             }
         } else {
-            self.root.delete(&mut route)?;
+            self.root.delete(&mut route, false)?;
         }
 
         Ok(())

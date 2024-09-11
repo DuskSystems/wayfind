@@ -35,6 +35,36 @@ pub enum DeleteError {
         /// The route that was not found in the router.
         route: String,
     },
+
+    /// Tried to delete a route using a format that doesn't match how it was inserted.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::DeleteError;
+    ///
+    /// let error = DeleteError::RouteMismatch {
+    ///     route: "/users/{id}/".to_string(),
+    ///     inserted: "/users/{id}{/}".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// delete mismatch
+    ///
+    ///       Route: /users/{id}/
+    ///    Inserted: /users/{id}{/}
+    ///
+    /// The route must be deleted using the same format as was inserted
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    RouteMismatch {
+        /// The route that was attempted to be deleted.
+        route: String,
+        /// The route stored as stored in the router.
+        inserted: String,
+    },
 }
 
 impl Error for DeleteError {}
@@ -51,6 +81,15 @@ impl Display for DeleteError {
    Route: {route}
 
 The specified route does not exist in the router"#
+            ),
+            Self::RouteMismatch { route, inserted } => write!(
+                f,
+                r#"delete mismatch
+
+      Route: {route}
+   Inserted: {inserted}
+
+The route must be deleted using the same format as was inserted"#
             ),
         }
     }

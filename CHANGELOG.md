@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-...
+### Fixed
+
+- Ensure routes can only be deleted via the exact same inserted route.
 
 ## [0.4.0] - 2024-09-11
 

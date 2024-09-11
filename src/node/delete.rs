@@ -1,3 +1,4 @@
+use super::NodeData;
 use crate::{
     errors::DeleteError,
     node::Node,
@@ -11,19 +12,25 @@ impl<T> Node<T> {
     /// Logic should match that used by the insert method.
     ///
     /// If the route is found and deleted, we re-optimize the tree structure.
-    pub fn delete(&mut self, route: &mut ParsedRoute) -> Result<(), DeleteError> {
+    ///
+    /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
+    pub fn delete(
+        &mut self,
+        route: &mut ParsedRoute,
+        is_expanded: bool,
+    ) -> Result<(), DeleteError> {
         if let Some(part) = route.parts.pop_front() {
             let result = match part {
-                RoutePart::Static { prefix } => self.delete_static(route, &prefix),
+                RoutePart::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
                 RoutePart::Dynamic {
                     name, constraint, ..
-                } => self.delete_dynamic(route, &name, &constraint),
+                } => self.delete_dynamic(route, is_expanded, &name, &constraint),
                 RoutePart::Wildcard {
                     name, constraint, ..
                 } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
                 RoutePart::Wildcard {
                     name, constraint, ..
-                } => self.delete_wildcard(route, &name, &constraint),
+                } => self.delete_wildcard(route, is_expanded, &name, &constraint),
             };
 
             if result.is_ok() {
@@ -32,18 +39,37 @@ impl<T> Node<T> {
 
             result
         } else {
-            if self.data.take().is_some() {
-                self.optimize();
-                return Ok(());
+            let Some(data) = &self.data else {
+                return Err(DeleteError::NotFound {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                });
+            };
+
+            let (is_shared, stored_route) = match data {
+                NodeData::Inline { route, .. } => (false, route),
+                NodeData::Shared { route, .. } => (true, route),
+            };
+
+            if is_expanded != is_shared {
+                return Err(DeleteError::RouteMismatch {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                    inserted: stored_route.to_string(),
+                });
             }
 
-            Err(DeleteError::NotFound {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
-            })
+            self.data = None;
+            self.optimize();
+
+            Ok(())
         }
     }
 
-    fn delete_static(&mut self, route: &mut ParsedRoute, prefix: &[u8]) -> Result<(), DeleteError> {
+    fn delete_static(
+        &mut self,
+        route: &mut ParsedRoute,
+        is_expanded: bool,
+        prefix: &[u8],
+    ) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -59,9 +85,9 @@ impl<T> Node<T> {
         let remaining_prefix = &prefix[child.prefix.len()..];
 
         let result = if remaining_prefix.is_empty() {
-            child.delete(route)
+            child.delete(route, is_expanded)
         } else {
-            child.delete_static(route, remaining_prefix)
+            child.delete_static(route, is_expanded, remaining_prefix)
         };
 
         if result.is_ok() {
@@ -78,6 +104,7 @@ impl<T> Node<T> {
     fn delete_dynamic(
         &mut self,
         route: &mut ParsedRoute,
+        is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -90,7 +117,7 @@ impl<T> Node<T> {
             })?;
 
         let child = &mut self.dynamic_children[index];
-        let result = child.delete(route);
+        let result = child.delete(route, is_expanded);
 
         if result.is_ok() {
             child.optimize();
@@ -106,6 +133,7 @@ impl<T> Node<T> {
     fn delete_wildcard(
         &mut self,
         route: &mut ParsedRoute,
+        is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {
@@ -118,7 +146,7 @@ impl<T> Node<T> {
             })?;
 
         let child = &mut self.wildcard_children[index];
-        let result = child.delete(route);
+        let result = child.delete(route, is_expanded);
 
         if result.is_ok() {
             child.optimize();
