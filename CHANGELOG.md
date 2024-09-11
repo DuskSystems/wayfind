@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ensure routes can only be deleted via the exact same inserted route.
 
+### Changed
+
+- Router display is more compact now.
+
 ## [0.4.0] - 2024-09-11
 
 ### Added

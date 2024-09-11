@@ -42,14 +42,12 @@ impl<T> Display for Node<T> {
                 }
             }
 
-            // Ensure we align children correctly
-            let extra_spacing = " ".repeat(key.len() - 1);
             let new_prefix = if is_root {
                 padding.to_string()
             } else if is_last {
-                format!("{padding}   {extra_spacing}")
+                format!("{padding}   ")
             } else {
-                format!("{padding}│  {extra_spacing}")
+                format!("{padding}│  ")
             };
 
             // Chain all children together, in order
@@ -70,13 +68,7 @@ impl<T> Display for Node<T> {
         }
 
         let mut output = String::new();
-
-        let padding = if self.prefix.is_empty() {
-            String::new()
-        } else {
-            " ".repeat(self.prefix.len() - 1)
-        };
-
+        let padding = " ".repeat(self.prefix.len().saturating_sub(1));
         debug_node(&mut output, self, &padding, true, true)?;
         write!(f, "{}", output.trim_end())
     }
