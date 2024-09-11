@@ -143,6 +143,7 @@ impl<'a> IntoIterator for &'a RouteParts {
 pub struct ParsedRoute {
     pub raw: Vec<u8>,
     pub parts: RouteParts,
+    pub trailing_slash: bool,
 }
 
 impl ParsedRoute {
@@ -193,12 +194,33 @@ impl ParsedRoute {
             });
         }
 
+        // Check for trailing slash parameter.
+        let mut trailing_slash = false;
+        if let Some(RoutePart::Dynamic { name, .. }) = parts.back() {
+            if name == b"/" {
+                // Remove the trailing slash
+                parts.pop_back();
+
+                // Check if the second last (now last) part ends in "/"
+                if parts.back().map_or(false, RoutePart::ends_with_slash) {
+                    return Err(RouteError::ConflictingTrailingSlash {
+                        route: String::from_utf8_lossy(route).to_string() + "/",
+                        position: route.len(),
+                    });
+                }
+
+                trailing_slash = true;
+            }
+        }
+
         Ok(Self {
             raw: route.to_vec(),
             parts: RouteParts(parts),
+            trailing_slash,
         })
     }
 
+    #[allow(clippy::too_many_lines)]
     fn parse_parameter(
         route: &[u8],
         cursor: usize,
@@ -243,6 +265,25 @@ impl ParsedRoute {
         } else {
             (false, name)
         };
+
+        // Special case for trailing slash.
+        if name == b"/" && constraint.is_none() {
+            // Ensure it's at the end of the route.
+            if end + 1 != route.len() {
+                return Err(RouteError::InvalidTrailingSlash {
+                    route: String::from_utf8_lossy(route).to_string(),
+                    position: cursor,
+                });
+            }
+
+            parts.push_back(RoutePart::Dynamic {
+                name: name.to_vec(),
+                optional: false,
+                constraint: None,
+            });
+
+            return Ok(end + 1);
+        }
 
         if name.is_empty() {
             if wildcard {
@@ -334,7 +375,11 @@ impl From<RouteParts> for ParsedRoute {
         let parts = RouteParts(parts);
         let raw = parts.to_string().into_bytes();
 
-        Self { raw, parts }
+        Self {
+            raw,
+            parts,
+            trailing_slash: false,
+        }
     }
 }
 
@@ -351,7 +396,8 @@ mod tests {
                 raw: b"/abcd".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/abcd".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
     }
@@ -371,7 +417,8 @@ mod tests {
                         optional: false,
                         constraint: None
                     },
-                ]))
+                ])),
+                trailing_slash: false,
             })
         );
     }
@@ -391,7 +438,8 @@ mod tests {
                         optional: false,
                         constraint: None
                     },
-                ]))
+                ])),
+                trailing_slash: false,
             })
         );
     }
@@ -427,7 +475,8 @@ mod tests {
                         optional: true,
                         constraint: None
                     },
-                ]))
+                ])),
+                trailing_slash: false,
             })
         );
     }
@@ -455,7 +504,32 @@ mod tests {
                         optional: false,
                         constraint: Some(b"numeric".to_vec())
                     },
-                ]))
+                ])),
+                trailing_slash: false,
+            })
+        );
+    }
+
+    #[test]
+    fn test_parts_trailing_slash() {
+        assert_eq!(
+            ParsedRoute::new(b"/users/{id}/posts{/}"),
+            Ok(ParsedRoute {
+                raw: b"/users/{id}/posts{/}".to_vec(),
+                parts: RouteParts(VecDeque::from(vec![
+                    RoutePart::Static {
+                        prefix: b"/users/".to_vec(),
+                    },
+                    RoutePart::Dynamic {
+                        name: b"id".to_vec(),
+                        optional: false,
+                        constraint: None,
+                    },
+                    RoutePart::Static {
+                        prefix: b"/posts".to_vec(),
+                    },
+                ])),
+                trailing_slash: true,
             })
         );
     }
@@ -473,7 +547,7 @@ mod tests {
         unescaped brace
 
            Route: /{
-                  ^
+                   ^
 
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
         "#);
@@ -483,7 +557,7 @@ mod tests {
         unescaped brace
 
            Route: /{name
-                  ^
+                   ^
 
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
         "#);
@@ -493,7 +567,7 @@ mod tests {
         unescaped brace
 
            Route: /name}
-                      ^
+                       ^
 
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
         "#);
@@ -506,7 +580,7 @@ mod tests {
         empty braces
 
            Route: /{}
-                  ^^
+                   ^^
         "#);
     }
 
@@ -517,7 +591,7 @@ mod tests {
         empty parameter name
 
            Route: /{:}
-                  ^^^
+                   ^^^
         "#);
 
         let error = ParsedRoute::new(b"/{:constraint}").unwrap_err();
@@ -525,7 +599,7 @@ mod tests {
         empty parameter name
 
            Route: /{:constraint}
-                  ^^^^^^^^^^^^^
+                   ^^^^^^^^^^^^^
         "#);
     }
 
@@ -536,7 +610,7 @@ mod tests {
         empty wildcard name
 
            Route: /{*}
-                  ^^^
+                   ^^^
         "#);
 
         let error = ParsedRoute::new(b"/{*:constraint}").unwrap_err();
@@ -544,7 +618,7 @@ mod tests {
         empty wildcard name
 
            Route: /{*:constraint}
-                  ^^^^^^^^^^^^^^
+                   ^^^^^^^^^^^^^^
         "#);
     }
 
@@ -555,7 +629,7 @@ mod tests {
         empty constraint name
 
            Route: /{name:}
-                  ^^^^^^^
+                   ^^^^^^^
         "#);
     }
 
@@ -566,7 +640,7 @@ mod tests {
         invalid parameter name
 
            Route: /{name/with/slash}
-                  ^^^^^^^^^^^^^^^^^
+                   ^^^^^^^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "#);
@@ -576,7 +650,7 @@ mod tests {
         invalid parameter name
 
            Route: /{name{with{brace}
-                  ^^^^^^^^^^^^^^^^^
+                   ^^^^^^^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "#);
@@ -586,7 +660,7 @@ mod tests {
         invalid parameter name
 
            Route: /{name{with}brace}
-                  ^^^^^^^^^^^
+                   ^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "#);
@@ -596,7 +670,7 @@ mod tests {
         invalid constraint name
 
            Route: /{name:with:colon}
-                  ^^^^^^^^^^^^^^^^^
+                   ^^^^^^^^^^^^^^^^^
 
         tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
         "#);
@@ -610,7 +684,8 @@ mod tests {
                 raw: b"/{{name}}".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/{name}".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
 
@@ -620,7 +695,8 @@ mod tests {
                 raw: b"/name}}".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/name}".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
 
@@ -630,7 +706,8 @@ mod tests {
                 raw: b"/name{{".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/name{".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
 
@@ -650,7 +727,8 @@ mod tests {
                     RoutePart::Static {
                         prefix: b"}".to_vec()
                     },
-                ]))
+                ])),
+                trailing_slash: false,
             })
         );
 
@@ -660,7 +738,8 @@ mod tests {
                 raw: b"/{{{{name}}}}".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"/{{name}}".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
 
@@ -670,7 +749,8 @@ mod tests {
                 raw: b"{{}}".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"{}".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
 
@@ -680,7 +760,8 @@ mod tests {
                 raw: b"{{:}}".to_vec(),
                 parts: RouteParts(VecDeque::from(vec![RoutePart::Static {
                     prefix: b"{:}".to_vec()
-                }]))
+                }])),
+                trailing_slash: false,
             })
         );
     }
@@ -692,7 +773,7 @@ mod tests {
         unescaped brace
 
            Route: {name}}
-                       ^
+                        ^
 
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
         "#);
@@ -702,9 +783,35 @@ mod tests {
         unescaped brace
 
            Route: {{name}
-                       ^
+                        ^
 
         tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+        "#);
+    }
+
+    #[test]
+    fn test_invalid_trailing_slash() {
+        let error = ParsedRoute::new(b"/users/{/}/posts").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
+        invalid trailing slash
+
+           Route: /users/{/}/posts
+                         ^^^
+
+        tip: Trailing slash parameters must occur at the end of a route
+        "#);
+    }
+
+    #[test]
+    fn test_conflicting_trailing_slash() {
+        let error = ParsedRoute::new(b"/users/{id}/{/}").unwrap_err();
+        insta::assert_snapshot!(error, @r#"
+        conflicting trailing slash
+
+           Route: /users/{id}/{/}/
+                                 ^
+
+        tip: Remove the existing trailing slash to allow optional occurrence
         "#);
     }
 }

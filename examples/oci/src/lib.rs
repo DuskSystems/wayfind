@@ -31,7 +31,6 @@ pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
 
     let state = Arc::new(AppState::new());
 
-    // TODO: Enable `wayfind` trailing slash support, when implemented.
     // TODO: Enable `wayfind` method routing, when implemented.
     let mut router = AppRouter::new();
     router.constraint::<NameConstraint>();
@@ -43,116 +42,66 @@ pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
     // end-2
     router.route(
         Method::GET,
-        "/v2/{*name:name}/blobs/{digest}",
-        routes::blob::handle_blob_pull,
-    );
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/blobs/{digest}/",
+        "/v2/{*name:name}/blobs/{digest}{/}",
         routes::blob::handle_blob_pull,
     );
     router.route(
         Method::HEAD,
-        "/v2/{*name:name}/blobs/{digest}",
-        routes::blob::handle_blob_pull,
-    );
-    router.route(
-        Method::HEAD,
-        "/v2/{*name:name}/blobs/{digest}/",
+        "/v2/{*name:name}/blobs/{digest}{/}",
         routes::blob::handle_blob_pull,
     );
 
     // end-3
     router.route(
         Method::GET,
-        "/v2/{*name:name}/manifests/{reference}",
-        routes::manifest::handle_manifest_pull,
-    );
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/manifests/{reference}/",
+        "/v2/{*name:name}/manifests/{reference}{/}",
         routes::manifest::handle_manifest_pull,
     );
     router.route(
         Method::HEAD,
-        "/v2/{*name:name}/manifests/{reference}",
-        routes::manifest::handle_manifest_pull,
-    );
-    router.route(
-        Method::HEAD,
-        "/v2/{*name:name}/manifests/{reference}/",
+        "/v2/{*name:name}/manifests/{reference}{/}",
         routes::manifest::handle_manifest_pull,
     );
 
     // end-4a / end-4b
     router.route(
         Method::POST,
-        "/v2/{*name:name}/blobs/uploads",
-        routes::blob::handle_blob_push_post,
-    );
-    router.route(
-        Method::POST,
-        "/v2/{*name:name}/blobs/uploads/",
+        "/v2/{*name:name}/blobs/uploads{/}",
         routes::blob::handle_blob_push_post,
     );
 
     // end-6
     router.route(
         Method::PUT,
-        "/v2/{*name:name}/blobs/uploads/{reference}",
-        routes::blob::handle_blob_push_put,
-    );
-    router.route(
-        Method::PUT,
-        "/v2/{*name:name}/blobs/uploads/{reference}/",
+        "/v2/{*name:name}/blobs/uploads/{reference}{/}",
         routes::blob::handle_blob_push_put,
     );
 
     // end-7
     router.route(
         Method::PUT,
-        "/v2/{*name:name}/manifests/{reference}",
-        routes::manifest::handle_manifest_put,
-    );
-    router.route(
-        Method::PUT,
-        "/v2/{*name:name}/manifests/{reference}/",
+        "/v2/{*name:name}/manifests/{reference}{/}",
         routes::manifest::handle_manifest_put,
     );
 
     // end-8a
     router.route(
         Method::GET,
-        "/v2/{*name:name}/tags/list",
-        routes::tags::handle_tags_get,
-    );
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/tags/list/",
+        "/v2/{*name:name}/tags/list{/}",
         routes::tags::handle_tags_get,
     );
 
     // end-9
     router.route(
         Method::DELETE,
-        "/v2/{*name:name}/manifests/{reference}",
-        routes::manifest::handle_manifest_delete,
-    );
-    router.route(
-        Method::DELETE,
-        "/v2/{*name:name}/manifests/{reference}/",
+        "/v2/{*name:name}/manifests/{reference}{/}",
         routes::manifest::handle_manifest_delete,
     );
 
     // end-10
     router.route(
         Method::DELETE,
-        "/v2/{*name:name}/blobs/{digest}",
-        routes::blob::handle_blob_delete,
-    );
-    router.route(
-        Method::DELETE,
-        "/v2/{*name:name}/blobs/{digest}/",
+        "/v2/{*name:name}/blobs/{digest}{/}",
         routes::blob::handle_blob_delete,
     );
 
