@@ -398,24 +398,24 @@ const ROUTER_DISPLAY: &str = "
 ▽
 ├─ /
 │  ├─ pet ○
-│  │    ╰─ /
-│  │       ├─ findBy
-│  │       │       ├─ Status ○
-│  │       │       ╰─ Tags ○
-│  │       ╰─ {petId} ○
-│  │                ╰─ /uploadImage ○
+│  │  ╰─ /
+│  │     ├─ findBy
+│  │     │  ├─ Status ○
+│  │     │  ╰─ Tags ○
+│  │     ╰─ {petId} ○
+│  │        ╰─ /uploadImage ○
 │  ├─ store/
-│  │       ├─ inventory ○
-│  │       ╰─ order ○
-│  │              ╰─ /
-│  │                 ╰─ {orderId} ○
+│  │  ├─ inventory ○
+│  │  ╰─ order ○
+│  │     ╰─ /
+│  │        ╰─ {orderId} ○
 │  ╰─ user ○
-│        ╰─ /
-│           ├─ createWithList ○
-│           ├─ log
-│           │    ├─ in ○
-│           │    ╰─ out ○
-│           ╰─ {username} ○
+│     ╰─ /
+│        ├─ createWithList ○
+│        ├─ log
+│        │  ├─ in ○
+│        │  ╰─ out ○
+│        ╰─ {username} ○
 ╰─ {*catch_all} ○
 ";
 

@@ -18,17 +18,17 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ abc ○
        ├─ def ○
-       │    ╰─ /
-       │       ╰─ {*rest} ○
+       │  ╰─ /
+       │     ╰─ {*rest} ○
        ├─ ghi ○
-       │    ╰─ /
-       │       ╰─ {*suffix} ○
+       │  ╰─ /
+       │     ╰─ {*suffix} ○
        ├─ {*name}
-       │        ╰─ /abc ○
+       │  ╰─ /abc ○
        ╰─ {*prefix}
-                  ╰─ /ghi ○
-                        ╰─ /
-                           ╰─ {*suffix} ○
+          ╰─ /ghi ○
+             ╰─ /
+                ╰─ {*suffix} ○
     "#);
 
     assert_router_matches!(router, {

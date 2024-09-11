@@ -30,36 +30,36 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ s ○
        │  ╰─ /s ○
-       │      ╰─ /
-       │         ├─ s ○
-       │         │  ╰─ /s ○
-       │         ├─ {s}
-       │         │    ╰─ /x ○
-       │         ╰─ {y}
-       │              ╰─ /d ○
+       │     ╰─ /
+       │        ├─ s ○
+       │        │  ╰─ /s ○
+       │        ├─ {s}
+       │        │  ╰─ /x ○
+       │        ╰─ {y}
+       │           ╰─ /d ○
        ├─ x/
-       │   ├─ {bar}
-       │   │      ╰─ /baz ○
-       │   ╰─ {foo}
-       │          ╰─ /bar ○
+       │  ├─ {bar}
+       │  │  ╰─ /baz ○
+       │  ╰─ {foo}
+       │     ╰─ /bar ○
        ├─ {bar}
-       │      ╰─ /
-       │         ╰─ {bay}
-       │                ╰─ /bay ○
+       │  ╰─ /
+       │     ╰─ {bay}
+       │        ╰─ /bay ○
        ├─ {fod}
-       │      ╰─ /
-       │         ├─ baz/bax/foo ○
-       │         ╰─ {baz}
-       │                ╰─ /
-       │                   ╰─ {bax}
-       │                          ╰─ /foo ○
+       │  ╰─ /
+       │     ├─ baz/bax/foo ○
+       │     ╰─ {baz}
+       │        ╰─ /
+       │           ╰─ {bax}
+       │              ╰─ /foo ○
        ╰─ {foo}
-              ╰─ /
-                 ├─ baz/bax ○
-                 ├─ {bar}
-                 │      ╰─ /baz ○
-                 ╰─ {baz}
-                        ╰─ /bax ○
+          ╰─ /
+             ├─ baz/bax ○
+             ├─ {bar}
+             │  ╰─ /baz ○
+             ╰─ {baz}
+                ╰─ /bax ○
     "#);
 
     assert_eq!(router.delete("/x/{foo}/bar"), Ok(()));
@@ -91,8 +91,8 @@ fn test() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /home ○
-           ╰─ /
-              ╰─ {id} ○
+       ╰─ /
+          ╰─ {id} ○
     "#);
 
     assert_eq!(router.delete("/home"), Ok(()));
@@ -135,15 +135,15 @@ fn blog() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ favicon.ico ○
        ├─ posts/
-       │       ╰─ {year}
-       │               ╰─ /
-       │                  ├─ top ○
-       │                  ╰─ {month}
-       │                           ╰─ /
-       │                              ├─ index ○
-       │                              ╰─ {post} ○
+       │  ╰─ {year}
+       │     ╰─ /
+       │        ├─ top ○
+       │        ╰─ {month}
+       │           ╰─ /
+       │              ├─ index ○
+       │              ╰─ {post} ○
        ├─ static/
-       │        ╰─ {*path} ○
+       │  ╰─ {*path} ○
        ╰─ {page} ○
     "#);
 
@@ -171,10 +171,10 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ bar ○
-       │    ╰─ / ○
-       │       ╰─ {*catchall} ○
+       │  ╰─ / ○
+       │     ╰─ {*catchall} ○
        ╰─ foo/
-             ╰─ {*catchall} ○
+          ╰─ {*catchall} ○
     "#);
 
     assert_eq!(router.delete("/foo/{*catchall}"), Ok(()));
@@ -184,8 +184,8 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ╰─ bar ○
-            ╰─ /
-               ╰─ {*catchall} ○
+          ╰─ /
+             ╰─ {*catchall} ○
     "#);
 
     router.insert("/foo/{*catchall}", 4)?;
@@ -194,10 +194,10 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ bar ○
-       │    ╰─ /
-       │       ╰─ {*catchall} ○
+       │  ╰─ /
+       │     ╰─ {*catchall} ○
        ╰─ foo/
-             ╰─ {*catchall} ○
+          ╰─ {*catchall} ○
     "#);
 
     assert_eq!(router.delete("/bar/{*catchall}"), Ok(()));
@@ -207,7 +207,7 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ bar ○
        ╰─ foo/
-             ╰─ {*catchall} ○
+          ╰─ {*catchall} ○
     "#);
 
     Ok(())
@@ -230,19 +230,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/home"), Ok(()));
@@ -251,19 +251,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/home", 9)?;
@@ -272,19 +272,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/home/{id}"), Ok(()));
@@ -293,17 +293,17 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/home/{id}", 10)?;
@@ -312,19 +312,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/users"), Ok(()));
@@ -333,19 +333,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/users", 11)?;
@@ -354,19 +354,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/users/{id}"), Ok(()));
@@ -375,19 +375,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id}
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id}
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/users/{id}", 12)?;
@@ -396,19 +396,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/users/{id}/posts"), Ok(()));
@@ -417,19 +417,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/users/{id}/posts", 13)?;
@@ -438,19 +438,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/users/{id}/posts/{post_id}"), Ok(()));
@@ -459,17 +459,17 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
     "#);
 
     router.insert("/users/{id}/posts/{post_id}", 14)?;
@@ -478,19 +478,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/articles"), Ok(()));
@@ -499,19 +499,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/articles", 15)?;
@@ -520,19 +520,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/articles/{category}"), Ok(()));
@@ -541,19 +541,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category}
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category}
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/articles/{category}", 16)?;
@@ -562,19 +562,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     assert_eq!(router.delete("/articles/{category}/{id}"), Ok(()));
@@ -583,17 +583,17 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     router.insert("/articles/{category}/{id}", 17)?;
@@ -602,19 +602,19 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ /
-       │            ╰─ {category} ○
-       │                        ╰─ /
-       │                           ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {category} ○
+       │        ╰─ /
+       │           ╰─ {id} ○
        ├─ home ○
-       │     ╰─ /
-       │        ╰─ {id} ○
+       │  ╰─ /
+       │     ╰─ {id} ○
        ╰─ users ○
-              ╰─ /
-                 ╰─ {id} ○
-                       ╰─ /posts ○
-                               ╰─ /
-                                  ╰─ {post_id} ○
+          ╰─ /
+             ╰─ {id} ○
+                ╰─ /posts ○
+                   ╰─ /
+                      ╰─ {post_id} ○
     "#);
 
     Ok(())
@@ -631,7 +631,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ foo ○
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     let error = router.delete("/").unwrap_err();
@@ -648,7 +648,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ foo ○
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     let error = router.delete("/{home}").unwrap_err();
@@ -665,7 +665,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ foo ○
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     let error = router.delete("/foo/").unwrap_err();
@@ -682,7 +682,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ foo ○
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     assert_eq!(router.delete("/foo"), Ok(()));
@@ -691,7 +691,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     let error = router.delete("/{home}").unwrap_err();
@@ -707,7 +707,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ╰─ {home}
-               ╰─ / ○
+          ╰─ / ○
     "#);
 
     assert_eq!(router.delete("/{home}/"), Ok(()));
@@ -747,20 +747,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     let error = router.delete("/foo/{a}").unwrap_err();
@@ -776,20 +776,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     let error = router.delete("/foo/{a}/bar").unwrap_err();
@@ -805,20 +805,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     let error = router.delete("/bar/{a}/{b}").unwrap_err();
@@ -834,20 +834,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     let error = router.delete("/bar/{a}/{b}/baz").unwrap_err();
@@ -863,20 +863,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     let error = router.delete("/baz/{a}/{b}/{c}").unwrap_err();
@@ -892,20 +892,20 @@ fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ ba
-       │   ├─ r/
-       │   │   ╰─ {user}
-       │   │           ╰─ /
-       │   │              ╰─ {id} ○
-       │   │                    ╰─ /baz ○
-       │   ╰─ z/
-       │       ╰─ {product}
-       │                  ╰─ /
-       │                     ╰─ {user}
-       │                             ╰─ /
-       │                                ╰─ {id} ○
+       │  ├─ r/
+       │  │  ╰─ {user}
+       │  │     ╰─ /
+       │  │        ╰─ {id} ○
+       │  │           ╰─ /baz ○
+       │  ╰─ z/
+       │     ╰─ {product}
+       │        ╰─ /
+       │           ╰─ {user}
+       │              ╰─ /
+       │                 ╰─ {id} ○
        ╰─ foo/
-             ╰─ {id} ○
-                   ╰─ /bar ○
+          ╰─ {id} ○
+             ╰─ /bar ○
     "#);
 
     Ok(())
