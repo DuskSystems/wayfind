@@ -73,6 +73,9 @@ categories.workspace = true
 [lints]
 workspace = true
 
+[dependencies]
+smallvec = "2.0.0-alpha.7"
+
 [dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.

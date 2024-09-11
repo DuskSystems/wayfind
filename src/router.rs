@@ -7,6 +7,7 @@ use crate::{
     parser::{ParsedRoute, RoutePart},
     path::Path,
 };
+use smallvec::smallvec;
 use std::{
     any::type_name,
     collections::{hash_map::Entry, HashMap},
@@ -274,7 +275,7 @@ impl<T> Router<T> {
         &'router self,
         path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
-        let mut parameters = vec![];
+        let mut parameters = smallvec![];
         let Some(node) =
             self.root
                 .search(path.decoded_bytes(), &mut parameters, &self.constraints)?

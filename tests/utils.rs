@@ -96,7 +96,8 @@ pub fn assert_router_match<'a, T: PartialEq + Debug>(
         );
         assert_eq!(*data, expected.data, "Data mismatch for input: {input}");
         assert_eq!(
-            parameters, expected.params,
+            parameters.to_vec(),
+            expected.params,
             "Parameters mismatch for input: {input}"
         );
     } else {
