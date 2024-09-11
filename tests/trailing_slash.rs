@@ -18,20 +18,20 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ articles ○
-       │         ╰─ / ○
-       │            ╰─ {category} ○
-       │                        ╰─ / ○
+       │  ╰─ / ○
+       │     ╰─ {category} ○
+       │        ╰─ / ○
        ├─ files/
-       │       ╰─ {name} ○
-       │               ├─ .
-       │               │  ╰─ {extension} ○
-       │               │               ╰─ / ○
-       │               ╰─ / ○
+       │  ╰─ {name} ○
+       │     ├─ .
+       │     │  ╰─ {extension} ○
+       │     │     ╰─ / ○
+       │     ╰─ / ○
        ├─ posts/
-       │       ╰─ {id} ○
-       │             ╰─ / ○
+       │  ╰─ {id} ○
+       │     ╰─ / ○
        ╰─ users ○
-              ╰─ / ○
+          ╰─ / ○
     "#);
 
     assert_router_matches!(router, {

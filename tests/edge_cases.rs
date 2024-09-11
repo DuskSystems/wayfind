@@ -14,8 +14,8 @@ fn test_specific_matching_simple() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ╰─ {file} ○
-               ╰─ .
-                  ╰─ {extension} ○
+          ╰─ .
+             ╰─ {extension} ○
     "#);
 
     assert_router_matches!(router, {
@@ -50,10 +50,10 @@ fn test_specific_matching_complex() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ╰─ {year} ○
-               ╰─ -
-                  ╰─ {month} ○
-                           ╰─ -
-                              ╰─ {day} ○
+          ╰─ -
+             ╰─ {month} ○
+                ╰─ -
+                   ╰─ {day} ○
     "#);
 
     assert_router_matches!(router, {

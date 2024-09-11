@@ -10,11 +10,11 @@ fn expanded() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /files/
-             ╰─ {name} ○
-                     ├─ .
-                     │  ╰─ {extension} ○
-                     │               ╰─ / ○
-                     ╰─ / ○
+       ╰─ {name} ○
+          ├─ .
+          │  ╰─ {extension} ○
+          │     ╰─ / ○
+          ╰─ / ○
     "#);
 
     assert_eq!(
@@ -28,11 +28,11 @@ fn expanded() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /files/
-             ╰─ {name} ○
-                     ├─ .
-                     │  ╰─ {extension} ○
-                     │               ╰─ / ○
-                     ╰─ / ○
+       ╰─ {name} ○
+          ├─ .
+          │  ╰─ {extension} ○
+          │     ╰─ / ○
+          ╰─ / ○
     "#);
 
     router.delete("/files/{name}.{extension?}{/}")?;

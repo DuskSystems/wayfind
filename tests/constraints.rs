@@ -80,17 +80,17 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     ╰─ /
        ├─ p
        │  ├─ osts/
-       │  │      ╰─ {year:even_year}
-       │  │                        ╰─ /
-       │  │                           ╰─ {slug:valid_slug} ○
+       │  │  ╰─ {year:even_year}
+       │  │     ╰─ /
+       │  │        ╰─ {slug:valid_slug} ○
        │  ╰─ rofile/
-       │           ╰─ {username:length_3_to_10}
-       │                                      ╰─ .
-       │                                         ╰─ {ext:png_or_jpg} ○
+       │     ╰─ {username:length_3_to_10}
+       │        ╰─ .
+       │           ╰─ {ext:png_or_jpg} ○
        ╰─ user/
-              ╰─ {name:length_3_to_10}
-                                     ╰─ /
-                                        ╰─ {id:year_1000_to_10000} ○
+          ╰─ {name:length_3_to_10}
+             ╰─ /
+                ╰─ {id:year_1000_to_10000} ○
     "#);
 
     assert_router_matches!(router, {
