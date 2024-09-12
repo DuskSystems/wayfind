@@ -35,9 +35,16 @@ impl<T> Node<T> {
                 }
             };
         } else {
-            if self.data.is_some() {
+            if let Some(data) = &self.data {
+                let stored_route = match data {
+                    NodeData::Inline { route, .. } | NodeData::Shared { route, .. } => {
+                        route.to_string()
+                    }
+                };
+
                 return Err(InsertError::DuplicateRoute {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
+                    conflict: stored_route,
                 });
             }
 
@@ -229,13 +236,21 @@ impl<T> Node<T> {
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
-        if self
+        if let Some(child) = self
             .end_wildcard_children
             .iter()
-            .any(|child| child.prefix == name && child.constraint == constraint)
+            .find(|child| child.prefix == name && child.constraint == constraint)
         {
+            let stored_route = match &child.data {
+                Some(NodeData::Inline { route, .. } | NodeData::Shared { route, .. }) => {
+                    route.to_string()
+                }
+                None => "Unknown".to_string(),
+            };
+
             return Err(InsertError::DuplicateRoute {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
+                conflict: stored_route,
             });
         }
 

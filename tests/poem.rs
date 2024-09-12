@@ -162,7 +162,8 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(error, @r#"
     duplicate route
 
-       Route: /a/b
+          Route: /a/b
+       Conflict: /a/b
     "#);
 
     router.insert("/a/b/{p}/d", 1)?;
@@ -174,7 +175,8 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(error, @r#"
     duplicate route
 
-       Route: /a/{*p}
+          Route: /a/{*p}
+       Conflict: /a/{*p}
     "#);
 
     router.insert("/k/h/{name:digit_string}", 1)?;

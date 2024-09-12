@@ -18,20 +18,25 @@ pub enum InsertError {
     /// use wayfind::errors::InsertError;
     ///
     /// let error = InsertError::DuplicateRoute {
-    ///     route: "/existing/route".to_string(),
+    ///     route: "/route".to_string(),
+    ///     conflict: "/existing/{route?}".to_string(),
     /// };
     ///
     /// let display = "
     /// duplicate route
     ///
-    ///    Route: /existing/route
+    ///       Route: /route
+    ///    Conflict: /existing/{route?}
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     DuplicateRoute {
-        /// The route that already exists in the router.
+        /// The route that was attempted to be inserted.
         route: String,
+
+        /// The route that is conflicting.
+        conflict: String,
     },
 
     /// The constraint specified in the route is not recognized by the router.
@@ -68,11 +73,12 @@ impl Display for InsertError {
         match self {
             Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
-            Self::DuplicateRoute { route } => write!(
+            Self::DuplicateRoute { route, conflict } => write!(
                 f,
                 r#"duplicate route
 
-   Route: {route}"#
+      Route: {route}
+   Conflict: {conflict}"#
             ),
             Self::UnknownConstraint { constraint } => write!(
                 f,
