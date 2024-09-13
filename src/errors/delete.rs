@@ -45,14 +45,14 @@ pub enum DeleteError {
     ///
     /// let error = DeleteError::RouteMismatch {
     ///     route: "/users/{id}/".to_string(),
-    ///     inserted: "/users/{id}{/}".to_string(),
+    ///     inserted: "/users/{id}(/)".to_string(),
     /// };
     ///
     /// let display = "
     /// delete mismatch
     ///
     ///       Route: /users/{id}/
-    ///    Inserted: /users/{id}{/}
+    ///    Inserted: /users/{id}(/)
     ///
     /// The route must be deleted using the same format as was inserted
     /// ";

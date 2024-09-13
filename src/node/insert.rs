@@ -1,7 +1,7 @@
 use super::{Node, NodeData, NodeKind};
 use crate::{
     errors::InsertError,
-    parser::{ParsedRoute, RoutePart},
+    parser::{Part, Route},
 };
 use std::cmp::Ordering;
 
@@ -10,25 +10,21 @@ impl<T> Node<T> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error is there's already data at the end node.
-    pub fn insert(
-        &mut self,
-        route: &mut ParsedRoute,
-        data: NodeData<T>,
-    ) -> Result<(), InsertError> {
-        if let Some(part) = route.parts.pop_front() {
+    pub fn insert(&mut self, route: &mut Route, data: NodeData<T>) -> Result<(), InsertError> {
+        if let Some(part) = route.parts.pop() {
             match part {
-                RoutePart::Static { prefix } => self.insert_static(route, data, &prefix)?,
-                RoutePart::Dynamic {
+                Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
+                Part::Dynamic {
                     name, constraint, ..
                 } => {
                     self.insert_dynamic(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard {
+                Part::Wildcard {
                     name, constraint, ..
                 } if route.parts.is_empty() => {
                     self.insert_end_wildcard(route, data, &name, constraint)?;
                 }
-                RoutePart::Wildcard {
+                Part::Wildcard {
                     name, constraint, ..
                 } => {
                     self.insert_wildcard(route, data, &name, constraint)?;
@@ -59,7 +55,7 @@ impl<T> Node<T> {
 
     fn insert_static(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         data: NodeData<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
@@ -155,7 +151,7 @@ impl<T> Node<T> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -193,7 +189,7 @@ impl<T> Node<T> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
@@ -231,7 +227,7 @@ impl<T> Node<T> {
 
     fn insert_end_wildcard(
         &mut self,
-        route: &ParsedRoute,
+        route: &Route,
         data: NodeData<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,

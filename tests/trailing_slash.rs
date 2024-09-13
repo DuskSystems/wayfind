@@ -9,10 +9,10 @@ mod utils;
 #[test]
 fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users{/}", 1)?;
-    router.insert("/posts/{id}{/}", 2)?;
-    router.insert("/articles/{category?}{/}", 3)?;
-    router.insert("/files/{name}.{extension?}{/}", 4)?;
+    router.insert("/users(/)", 1)?;
+    router.insert("/posts/{id}(/)", 2)?;
+    router.insert("/articles(/{category})(/)", 3)?;
+    router.insert("/files/{name}(.{extension})(/)", 4)?;
 
     insta::assert_snapshot!(router, @r#"
     ▽
@@ -36,17 +36,17 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/users" => {
-            route: "/users{/}",
+            route: "/users(/)",
             expanded: "/users",
             data: 1
         }
         "/users/" => {
-            route: "/users{/}",
+            route: "/users(/)",
             expanded: "/users/",
             data: 1
         }
         "/posts/123" => {
-            route: "/posts/{id}{/}",
+            route: "/posts/{id}(/)",
             expanded: "/posts/{id}",
             data: 2,
             params: {
@@ -54,7 +54,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/posts/123/" => {
-            route: "/posts/{id}{/}",
+            route: "/posts/{id}(/)",
             expanded: "/posts/{id}/",
             data: 2,
             params: {
@@ -62,17 +62,17 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/articles" => {
-            route: "/articles/{category?}{/}",
+            route: "/articles(/{category})(/)",
             expanded: "/articles",
             data: 3
         }
         "/articles/" => {
-            route: "/articles/{category?}{/}",
+            route: "/articles(/{category})(/)",
             expanded: "/articles/",
             data: 3
         }
         "/articles/tech" => {
-            route: "/articles/{category?}{/}",
+            route: "/articles(/{category})(/)",
             expanded: "/articles/{category}",
             data: 3,
             params: {
@@ -80,7 +80,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/articles/tech/" => {
-            route: "/articles/{category?}{/}",
+            route: "/articles(/{category})(/)",
             expanded: "/articles/{category}/",
             data: 3,
             params: {
@@ -88,7 +88,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/files/document" => {
-            route: "/files/{name}.{extension?}{/}",
+            route: "/files/{name}(.{extension})(/)",
             expanded: "/files/{name}",
             data: 4,
             params: {
@@ -96,7 +96,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/files/document/" => {
-            route: "/files/{name}.{extension?}{/}",
+            route: "/files/{name}(.{extension})(/)",
             expanded: "/files/{name}/",
             data: 4,
             params: {
@@ -104,7 +104,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/files/document.pdf" => {
-            route: "/files/{name}.{extension?}{/}",
+            route: "/files/{name}(.{extension})(/)",
             expanded: "/files/{name}.{extension}",
             data: 4,
             params: {
@@ -113,7 +113,7 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
             }
         }
         "/files/document.pdf/" => {
-            route: "/files/{name}.{extension?}{/}",
+            route: "/files/{name}(.{extension})(/)",
             expanded: "/files/{name}.{extension}/",
             data: 4,
             params: {

@@ -2,7 +2,7 @@ use super::NodeData;
 use crate::{
     errors::DeleteError,
     node::Node,
-    parser::{ParsedRoute, RoutePart},
+    parser::{Part, Route},
 };
 
 impl<T> Node<T> {
@@ -14,21 +14,17 @@ impl<T> Node<T> {
     /// If the route is found and deleted, we re-optimize the tree structure.
     ///
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
-    pub fn delete(
-        &mut self,
-        route: &mut ParsedRoute,
-        is_expanded: bool,
-    ) -> Result<(), DeleteError> {
-        if let Some(part) = route.parts.pop_front() {
+    pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
+        if let Some(part) = route.parts.pop() {
             let result = match part {
-                RoutePart::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
-                RoutePart::Dynamic {
+                Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
+                Part::Dynamic {
                     name, constraint, ..
                 } => self.delete_dynamic(route, is_expanded, &name, &constraint),
-                RoutePart::Wildcard {
+                Part::Wildcard {
                     name, constraint, ..
                 } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
-                RoutePart::Wildcard {
+                Part::Wildcard {
                     name, constraint, ..
                 } => self.delete_wildcard(route, is_expanded, &name, &constraint),
             };
@@ -66,7 +62,7 @@ impl<T> Node<T> {
 
     fn delete_static(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         is_expanded: bool,
         prefix: &[u8],
     ) -> Result<(), DeleteError> {
@@ -103,7 +99,7 @@ impl<T> Node<T> {
 
     fn delete_dynamic(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
@@ -132,7 +128,7 @@ impl<T> Node<T> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut Route,
         is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
@@ -161,7 +157,7 @@ impl<T> Node<T> {
 
     fn delete_end_wildcard(
         &mut self,
-        route: &ParsedRoute,
+        route: &Route,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
     ) -> Result<(), DeleteError> {

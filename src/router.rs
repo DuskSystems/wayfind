@@ -2,9 +2,8 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
-    expander::ExpandedRoutes,
     node::{search::Match, Node, NodeData, NodeKind},
-    parser::{ParsedRoute, RoutePart},
+    parser::{Parser, Part},
     path::Path,
 };
 use std::{
@@ -150,30 +149,31 @@ impl<T> Router<T> {
 
         let route_arc = Arc::from(route);
 
-        let mut route = ParsedRoute::new(route.as_bytes())?;
-        for part in &route.parts {
-            if let RoutePart::Dynamic {
-                constraint: Some(name),
-                ..
-            }
-            | RoutePart::Wildcard {
-                constraint: Some(name),
-                ..
-            } = part
-            {
-                if !self.constraints.contains_key(name) {
-                    return Err(InsertError::UnknownConstraint {
-                        constraint: String::from_utf8_lossy(name).to_string(),
-                    });
+        let mut parsed = Parser::new(route.as_bytes())?;
+        for route in &parsed.routes {
+            for part in &route.parts {
+                if let Part::Dynamic {
+                    constraint: Some(name),
+                    ..
+                }
+                | Part::Wildcard {
+                    constraint: Some(name),
+                    ..
+                } = part
+                {
+                    if !self.constraints.contains_key(name) {
+                        return Err(InsertError::UnknownConstraint {
+                            constraint: String::from_utf8_lossy(name).to_string(),
+                        });
+                    }
                 }
             }
         }
 
-        let expanded = ExpandedRoutes::new(route.clone());
-        if expanded.routes.len() > 1 {
+        if parsed.routes.len() > 1 {
             let value = Arc::new(value);
-            for mut route in expanded.routes {
-                let expanded = Arc::from(route.parts.to_string());
+            for mut route in parsed.routes {
+                let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
 
                 if let Err(err) = self.root.insert(
                     &mut route,
@@ -190,9 +190,9 @@ impl<T> Router<T> {
                     return Err(err);
                 }
             }
-        } else {
+        } else if let Some(route) = parsed.routes.first_mut() {
             self.root.insert(
-                &mut route,
+                route,
                 NodeData::Inline {
                     route: Arc::clone(&route_arc),
                     value,
@@ -229,12 +229,10 @@ impl<T> Router<T> {
             })?;
         }
 
-        let mut route = ParsedRoute::new(route.as_bytes())?;
-
-        let expanded = ExpandedRoutes::new(route.clone());
-        if expanded.routes.len() > 1 {
+        let mut parsed = Parser::new(route.as_bytes())?;
+        if parsed.routes.len() > 1 {
             let mut failure: Option<DeleteError> = None;
-            for mut expanded_route in expanded.routes {
+            for mut expanded_route in parsed.routes {
                 // If a delete fails, keep trying the remaining paths, then return the first error.
                 // TODO: Consider adding tracing/log support?
                 // TODO: Consider returning a vec of errors?
@@ -246,8 +244,8 @@ impl<T> Router<T> {
             if let Some(err) = failure {
                 return Err(err);
             }
-        } else {
-            self.root.delete(&mut route, false)?;
+        } else if let Some(route) = parsed.routes.first_mut() {
+            self.root.delete(route, false)?;
         }
 
         Ok(())

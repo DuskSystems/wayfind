@@ -9,9 +9,9 @@ mod utils;
 #[test]
 fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*name?}/abc", 1)?;
-    router.insert("/def/{*rest?}", 2)?;
-    router.insert("/{*prefix?}/ghi/{*suffix?}", 3)?;
+    router.insert("(/{*name})/abc", 1)?;
+    router.insert("/def(/{*rest})", 2)?;
+    router.insert("(/{*prefix})/ghi(/{*suffix})", 3)?;
 
     insta::assert_snapshot!(router, @r#"
     ▽
@@ -33,12 +33,12 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
 
     assert_router_matches!(router, {
         "/abc" => {
-            route: "/{*name?}/abc",
+            route: "(/{*name})/abc",
             expanded: "/abc",
             data: 1
         }
         "/xyz/abc" => {
-            route: "/{*name?}/abc",
+            route: "(/{*name})/abc",
             expanded: "/{*name}/abc",
             data: 1,
             params: {
@@ -46,12 +46,12 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
             }
         }
         "/def" => {
-            route: "/def/{*rest?}",
+            route: "/def(/{*rest})",
             expanded: "/def",
             data: 2
         }
         "/def/some/path" => {
-            route: "/def/{*rest?}",
+            route: "/def(/{*rest})",
             expanded: "/def/{*rest}",
             data: 2,
             params: {
@@ -59,12 +59,12 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
             }
         }
         "/ghi" => {
-            route: "/{*prefix?}/ghi/{*suffix?}",
+            route: "(/{*prefix})/ghi(/{*suffix})",
             expanded: "/ghi",
             data: 3
         }
         "/prefix/ghi" => {
-            route: "/{*prefix?}/ghi/{*suffix?}",
+            route: "(/{*prefix})/ghi(/{*suffix})",
             expanded: "/{*prefix}/ghi",
             data: 3,
             params: {
@@ -72,7 +72,7 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
             }
         }
         "/ghi/suffix" => {
-            route: "/{*prefix?}/ghi/{*suffix?}",
+            route: "(/{*prefix})/ghi(/{*suffix})",
             expanded: "/ghi/{*suffix}",
             data: 3,
             params: {
@@ -80,7 +80,7 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
             }
         }
         "/prefix/ghi/suffix" => {
-            route: "/{*prefix?}/ghi/{*suffix?}",
+            route: "(/{*prefix})/ghi(/{*suffix})",
             expanded: "/{*prefix}/ghi/{*suffix}",
             data: 3,
             params: {
