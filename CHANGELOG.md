@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-...
+### Changed
+
+- Duplicate route error now shows which route caused the conflict.
 
 ## [0.5.0] - 2024-09-11
 

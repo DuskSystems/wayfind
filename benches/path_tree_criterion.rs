@@ -10,10 +10,14 @@ use std::hint::black_box;
 
 pub mod path_tree_routes;
 
-criterion_group!(benches, benchmark);
 criterion_main!(benches);
+criterion_group! {
+    name = benches;
+    config = Criterion::default();
+    targets = path_tree_benchmark
+}
 
-fn benchmark(criterion: &mut Criterion) {
+fn path_tree_benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("path-tree benchmarks");
 
     group.bench_function("path-tree benchmarks/wayfind", |bencher| {

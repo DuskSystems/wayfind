@@ -10,10 +10,14 @@ use std::hint::black_box;
 
 pub mod matchit_routes;
 
-criterion_group!(benches, benchmark);
 criterion_main!(benches);
+criterion_group! {
+    name = benches;
+    config = Criterion::default();
+    targets = matchit_benchmark
+}
 
-fn benchmark(criterion: &mut Criterion) {
+fn matchit_benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("matchit benchmarks");
 
     group.bench_function("matchit benchmarks/wayfind", |bencher| {

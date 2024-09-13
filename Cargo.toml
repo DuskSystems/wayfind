@@ -98,6 +98,14 @@ routefinder = "=0.5.4"
 xitca-router = "=0.3.0"
 
 [[bench]]
+name = "gitlab_criterion"
+harness = false
+
+[[bench]]
+name = "gitlab_divan"
+harness = false
+
+[[bench]]
 name = "matchit_criterion"
 harness = false
 
