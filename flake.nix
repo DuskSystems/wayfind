@@ -86,6 +86,7 @@
               # Benchmarking
               cargo-codspeed
               gnuplot
+              samply
 
               # Release
               cargo-semver-checks

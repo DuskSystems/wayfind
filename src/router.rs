@@ -2,7 +2,7 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
-    node::{search::Match, Node, NodeData, NodeKind},
+    node::{search::Match, Children, Data, Kind, Node},
     parser::{Parser, Part},
     path::Path,
 };
@@ -43,18 +43,19 @@ impl<T> Router<T> {
     pub fn new() -> Self {
         let mut router = Self {
             root: Node {
-                kind: NodeKind::Root,
+                kind: Kind::Root,
 
                 prefix: vec![],
                 data: None,
                 constraint: None,
 
-                static_children: vec![],
-                dynamic_children: vec![],
-                wildcard_children: vec![],
-                end_wildcard_children: vec![],
+                static_children: Children::default(),
+                dynamic_children: Children::default(),
+                wildcard_children: Children::default(),
+                end_wildcard_children: Children::default(),
 
                 quick_dynamic: false,
+                needs_optimization: false,
             },
             constraints: HashMap::new(),
         };
@@ -177,7 +178,7 @@ impl<T> Router<T> {
 
                 if let Err(err) = self.root.insert(
                     &mut route,
-                    NodeData::Shared {
+                    Data::Shared {
                         route: Arc::clone(&route_arc),
                         expanded,
                         value: Arc::clone(&value),
@@ -193,13 +194,14 @@ impl<T> Router<T> {
         } else if let Some(route) = parsed.routes.first_mut() {
             self.root.insert(
                 route,
-                NodeData::Inline {
+                Data::Inline {
                     route: Arc::clone(&route_arc),
                     value,
                 },
             )?;
         };
 
+        self.root.optimize();
         Ok(())
     }
 
@@ -248,6 +250,7 @@ impl<T> Router<T> {
             self.root.delete(route, false)?;
         }
 
+        self.root.optimize();
         Ok(())
     }
 
@@ -281,8 +284,8 @@ impl<T> Router<T> {
         };
 
         let (route, expanded, data) = match &node.data {
-            Some(NodeData::Inline { route, value }) => (Arc::clone(route), None, value),
-            Some(NodeData::Shared {
+            Some(Data::Inline { route, value }) => (Arc::clone(route), None, value),
+            Some(Data::Shared {
                 route,
                 expanded,
                 value,

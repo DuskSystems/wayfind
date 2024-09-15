@@ -1,5 +1,5 @@
 use super::Node;
-use crate::node::NodeKind;
+use crate::node::Kind;
 use std::fmt::{Display, Write};
 
 impl<T> Display for Node<T> {
@@ -13,16 +13,16 @@ impl<T> Display for Node<T> {
         ) -> std::fmt::Result {
             let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
             let key = match &node.kind {
-                NodeKind::Root => "▽".to_string(),
-                NodeKind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
-                NodeKind::Dynamic => {
+                Kind::Root => "▽".to_string(),
+                Kind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
+                Kind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     constraint.map_or_else(
                         || format!("{{{name}}}"),
                         |constraint| format!("{{{name}:{constraint}}}"),
                     )
                 }
-                NodeKind::Wildcard | NodeKind::EndWildcard => {
+                Kind::Wildcard | Kind::EndWildcard => {
                     let name = String::from_utf8_lossy(&node.prefix);
                     constraint.map_or_else(
                         || format!("{{*{name}}}"),
