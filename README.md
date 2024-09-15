@@ -104,31 +104,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-### Optional Parameters
+### Optional Groups
 
-`wayfind` supports marking a parameter as optional.
+Optional groups allow for parts of a route to be absent.
 
-We support:
-- optional dynamic segments: `/users/{user?}`
-- optional dynamic inlines: `/release/v{major}.{minor?}.{patch?}`
-- optional wildcard segments: `/files/{*file?}/info`
+They are commonly used for:
+- optional IDs: `/users(/{id})`
+- optional trailing slashes: `/users(/)`
+- optional file extensions: `/images/{name}(.{extension})`
 
-Optional parameters work as syntactic sugar for equivilant, simplified routes.
+They work via 'expanding' the route into equivilant, simplified routes.
 
-`/users/{user?}`:
-- `/users/{user}`
-- `/users`
-
-`/release/v{major}.{minor?}.{patch?}`:
+`/release/v{major}(.{minor}(.{patch}))`
 - `/release/v{major}.{minor}.{patch}`
 - `/release/v{major}.{minor}`
 - `/release/v{major}`
 
-`/files/{*file?}/info`:
-- `/files/{*file}/info`
-- `/files/info`
-
-There is a small overhead to using optionals, due to `Arc` usage internally for data storage.
+There is a small overhead to using optional groups, due to `Arc` usage internally for data storage.
 
 #### Example
 
@@ -138,19 +130,19 @@ use wayfind::{Path, Router};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id?}", 1)?;
-    router.insert("/files/{*slug}/{file}.{extension?}", 2)?;
+    router.insert("/users(/{id})", 1)?;
+    router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
 
     let path = Path::new("/users")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users/{id?}".into());
+    assert_eq!(search.route, "/users(/{id})".into());
     assert_eq!(search.expanded, Some("/users".into()));
 
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users/{id?}".into());
+    assert_eq!(search.route, "/users(/{id})".into());
     assert_eq!(search.expanded, Some("/users/{id}".into()));
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
@@ -158,7 +150,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/folder/report.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}.{extension?}".into());
+    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}".into()));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
@@ -170,7 +162,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/folder/readme")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}.{extension?}".into());
+    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}".into()));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
@@ -272,55 +264,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let path = Path::new("/v2/invalid repo/blobs/uploads")?;
     assert!(router.search(&path)?.is_none());
-
-    Ok(())
-}
-```
-
-### Optional Trailing Slashes
-
-`wayfind` supports optional trailing slashes.
-
-This works via adding `{/}` to the end of a route.
-
-#### Example
-
-```rust
-use std::error::Error;
-use wayfind::{Path, Router};
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/users{/}", 1)?;
-    router.insert("/posts/{id}{/}", 2)?;
-
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?.unwrap();
-    assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users{/}".into());
-    assert_eq!(search.expanded, Some("/users".into()));
-
-    let path = Path::new("/users/")?;
-    let search = router.search(&path)?.unwrap();
-    assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users{/}".into());
-    assert_eq!(search.expanded, Some("/users/".into()));
-
-    let path = Path::new("/posts/123")?;
-    let search = router.search(&path)?.unwrap();
-    assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/posts/{id}{/}".into());
-    assert_eq!(search.expanded, Some("/posts/{id}".into()));
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
-
-    let path = Path::new("/posts/123/")?;
-    let search = router.search(&path)?.unwrap();
-    assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/posts/{id}{/}".into());
-    assert_eq!(search.expanded, Some("/posts/{id}/".into()));
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
 
     Ok(())
 }

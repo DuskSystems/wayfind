@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added support for optional groups in routes.
+
 ### Changed
 
+- Syntax for escaping parameters has changed to use the `\` character.
+- Route errors now have more consistent error messages.
 - Duplicate route error now shows which route caused the conflict.
+
+### Removed
+
+- Optional parameters have been replaced with optional groups.
+- Optional trailing slashes have been replaced with optional groups.
 
 ## [0.5.0] - 2024-09-11
 

@@ -19,14 +19,14 @@ pub enum InsertError {
     ///
     /// let error = InsertError::DuplicateRoute {
     ///     route: "/route".to_string(),
-    ///     conflict: "/existing/{route?}".to_string(),
+    ///     conflict: "/existing(/{route})".to_string(),
     /// };
     ///
     /// let display = "
     /// duplicate route
     ///
     ///       Route: /route
-    ///    Conflict: /existing/{route?}
+    ///    Conflict: /existing(/{route})
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());

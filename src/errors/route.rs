@@ -1,10 +1,8 @@
-use std::{error::Error, fmt::Display};
-
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteError {
     /// The route is empty.
-    EmptyRoute,
+    Empty,
 
     /// Empty braces were found in the route.
     ///
@@ -21,8 +19,8 @@ pub enum RouteError {
     /// let display = "
     /// empty braces
     ///
-    ///    Route: /{}
-    ///            ^^
+    ///     Route: /{}
+    ///             ^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -30,37 +28,95 @@ pub enum RouteError {
     EmptyBraces {
         /// The route containing empty braces.
         route: String,
-        /// The position of the empty brace.
+        /// The position of the first empty brace.
         position: usize,
     },
 
-    /// An unescaped brace was found in the route.
+    /// An unbalanced brace was found in the route.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::RouteError;
     ///
-    /// let error = RouteError::UnescapedBrace {
+    /// let error = RouteError::UnbalancedBrace {
     ///     route: "/{".to_string(),
     ///     position: 1,
     /// };
     ///
     /// let display = "
-    /// unescaped brace
+    /// unbalanced brace
     ///
-    ///    Route: /{
-    ///            ^
+    ///     Route: /{
+    ///             ^
     ///
-    /// tip: Use '{{' and '}}' to represent literal '{' and '}' characters in the route
+    /// tip: Use '\\{' and '\\}' to represent literal '{' and '}' characters in the route
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    UnescapedBrace {
-        /// The route containing an unescaped brace.
+    UnbalancedBrace {
+        /// The route containing an unbalanced brace.
         route: String,
-        /// The position of the unescaped brace.
+        /// The position of the unbalanced brace.
+        position: usize,
+    },
+
+    /// Empty parentheses were found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::EmptyParentheses {
+    ///     route: "/()".to_string(),
+    ///     position: 1,
+    /// };
+    ///
+    /// let display = "
+    /// empty parentheses
+    ///
+    ///     Route: /()
+    ///             ^^
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    EmptyParentheses {
+        /// The route containing empty parentheses.
+        route: String,
+        /// The position of the first empty parenthesis.
+        position: usize,
+    },
+
+    /// An unbalanced parenthesis was found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::UnbalancedParenthesis {
+    ///     route: "/(".to_string(),
+    ///     position: 1,
+    /// };
+    ///
+    /// let display = "
+    /// unbalanced parenthesis
+    ///
+    ///     Route: /(
+    ///             ^
+    ///
+    /// tip: Use '\\(' and '\\)' to represent literal '(' and ')' characters in the route
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    UnbalancedParenthesis {
+        /// The route containing an unbalanced parenthesis.
+        route: String,
+        /// The position of the unbalanced parenthesis.
         position: usize,
     },
 
@@ -80,8 +136,8 @@ pub enum RouteError {
     /// let display = "
     /// empty parameter name
     ///
-    ///    Route: /{:}
-    ///            ^^^
+    ///     Route: /{:}
+    ///             ^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -89,7 +145,7 @@ pub enum RouteError {
     EmptyParameter {
         /// The route containing an empty parameter.
         route: String,
-        /// The position of the parameter with a empty name.
+        /// The position of the opening brace of the empty name parameter.
         start: usize,
         /// The length of the parameter (including braces).
         length: usize,
@@ -112,10 +168,10 @@ pub enum RouteError {
     /// let display = "
     /// invalid parameter name
     ///
-    ///    Route: /{a/b}
-    ///            ^^^^^
+    ///     Route: /{a/b}
+    ///             ^^^^^
     ///
-    /// tip: Parameter names must not contain the characters: ':', '*', '?', '{', '}', '/'
+    /// tip: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -125,10 +181,52 @@ pub enum RouteError {
         route: String,
         /// The invalid parameter name.
         name: String,
-        /// The position of the parameter with a invalid name.
+        /// The position of the opening brace of the invalid name parameter.
         start: usize,
         /// The length of the parameter (including braces).
         length: usize,
+    },
+
+    /// A duplicate parameter name was found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::DuplicateParameter {
+    ///     route: "/{id}/{id}".to_string(),
+    ///     name: "id".to_string(),
+    ///     first: 1,
+    ///     first_length: 4,
+    ///     second: 6,
+    ///     second_length: 4,
+    /// };
+    ///
+    /// let display = "
+    /// duplicate parameter name: 'id'
+    ///
+    ///     Route: /{id}/{id}
+    ///             ^^^^ ^^^^
+    ///
+    /// tip: Parameter names must be unique within a route
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    DuplicateParameter {
+        /// The route containing duplicate parameters.
+        route: String,
+        /// The duplicated parameter name.
+        name: String,
+        /// The position of the opening brace of the first occurrence.
+        first: usize,
+        /// The length of the first parameter (including braces).
+        first_length: usize,
+        /// The position of the opening brace of the second occurrence.
+        second: usize,
+        /// The length of the second parameter (including braces).
+        second_length: usize,
     },
 
     /// A wildcard parameter with no name was found in the route.
@@ -147,8 +245,8 @@ pub enum RouteError {
     /// let display = "
     /// empty wildcard name
     ///
-    ///    Route: /{*}
-    ///            ^^^
+    ///     Route: /{*}
+    ///             ^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -156,7 +254,7 @@ pub enum RouteError {
     EmptyWildcard {
         /// The route containing an empty wildcard parameter.
         route: String,
-        /// The position of the wildcard parameter with a empty name.
+        /// The position of the opening brace of the empty wildcard parameter.
         start: usize,
         /// The length of the parameter (including braces).
         length: usize,
@@ -178,8 +276,8 @@ pub enum RouteError {
     /// let display = "
     /// empty constraint name
     ///
-    ///    Route: /{a:}
-    ///            ^^^^
+    ///     Route: /{a:}
+    ///             ^^^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -187,7 +285,7 @@ pub enum RouteError {
     EmptyConstraint {
         /// The route containing an empty constraint.
         route: String,
-        /// The position of the parameter with an empty constraint.
+        /// The position of the opening brace of the empty constraint parameter.
         start: usize,
         /// The length of the parameter (including braces).
         length: usize,
@@ -210,10 +308,10 @@ pub enum RouteError {
     /// let display = "
     /// invalid constraint name
     ///
-    ///    Route: /{a:b/c}
-    ///            ^^^^^^^
+    ///     Route: /{a:b/c}
+    ///             ^^^^^^^
     ///
-    /// tip: Constraint names must not contain the characters: ':', '*', '?', '{', '}', '/'
+    /// tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -223,80 +321,20 @@ pub enum RouteError {
         route: String,
         /// The invalid constraint name.
         name: String,
-        /// The position of the parameter with an invalid constraint.
+        /// The position of the opening brace of the invalid constraint parameter.
         start: usize,
         /// The length of the parameter (including braces).
         length: usize,
     },
-
-    /// An invalid trailing slash parameter was found in the route.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::RouteError;
-    ///
-    /// let error = RouteError::InvalidTrailingSlash {
-    ///     route: "/users/{/}/posts".to_string(),
-    ///     position: 7,
-    /// };
-    ///
-    /// let display = r#"
-    /// invalid trailing slash
-    ///
-    ///    Route: /users/{/}/posts
-    ///                  ^^^
-    ///
-    /// tip: Trailing slash parameters must occur at the end of a route
-    /// "#;
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    InvalidTrailingSlash {
-        /// The route containing an invalid trailing slash.
-        route: String,
-        /// The position of the trailing slash.
-        position: usize,
-    },
-
-    /// A conflicting trailing slash parameter was found in the route.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::RouteError;
-    ///
-    /// let error = RouteError::ConflictingTrailingSlash {
-    ///     route: "/users/{id}/{/}/".to_string(),
-    ///     position: 15,
-    /// };
-    ///
-    /// let display = r#"
-    /// conflicting trailing slash
-    ///
-    ///    Route: /users/{id}/{/}/
-    ///                          ^
-    ///
-    /// tip: Remove the existing trailing slash to allow optional occurrence
-    /// "#;
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    ConflictingTrailingSlash {
-        /// The route containing a conflicting trailing slash.
-        route: String,
-        /// The position of the raw trailing slash character.
-        position: usize,
-    },
 }
 
-impl Error for RouteError {}
+impl std::error::Error for RouteError {}
 
-impl Display for RouteError {
+impl std::fmt::Display for RouteError {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::EmptyRoute => write!(f, "empty route"),
+            Self::Empty => write!(f, "empty route"),
 
             Self::EmptyBraces { route, position } => {
                 let arrow = " ".repeat(*position) + "^^";
@@ -304,21 +342,45 @@ impl Display for RouteError {
                     f,
                     r#"empty braces
 
-   Route: {route}
-          {arrow}"#
+    Route: {route}
+           {arrow}"#
                 )
             }
 
-            Self::UnescapedBrace { route, position } => {
+            Self::UnbalancedBrace { route, position } => {
                 let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
-                    r#"unescaped brace
+                    r#"unbalanced brace
 
-   Route: {route}
-          {arrow}
+    Route: {route}
+           {arrow}
 
-tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the route"#
+tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the route"#
+                )
+            }
+
+            Self::EmptyParentheses { route, position } => {
+                let arrow = " ".repeat(*position) + "^^";
+                write!(
+                    f,
+                    r#"empty parentheses
+
+    Route: {route}
+           {arrow}"#
+                )
+            }
+
+            Self::UnbalancedParenthesis { route, position } => {
+                let arrow = " ".repeat(*position) + "^";
+                write!(
+                    f,
+                    r#"unbalanced parenthesis
+
+    Route: {route}
+           {arrow}
+
+tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route"#
                 )
             }
 
@@ -332,8 +394,8 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     f,
                     r#"empty parameter name
 
-   Route: {route}
-          {arrow}"#
+    Route: {route}
+           {arrow}"#
                 )
             }
 
@@ -348,10 +410,38 @@ tip: Use '{{{{' and '}}}}' to represent literal '{{' and '}}' characters in the 
                     f,
                     r#"invalid parameter name
 
-   Route: {route}
-          {arrow}
+    Route: {route}
+           {arrow}
 
-tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
+tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
+                )
+            }
+
+            Self::DuplicateParameter {
+                route,
+                name,
+                first,
+                first_length,
+                second,
+                second_length,
+            } => {
+                let mut arrow = " ".repeat(route.len());
+
+                arrow.replace_range(*first..(*first + *first_length), &"^".repeat(*first_length));
+
+                arrow.replace_range(
+                    *second..(*second + *second_length),
+                    &"^".repeat(*second_length),
+                );
+
+                write!(
+                    f,
+                    r#"duplicate parameter name: '{name}'
+
+    Route: {route}
+           {arrow}
+
+tip: Parameter names must be unique within a route"#
                 )
             }
 
@@ -365,8 +455,8 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"empty wildcard name
 
-   Route: {route}
-          {arrow}"#
+    Route: {route}
+           {arrow}"#
                 )
             }
 
@@ -380,8 +470,8 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"empty constraint name
 
-   Route: {route}
-          {arrow}"#
+    Route: {route}
+           {arrow}"#
                 )
             }
 
@@ -396,36 +486,10 @@ tip: Parameter names must not contain the characters: ':', '*', '?', '{{', '}}',
                     f,
                     r#"invalid constraint name
 
-   Route: {route}
-          {arrow}
+    Route: {route}
+           {arrow}
 
-tip: Constraint names must not contain the characters: ':', '*', '?', '{{', '}}', '/'"#
-                )
-            }
-
-            Self::InvalidTrailingSlash { route, position } => {
-                let arrow = " ".repeat(*position) + "^^^";
-                write!(
-                    f,
-                    r#"invalid trailing slash
-
-   Route: {route}
-          {arrow}
-
-tip: Trailing slash parameters must occur at the end of a route"#
-                )
-            }
-
-            Self::ConflictingTrailingSlash { route, position } => {
-                let arrow = " ".repeat(*position) + "^";
-                write!(
-                    f,
-                    r#"conflicting trailing slash
-
-   Route: {route}
-          {arrow}
-
-tip: Remove the existing trailing slash to allow optional occurrence"#
+tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
                 )
             }
         }

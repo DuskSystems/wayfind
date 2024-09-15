@@ -5,7 +5,7 @@ use wayfind::{errors::DeleteError, Router};
 #[test]
 fn expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/files/{name}.{extension?}{/}", 1)?;
+    router.insert("/files/{name}(.{extension})(/)", 1)?;
 
     insta::assert_snapshot!(router, @r#"
     ▽
@@ -21,7 +21,7 @@ fn expanded() -> Result<(), Box<dyn Error>> {
         router.delete("/files/{name}/").unwrap_err(),
         DeleteError::RouteMismatch {
             route: "/files/{name}/".to_string(),
-            inserted: "/files/{name}.{extension?}{/}".to_string(),
+            inserted: "/files/{name}(.{extension})(/)".to_string(),
         }
     );
 
@@ -35,7 +35,7 @@ fn expanded() -> Result<(), Box<dyn Error>> {
           ╰─ / ○
     "#);
 
-    router.delete("/files/{name}.{extension?}{/}")?;
+    router.delete("/files/{name}(.{extension})(/)")?;
 
     insta::assert_snapshot!(router, @"
     ▽

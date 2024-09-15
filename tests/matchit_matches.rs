@@ -1109,21 +1109,21 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
 fn escaped() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
-    router.insert("/{{", 2)?;
-    router.insert("/}}", 3)?;
-    router.insert("/{{x", 4)?;
-    router.insert("/}}y{{", 5)?;
-    router.insert("/xy{{", 6)?;
-    router.insert("/{{/xyz", 7)?;
-    // router.insert("/{ba{{r}", 8);
-    // router.insert("/{ba{{r}/", 9)?;
-    // router.insert("/{ba{{r}/x", 10)?;
+    router.insert("/\\{", 2)?;
+    router.insert("/\\}", 3)?;
+    router.insert("/\\{x", 4)?;
+    router.insert("/\\}y\\{", 5)?;
+    router.insert("/xy\\{", 6)?;
+    router.insert("/\\{/xyz", 7)?;
+    // router.insert("/{ba\\{r}", 8)?;
+    // router.insert("/{ba\\{r}/", 9)?;
+    // router.insert("/{ba\\{r}/x", 10)?;
     router.insert("/baz/{xxx}", 11)?;
-    router.insert("/baz/{xxx}/xy{{", 12)?;
-    router.insert("/baz/{xxx}/}}xy{{{{", 13)?;
-    router.insert("/{{/{x}", 14)?;
+    router.insert("/baz/{xxx}/xy\\{", 12)?;
+    router.insert("/baz/{xxx}/\\}xy\\{\\{", 13)?;
+    router.insert("/\\{/{x}", 14)?;
     router.insert("/xxx/", 15)?;
-    // router.insert("/xxx/{x}}{{}}}}{{}}{{{{}}y}", 16)?;
+    // router.insert("/xxx/{x\\}\\{\\}\\}\\{\\}\\{\\{\\}\\}y}", 16)?;
 
     insta::assert_snapshot!(router, @r#"
     ▽
@@ -1151,52 +1151,52 @@ fn escaped() -> Result<(), Box<dyn Error>> {
             data: 1
         }
         "/{" => {
-            route: "/{{",
+            route: "/\\{",
             data: 2
         }
         "/}" => {
-            route: "/}}",
+            route: "/\\}",
             data: 3
         }
         "/{x" => {
-            route: "/{{x",
+            route: "/\\{x",
             data: 4
         }
         "/}y{" => {
-            route: "/}}y{{",
+            route: "/\\}y\\{",
             data: 5
         }
         "/xy{" => {
-            route: "/xy{{",
+            route: "/xy\\{",
             data: 6
         }
         "/{/xyz" => {
-            route: "/{{/xyz",
+            route: "/\\{/xyz",
             data: 7
         }
         // "/foo" => {
-        //     route: "/{ba{{r}",
+        //     route: "/{ba\\{r}",
         //     data: 8,
         //     params: {
         //         "ba{r" => "foo"
         //     }
         // }
         // "/{{" => {
-        //     route: "/{ba{{r}",
+        //     route: "/{ba\\{r}",
         //     data: 8,
         //     params: {
         //         "ba{r" => "{{"
         //     }
         // }
         // "/{{}}/" => {
-        //     route: "/{ba{{r}/",
+        //     route: "/{ba\\{r}/",
         //     data: 9,
         //     params: {
         //         "ba{r" => "{{}}"
         //     }
         // }
         // "/{{}}{{/x" => {
-        //     route: "/{ba{{r}/x",
+        //     route: "/{ba\\{r}/x",
         //     data: 10,
         //     params: {
         //         "ba{r" => "{{}}{{"
@@ -1210,7 +1210,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
             }
         }
         "/baz/x/xy{" => {
-            route: "/baz/{xxx}/xy{{",
+            route: "/baz/{xxx}/xy\\{",
             data: 12,
             params: {
                 "xxx" => "x"
@@ -1218,21 +1218,21 @@ fn escaped() -> Result<(), Box<dyn Error>> {
         }
         "/baz/x/xy{{" => None
         "/baz/x/}xy{{" => {
-            route: "/baz/{xxx}/}}xy{{{{",
+            route: "/baz/{xxx}/\\}xy\\{\\{",
             data: 13,
             params: {
                 "xxx" => "x"
             }
         }
         "/{/{{" => {
-            route: "/{{/{x}",
+            route: "/\\{/{x}",
             data: 14,
             params: {
                 "x" => "{{"
             }
         }
         // "/xxx" => {
-        //     route: "/{ba{{r}",
+        //     route: "/{ba\\{r}",
         //     data: 8,
         //     params: {
         //         "ba{r" => "xxx"
@@ -1243,7 +1243,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
             data: 15
         }
         // "/xxx/foo" => {
-        //     route: "/xxx/{x}{{}}}}{{}}{{{{}}y}",
+        //     route: "/xxx/{x\\}\\{\\}\\}\\{\\}\\{\\{\\}\\}y}",
         //     data: 16,
         //     params: {
         //         "x}{}}{}{{}y" => "foo"
@@ -1272,8 +1272,8 @@ fn basic() -> Result<(), Box<dyn Error>> {
     router.insert("/sd$here", 13)?;
     router.insert("/sd&here", 14)?;
     router.insert("/sd'here", 15)?;
-    router.insert("/sd(here", 16)?;
-    router.insert("/sd)here", 17)?;
+    router.insert("/sd\\(here", 16)?;
+    router.insert("/sd\\)here", 17)?;
     router.insert("/sd+here", 18)?;
     router.insert("/sd,here", 19)?;
     router.insert("/sd;here", 20)?;
@@ -1357,11 +1357,11 @@ fn basic() -> Result<(), Box<dyn Error>> {
             data: 15
         }
         "/sd(here" => {
-            route: "/sd(here",
+            route: "/sd\\(here",
             data: 16
         }
         "/sd)here" => {
-            route: "/sd)here",
+            route: "/sd\\)here",
             data: 17
         }
         "/sd+here" => {
