@@ -8,7 +8,7 @@ criterion_main!(benches);
 criterion_group! {
     name = benches;
     config = Criterion::default();
-    targets = insert_benchmark, dislay_benchmark
+    targets = insert_benchmark, delete_benchmark, display_benchmark
 }
 
 fn insert_benchmark(criterion: &mut Criterion) {
@@ -32,32 +32,32 @@ fn insert_benchmark(criterion: &mut Criterion) {
     group.finish();
 }
 
-// fn delete_benchmark(criterion: &mut Criterion) {
-//     let mut group = criterion.benchmark_group("gitlab delete benchmarks");
-//     group.sample_size(10);
-//     group.measurement_time(Duration::from_secs(15));
-//
-//     group.bench_function("gitlab delete benchmarks/wayfind", |bencher| {
-//         let mut router = wayfind::Router::new();
-//         for route in routes() {
-//             router.insert(route, true).unwrap();
-//         }
-//
-//         bencher.iter_batched(
-//             || router.clone(),
-//             |mut router| {
-//                 for route in black_box(routes()) {
-//                     router.delete(black_box(route)).unwrap();
-//                 }
-//             },
-//             BatchSize::SmallInput,
-//         );
-//     });
-//
-//     group.finish();
-// }
+fn delete_benchmark(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("gitlab delete benchmarks");
+    group.sample_size(10);
+    group.measurement_time(Duration::from_secs(15));
 
-fn dislay_benchmark(criterion: &mut Criterion) {
+    group.bench_function("gitlab delete benchmarks/wayfind", |bencher| {
+        let mut router = wayfind::Router::new();
+        for route in routes() {
+            router.insert(route, true).unwrap();
+        }
+
+        bencher.iter_batched(
+            || router.clone(),
+            |mut router| {
+                for route in black_box(routes()) {
+                    router.delete(black_box(route)).unwrap();
+                }
+            },
+            BatchSize::SmallInput,
+        );
+    });
+
+    group.finish();
+}
+
+fn display_benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("gitlab display benchmarks");
 
     group.bench_function("gitlab display benchmarks/wayfind", |bencher| {
