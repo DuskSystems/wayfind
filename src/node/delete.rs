@@ -1,4 +1,4 @@
-use super::NodeData;
+use super::Data;
 use crate::{
     errors::DeleteError,
     node::Node,
@@ -16,7 +16,7 @@ impl<T> Node<T> {
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
     pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
         if let Some(part) = route.parts.pop() {
-            let result = match part {
+            match part {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
                 Part::Dynamic {
                     name, constraint, ..
@@ -27,13 +27,7 @@ impl<T> Node<T> {
                 Part::Wildcard {
                     name, constraint, ..
                 } => self.delete_wildcard(route, is_expanded, &name, &constraint),
-            };
-
-            if result.is_ok() {
-                self.optimize();
             }
-
-            result
         } else {
             let Some(data) = &self.data else {
                 return Err(DeleteError::NotFound {
@@ -41,20 +35,20 @@ impl<T> Node<T> {
                 });
             };
 
-            let (is_shared, stored_route) = match data {
-                NodeData::Inline { route, .. } => (false, route),
-                NodeData::Shared { route, .. } => (true, route),
+            let (is_shared, inserted) = match data {
+                Data::Inline { route, .. } => (false, route),
+                Data::Shared { route, .. } => (true, route),
             };
 
             if is_expanded != is_shared {
                 return Err(DeleteError::RouteMismatch {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
-                    inserted: stored_route.to_string(),
+                    inserted: inserted.to_string(),
                 });
             }
 
             self.data = None;
-            self.optimize();
+            self.needs_optimization = true;
 
             Ok(())
         }
@@ -78,6 +72,8 @@ impl<T> Node<T> {
             })?;
 
         let child = &mut self.static_children[index];
+        child.needs_optimization = true;
+
         let remaining_prefix = &prefix[child.prefix.len()..];
 
         let result = if remaining_prefix.is_empty() {
@@ -86,12 +82,9 @@ impl<T> Node<T> {
             child.delete_static(route, is_expanded, remaining_prefix)
         };
 
-        if result.is_ok() {
-            child.optimize();
-
-            if child.is_empty() {
-                self.static_children.remove(index);
-            }
+        if child.is_empty() {
+            self.static_children.remove(index);
+            self.needs_optimization = true;
         }
 
         result
@@ -115,12 +108,9 @@ impl<T> Node<T> {
         let child = &mut self.dynamic_children[index];
         let result = child.delete(route, is_expanded);
 
-        if result.is_ok() {
-            child.optimize();
-
-            if child.is_empty() {
-                self.dynamic_children.remove(index);
-            }
+        if child.is_empty() {
+            self.dynamic_children.remove(index);
+            self.needs_optimization = true;
         }
 
         result
@@ -144,12 +134,9 @@ impl<T> Node<T> {
         let child = &mut self.wildcard_children[index];
         let result = child.delete(route, is_expanded);
 
-        if result.is_ok() {
-            child.optimize();
-
-            if child.is_empty() {
-                self.wildcard_children.remove(index);
-            }
+        if child.is_empty() {
+            self.wildcard_children.remove(index);
+            self.needs_optimization = true;
         }
 
         result
@@ -170,37 +157,12 @@ impl<T> Node<T> {
             })?;
 
         self.end_wildcard_children.remove(index);
+        self.needs_optimization = true;
+
         Ok(())
     }
 
-    /// Re-optimize the tree after a deletion.
-    ///
-    /// This method removes empty children, then updates quick search flags.
-    fn optimize(&mut self) {
-        self.static_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
-
-        self.dynamic_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
-
-        self.wildcard_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
-
-        self.end_wildcard_children.retain_mut(|child| {
-            child.optimize();
-            !child.is_empty()
-        });
-
-        self.update_quicks();
-    }
-
-    pub(super) fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()

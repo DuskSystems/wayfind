@@ -1,6 +1,6 @@
 use codspeed_criterion_compat::{criterion_group, criterion_main, BatchSize, Criterion};
 use gitlab_routes::routes;
-use std::{hint::black_box, time::Duration};
+use std::hint::black_box;
 
 pub mod gitlab_routes;
 
@@ -13,8 +13,6 @@ criterion_group! {
 
 fn insert_benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("gitlab insert benchmarks");
-    group.sample_size(50);
-    group.measurement_time(Duration::from_secs(10));
 
     group.bench_function("gitlab insert benchmarks/wayfind", |bencher| {
         let router = wayfind::Router::new();
@@ -34,8 +32,6 @@ fn insert_benchmark(criterion: &mut Criterion) {
 
 fn delete_benchmark(criterion: &mut Criterion) {
     let mut group = criterion.benchmark_group("gitlab delete benchmarks");
-    group.sample_size(10);
-    group.measurement_time(Duration::from_secs(15));
 
     group.bench_function("gitlab delete benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();

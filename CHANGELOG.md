@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Inserts and deletes should be much more efficient now.
 - Syntax for escaping parameters has changed to use the `\` character.
 - Route errors now have more consistent error messages.
 - Duplicate route error now shows which route caused the conflict.

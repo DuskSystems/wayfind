@@ -1,4 +1,4 @@
-use super::{Node, NodeData};
+use super::{Data, Node};
 use crate::{errors::SearchError, router::StoredConstraint};
 use std::{collections::HashMap, sync::Arc};
 
@@ -72,7 +72,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for static_child in &self.static_children {
+        for static_child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
                 && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -109,7 +109,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for dynamic_child in &self.dynamic_children {
+        for dynamic_child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
             // Often the last match, except for when we have multiple options on the same branch.
@@ -178,8 +178,8 @@ impl<T> Node<T> {
         };
 
         match data {
-            NodeData::Inline { route, .. } => route.len(),
-            NodeData::Shared { expanded, .. } => expanded.len(),
+            Data::Inline { route, .. } => route.len(),
+            Data::Shared { expanded, .. } => expanded.len(),
         }
     }
 
@@ -190,7 +190,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for dynamic_child in &self.dynamic_children {
+        for dynamic_child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
@@ -229,7 +229,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for wildcard_child in &self.wildcard_children {
+        for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
             let mut remaining_path = path;
             let mut section_end = false;
@@ -302,7 +302,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        for end_wildcard_child in &self.end_wildcard_children {
+        for end_wildcard_child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(end_wildcard_child, path, constraints) {
                 continue;
             }

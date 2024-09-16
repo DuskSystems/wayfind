@@ -1,16 +1,15 @@
-use super::{Node, NodeData, NodeKind};
+use super::{Children, Data, Kind, Node};
 use crate::{
     errors::InsertError,
     parser::{Part, Route},
 };
-use std::cmp::Ordering;
 
 impl<T> Node<T> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    /// Will error is there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: NodeData<T>) -> Result<(), InsertError> {
+    /// Will error if there's already data at the end node.
+    pub fn insert(&mut self, route: &mut Route, data: Data<T>) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
@@ -32,23 +31,19 @@ impl<T> Node<T> {
             };
         } else {
             if let Some(data) = &self.data {
-                let stored_route = match data {
-                    NodeData::Inline { route, .. } | NodeData::Shared { route, .. } => {
-                        route.to_string()
-                    }
+                let conflict = match data {
+                    Data::Inline { route, .. } | Data::Shared { route, .. } => route.to_string(),
                 };
 
                 return Err(InsertError::DuplicateRoute {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
-                    conflict: stored_route,
+                    conflict,
                 });
             }
 
             self.data = Some(data);
+            self.needs_optimization = true;
         }
-
-        self.update_quicks();
-        self.sort_children();
 
         Ok(())
     }
@@ -56,7 +51,7 @@ impl<T> Node<T> {
     fn insert_static(
         &mut self,
         route: &mut Route,
-        data: NodeData<T>,
+        data: Data<T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
         // Check if the first byte is already a child here.
@@ -67,24 +62,26 @@ impl<T> Node<T> {
         else {
             self.static_children.push({
                 let mut new_child = Self {
-                    kind: NodeKind::Static,
+                    kind: Kind::Static,
 
                     prefix: prefix.to_vec(),
                     data: None,
                     constraint: None,
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: Children::default(),
+                    dynamic_children: Children::default(),
+                    wildcard_children: Children::default(),
+                    end_wildcard_children: Children::default(),
 
                     quick_dynamic: false,
+                    needs_optimization: false,
                 };
 
                 new_child.insert(route, data)?;
                 new_child
             });
 
+            self.needs_optimization = true;
             return Ok(());
         };
 
@@ -102,12 +99,13 @@ impl<T> Node<T> {
                 child.insert_static(route, data, &prefix[common_prefix..])?;
             }
 
+            self.needs_optimization = true;
             return Ok(());
         }
 
         // Not a clean insert, need to split the existing child node.
         let new_child_a = Self {
-            kind: NodeKind::Static,
+            kind: Kind::Static,
 
             prefix: child.prefix[common_prefix..].to_vec(),
             data: child.data.take(),
@@ -118,65 +116,69 @@ impl<T> Node<T> {
             wildcard_children: std::mem::take(&mut child.wildcard_children),
             end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
 
-            quick_dynamic: false,
+            quick_dynamic: child.quick_dynamic,
+            needs_optimization: child.needs_optimization,
         };
 
         let new_child_b = Self {
-            kind: NodeKind::Static,
+            kind: Kind::Static,
 
             prefix: prefix[common_prefix..].to_vec(),
             data: None,
             constraint: None,
 
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard_children: vec![],
+            static_children: Children::default(),
+            dynamic_children: Children::default(),
+            wildcard_children: Children::default(),
+            end_wildcard_children: Children::default(),
 
             quick_dynamic: false,
+            needs_optimization: false,
         };
 
         child.prefix = child.prefix[..common_prefix].to_vec();
+        child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
-            child.static_children = vec![new_child_a];
+            child.static_children = vec![new_child_a].into();
             child.insert(route, data)?;
         } else {
-            child.static_children = vec![new_child_a, new_child_b];
+            child.static_children = vec![new_child_a, new_child_b].into();
             child.static_children[1].insert(route, data)?;
         }
 
+        self.needs_optimization = true;
         Ok(())
     }
 
     fn insert_dynamic(
         &mut self,
         route: &mut Route,
-        data: NodeData<T>,
+        data: Data<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
-            .iter_mut()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find_mut(|child| child.prefix == name && child.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
-                    kind: NodeKind::Dynamic,
+                    kind: Kind::Dynamic,
 
                     prefix: name.to_vec(),
                     data: None,
                     constraint,
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: Children::default(),
+                    dynamic_children: Children::default(),
+                    wildcard_children: Children::default(),
+                    end_wildcard_children: Children::default(),
 
                     quick_dynamic: false,
+                    needs_optimization: false,
                 };
 
                 new_child.insert(route, data)?;
@@ -184,37 +186,38 @@ impl<T> Node<T> {
             });
         }
 
+        self.needs_optimization = true;
         Ok(())
     }
 
     fn insert_wildcard(
         &mut self,
         route: &mut Route,
-        data: NodeData<T>,
+        data: Data<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
-            .iter_mut()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find_mut(|child| child.prefix == name && child.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
             self.wildcard_children.push({
                 let mut new_child = Self {
-                    kind: NodeKind::Wildcard,
+                    kind: Kind::Wildcard,
 
                     prefix: name.to_vec(),
                     data: None,
                     constraint,
 
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard_children: vec![],
+                    static_children: Children::default(),
+                    dynamic_children: Children::default(),
+                    wildcard_children: Children::default(),
+                    end_wildcard_children: Children::default(),
 
                     quick_dynamic: false,
+                    needs_optimization: false,
                 };
 
                 new_child.insert(route, data)?;
@@ -222,13 +225,14 @@ impl<T> Node<T> {
             });
         }
 
+        self.needs_optimization = true;
         Ok(())
     }
 
     fn insert_end_wildcard(
         &mut self,
         route: &Route,
-        data: NodeData<T>,
+        data: Data<T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -237,124 +241,34 @@ impl<T> Node<T> {
             .iter()
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
-            let stored_route = match &child.data {
-                Some(NodeData::Inline { route, .. } | NodeData::Shared { route, .. }) => {
-                    route.to_string()
-                }
+            let conflict = match &child.data {
+                Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => route.to_string(),
                 None => "Unknown".to_string(),
             };
 
             return Err(InsertError::DuplicateRoute {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
-                conflict: stored_route,
+                conflict,
             });
         }
 
         self.end_wildcard_children.push(Self {
-            kind: NodeKind::EndWildcard,
+            kind: Kind::EndWildcard,
 
             prefix: name.to_vec(),
             data: Some(data),
             constraint,
 
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard_children: vec![],
+            static_children: Children::default(),
+            dynamic_children: Children::default(),
+            wildcard_children: Children::default(),
+            end_wildcard_children: Children::default(),
 
             quick_dynamic: false,
+            needs_optimization: false,
         });
 
+        self.needs_optimization = true;
         Ok(())
-    }
-
-    /// Check if we can short-cut our searching logic for dynamic children.
-    /// Instead of walking each path byte-by-byte, we can instead just to the next '/' character.
-    /// This only works if there are no inline dynamic children, e.g. `/{name}.{ext}`.
-    pub(super) fn update_quicks(&mut self) {
-        self.quick_dynamic = self.dynamic_children.iter().all(|child| {
-            // Leading slash?
-            if child.prefix.first() == Some(&b'/') {
-                return true;
-            }
-
-            // No children?
-            if child.static_children.is_empty()
-                && child.dynamic_children.is_empty()
-                && child.wildcard_children.is_empty()
-                && child.end_wildcard_children.is_empty()
-            {
-                return true;
-            }
-
-            // All static children start with a slash?
-            if child
-                .static_children
-                .iter()
-                .all(|child| child.prefix.first() == Some(&b'/'))
-            {
-                return true;
-            }
-
-            false
-        });
-
-        for child in &mut self.static_children {
-            child.update_quicks();
-        }
-
-        for child in &mut self.dynamic_children {
-            child.update_quicks();
-        }
-
-        for child in &mut self.end_wildcard_children {
-            child.update_quicks();
-        }
-    }
-
-    /// Static nodes are sorted via their prefix.
-    /// Dynamic/wildcard nodes are sorted by constraint first, then prefix.
-    fn sort_children(&mut self) {
-        self.static_children.sort_by(|a, b| a.prefix.cmp(&b.prefix));
-
-        self.dynamic_children.sort_by(|a, b| {
-            match (a.constraint.is_some(), b.constraint.is_some()) {
-                (true, false) => Ordering::Less,
-                (false, true) => Ordering::Greater,
-                _ => a.prefix.cmp(&b.prefix),
-            }
-        });
-
-        self.wildcard_children.sort_by(|a, b| {
-            match (a.constraint.is_some(), b.constraint.is_some()) {
-                (true, false) => Ordering::Less,
-                (false, true) => Ordering::Greater,
-                _ => a.prefix.cmp(&b.prefix),
-            }
-        });
-
-        self.end_wildcard_children.sort_by(|a, b| {
-            match (a.constraint.is_some(), b.constraint.is_some()) {
-                (true, false) => Ordering::Less,
-                (false, true) => Ordering::Greater,
-                _ => a.prefix.cmp(&b.prefix),
-            }
-        });
-
-        for child in &mut self.static_children {
-            child.sort_children();
-        }
-
-        for child in &mut self.dynamic_children {
-            child.sort_children();
-        }
-
-        for child in &mut self.wildcard_children {
-            child.sort_children();
-        }
-
-        for child in &mut self.end_wildcard_children {
-            child.sort_children();
-        }
     }
 }

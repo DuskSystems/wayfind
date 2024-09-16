@@ -21,6 +21,9 @@ corpus
 artifacts
 coverage
 
+# Samply
+profile.json
+
 # OCI
 junit.xml
 report.html
