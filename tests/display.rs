@@ -26,10 +26,10 @@ fn test_display_multibyte() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /�
-       ├─ �‍👩‍�
-       │  ├─ � ○
-       │  ╰─ � ○
-       ╰─ �‍👩‍👧 ○
+       ├─ �‍👩‍👧 ○
+       ╰─ �‍👩‍�
+          ├─ � ○
+          ╰─ � ○
     "#);
 
     router.insert("/👩‍👩‍👦", 1)?; // Family: Woman, Woman, Boy
@@ -48,30 +48,30 @@ fn test_display_multibyte() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /�
-       ├─ �‍�
-       │  ├─ �‍👧 ○
-       │  ╰─ �‍�
-       │     ├─ � ○
-       │     ╰─ � ○
-       ╰─ �‍👩‍�
-          ├─ � ○
-          ╰─ � ○
+       ├─ �‍👩‍�
+       │  ├─ � ○
+       │  ╰─ � ○
+       ╰─ �‍�
+          ├─ �‍👧 ○
+          ╰─ �‍�
+             ├─ � ○
+             ╰─ � ○
     "#);
 
     router.insert("/👨‍👨‍👦", 1)?; // Family: Man, Man, Boy
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /�
-       ├─ �‍�
-       │  ├─ �‍�
-       │  │  ├─ � ○
-       │  │  ╰─ � ○
-       │  ╰─ �‍�
-       │     ├─ � ○
-       │     ╰─ � ○
-       ╰─ �‍👩‍�
-          ├─ � ○
-          ╰─ � ○
+       ├─ �‍👩‍�
+       │  ├─ � ○
+       │  ╰─ � ○
+       ╰─ �‍�
+          ├─ �‍�
+          │  ├─ � ○
+          │  ╰─ � ○
+          ╰─ �‍�
+             ├─ � ○
+             ╰─ � ○
     "#);
 
     Ok(())
@@ -87,7 +87,1227 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
+       ├─ dashboard ○
+       │  ╰─ / ○
+       │     ├─ todos ○
+       │     │  ╰─ / ○
+       │     │     ├─ bulk_restore ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ destroy_all ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ vue ○
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {id} ○
+       │     │        ╰─ / ○
+       │     │           ╰─ restore ○
+       │     │              ╰─ / ○
+       │     ├─ activity ○
+       │     │  ╰─ / ○
+       │     ├─ projects ○
+       │     │  ╰─ / ○
+       │     │     ├─ contributed ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ personal ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ removed ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ starred ○
+       │     │     │  ╰─ / ○
+       │     │     ╰─ member ○
+       │     │        ╰─ / ○
+       │     ├─ snippets ○
+       │     │  ╰─ / ○
+       │     ├─ groups ○
+       │     │  ╰─ / ○
+       │     ├─ issues ○
+       │     │  ╰─ / ○
+       │     ├─ labels ○
+       │     │  ╰─ / ○
+       │     ╰─ m
+       │        ├─ erge_requests ○
+       │        │  ╰─ / ○
+       │        │     ╰─ search ○
+       │        │        ╰─ / ○
+       │        ╰─ ilestones ○
+       │           ╰─ / ○
+       ├─ jwt/auth ○
+       │  ╰─ / ○
+       ├─ explore ○
+       │  ╰─ / ○
+       │     ├─ dependencies ○
+       │     │  ╰─ / ○
+       │     ├─ projects ○
+       │     │  ╰─ / ○
+       │     │     ├─ t
+       │     │     │  ├─ rending ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ╰─ opics ○
+       │     │     │     ╰─ / ○
+       │     │     │        ╰─ {topic_name} ○
+       │     │     │           ├─ / ○
+       │     │     │           ╰─ .
+       │     │     │              ╰─ {format} ○
+       │     │     │                 ╰─ / ○
+       │     │     ╰─ starred ○
+       │     │        ╰─ / ○
+       │     ├─ snippets ○
+       │     │  ╰─ / ○
+       │     ├─ catalog ○
+       │     │  ╰─ / ○
+       │     │     ├─ {*full_path}
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {*full_path} ○
+       │     ╰─ groups ○
+       │        ╰─ / ○
+       ├─ groups ○
+       │  ╰─ / ○
+       │     ├─ new ○
+       │     │  ╰─ / ○
+       │     ├─ {*group_id}
+       │     │  ╰─ /-/
+       │     │     ├─ m
+       │     │     │  ├─ erge_requests/bulk_update ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ╰─ ilestones ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ new ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {id} ○
+       │     │     │           ╰─ / ○
+       │     │     │              ├─ merge_requests ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ├─ participants ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ├─ issues ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ├─ labels ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ╰─ edit ○
+       │     │     │                 ╰─ / ○
+       │     │     ├─ notification_setting ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ u
+       │     │     │  ├─ sage_quotas ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ subscription_history ○
+       │     │     │  │     │  ├─ / ○
+       │     │     │  │     │  ╰─ .
+       │     │     │  │     │     ╰─ {format} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ╰─ pending_members ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ╰─ ploads ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ authorize ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {secret}
+       │     │     │           ╰─ /
+       │     │     │              ╰─ {filename} ○
+       │     │     │                 ├─ / ○
+       │     │     │                 ╰─ .
+       │     │     │                    ╰─ {format} ○
+       │     │     │                       ╰─ / ○
+       │     │     ├─ variables ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ b
+       │     │     │  ├─ illings ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ refresh_seats ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ╰─ oards ○
+       │     │     │     ╰─ / ○
+       │     │     │        ╰─ {id} ○
+       │     │     │           ╰─ / ○
+       │     │     ├─ h
+       │     │     │  ├─ ooks ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {hook_id}
+       │     │     │  │     │  ╰─ /hook_logs/
+       │     │     │  │     │     ╰─ {id} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ╰─ retry ○
+       │     │     │  │     │              ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ edit ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ test ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ╰─ arbor/repositories ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ {id} ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {repository_id}
+       │     │     │           ╰─ /artifacts ○
+       │     │     │              ╰─ / ○
+       │     │     │                 ╰─ {artifact_id}
+       │     │     │                    ╰─ /tags ○
+       │     │     │                       ╰─ / ○
+       │     │     ├─ group_
+       │     │     │  ├─ members ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ bulk_reassignment_file ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ request_access ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ export_csv ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ leave ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ approve_access_request ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ resend_invite ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ override ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ unban ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ ban ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ╰─ links/
+       │     │     │     ╰─ {id} ○
+       │     │     │        ╰─ / ○
+       │     │     ├─ epic
+       │     │     │  ├─ _boards ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ╰─ s ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ bulk_update ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ new ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ {epic_id}
+       │     │     │        │  ╰─ /
+       │     │     │        │     ├─ related_epic_links ○
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     │     ╰─ {id} ○
+       │     │     │        │     │        ╰─ / ○
+       │     │     │        │     ├─ issues ○
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     │     ╰─ {id} ○
+       │     │     │        │     │        ╰─ / ○
+       │     │     │        │     ├─ links ○
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     │     ╰─ {id} ○
+       │     │     │        │     │        ╰─ / ○
+       │     │     │        │     ╰─ notes ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        │           ╰─ {id} ○
+       │     │     │        │              ╰─ / ○
+       │     │     │        │                 ╰─ toggle_award_emoji ○
+       │     │     │        │                    ╰─ / ○
+       │     │     │        ╰─ {id} ○
+       │     │     │           ╰─ / ○
+       │     │     │              ├─ realtime_changes ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ├─ edit ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              ├─ toggle_
+       │     │     │              │  ├─ subscription ○
+       │     │     │              │  │  ╰─ / ○
+       │     │     │              │  ╰─ award_emoji ○
+       │     │     │              │     ╰─ / ○
+       │     │     │              ╰─ d
+       │     │     │                 ├─ iscussions ○
+       │     │     │                 │  ╰─ / ○
+       │     │     │                 ╰─ escriptions/
+       │     │     │                    ╰─ {version_id} ○
+       │     │     │                       ╰─ / ○
+       │     │     │                          ╰─ diff ○
+       │     │     │                             ╰─ / ○
+       │     │     ├─ l
+       │     │     │  ├─ abels ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ toggle_subscription ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ edit ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ╰─ dap
+       │     │     │     ├─ /sync ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ _group_links ○
+       │     │     │        ╰─ / ○
+       │     │     │           ╰─ {id} ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ a
+       │     │     │  ├─ dd_ons/discover_duo_pro ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ chievements ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id}
+       │     │     │  │        ╰─ /edit ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  ├─ nalytics ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ type_of_work/tasks_by_type ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ top_labels ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ├─ merge_request_analytics ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ productivity_analytics ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ value_stream_analytics ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ├─ value_streams ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ new ○
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ {value_stream_id}
+       │     │     │  │     │     │     │  ╰─ /stages ○
+       │     │     │  │     │     │     │     ╰─ / ○
+       │     │     │  │     │     │     │        ╰─ {id}
+       │     │     │  │     │     │     │           ╰─ /
+       │     │     │  │     │     │     │              ├─ average ○
+       │     │     │  │     │     │     │              │  ├─ / ○
+       │     │     │  │     │     │     │              │  ╰─ _duration_chart ○
+       │     │     │  │     │     │     │              │     ╰─ / ○
+       │     │     │  │     │     │     │              ├─ records ○
+       │     │     │  │     │     │     │              │  ╰─ / ○
+       │     │     │  │     │     │     │              ├─ median ○
+       │     │     │  │     │     │     │              │  ╰─ / ○
+       │     │     │  │     │     │     │              ╰─ count ○
+       │     │     │  │     │     │     │                 ╰─ / ○
+       │     │     │  │     │     │     ╰─ {id} ○
+       │     │     │  │     │     │        ╰─ / ○
+       │     │     │  │     │     │           ╰─ edit ○
+       │     │     │  │     │     │              ╰─ / ○
+       │     │     │  │     │     ├─ time_summary ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ cycle_times ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ lead_times ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ summary ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ├─ repository_analytics ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ c
+       │     │     │  │     │  ├─ overage_reports ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ├─ ycle_analytics ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ i_cd ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     ╰─ d
+       │     │     │  │        ├─ evops_adoption ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ ashboards ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  │              ├─ {*vueroute}
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ {*vueroute} ○
+       │     │     │  ├─ vatar ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ╰─ u
+       │     │     │     ├─ tocomplete_sources/
+       │     │     │     │  ├─ vulnerabilities ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ commands ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ labels ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ epics ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ wikis ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ m
+       │     │     │     │  │  ├─ ilestones ○
+       │     │     │     │  │  │  ╰─ / ○
+       │     │     │     │  │  ╰─ e
+       │     │     │     │  │     ├─ rge_requests ○
+       │     │     │     │  │     │  ╰─ / ○
+       │     │     │     │  │     ╰─ mbers ○
+       │     │     │     │  │        ╰─ / ○
+       │     │     │     │  ╰─ i
+       │     │     │     │     ├─ terations ○
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ ssues ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     ╰─ dit_events ○
+       │     │     │        ╰─ / ○
+       │     │     ├─ c
+       │     │     │  ├─ rm/
+       │     │     │  │  ├─ organizations ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id}
+       │     │     │  │  │        ╰─ /edit ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  ╰─ contacts ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ├─ new ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {id}
+       │     │     │  │           ╰─ /edit ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ├─ ustom_emoji ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ new ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ├─ adences ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ {iteration_cadence_id}
+       │     │     │  │     │  ╰─ /iterations ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     │        ├─ new ○
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ╰─ {id} ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     │              ╰─ edit ○
+       │     │     │  │     │                 ╰─ / ○
+       │     │     │  │     ├─ {id} ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ edit ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ├─ {*vueroute}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ├─ new ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ {iteration_cadence_id}
+       │     │     │  │     │     │  ╰─ /iterations ○
+       │     │     │  │     │     │     ╰─ / ○
+       │     │     │  │     │     │        ├─ new ○
+       │     │     │  │     │     │        │  ╰─ / ○
+       │     │     │  │     │     │        ╰─ {id} ○
+       │     │     │  │     │     │           ╰─ / ○
+       │     │     │  │     │     │              ╰─ edit ○
+       │     │     │  │     │     │                 ╰─ / ○
+       │     │     │  │     │     ╰─ {id} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ╰─ edit ○
+       │     │     │  │     │              ╰─ / ○
+       │     │     │  │     ╰─ {*vueroute} ○
+       │     │     │  ├─ hildren ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ lusters ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new_cluster_docs ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ c
+       │     │     │  │     │  ├─ reate_user ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ onnect ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     ├─ {cluster_id}
+       │     │     │  │     │  ╰─ /integration/create_or_update ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ cl
+       │     │     │  │           │  ├─ uster_status ○
+       │     │     │  │           │  │  ╰─ / ○
+       │     │     │  │           │  ╰─ ear_cache ○
+       │     │     │  │           │     ╰─ / ○
+       │     │     │  │           ├─ environments ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ metrics ○
+       │     │     │  │              ├─ / ○
+       │     │     │  │              ╰─ _dashboard ○
+       │     │     │  │                 ╰─ / ○
+       │     │     │  ╰─ o
+       │     │     │     ├─ nt
+       │     │     │     │  ├─ ribution_analytics ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ╰─ ainer_registries ○
+       │     │     │     │     ╰─ / ○
+       │     │     │     │        ╰─ {id} ○
+       │     │     │     │           ╰─ / ○
+       │     │     │     ╰─ mment_templates ○
+       │     │     │        ╰─ / ○
+       │     │     │           ╰─ {id} ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ d
+       │     │     │  ├─ ep
+       │     │     │  │  ├─ endenc
+       │     │     │  │  │  ├─ y_proxy ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ╰─ ies ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ╰─ l
+       │     │     │  │  │           ├─ ocations ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ icenses ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ╰─ loy_tokens/
+       │     │     │  │     ╰─ {id}
+       │     │     │  │        ╰─ /revoke ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  ╰─ iscover ○
+       │     │     │     ╰─ / ○
+       │     │     ├─ i
+       │     │     │  ├─ terations ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ╰─ edit ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ├─ mport ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ ssues
+       │     │     │  │  ├─ /bulk_update ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ _analytics ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  ╰─ n
+       │     │     │     ├─ frastructure_registry ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ sights ○
+       │     │     │        ╰─ / ○
+       │     │     │           ╰─ query ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ p
+       │     │     │  ├─ ush_rules ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ ackages ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ╰─ r
+       │     │     │     ├─ eview_markdown ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ otected_
+       │     │     │        ├─ environments ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ╰─ {id} ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        ╰─ branches ○
+       │     │     │           ╰─ / ○
+       │     │     │              ╰─ {id} ○
+       │     │     │                 ╰─ / ○
+       │     │     ├─ r
+       │     │     │  ├─ unners ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ dashboard ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ pause ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ edit ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ re
+       │     │     │  │              ├─ gister ○
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ sume ○
+       │     │     │  │                 ╰─ / ○
+       │     │     │  ├─ e
+       │     │     │  │  ├─ leases ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ store ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  ╰─ oadmap ○
+       │     │     │     ╰─ / ○
+       │     │     ├─ s
+       │     │     │  ├─ hared_projects ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ cim_oauth ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ aml ○
+       │     │     │  │  ├─ / ○
+       │     │     │  │  │  ├─ callback ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ├─ u
+       │     │     │  │  │  │  ├─ pdate_microsoft_application ○
+       │     │     │  │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │  ╰─ nlink ○
+       │     │     │  │  │  │     ╰─ / ○
+       │     │     │  │  │  ╰─ sso ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  ╰─ _group_links ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ╰─ {id} ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  ╰─ e
+       │     │     │     ├─ rvice_accounts ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ├─ new ○
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ├─ {id} ○
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     │     ╰─ edit ○
+       │     │     │     │     │        ╰─ / ○
+       │     │     │     │     ├─ {*vueroute}
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     │     ├─ new ○
+       │     │     │     │     │     │  ╰─ / ○
+       │     │     │     │     │     ╰─ {id} ○
+       │     │     │     │     │        ╰─ / ○
+       │     │     │     │     │           ╰─ edit ○
+       │     │     │     │     │              ╰─ / ○
+       │     │     │     │     ╰─ {*vueroute} ○
+       │     │     │     ├─ at_usage ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ├─ curity/
+       │     │     │     │  ├─ merge_commit_reports ○
+       │     │     │     │  │  ├─ / ○
+       │     │     │     │  │  ╰─ .
+       │     │     │     │  │     ╰─ {format} ○
+       │     │     │     │  │        ╰─ / ○
+       │     │     │     │  ├─ vulnerabilities ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ├─ policies ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  │     ├─ schema ○
+       │     │     │     │  │     │  ╰─ / ○
+       │     │     │     │  │     ├─ new ○
+       │     │     │     │  │     │  ╰─ / ○
+       │     │     │     │  │     ╰─ {id}
+       │     │     │     │  │        ╰─ /edit ○
+       │     │     │     │  │           ╰─ / ○
+       │     │     │     │  ├─ c
+       │     │     │     │  │  ├─ ompliance_
+       │     │     │     │  │  │  ├─ standards_adherence_reports ○
+       │     │     │     │  │  │  │  ├─ / ○
+       │     │     │     │  │  │  │  ╰─ .
+       │     │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │     │  │  │  │        ╰─ / ○
+       │     │     │     │  │  │  ├─ project_framework_reports ○
+       │     │     │     │  │  │  │  ├─ / ○
+       │     │     │     │  │  │  │  ╰─ .
+       │     │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │     │  │  │  │        ╰─ / ○
+       │     │     │     │  │  │  ├─ framework_reports ○
+       │     │     │     │  │  │  │  ├─ / ○
+       │     │     │     │  │  │  │  ╰─ .
+       │     │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │     │  │  │  │        ╰─ / ○
+       │     │     │     │  │  │  ├─ violation_reports ○
+       │     │     │     │  │  │  │  ├─ / ○
+       │     │     │     │  │  │  │  ╰─ .
+       │     │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │     │  │  │  │        ╰─ / ○
+       │     │     │     │  │  │  ╰─ dashboard ○
+       │     │     │     │  │  │     ╰─ / ○
+       │     │     │     │  │  │        ├─ {*vueroute}
+       │     │     │     │  │  │        │  ╰─ / ○
+       │     │     │     │  │  │        ╰─ {*vueroute} ○
+       │     │     │     │  │  ╰─ redentials ○
+       │     │     │     │  │     ╰─ / ○
+       │     │     │     │  │        ╰─ {id} ○
+       │     │     │     │  │           ╰─ / ○
+       │     │     │     │  │              ╰─ revoke ○
+       │     │     │     │  │                 ╰─ / ○
+       │     │     │     │  ╰─ d
+       │     │     │     │     ├─ ashboard ○
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ iscover ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     ╰─ ttings/
+       │     │     │        ├─ packages_and_registries ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ domain_verification ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ├─ new ○
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     ╰─ {id} ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        │           ├─ clean_certificate ○
+       │     │     │        │           │  ╰─ / ○
+       │     │     │        │           ├─ retry_auto_ssl ○
+       │     │     │        │           │  ╰─ / ○
+       │     │     │        │           ╰─ verify ○
+       │     │     │        │              ╰─ / ○
+       │     │     │        ├─ gitlab_duo_usage ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ merge_requests ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ integrations ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ╰─ {id} ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        │           ├─ reset ○
+       │     │     │        │           │  ╰─ / ○
+       │     │     │        │           ├─ edit ○
+       │     │     │        │           │  ╰─ / ○
+       │     │     │        │           ╰─ test ○
+       │     │     │        │              ╰─ / ○
+       │     │     │        ├─ workspaces ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        ├─ ci_cd ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ├─ deploy_token/create ○
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     ├─ r
+       │     │     │        │     │  ├─ eset_registration_token ○
+       │     │     │        │     │  │  ╰─ / ○
+       │     │     │        │     │  ╰─ unner_setup_scripts ○
+       │     │     │        │     │     ╰─ / ○
+       │     │     │        │     ╰─ update_auto_devops ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        ├─ slack ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ╰─ slack_auth ○
+       │     │     │        │        ╰─ / ○
+       │     │     │        ├─ a
+       │     │     │        │  ├─ ccess_tokens ○
+       │     │     │        │  │  ╰─ / ○
+       │     │     │        │  │     ╰─ {id}
+       │     │     │        │  │        ╰─ /revoke ○
+       │     │     │        │  │           ╰─ / ○
+       │     │     │        │  ├─ nalytics ○
+       │     │     │        │  │  ╰─ / ○
+       │     │     │        │  ╰─ pplications ○
+       │     │     │        │     ╰─ / ○
+       │     │     │        │        ├─ new ○
+       │     │     │        │        │  ╰─ / ○
+       │     │     │        │        ╰─ {id} ○
+       │     │     │        │           ╰─ / ○
+       │     │     │        │              ├─ renew ○
+       │     │     │        │              │  ╰─ / ○
+       │     │     │        │              ╰─ edit ○
+       │     │     │        │                 ╰─ / ○
+       │     │     │        ╰─ r
+       │     │     │           ├─ oles_and_permissions ○
+       │     │     │           │  ╰─ / ○
+       │     │     │           │     ├─ new ○
+       │     │     │           │     │  ╰─ / ○
+       │     │     │           │     ╰─ {id} ○
+       │     │     │           │        ╰─ / ○
+       │     │     │           │           ╰─ edit ○
+       │     │     │           │              ╰─ / ○
+       │     │     │           ╰─ epo
+       │     │     │              ├─ sitory ○
+       │     │     │              │  ╰─ / ○
+       │     │     │              │     ╰─ deploy_token/create ○
+       │     │     │              │        ╰─ / ○
+       │     │     │              ╰─ rting ○
+       │     │     │                 ╰─ / ○
+       │     │     ├─ t
+       │     │     │  ├─ erraform_module_registry ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ wo_factor_auth ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ╰─ odos ○
+       │     │     │     ╰─ / ○
+       │     │     ╰─ w
+       │     │        ├─ ikis ○
+       │     │        │  ╰─ / ○
+       │     │        │     ├─ -/confluence ○
+       │     │        │     │  ╰─ / ○
+       │     │        │     ├─ git_access ○
+       │     │        │     │  ╰─ / ○
+       │     │        │     ├─ templates ○
+       │     │        │     │  ╰─ / ○
+       │     │        │     ├─ pages ○
+       │     │        │     │  ╰─ / ○
+       │     │        │     ├─ new ○
+       │     │        │     │  ╰─ / ○
+       │     │        │     ├─ {*id}
+       │     │        │     │  ╰─ / ○
+       │     │        │     │     ├─ preview_markdown ○
+       │     │        │     │     │  ╰─ / ○
+       │     │        │     │     ├─ history ○
+       │     │        │     │     │  ╰─ / ○
+       │     │        │     │     ├─ diff ○
+       │     │        │     │     │  ╰─ / ○
+       │     │        │     │     ├─ edit ○
+       │     │        │     │     │  ╰─ / ○
+       │     │        │     │     ╰─ raw ○
+       │     │        │     │        ╰─ / ○
+       │     │        │     ╰─ {*id} ○
+       │     │        ╰─ ork_items ○
+       │     │           ╰─ / ○
+       │     │              ╰─ {iid} ○
+       │     │                 ╰─ / ○
+       │     │                    ╰─ descriptions/
+       │     │                       ╰─ {version_id} ○
+       │     │                          ╰─ / ○
+       │     │                             ╰─ diff ○
+       │     │                                ╰─ / ○
+       │     ├─ {*id}
+       │     │  ├─ / ○
+       │     │  │  ╰─ -/
+       │     │  │     ├─ unfoldered_environment_names ○
+       │     │  │     │  ├─ / ○
+       │     │  │     │  ╰─ .
+       │     │  │     │     ╰─ {format} ○
+       │     │  │     │        ╰─ / ○
+       │     │  │     ├─ merge_requests ○
+       │     │  │     │  ├─ / ○
+       │     │  │     │  ╰─ .
+       │     │  │     │     ╰─ {format} ○
+       │     │  │     │        ╰─ / ○
+       │     │  │     ├─ a
+       │     │  │     │  ├─ ctivity ○
+       │     │  │     │  │  ├─ / ○
+       │     │  │     │  │  ╰─ .
+       │     │  │     │  │     ╰─ {format} ○
+       │     │  │     │  │        ╰─ / ○
+       │     │  │     │  ╰─ rchived ○
+       │     │  │     │     ├─ / ○
+       │     │  │     │     ╰─ .
+       │     │  │     │        ╰─ {format} ○
+       │     │  │     │           ╰─ / ○
+       │     │  │     ├─ projects ○
+       │     │  │     │  ├─ / ○
+       │     │  │     │  ╰─ .
+       │     │  │     │     ╰─ {format} ○
+       │     │  │     │        ╰─ / ○
+       │     │  │     ├─ transfer ○
+       │     │  │     │  ├─ / ○
+       │     │  │     │  ╰─ .
+       │     │  │     │     ╰─ {format} ○
+       │     │  │     │        ╰─ / ○
+       │     │  │     ├─ i
+       │     │  │     │  ├─ nactive ○
+       │     │  │     │  │  ├─ / ○
+       │     │  │     │  │  ╰─ .
+       │     │  │     │  │     ╰─ {format} ○
+       │     │  │     │  │        ╰─ / ○
+       │     │  │     │  ╰─ ssues ○
+       │     │  │     │     ├─ / ○
+       │     │  │     │     ╰─ .
+       │     │  │     │        ╰─ {format} ○
+       │     │  │     │           ╰─ / ○
+       │     │  │     ├─ shared ○
+       │     │  │     │  ├─ / ○
+       │     │  │     │  ╰─ .
+       │     │  │     │     ╰─ {format} ○
+       │     │  │     │        ╰─ / ○
+       │     │  │     ├─ d
+       │     │  │     │  ├─ ownload_export ○
+       │     │  │     │  │  ├─ / ○
+       │     │  │     │  │  ╰─ .
+       │     │  │     │  │     ╰─ {format} ○
+       │     │  │     │  │        ╰─ / ○
+       │     │  │     │  ╰─ etails ○
+       │     │  │     │     ├─ / ○
+       │     │  │     │     ╰─ .
+       │     │  │     │        ╰─ {format} ○
+       │     │  │     │           ╰─ / ○
+       │     │  │     ╰─ e
+       │     │  │        ├─ xport ○
+       │     │  │        │  ├─ / ○
+       │     │  │        │  ╰─ .
+       │     │  │        │     ╰─ {format} ○
+       │     │  │        │        ╰─ / ○
+       │     │  │        ╰─ dit ○
+       │     │  │           ├─ / ○
+       │     │  │           ╰─ .
+       │     │  │              ╰─ {format} ○
+       │     │  │                 ╰─ / ○
+       │     │  ╰─ .
+       │     │     ╰─ {format} ○
+       │     │        ╰─ / ○
+       │     ╰─ {*id} ○
+       ├─ s
+       │  ├─ nippets ○
+       │  │  ╰─ / ○
+       │  │     ├─ {id}
+       │  │     │  ╰─ /raw ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ {*rest}
+       │  │     │  ╰─ / ○
+       │  │     ╰─ {*rest} ○
+       │  ├─ itemap ○
+       │  │  ╰─ / ○
+       │  ╰─ earch ○
+       │     ╰─ / ○
+       │        ├─ a
+       │        │  ├─ ggregations ○
+       │        │  │  ╰─ / ○
+       │        │  ╰─ utocomplete ○
+       │        │     ╰─ / ○
+       │        ├─ opensearch ○
+       │        │  ╰─ / ○
+       │        ├─ settings ○
+       │        │  ╰─ / ○
+       │        ╰─ count ○
+       │           ╰─ / ○
+       ├─ he
+       │  ├─ alth_check ○
+       │  │  ├─ / ○
+       │  │  │  ╰─ {checks} ○
+       │  │  │     ├─ / ○
+       │  │  │     ╰─ .
+       │  │  │        ╰─ {format} ○
+       │  │  │           ╰─ / ○
+       │  │  ╰─ .
+       │  │     ╰─ {format} ○
+       │  │        ╰─ / ○
+       │  ╰─ lp ○
+       │     ╰─ / ○
+       │        ├─ instance_configuration ○
+       │        │  ╰─ / ○
+       │        ├─ shortcuts ○
+       │        │  ╰─ / ○
+       │        ├─ d
+       │        │  ├─ ocs ○
+       │        │  │  ╰─ / ○
+       │        │  ╰─ rawers/
+       │        │     ├─ {*markdown_file}
+       │        │     │  ╰─ / ○
+       │        │     ╰─ {*markdown_file} ○
+       │        ├─ {*path}
+       │        │  ╰─ / ○
+       │        ╰─ {*path} ○
+       ├─ v2 ○
+       │  ╰─ / ○
+       │     ╰─ {*group_id}
+       │        ╰─ /dependency_proxy/containers/
+       │           ╰─ {*image}
+       │              ╰─ /
+       │                 ├─ manifests/
+       │                 │  ├─ {*tag}
+       │                 │  │  ╰─ / ○
+       │                 │  │     ╰─ upload ○
+       │                 │  │        ╰─ / ○
+       │                 │  │           ╰─ authorize ○
+       │                 │  │              ╰─ / ○
+       │                 │  ╰─ {*tag} ○
+       │                 ╰─ blobs/
+       │                    ╰─ {sha} ○
+       │                       ╰─ / ○
+       │                          ╰─ upload ○
+       │                             ╰─ / ○
+       │                                ╰─ authorize ○
+       │                                   ╰─ / ○
+       ├─ .well-known/
+       │  ├─ change-password ○
+       │  │  ╰─ / ○
+       │  ├─ terraform.json ○
+       │  │  ╰─ / ○
+       │  ├─ security.txt ○
+       │  │  ╰─ / ○
+       │  ├─ webfinger ○
+       │  │  ╰─ / ○
+       │  ╰─ o
+       │     ├─ auth-authorization-server ○
+       │     │  ╰─ / ○
+       │     ╰─ penid-configuration ○
+       │        ╰─ / ○
+       ├─ import/
+       │  ├─ url/validate ○
+       │  │  ╰─ / ○
+       │  ├─ manifest ○
+       │  │  ╰─ / ○
+       │  │     ├─ realtime_changes ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ status ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ upload ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ new ○
+       │  │        ╰─ / ○
+       │  ├─ fogbugz ○
+       │  │  ╰─ / ○
+       │  │     ├─ realtime_changes ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ callback ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ user_map ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ status ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ new ○
+       │  │        ╰─ / ○
+       │  ├─ history ○
+       │  │  ╰─ / ○
+       │  ├─ source_users/
+       │  │  ╰─ {id} ○
+       │  │     ╰─ / ○
+       │  │        ├─ decline ○
+       │  │        │  ╰─ / ○
+       │  │        ╰─ accept ○
+       │  │           ╰─ / ○
+       │  ├─ git
+       │  │  ├─ lab_
+       │  │  │  ├─ group ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ╰─ authorize ○
+       │  │  │  │        ╰─ / ○
+       │  │  │  ╰─ project ○
+       │  │  │     ╰─ / ○
+       │  │  │        ├─ authorize ○
+       │  │  │        │  ╰─ / ○
+       │  │  │        ╰─ new ○
+       │  │  │           ╰─ / ○
+       │  │  ├─ hub ○
+       │  │  │  ├─ _group/status ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  ╰─ / ○
+       │  │  │     ├─ personal_access_token ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ realtime_changes ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ failures ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ details ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ status ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ new ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ╰─ c
+       │  │  │        ├─ ounts ○
+       │  │  │        │  ╰─ / ○
+       │  │  │        ╰─ a
+       │  │  │           ├─ llback ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ╰─ ncel ○
+       │  │  │              ├─ / ○
+       │  │  │              ╰─ _all ○
+       │  │  │                 ╰─ / ○
+       │  │  ╰─ ea ○
+       │  │     ╰─ / ○
+       │  │        ├─ personal_access_token ○
+       │  │        │  ╰─ / ○
+       │  │        ├─ realtime_changes ○
+       │  │        │  ╰─ / ○
+       │  │        ├─ status ○
+       │  │        │  ╰─ / ○
+       │  │        ╰─ new ○
+       │  │           ╰─ / ○
+       │  ╰─ b
+       │     ├─ ulk_imports ○
+       │     │  ╰─ / ○
+       │     │     ├─ realtime_changes ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ configure ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ history ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ status ○
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {id}
+       │     │        ╰─ /history ○
+       │     │           ╰─ / ○
+       │     │              ╰─ {entity_id}
+       │     │                 ╰─ /failures ○
+       │     │                    ╰─ / ○
+       │     ╰─ itbucket ○
+       │        ├─ _server ○
+       │        │  ╰─ / ○
+       │        │     ├─ realtime_changes ○
+       │        │     │  ╰─ / ○
+       │        │     ├─ status ○
+       │        │     │  ╰─ / ○
+       │        │     ├─ new ○
+       │        │     │  ╰─ / ○
+       │        │     ╰─ c
+       │        │        ├─ onfigure ○
+       │        │        │  ╰─ / ○
+       │        │        ╰─ allback ○
+       │        │           ╰─ / ○
+       │        ╰─ / ○
+       │           ├─ realtime_changes ○
+       │           │  ╰─ / ○
+       │           ├─ callback ○
+       │           │  ╰─ / ○
+       │           ╰─ status ○
+       │              ╰─ / ○
+       ├─ oauth/
+       │  ├─ d
+       │  │  ├─ iscovery/keys ○
+       │  │  │  ╰─ / ○
+       │  │  ╰─ evice ○
+       │  │     ╰─ / ○
+       │  │        ╰─ confirm ○
+       │  │           ╰─ / ○
+       │  ├─ introspect ○
+       │  │  ╰─ / ○
+       │  ├─ userinfo ○
+       │  │  ╰─ / ○
+       │  ├─ revoke ○
+       │  │  ╰─ / ○
+       │  ├─ token ○
+       │  │  ╰─ / ○
+       │  │     ╰─ info ○
+       │  │        ╰─ / ○
+       │  ├─ geo/
+       │  │  ├─ callback ○
+       │  │  │  ╰─ / ○
+       │  │  ├─ logout ○
+       │  │  │  ╰─ / ○
+       │  │  ╰─ auth ○
+       │  │     ╰─ / ○
+       │  ╰─ a
+       │     ├─ pplications ○
+       │     │  ╰─ / ○
+       │     │     ├─ new ○
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {id} ○
+       │     │        ╰─ / ○
+       │     │           ├─ renew ○
+       │     │           │  ╰─ / ○
+       │     │           ╰─ edit ○
+       │     │              ╰─ / ○
+       │     ╰─ uthorize ○
+       │        ├─ / ○
+       │        │  ╰─ native ○
+       │        │     ╰─ / ○
+       │        ├─ d_applications ○
+       │        │  ╰─ / ○
+       │        │     ╰─ {id} ○
+       │        │        ╰─ / ○
+       │        ╰─ _device ○
+       │           ╰─ / ○
+       ├─ rails/
+       │  ├─ features ○
+       │  │  ╰─ /
+       │  │     ├─ definitions ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ {id} ○
+       │  │        ╰─ / ○
+       │  ├─ mailers ○
+       │  │  ╰─ / ○
+       │  │     ╰─ {path} ○
+       │  │        ╰─ / ○
+       │  ├─ info ○
+       │  │  ╰─ / ○
+       │  │     ├─ properties ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ routes ○
+       │  │        ╰─ / ○
+       │  ╰─ l
+       │     ├─ ookbook ○
+       │     │  ╰─ /
+       │     │     ├─ cable ○
+       │     │     │  ╰─ / ○
+       │     │     ├─ embed ○
+       │     │     │  ╰─ / ○
+       │     │     │     ├─ {*path}
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ {*path} ○
+       │     │     ├─ inspect/
+       │     │     │  ├─ {*path}
+       │     │     │  │  ╰─ / ○
+       │     │     │  ╰─ {*path} ○
+       │     │     ├─ p
+       │     │     │  ├─ review
+       │     │     │  │  ├─ s ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ /
+       │     │     │  │     ├─ {*path}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*path} ○
+       │     │     │  ╰─ ages ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ {*path}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*path} ○
+       │     │     ├─ {*path}
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {*path} ○
+       │     ╰─ etter_opener ○
+       │        ╰─ / ○
+       │           ├─ clear ○
+       │           │  ╰─ / ○
+       │           ╰─ {id} ○
+       │              ╰─ / ○
+       │                 ├─ delete ○
+       │                 │  ╰─ / ○
+       │                 ├─ attachments/
+       │                 │  ╰─ {file} ○
+       │                 │     ╰─ / ○
+       │                 ╰─ {style} ○
+       │                    ╰─ / ○
        ├─ -/
+       │  ├─ g
+       │  │  ├─ oogle_api/auth/callback ○
+       │  │  │  ╰─ / ○
+       │  │  ╰─ raphql-explorer ○
+       │  │     ╰─ / ○
+       │  ├─ ex
+       │  │  ├─ ternal_redirect ○
+       │  │  │  ╰─ / ○
+       │  │  ╰─ periment/
+       │  │     ╰─ {id} ○
+       │  │        ╰─ / ○
+       │  ├─ kubernetes ○
+       │  │  ╰─ / ○
+       │  │     ╰─ {agent_id} ○
+       │  │        ╰─ / ○
+       │  │           ├─ {*vueroute}
+       │  │           │  ╰─ / ○
+       │  │           ╰─ {*vueroute} ○
+       │  ├─ whats_new ○
+       │  │  ╰─ / ○
+       │  ├─ liveness ○
+       │  │  ╰─ / ○
+       │  ├─ user
+       │  │  ├─ _settings/
+       │  │  │  ├─ identities ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ╰─ new ○
+       │  │  │  │        ╰─ / ○
+       │  │  │  ├─ gpg_keys ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ╰─ {id} ○
+       │  │  │  │        ╰─ / ○
+       │  │  │  │           ╰─ revoke ○
+       │  │  │  │              ╰─ / ○
+       │  │  │  ├─ ssh_keys ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ╰─ {id} ○
+       │  │  │  │        ╰─ / ○
+       │  │  │  │           ╰─ revoke ○
+       │  │  │  │              ╰─ / ○
+       │  │  │  ├─ a
+       │  │  │  │  ├─ ctive_sessions ○
+       │  │  │  │  │  ╰─ / ○
+       │  │  │  │  │     ├─ saml ○
+       │  │  │  │  │     │  ╰─ / ○
+       │  │  │  │  │     ╰─ {id} ○
+       │  │  │  │  │        ╰─ / ○
+       │  │  │  │  ├─ uthentication_log ○
+       │  │  │  │  │  ╰─ / ○
+       │  │  │  │  ╰─ pplications ○
+       │  │  │  │     ╰─ / ○
+       │  │  │  ╰─ p
+       │  │  │     ├─ assword ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     │     ├─ reset ○
+       │  │  │     │     │  ╰─ / ○
+       │  │  │     │     ├─ edit ○
+       │  │  │     │     │  ╰─ / ○
+       │  │  │     │     ╰─ new ○
+       │  │  │     │        ╰─ / ○
+       │  │  │     ├─ rofile ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ╰─ ersonal_access_tokens ○
+       │  │  │        ╰─ / ○
+       │  │  │           ╰─ {id}
+       │  │  │              ╰─ /revoke ○
+       │  │  │                 ╰─ / ○
+       │  │  ╰─ s/
+       │  │     ├─ broadcast_message_dismissals ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ p
+       │  │     │  ├─ roject_callouts ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ╰─ ins ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ group_callouts ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ callouts ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ terms ○
+       │  │        ╰─ / ○
+       │  │           ╰─ {id}
+       │  │              ╰─ /
+       │  │                 ├─ decline ○
+       │  │                 │  ╰─ / ○
+       │  │                 ╰─ accept ○
+       │  │                    ╰─ / ○
        │  ├─ a
        │  │  ├─ buse_reports ○
        │  │  │  ╰─ / ○
@@ -96,195 +1316,175 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │  ├─ cme-challenge ○
        │  │  │  ╰─ / ○
        │  │  ╰─ utocomplete/
-       │  │     ├─ award_emojis ○
-       │  │     │  ╰─ / ○
        │  │     ├─ deploy_keys_with_owners ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ namespace_routes ○
        │  │     │  ╰─ / ○
        │  │     ├─ group_subgroups ○
        │  │     │  ╰─ / ○
+       │  │     ├─ award_emojis ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ users ○
+       │  │     │  ╰─ / ○
+       │  │     │     ╰─ {id} ○
+       │  │     │        ╰─ / ○
        │  │     ├─ merge_request_
        │  │     │  ├─ source_branches ○
        │  │     │  │  ╰─ / ○
        │  │     │  ╰─ target_branches ○
        │  │     │     ╰─ / ○
-       │  │     ├─ namespace_routes ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ project
-       │  │     │  ├─ _
-       │  │     │  │  ├─ groups ○
-       │  │     │  │  │  ╰─ / ○
-       │  │     │  │  ╰─ routes ○
-       │  │     │  │     ╰─ / ○
-       │  │     │  ╰─ s ○
-       │  │     │     ╰─ / ○
-       │  │     ╰─ users ○
-       │  │        ╰─ / ○
-       │  │           ╰─ {id} ○
-       │  │              ╰─ / ○
+       │  │     ╰─ project
+       │  │        ├─ _
+       │  │        │  ├─ groups ○
+       │  │        │  │  ╰─ / ○
+       │  │        │  ╰─ routes ○
+       │  │        │     ╰─ / ○
+       │  │        ╰─ s ○
+       │  │           ╰─ / ○
        │  ├─ c
+       │  │  ├─ ustomers_dot/proxy/graphql ○
+       │  │  │  ╰─ / ○
        │  │  ├─ haos/
        │  │  │  ├─ cpu_spin ○
        │  │  │  │  ╰─ / ○
        │  │  │  ├─ db_spin ○
        │  │  │  │  ╰─ / ○
-       │  │  │  ├─ gc ○
+       │  │  │  ├─ leakmem ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  ├─ sleep ○
        │  │  │  │  ╰─ / ○
        │  │  │  ├─ kill ○
        │  │  │  │  ╰─ / ○
-       │  │  │  ├─ leakmem ○
-       │  │  │  │  ╰─ / ○
        │  │  │  ├─ quit ○
        │  │  │  │  ╰─ / ○
-       │  │  │  ╰─ sleep ○
+       │  │  │  ╰─ gc ○
        │  │  │     ╰─ / ○
-       │  │  ├─ ountr
-       │  │  │  ├─ ies ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ╰─ y_states ○
-       │  │  │     ╰─ / ○
-       │  │  ╰─ ustomers_dot/proxy/graphql ○
-       │  │     ╰─ / ○
-       │  ├─ ex
-       │  │  ├─ periment/
-       │  │  │  ╰─ {id} ○
-       │  │  │     ╰─ / ○
-       │  │  ╰─ ternal_redirect ○
-       │  │     ╰─ / ○
-       │  ├─ g
-       │  │  ├─ oogle_api/auth/callback ○
-       │  │  │  ╰─ / ○
-       │  │  ╰─ raphql-explorer ○
-       │  │     ╰─ / ○
+       │  │  ╰─ ountr
+       │  │     ├─ y_states ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ ies ○
+       │  │        ╰─ / ○
        │  ├─ i
        │  │  ├─ de ○
-       │  │  │  ├─ / ○
-       │  │  │  │  ├─ oauth_redirect ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ project ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ╰─ {project_id} ○
-       │  │  │  │  │        ╰─ / ○
-       │  │  │  │  │           ├─ blob ○
-       │  │  │  │  │           │  ╰─ / ○
-       │  │  │  │  │           │     ├─ {*branch}
-       │  │  │  │  │           │     │  ╰─ / ○
-       │  │  │  │  │           │     │     ╰─ - ○
-       │  │  │  │  │           │     │        ╰─ / ○
-       │  │  │  │  │           │     │           ├─ {*path}
-       │  │  │  │  │           │     │           │  ╰─ / ○
-       │  │  │  │  │           │     │           ╰─ {*path} ○
-       │  │  │  │  │           │     ╰─ {*branch} ○
-       │  │  │  │  │           ├─ edit ○
-       │  │  │  │  │           │  ╰─ / ○
-       │  │  │  │  │           │     ├─ {*branch}
-       │  │  │  │  │           │     │  ╰─ / ○
-       │  │  │  │  │           │     │     ╰─ - ○
-       │  │  │  │  │           │     │        ╰─ / ○
-       │  │  │  │  │           │     │           ├─ {*path}
-       │  │  │  │  │           │     │           │  ╰─ / ○
-       │  │  │  │  │           │     │           ╰─ {*path} ○
-       │  │  │  │  │           │     ╰─ {*branch} ○
-       │  │  │  │  │           ├─ merge_requests/
-       │  │  │  │  │           │  ╰─ {merge_request_id} ○
-       │  │  │  │  │           │     ╰─ / ○
-       │  │  │  │  │           ╰─ tree ○
-       │  │  │  │  │              ╰─ / ○
-       │  │  │  │  │                 ├─ {*branch}
-       │  │  │  │  │                 │  ╰─ / ○
-       │  │  │  │  │                 │     ╰─ - ○
-       │  │  │  │  │                 │        ╰─ / ○
-       │  │  │  │  │                 │           ├─ {*path}
-       │  │  │  │  │                 │           │  ╰─ / ○
-       │  │  │  │  │                 │           ╰─ {*path} ○
-       │  │  │  │  │                 ╰─ {*branch} ○
-       │  │  │  │  ╰─ reset_oauth_application_settings ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ╰─ ntity_verification ○
-       │  │  │     ╰─ / ○
-       │  │  │        ├─ s
-       │  │  │        │  ├─ end_phone_verification_code ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ uccess ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ toggle_phone_exemption ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        ╰─ verif
-       │  │  │           ├─ ication_state ○
-       │  │  │           │  ╰─ / ○
-       │  │  │           ╰─ y_
-       │  │  │              ├─ credit_card ○
-       │  │  │              │  ├─ / ○
-       │  │  │              │  ╰─ _captcha ○
-       │  │  │              │     ╰─ / ○
-       │  │  │              ╰─ phone_verification_code ○
-       │  │  │                 ╰─ / ○
+       │  │  │  ├─ ntity_verification ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ├─ s
+       │  │  │  │     │  ├─ end_phone_verification_code ○
+       │  │  │  │     │  │  ╰─ / ○
+       │  │  │  │     │  ╰─ uccess ○
+       │  │  │  │     │     ╰─ / ○
+       │  │  │  │     ├─ toggle_phone_exemption ○
+       │  │  │  │     │  ╰─ / ○
+       │  │  │  │     ╰─ verif
+       │  │  │  │        ├─ y_
+       │  │  │  │        │  ├─ phone_verification_code ○
+       │  │  │  │        │  │  ╰─ / ○
+       │  │  │  │        │  ╰─ credit_card ○
+       │  │  │  │        │     ├─ / ○
+       │  │  │  │        │     ╰─ _captcha ○
+       │  │  │  │        │        ╰─ / ○
+       │  │  │  │        ╰─ ication_state ○
+       │  │  │  │           ╰─ / ○
+       │  │  │  ╰─ / ○
+       │  │  │     ├─ reset_oauth_application_settings ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ oauth_redirect ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ╰─ project ○
+       │  │  │        ╰─ / ○
+       │  │  │           ╰─ {project_id} ○
+       │  │  │              ╰─ / ○
+       │  │  │                 ├─ blob ○
+       │  │  │                 │  ╰─ / ○
+       │  │  │                 │     ├─ {*branch}
+       │  │  │                 │     │  ╰─ / ○
+       │  │  │                 │     │     ╰─ - ○
+       │  │  │                 │     │        ╰─ / ○
+       │  │  │                 │     │           ├─ {*path}
+       │  │  │                 │     │           │  ╰─ / ○
+       │  │  │                 │     │           ╰─ {*path} ○
+       │  │  │                 │     ╰─ {*branch} ○
+       │  │  │                 ├─ edit ○
+       │  │  │                 │  ╰─ / ○
+       │  │  │                 │     ├─ {*branch}
+       │  │  │                 │     │  ╰─ / ○
+       │  │  │                 │     │     ╰─ - ○
+       │  │  │                 │     │        ╰─ / ○
+       │  │  │                 │     │           ├─ {*path}
+       │  │  │                 │     │           │  ╰─ / ○
+       │  │  │                 │     │           ╰─ {*path} ○
+       │  │  │                 │     ╰─ {*branch} ○
+       │  │  │                 ├─ tree ○
+       │  │  │                 │  ╰─ / ○
+       │  │  │                 │     ├─ {*branch}
+       │  │  │                 │     │  ╰─ / ○
+       │  │  │                 │     │     ╰─ - ○
+       │  │  │                 │     │        ╰─ / ○
+       │  │  │                 │     │           ├─ {*path}
+       │  │  │                 │     │           │  ╰─ / ○
+       │  │  │                 │     │           ╰─ {*path} ○
+       │  │  │                 │     ╰─ {*branch} ○
+       │  │  │                 ╰─ merge_requests/
+       │  │  │                    ╰─ {merge_request_id} ○
+       │  │  │                       ╰─ / ○
        │  │  ╰─ nvites/
        │  │     ╰─ {id} ○
        │  │        ╰─ / ○
-       │  │           ├─ accept ○
+       │  │           ├─ decline ○
        │  │           │  ╰─ / ○
-       │  │           ╰─ decline ○
+       │  │           ╰─ accept ○
        │  │              ╰─ / ○
        │  ├─ j
        │  │  ├─ ira
-       │  │  │  ├─ /
-       │  │  │  │  ╰─ {*namespace_id}
-       │  │  │  │     ╰─ /
-       │  │  │  │        ╰─ {project_id} ○
+       │  │  │  ├─ _connect ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  │     ├─ workspaces/search ○
+       │  │  │  │     │  ╰─ / ○
+       │  │  │  │     ├─ oauth_
+       │  │  │  │     │  ├─ application_id ○
+       │  │  │  │     │  │  ╰─ / ○
+       │  │  │  │     │  ╰─ callbacks ○
+       │  │  │  │     │     ╰─ / ○
+       │  │  │  │     ├─ app_descriptor ○
+       │  │  │  │     │  ╰─ / ○
+       │  │  │  │     ├─ installations ○
+       │  │  │  │     │  ╰─ / ○
+       │  │  │  │     ├─ subscriptions ○
+       │  │  │  │     │  ╰─ / ○
+       │  │  │  │     │     ╰─ {id} ○
+       │  │  │  │     │        ╰─ / ○
+       │  │  │  │     ├─ repositories/
+       │  │  │  │     │  ├─ associate ○
+       │  │  │  │     │  │  ╰─ / ○
+       │  │  │  │     │  ╰─ search ○
+       │  │  │  │     │     ╰─ / ○
+       │  │  │  │     ├─ public_keys/
+       │  │  │  │     │  ╰─ {id} ○
+       │  │  │  │     │     ╰─ / ○
+       │  │  │  │     ├─ branches/
+       │  │  │  │     │  ├─ route ○
+       │  │  │  │     │  │  ╰─ / ○
+       │  │  │  │     │  ╰─ new ○
+       │  │  │  │     │     ╰─ / ○
+       │  │  │  │     ╰─ events/
+       │  │  │  │        ├─ uninstalled ○
+       │  │  │  │        │  ╰─ / ○
+       │  │  │  │        ╰─ installed ○
        │  │  │  │           ╰─ / ○
-       │  │  │  │              ├─ commit/
-       │  │  │  │              │  ╰─ {id} ○
-       │  │  │  │              │     ╰─ / ○
-       │  │  │  │              ╰─ tree/
-       │  │  │  │                 ├─ {*id}
-       │  │  │  │                 │  ╰─ / ○
-       │  │  │  │                 ╰─ {*id} ○
-       │  │  │  ╰─ _connect ○
-       │  │  │     ╰─ / ○
-       │  │  │        ├─ app_descriptor ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        ├─ branches/
-       │  │  │        │  ├─ new ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ route ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ events/
-       │  │  │        │  ├─ installed ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ uninstalled ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ installations ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        ├─ oauth_
-       │  │  │        │  ├─ application_id ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ callbacks ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ public_keys/
-       │  │  │        │  ╰─ {id} ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ repositories/
-       │  │  │        │  ├─ associate ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ search ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ subscriptions ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        │     ╰─ {id} ○
-       │  │  │        │        ╰─ / ○
-       │  │  │        ╰─ workspaces/search ○
-       │  │  │           ╰─ / ○
+       │  │  │  ╰─ /
+       │  │  │     ╰─ {*namespace_id}
+       │  │  │        ╰─ /
+       │  │  │           ╰─ {project_id} ○
+       │  │  │              ╰─ / ○
+       │  │  │                 ├─ commit/
+       │  │  │                 │  ╰─ {id} ○
+       │  │  │                 │     ╰─ / ○
+       │  │  │                 ╰─ tree/
+       │  │  │                    ├─ {*id}
+       │  │  │                    │  ╰─ / ○
+       │  │  │                    ╰─ {*id} ○
        │  │  ╰─ wks ○
        │  │     ╰─ / ○
-       │  ├─ kubernetes ○
-       │  │  ╰─ / ○
-       │  │     ╰─ {agent_id} ○
-       │  │        ╰─ / ○
-       │  │           ├─ {*vueroute}
-       │  │           │  ╰─ / ○
-       │  │           ╰─ {*vueroute} ○
-       │  ├─ liveness ○
-       │  │  ╰─ / ○
        │  ├─ m
        │  │  ├─ a
        │  │  │  ├─ ilgun/webhooks ○
@@ -299,299 +1499,299 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │           ╰─ system ○
        │  │              ╰─ / ○
        │  ├─ o
-       │  │  ├─ ffline ○
+       │  │  ├─ rganizations ○
        │  │  │  ╰─ / ○
+       │  │  │     ├─ preview_markdown ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ new ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ╰─ {organization_path} ○
+       │  │  │        ╰─ / ○
+       │  │  │           ├─ settings/general ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ├─ activity ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ├─ groups ○
+       │  │  │           │  ├─ / ○
+       │  │  │           │  │  ├─ new ○
+       │  │  │           │  │  │  ╰─ / ○
+       │  │  │           │  │  ╰─ {*id}
+       │  │  │           │  │     ╰─ /edit ○
+       │  │  │           │  │        ╰─ / ○
+       │  │  │           │  ╰─ _and_projects ○
+       │  │  │           │     ╰─ / ○
+       │  │  │           ├─ users ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ╰─ projects/
+       │  │  │              ╰─ {*namespace_id}
+       │  │  │                 ╰─ /
+       │  │  │                    ╰─ {id}
+       │  │  │                       ╰─ /edit ○
+       │  │  │                          ╰─ / ○
        │  │  ├─ perations ○
        │  │  │  ╰─ / ○
        │  │  │     ╰─ environments ○
        │  │  │        ╰─ / ○
-       │  │  ╰─ rganizations ○
+       │  │  ╰─ ffline ○
        │  │     ╰─ / ○
-       │  │        ├─ new ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ preview_markdown ○
-       │  │        │  ╰─ / ○
-       │  │        ╰─ {organization_path} ○
-       │  │           ╰─ / ○
-       │  │              ├─ activity ○
-       │  │              │  ╰─ / ○
-       │  │              ├─ groups ○
-       │  │              │  ├─ / ○
-       │  │              │  │  ├─ new ○
-       │  │              │  │  │  ╰─ / ○
-       │  │              │  │  ╰─ {*id}
-       │  │              │  │     ╰─ /edit ○
-       │  │              │  │        ╰─ / ○
-       │  │              │  ╰─ _and_projects ○
-       │  │              │     ╰─ / ○
-       │  │              ├─ projects/
-       │  │              │  ╰─ {*namespace_id}
-       │  │              │     ╰─ /
-       │  │              │        ╰─ {id}
-       │  │              │           ╰─ /edit ○
-       │  │              │              ╰─ / ○
-       │  │              ├─ settings/general ○
-       │  │              │  ╰─ / ○
-       │  │              ╰─ users ○
-       │  │                 ╰─ / ○
        │  ├─ p
-       │  │  ├─ eek/results ○
-       │  │  │  ╰─ / ○
        │  │  ├─ hone_verification/telesign_callback ○
        │  │  │  ╰─ / ○
-       │  │  ├─ rofile/
-       │  │  │  ├─ a
-       │  │  │  │  ├─ ccount ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ╰─ unlink ○
-       │  │  │  │  │        ╰─ / ○
-       │  │  │  │  ├─ pplications ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ udit_log ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ vatar ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ├─ billings ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ├─ c
-       │  │  │  │  ├─ hat_names ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ├─ deny ○
-       │  │  │  │  │     │  ╰─ / ○
-       │  │  │  │  │     ├─ new ○
-       │  │  │  │  │     │  ╰─ / ○
-       │  │  │  │  │     ╰─ {id} ○
-       │  │  │  │  │        ╰─ / ○
-       │  │  │  │  ╰─ omment_templates ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  │        ╰─ {id} ○
-       │  │  │  │           ╰─ / ○
-       │  │  │  ├─ emails ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  │     ├─ confirmation ○
-       │  │  │  │     │  ╰─ / ○
-       │  │  │  │     │     ╰─ new ○
-       │  │  │  │     │        ╰─ / ○
-       │  │  │  │     ╰─ {id} ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  │           ╰─ resend_confirmation_instructions ○
-       │  │  │  │              ╰─ / ○
-       │  │  │  ├─ groups/
-       │  │  │  │  ╰─ {*id}
-       │  │  │  │     ╰─ /notifications ○
-       │  │  │  │        ├─ .
-       │  │  │  │        │  ╰─ {format} ○
-       │  │  │  │        │     ╰─ / ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  ├─ join_early_access_program ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ├─ notifications ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ├─ preferences ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ├─ reset_
-       │  │  │  │  ├─ feed_token ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ incoming_email_token ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ static_object_token ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ├─ slack/
-       │  │  │  │  ├─ edit ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ slack_link ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ├─ two_factor_auth ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  │     ├─ c
-       │  │  │  │     │  ├─ odes ○
-       │  │  │  │     │  │  ╰─ / ○
-       │  │  │  │     │  ╰─ reate_webauthn ○
-       │  │  │  │     │     ╰─ / ○
-       │  │  │  │     ╰─ skip ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  ├─ u
-       │  │  │  │  ├─ pdate_username ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ sage_quotas ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ╰─ webauthn_registrations/
+       │  │  ├─ eek/results ○
+       │  │  │  ╰─ / ○
+       │  │  ├─ ush_from_secondary/
+       │  │  │  ╰─ {geo_node_id}
+       │  │  │     ╰─ /
+       │  │  │        ├─ {*repository_path}
+       │  │  │        │  ╰─ / ○
+       │  │  │        │     ├─ info/
+       │  │  │        │     │  ├─ lfs/
+       │  │  │        │     │  │  ├─ objects ○
+       │  │  │        │     │  │  │  ╰─ / ○
+       │  │  │        │     │  │  │     ├─ batch ○
+       │  │  │        │     │  │  │     │  ╰─ / ○
+       │  │  │        │     │  │  │     ├─ {*oid}
+       │  │  │        │     │  │  │     │  ╰─ / ○
+       │  │  │        │     │  │  │     ╰─ {*oid} ○
+       │  │  │        │     │  │  ╰─ locks ○
+       │  │  │        │     │  │     ╰─ / ○
+       │  │  │        │     │  │        ├─ verify ○
+       │  │  │        │     │  │        │  ╰─ / ○
+       │  │  │        │     │  │        ├─ new ○
+       │  │  │        │     │  │        │  ╰─ / ○
+       │  │  │        │     │  │        ╰─ {id} ○
+       │  │  │        │     │  │           ╰─ / ○
+       │  │  │        │     │  │              ├─ unlock ○
+       │  │  │        │     │  │              │  ╰─ / ○
+       │  │  │        │     │  │              ╰─ edit ○
+       │  │  │        │     │  │                 ╰─ / ○
+       │  │  │        │     │  ╰─ refs ○
+       │  │  │        │     │     ╰─ / ○
+       │  │  │        │     ├─ ssh-
+       │  │  │        │     │  ├─ receive-pack ○
+       │  │  │        │     │  │  ╰─ / ○
+       │  │  │        │     │  ╰─ upload-pack ○
+       │  │  │        │     │     ╰─ / ○
+       │  │  │        │     ╰─ git
+       │  │  │        │        ├─ lab-lfs/objects/
+       │  │  │        │        │  ├─ {*oid}
+       │  │  │        │        │  │  ╰─ / ○
+       │  │  │        │        │  │     ╰─ {size} ○
+       │  │  │        │        │  │        ╰─ / ○
+       │  │  │        │        │  │           ╰─ authorize ○
+       │  │  │        │        │  │              ╰─ / ○
+       │  │  │        │        │  ╰─ {*oid} ○
+       │  │  │        │        ╰─ -
+       │  │  │        │           ├─ receive-pack ○
+       │  │  │        │           │  ╰─ / ○
+       │  │  │        │           ╰─ upload-pack ○
+       │  │  │        │              ╰─ / ○
+       │  │  │        ╰─ {*repository_path} ○
+       │  │  ╰─ rofile/
+       │  │     ├─ join_early_access_program ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ two_factor_auth ○
+       │  │     │  ╰─ / ○
+       │  │     │     ├─ c
+       │  │     │     │  ├─ reate_webauthn ○
+       │  │     │     │  │  ╰─ / ○
+       │  │     │     │  ╰─ odes ○
+       │  │     │     │     ╰─ / ○
+       │  │     │     ╰─ skip ○
+       │  │     │        ╰─ / ○
+       │  │     ├─ notifications ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ preferences ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ billings ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ emails ○
+       │  │     │  ╰─ / ○
+       │  │     │     ├─ confirmation ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     │     ╰─ new ○
+       │  │     │     │        ╰─ / ○
+       │  │     │     ╰─ {id} ○
+       │  │     │        ╰─ / ○
+       │  │     │           ╰─ resend_confirmation_instructions ○
+       │  │     │              ╰─ / ○
+       │  │     ├─ webauthn_registrations/
+       │  │     │  ╰─ {id} ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ groups/
+       │  │     │  ╰─ {*id}
+       │  │     │     ╰─ /notifications ○
+       │  │     │        ├─ / ○
+       │  │     │        ╰─ .
+       │  │     │           ╰─ {format} ○
+       │  │     │              ╰─ / ○
+       │  │     ├─ reset_
+       │  │     │  ├─ incoming_email_token ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ├─ static_object_token ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ╰─ feed_token ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ slack/
+       │  │     │  ├─ slack_link ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ╰─ edit ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ a
+       │  │     │  ├─ pplications ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ├─ udit_log ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ├─ ccount ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  │     ╰─ unlink ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  ╰─ vatar ○
+       │  │     │     ╰─ / ○
+       │  │     ├─ c
+       │  │     │  ├─ hat_names ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  │     ├─ deny ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ├─ new ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ╰─ {id} ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  ╰─ omment_templates ○
+       │  │     │     ╰─ / ○
+       │  │     │        ╰─ {id} ○
+       │  │     │           ╰─ / ○
+       │  │     ╰─ u
+       │  │        ├─ pdate_username ○
+       │  │        │  ╰─ / ○
+       │  │        ╰─ sage_quotas ○
+       │  │           ╰─ / ○
+       │  ├─ r
+       │  │  ├─ unner_setup/platforms ○
+       │  │  │  ╰─ / ○
+       │  │  ╰─ e
+       │  │     ├─ adiness ○
+       │  │     │  ╰─ / ○
+       │  │     ╰─ mote_development/workspaces ○
+       │  │        ├─ / ○
+       │  │        │  ├─ new ○
+       │  │        │  │  ╰─ / ○
+       │  │        │  ├─ {workspace_id}
+       │  │        │  │  ╰─ /workspaces ○
+       │  │        │  │     ╰─ / ○
+       │  │        │  │        ╰─ new ○
+       │  │        │  │           ╰─ / ○
+       │  │        │  ├─ {id} ○
+       │  │        │  │  ╰─ / ○
+       │  │        │  │     ╰─ edit ○
+       │  │        │  │        ╰─ / ○
+       │  │        │  ├─ {*vueroute}
+       │  │        │  │  ╰─ / ○
+       │  │        │  │     ├─ new ○
+       │  │        │  │     │  ╰─ / ○
+       │  │        │  │     ├─ {workspace_id}
+       │  │        │  │     │  ╰─ /workspaces ○
+       │  │        │  │     │     ╰─ / ○
+       │  │        │  │     │        ╰─ new ○
+       │  │        │  │     │           ╰─ / ○
+       │  │        │  │     ╰─ {id} ○
+       │  │        │  │        ╰─ / ○
+       │  │        │  │           ╰─ edit ○
+       │  │        │  │              ╰─ / ○
+       │  │        │  ╰─ {*vueroute} ○
+       │  │        ╰─ _feature_flag ○
+       │  │           ╰─ / ○
+       │  ├─ s
+       │  │  ├─ ubscriptions ○
+       │  │  │  ╰─ / ○
+       │  │  │     ├─ validate_payment_method ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ hand_raise_leads ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ groups ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     │     ├─ new ○
+       │  │  │     │     │  ╰─ / ○
+       │  │  │     │     ╰─ {id} ○
+       │  │  │     │        ╰─ / ○
+       │  │  │     │           ╰─ edit ○
+       │  │  │     │              ╰─ / ○
+       │  │  │     ├─ new ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ payment_
+       │  │  │     │  ├─ method ○
+       │  │  │     │  │  ╰─ / ○
+       │  │  │     │  ╰─ form ○
+       │  │  │     │     ╰─ / ○
+       │  │  │     ╰─ buy_
+       │  │  │        ├─ minutes ○
+       │  │  │        │  ╰─ / ○
+       │  │  │        ╰─ storage ○
+       │  │  │           ╰─ / ○
+       │  │  ├─ nippets ○
+       │  │  │  ╰─ / ○
+       │  │  │     ├─ preview_markdown ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ new ○
+       │  │  │     │  ╰─ / ○
+       │  │  │     ├─ {snippet_id}
+       │  │  │     │  ╰─ /
+       │  │  │     │     ├─ notes ○
+       │  │  │     │     │  ╰─ / ○
+       │  │  │     │     │     ╰─ {id} ○
+       │  │  │     │     │        ╰─ / ○
+       │  │  │     │     │           ├─ toggle_award_emoji ○
+       │  │  │     │     │           │  ╰─ / ○
+       │  │  │     │     │           ╰─ delete_attachment ○
+       │  │  │     │     │              ╰─ / ○
+       │  │  │     │     ╰─ raw/
+       │  │  │     │        ╰─ {ref}
+       │  │  │     │           ╰─ /
+       │  │  │     │              ├─ {*path}
+       │  │  │     │              │  ╰─ / ○
+       │  │  │     │              ╰─ {*path} ○
        │  │  │     ╰─ {id} ○
        │  │  │        ╰─ / ○
-       │  │  ╰─ ush_from_secondary/
-       │  │     ╰─ {geo_node_id}
-       │  │        ╰─ /
-       │  │           ├─ {*repository_path}
-       │  │           │  ╰─ / ○
-       │  │           │     ├─ git
-       │  │           │     │  ├─ -
-       │  │           │     │  │  ├─ receive-pack ○
-       │  │           │     │  │  │  ╰─ / ○
-       │  │           │     │  │  ╰─ upload-pack ○
-       │  │           │     │  │     ╰─ / ○
-       │  │           │     │  ╰─ lab-lfs/objects/
-       │  │           │     │     ├─ {*oid}
-       │  │           │     │     │  ╰─ / ○
-       │  │           │     │     │     ╰─ {size} ○
-       │  │           │     │     │        ╰─ / ○
-       │  │           │     │     │           ╰─ authorize ○
-       │  │           │     │     │              ╰─ / ○
-       │  │           │     │     ╰─ {*oid} ○
-       │  │           │     ├─ info/
-       │  │           │     │  ├─ lfs/
-       │  │           │     │  │  ├─ locks ○
-       │  │           │     │  │  │  ╰─ / ○
-       │  │           │     │  │  │     ├─ new ○
-       │  │           │     │  │  │     │  ╰─ / ○
-       │  │           │     │  │  │     ├─ verify ○
-       │  │           │     │  │  │     │  ╰─ / ○
-       │  │           │     │  │  │     ╰─ {id} ○
-       │  │           │     │  │  │        ╰─ / ○
-       │  │           │     │  │  │           ├─ edit ○
-       │  │           │     │  │  │           │  ╰─ / ○
-       │  │           │     │  │  │           ╰─ unlock ○
-       │  │           │     │  │  │              ╰─ / ○
-       │  │           │     │  │  ╰─ objects ○
-       │  │           │     │  │     ╰─ / ○
-       │  │           │     │  │        ├─ batch ○
-       │  │           │     │  │        │  ╰─ / ○
-       │  │           │     │  │        ├─ {*oid}
-       │  │           │     │  │        │  ╰─ / ○
-       │  │           │     │  │        ╰─ {*oid} ○
-       │  │           │     │  ╰─ refs ○
-       │  │           │     │     ╰─ / ○
-       │  │           │     ╰─ ssh-
-       │  │           │        ├─ receive-pack ○
-       │  │           │        │  ╰─ / ○
-       │  │           │        ╰─ upload-pack ○
-       │  │           │           ╰─ / ○
-       │  │           ╰─ {*repository_path} ○
-       │  ├─ r
-       │  │  ├─ e
-       │  │  │  ├─ adiness ○
+       │  │  │           ├─ toggle_award_emoji ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ├─ mark_as_spam ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ├─ edit ○
+       │  │  │           │  ╰─ / ○
+       │  │  │           ╰─ raw ○
+       │  │  │              ╰─ / ○
+       │  │  ├─ martcard/
+       │  │  │  ├─ extract_certificate ○
        │  │  │  │  ╰─ / ○
-       │  │  │  ╰─ mote_development/workspaces ○
-       │  │  │     ├─ / ○
-       │  │  │     │  ├─ new ○
-       │  │  │     │  │  ╰─ / ○
-       │  │  │     │  ├─ {id} ○
-       │  │  │     │  │  ╰─ / ○
-       │  │  │     │  │     ╰─ edit ○
-       │  │  │     │  │        ╰─ / ○
-       │  │  │     │  ├─ {workspace_id}
-       │  │  │     │  │  ╰─ /workspaces ○
-       │  │  │     │  │     ╰─ / ○
-       │  │  │     │  │        ╰─ new ○
-       │  │  │     │  │           ╰─ / ○
-       │  │  │     │  ├─ {*vueroute}
-       │  │  │     │  │  ╰─ / ○
-       │  │  │     │  │     ├─ new ○
-       │  │  │     │  │     │  ╰─ / ○
-       │  │  │     │  │     ├─ {id} ○
-       │  │  │     │  │     │  ╰─ / ○
-       │  │  │     │  │     │     ╰─ edit ○
-       │  │  │     │  │     │        ╰─ / ○
-       │  │  │     │  │     ╰─ {workspace_id}
-       │  │  │     │  │        ╰─ /workspaces ○
-       │  │  │     │  │           ╰─ / ○
-       │  │  │     │  │              ╰─ new ○
-       │  │  │     │  │                 ╰─ / ○
-       │  │  │     │  ╰─ {*vueroute} ○
-       │  │  │     ╰─ _feature_flag ○
-       │  │  │        ╰─ / ○
-       │  │  ╰─ unner_setup/platforms ○
-       │  │     ╰─ / ○
-       │  ├─ s
-       │  │  ├─ /
-       │  │  │  ╰─ {username} ○
+       │  │  │  ├─ verify_certificate ○
+       │  │  │  │  ╰─ / ○
+       │  │  │  ╰─ auth ○
        │  │  │     ╰─ / ○
        │  │  ├─ andbox/
        │  │  │  ├─ mermaid ○
        │  │  │  │  ╰─ / ○
        │  │  │  ╰─ swagger ○
        │  │  │     ╰─ / ○
-       │  │  ├─ e
-       │  │  │  ├─ curity ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  │     ├─ dashboard ○
-       │  │  │  │     │  ╰─ / ○
-       │  │  │  │     │     ╰─ settings ○
-       │  │  │  │     │        ╰─ / ○
-       │  │  │  │     ├─ projects ○
-       │  │  │  │     │  ╰─ / ○
-       │  │  │  │     │     ╰─ {id} ○
-       │  │  │  │     │        ╰─ / ○
-       │  │  │  │     ╰─ vulnerabilities ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  ╰─ nt_notifications/
-       │  │  │     ╰─ {id}
-       │  │  │        ╰─ /unsubscribe ○
-       │  │  │           ╰─ / ○
-       │  │  ├─ martcard/
-       │  │  │  ├─ auth ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ├─ extract_certificate ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  ╰─ verify_certificate ○
+       │  │  ├─ /
+       │  │  │  ╰─ {username} ○
        │  │  │     ╰─ / ○
-       │  │  ├─ nippets ○
-       │  │  │  ╰─ / ○
-       │  │  │     ├─ new ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ├─ preview_markdown ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ├─ {id} ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     │     ├─ edit ○
-       │  │  │     │     │  ╰─ / ○
-       │  │  │     │     ├─ mark_as_spam ○
-       │  │  │     │     │  ╰─ / ○
-       │  │  │     │     ├─ raw ○
-       │  │  │     │     │  ╰─ / ○
-       │  │  │     │     ╰─ toggle_award_emoji ○
-       │  │  │     │        ╰─ / ○
-       │  │  │     ╰─ {snippet_id}
-       │  │  │        ╰─ /
-       │  │  │           ├─ notes ○
-       │  │  │           │  ╰─ / ○
-       │  │  │           │     ╰─ {id} ○
-       │  │  │           │        ╰─ / ○
-       │  │  │           │           ├─ delete_attachment ○
-       │  │  │           │           │  ╰─ / ○
-       │  │  │           │           ╰─ toggle_award_emoji ○
-       │  │  │           │              ╰─ / ○
-       │  │  │           ╰─ raw/
-       │  │  │              ╰─ {ref}
-       │  │  │                 ╰─ /
-       │  │  │                    ├─ {*path}
-       │  │  │                    │  ╰─ / ○
-       │  │  │                    ╰─ {*path} ○
-       │  │  ╰─ ubscriptions ○
-       │  │     ╰─ / ○
-       │  │        ├─ buy_
-       │  │        │  ├─ minutes ○
-       │  │        │  │  ╰─ / ○
-       │  │        │  ╰─ storage ○
-       │  │        │     ╰─ / ○
-       │  │        ├─ groups ○
-       │  │        │  ╰─ / ○
-       │  │        │     ├─ new ○
-       │  │        │     │  ╰─ / ○
-       │  │        │     ╰─ {id} ○
-       │  │        │        ╰─ / ○
-       │  │        │           ╰─ edit ○
-       │  │        │              ╰─ / ○
-       │  │        ├─ hand_raise_leads ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ new ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ payment_
-       │  │        │  ├─ form ○
-       │  │        │  │  ╰─ / ○
-       │  │        │  ╰─ method ○
-       │  │        │     ╰─ / ○
-       │  │        ╰─ validate_payment_method ○
-       │  │           ╰─ / ○
+       │  │  ╰─ e
+       │  │     ├─ curity ○
+       │  │     │  ╰─ / ○
+       │  │     │     ├─ vulnerabilities ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ├─ dashboard ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     │     ╰─ settings ○
+       │  │     │     │        ╰─ / ○
+       │  │     │     ╰─ projects ○
+       │  │     │        ╰─ / ○
+       │  │     │           ╰─ {id} ○
+       │  │     │              ╰─ / ○
+       │  │     ╰─ nt_notifications/
+       │  │        ╰─ {id}
+       │  │           ╰─ /unsubscribe ○
+       │  │              ╰─ / ○
        │  ├─ t
        │  │  ├─ imelogs ○
        │  │  │  ╰─ / ○
@@ -616,73 +1816,6 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │              │           ╰─ / ○
        │  │              ╰─ new ○
        │  │                 ╰─ / ○
-       │  ├─ user
-       │  │  ├─ _settings/
-       │  │  │  ├─ a
-       │  │  │  │  ├─ ctive_sessions ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ├─ saml ○
-       │  │  │  │  │     │  ╰─ / ○
-       │  │  │  │  │     ╰─ {id} ○
-       │  │  │  │  │        ╰─ / ○
-       │  │  │  │  ├─ pplications ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ uthentication_log ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ├─ gpg_keys ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  │     ╰─ {id} ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  │           ╰─ revoke ○
-       │  │  │  │              ╰─ / ○
-       │  │  │  ├─ identities ○
-       │  │  │  │  ╰─ / ○
-       │  │  │  │     ╰─ new ○
-       │  │  │  │        ╰─ / ○
-       │  │  │  ├─ p
-       │  │  │  │  ├─ assword ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ├─ edit ○
-       │  │  │  │  │     │  ╰─ / ○
-       │  │  │  │  │     ├─ new ○
-       │  │  │  │  │     │  ╰─ / ○
-       │  │  │  │  │     ╰─ reset ○
-       │  │  │  │  │        ╰─ / ○
-       │  │  │  │  ├─ ersonal_access_tokens ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │     ╰─ {id}
-       │  │  │  │  │        ╰─ /revoke ○
-       │  │  │  │  │           ╰─ / ○
-       │  │  │  │  ╰─ rofile ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ╰─ ssh_keys ○
-       │  │  │     ╰─ / ○
-       │  │  │        ╰─ {id} ○
-       │  │  │           ╰─ / ○
-       │  │  │              ╰─ revoke ○
-       │  │  │                 ╰─ / ○
-       │  │  ╰─ s/
-       │  │     ├─ broadcast_message_dismissals ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ callouts ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ group_callouts ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ p
-       │  │     │  ├─ ins ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ roject_callouts ○
-       │  │     │     ╰─ / ○
-       │  │     ╰─ terms ○
-       │  │        ╰─ / ○
-       │  │           ╰─ {id}
-       │  │              ╰─ /
-       │  │                 ├─ accept ○
-       │  │                 │  ╰─ / ○
-       │  │                 ╰─ decline ○
-       │  │                    ╰─ / ○
-       │  ├─ whats_new ○
-       │  │  ╰─ / ○
        │  ╰─ {model}
        │     ╰─ /
        │        ╰─ {model_id}
@@ -691,107 +1824,187 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │                 ╰─ /
        │                    ╰─ {filename} ○
        │                       ╰─ / ○
-       ├─ .well-known/
-       │  ├─ change-password ○
-       │  │  ╰─ / ○
-       │  ├─ o
-       │  │  ├─ auth-authorization-server ○
-       │  │  │  ╰─ / ○
-       │  │  ╰─ penid-configuration ○
-       │  │     ╰─ / ○
-       │  ├─ security.txt ○
-       │  │  ╰─ / ○
-       │  ├─ terraform.json ○
-       │  │  ╰─ / ○
-       │  ╰─ webfinger ○
-       │     ╰─ / ○
        ├─ a
        │  ├─ dmin ○
        │  │  ╰─ / ○
-       │  │     ├─ a
-       │  │     │  ├─ buse_reports ○
+       │  │     ├─ namespace_limits ○
+       │  │     │  ╰─ / ○
+       │  │     │     ╰─ export_usage ○
+       │  │     │        ╰─ / ○
+       │  │     ├─ organizations ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ version_check ○
+       │  │     │  ╰─ / ○
+       │  │     ├─ topics ○
+       │  │     │  ╰─ / ○
+       │  │     │     ├─ preview_markdown ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ├─ merge ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ├─ new ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ├─ {topic_id}
+       │  │     │     │  ╰─ /avatar ○
+       │  │     │     │     ╰─ / ○
+       │  │     │     ╰─ {id} ○
+       │  │     │        ╰─ / ○
+       │  │     │           ╰─ edit ○
+       │  │     │              ╰─ / ○
+       │  │     ├─ jobs ○
+       │  │     │  ╰─ / ○
+       │  │     │     ╰─ cancel_all ○
+       │  │     │        ╰─ / ○
+       │  │     ├─ us
+       │  │     │  ├─ age_trends ○
        │  │     │  │  ╰─ / ○
-       │  │     │  │     ╰─ {id} ○
-       │  │     │  │        ╰─ / ○
-       │  │     │  │           ╰─ moderate_user ○
-       │  │     │  │              ╰─ / ○
-       │  │     │  ├─ i/
-       │  │     │  │  ├─ feature_settings ○
-       │  │     │  │  │  ╰─ / ○
-       │  │     │  │  │     ╰─ {id} ○
-       │  │     │  │  │        ╰─ / ○
-       │  │     │  │  │           ╰─ edit ○
-       │  │     │  │  │              ╰─ / ○
-       │  │     │  │  ╰─ self_hosted_models ○
-       │  │     │  │     ╰─ / ○
-       │  │     │  │        ├─ new ○
-       │  │     │  │        │  ╰─ / ○
-       │  │     │  │        ├─ terms_and_conditions ○
-       │  │     │  │        │  ╰─ / ○
-       │  │     │  │        ╰─ {id} ○
-       │  │     │  │           ╰─ / ○
-       │  │     │  │              ╰─ edit ○
-       │  │     │  │                 ╰─ / ○
+       │  │     │  ╰─ er
+       │  │     │     ├─ _permission_exports ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ╰─ s ○
+       │  │     │        ╰─ / ○
+       │  │     │           ├─ new ○
+       │  │     │           │  ╰─ / ○
+       │  │     │           ├─ {user_id}
+       │  │     │           │  ╰─ /
+       │  │     │           │     ├─ i
+       │  │     │           │     │  ├─ dentities ○
+       │  │     │           │     │  │  ╰─ / ○
+       │  │     │           │     │  │     ├─ new ○
+       │  │     │           │     │  │     │  ╰─ / ○
+       │  │     │           │     │  │     ╰─ {id} ○
+       │  │     │           │     │  │        ╰─ / ○
+       │  │     │           │     │  │           ╰─ edit ○
+       │  │     │           │     │  │              ╰─ / ○
+       │  │     │           │     │  ╰─ mpersonation_tokens ○
+       │  │     │           │     │     ╰─ / ○
+       │  │     │           │     │        ╰─ {id}
+       │  │     │           │     │           ╰─ /revoke ○
+       │  │     │           │     │              ╰─ / ○
+       │  │     │           │     ╰─ keys/
+       │  │     │           │        ╰─ {id} ○
+       │  │     │           │           ╰─ / ○
+       │  │     │           ╰─ {id} ○
+       │  │     │              ╰─ / ○
+       │  │     │                 ├─ trust ○
+       │  │     │                 │  ╰─ / ○
+       │  │     │                 ├─ edit ○
+       │  │     │                 │  ╰─ / ○
+       │  │     │                 ├─ keys ○
+       │  │     │                 │  ╰─ / ○
+       │  │     │                 ├─ re
+       │  │     │                 │  ├─ set_runners_minutes ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ├─ ject ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ move/
+       │  │     │                 │     ╰─ {email_id} ○
+       │  │     │                 │        ╰─ / ○
+       │  │     │                 ├─ un
+       │  │     │                 │  ├─ trust ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ├─ lock ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ b
+       │  │     │                 │     ├─ lock ○
+       │  │     │                 │     │  ╰─ / ○
+       │  │     │                 │     ╰─ an ○
+       │  │     │                 │        ╰─ / ○
+       │  │     │                 ├─ a
+       │  │     │                 │  ├─ ctivate ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ pprove ○
+       │  │     │                 │     ╰─ / ○
+       │  │     │                 ├─ b
+       │  │     │                 │  ├─ lock ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ an ○
+       │  │     │                 │     ╰─ / ○
+       │  │     │                 ├─ c
+       │  │     │                 │  ├─ ard_match ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ onfirm ○
+       │  │     │                 │     ╰─ / ○
+       │  │     │                 ├─ d
+       │  │     │                 │  ├─ isable_two_factor ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ e
+       │  │     │                 │     ├─ stroy_identity_verification_exemption ○
+       │  │     │                 │     │  ╰─ / ○
+       │  │     │                 │     ╰─ activate ○
+       │  │     │                 │        ╰─ / ○
+       │  │     │                 ├─ i
+       │  │     │                 │  ├─ dentity_verification_exemption ○
+       │  │     │                 │  │  ╰─ / ○
+       │  │     │                 │  ╰─ mpersonate ○
+       │  │     │                 │     ╰─ / ○
+       │  │     │                 ╰─ p
+       │  │     │                    ├─ hone_match ○
+       │  │     │                    │  ╰─ / ○
+       │  │     │                    ╰─ rojects ○
+       │  │     │                       ╰─ / ○
+       │  │     ├─ a
        │  │     │  ├─ pplication
        │  │     │  │  ├─ _settings ○
        │  │     │  │  │  ╰─ / ○
-       │  │     │  │  │     ├─ a
-       │  │     │  │  │     │  ├─ dvanced_search ○
-       │  │     │  │  │     │  │  ╰─ / ○
-       │  │     │  │  │     │  ├─ nalytics ○
-       │  │     │  │  │     │  │  ╰─ / ○
-       │  │     │  │  │     │  ╰─ ppearance ○
-       │  │     │  │  │     │     ╰─ / ○
-       │  │     │  │  │     │        ├─ favicon ○
-       │  │     │  │  │     │        │  ╰─ / ○
-       │  │     │  │  │     │        ├─ header_logos ○
-       │  │     │  │  │     │        │  ╰─ / ○
-       │  │     │  │  │     │        ├─ logo ○
-       │  │     │  │  │     │        │  ╰─ / ○
-       │  │     │  │  │     │        ╰─ p
-       │  │     │  │  │     │           ├─ review_sign_in ○
+       │  │     │  │  │     ├─ lets_encrypt_terms_of_service ○
+       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     ├─ metrics_and_profiling ○
+       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     ├─ integrations ○
+       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     │     ╰─ {id} ○
+       │  │     │  │  │     │        ╰─ / ○
+       │  │     │  │  │     │           ├─ overrides ○
        │  │     │  │  │     │           │  ╰─ / ○
-       │  │     │  │  │     │           ╰─ wa_icon ○
+       │  │     │  │  │     │           ├─ reset ○
+       │  │     │  │  │     │           │  ╰─ / ○
+       │  │     │  │  │     │           ├─ edit ○
+       │  │     │  │  │     │           │  ╰─ / ○
+       │  │     │  │  │     │           ╰─ test ○
        │  │     │  │  │     │              ╰─ / ○
-       │  │     │  │  │     ├─ c
-       │  │     │  │  │     │  ├─ i_cd ○
-       │  │     │  │  │     │  │  ╰─ / ○
-       │  │     │  │  │     │  ╰─ lear_repository_check_states ○
-       │  │     │  │  │     │     ╰─ / ○
+       │  │     │  │  │     ├─ preferences ○
+       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     ├─ templates ○
+       │  │     │  │  │     │  ╰─ / ○
        │  │     │  │  │     ├─ ge
        │  │     │  │  │     │  ├─ neral ○
        │  │     │  │  │     │  │  ╰─ / ○
        │  │     │  │  │     │  ╰─ o ○
        │  │     │  │  │     │     ╰─ / ○
-       │  │     │  │  │     ├─ integrations ○
-       │  │     │  │  │     │  ╰─ / ○
-       │  │     │  │  │     │     ╰─ {id} ○
-       │  │     │  │  │     │        ╰─ / ○
-       │  │     │  │  │     │           ├─ edit ○
-       │  │     │  │  │     │           │  ╰─ / ○
-       │  │     │  │  │     │           ├─ overrides ○
-       │  │     │  │  │     │           │  ╰─ / ○
-       │  │     │  │  │     │           ├─ reset ○
-       │  │     │  │  │     │           │  ╰─ / ○
-       │  │     │  │  │     │           ╰─ test ○
-       │  │     │  │  │     │              ╰─ / ○
-       │  │     │  │  │     ├─ lets_encrypt_terms_of_service ○
-       │  │     │  │  │     │  ╰─ / ○
-       │  │     │  │  │     ├─ metrics_and_profiling ○
-       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     ├─ a
+       │  │     │  │  │     │  ├─ ppearance ○
+       │  │     │  │  │     │  │  ╰─ / ○
+       │  │     │  │  │     │  │     ├─ header_logos ○
+       │  │     │  │  │     │  │     │  ╰─ / ○
+       │  │     │  │  │     │  │     ├─ favicon ○
+       │  │     │  │  │     │  │     │  ╰─ / ○
+       │  │     │  │  │     │  │     ├─ logo ○
+       │  │     │  │  │     │  │     │  ╰─ / ○
+       │  │     │  │  │     │  │     ╰─ p
+       │  │     │  │  │     │  │        ├─ review_sign_in ○
+       │  │     │  │  │     │  │        │  ╰─ / ○
+       │  │     │  │  │     │  │        ╰─ wa_icon ○
+       │  │     │  │  │     │  │           ╰─ / ○
+       │  │     │  │  │     │  ├─ dvanced_search ○
+       │  │     │  │  │     │  │  ╰─ / ○
+       │  │     │  │  │     │  ╰─ nalytics ○
+       │  │     │  │  │     │     ╰─ / ○
+       │  │     │  │  │     ├─ c
+       │  │     │  │  │     │  ├─ lear_repository_check_states ○
+       │  │     │  │  │     │  │  ╰─ / ○
+       │  │     │  │  │     │  ╰─ i_cd ○
+       │  │     │  │  │     │     ╰─ / ○
        │  │     │  │  │     ├─ n
        │  │     │  │  │     │  ├─ amespace_storage ○
        │  │     │  │  │     │  │  ╰─ / ○
        │  │     │  │  │     │  ╰─ etwork ○
        │  │     │  │  │     │     ╰─ / ○
-       │  │     │  │  │     ├─ preferences ○
-       │  │     │  │  │     │  ╰─ / ○
        │  │     │  │  │     ├─ r
        │  │     │  │  │     │  ├─ e
        │  │     │  │  │     │  │  ├─ po
-       │  │     │  │  │     │  │  │  ├─ rting ○
+       │  │     │  │  │     │  │  │  ├─ sitory ○
        │  │     │  │  │     │  │  │  │  ╰─ / ○
-       │  │     │  │  │     │  │  │  ╰─ sitory ○
+       │  │     │  │  │     │  │  │  ╰─ rting ○
        │  │     │  │  │     │  │  │     ╰─ / ○
        │  │     │  │  │     │  │  ╰─ set_
        │  │     │  │  │     │  │     ├─ error_tracking_access_token ○
@@ -809,24 +2022,22 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │     │  │  │     │              ╰─ edit ○
        │  │     │  │  │     │                 ╰─ / ○
        │  │     │  │  │     ├─ s
+       │  │     │  │  │     │  ├─ lack ○
+       │  │     │  │  │     │  │  ├─ / ○
+       │  │     │  │  │     │  │  │  ╰─ slack_auth ○
+       │  │     │  │  │     │  │  │     ╰─ / ○
+       │  │     │  │  │     │  │  ╰─ _app_manifest_
+       │  │     │  │  │     │  │     ├─ download ○
+       │  │     │  │  │     │  │     │  ╰─ / ○
+       │  │     │  │  │     │  │     ╰─ share ○
+       │  │     │  │  │     │  │        ╰─ / ○
        │  │     │  │  │     │  ├─ cim_oauth ○
        │  │     │  │  │     │  │  ╰─ / ○
-       │  │     │  │  │     │  ├─ e
-       │  │     │  │  │     │  │  ├─ at_link_payload ○
-       │  │     │  │  │     │  │  │  ╰─ / ○
-       │  │     │  │  │     │  │  ╰─ curity_and_compliance ○
-       │  │     │  │  │     │  │     ╰─ / ○
-       │  │     │  │  │     │  ╰─ lack ○
-       │  │     │  │  │     │     ├─ / ○
-       │  │     │  │  │     │     │  ╰─ slack_auth ○
-       │  │     │  │  │     │     │     ╰─ / ○
-       │  │     │  │  │     │     ╰─ _app_manifest_
-       │  │     │  │  │     │        ├─ download ○
-       │  │     │  │  │     │        │  ╰─ / ○
-       │  │     │  │  │     │        ╰─ share ○
-       │  │     │  │  │     │           ╰─ / ○
-       │  │     │  │  │     ├─ templates ○
-       │  │     │  │  │     │  ╰─ / ○
+       │  │     │  │  │     │  ╰─ e
+       │  │     │  │  │     │     ├─ curity_and_compliance ○
+       │  │     │  │  │     │     │  ╰─ / ○
+       │  │     │  │  │     │     ╰─ at_link_payload ○
+       │  │     │  │  │     │        ╰─ / ○
        │  │     │  │  │     ╰─ u
        │  │     │  │  │        ├─ pdate_microsoft_application ○
        │  │     │  │  │        │  ╰─ / ○
@@ -838,66 +2049,87 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │     │  │        │  ╰─ / ○
        │  │     │  │        ╰─ {id} ○
        │  │     │  │           ╰─ / ○
-       │  │     │  │              ├─ edit ○
+       │  │     │  │              ├─ renew ○
        │  │     │  │              │  ╰─ / ○
-       │  │     │  │              ╰─ renew ○
+       │  │     │  │              ╰─ edit ○
        │  │     │  │                 ╰─ / ○
-       │  │     │  ╰─ udit_log
-       │  │     │     ├─ _reports ○
-       │  │     │     │  ├─ .
-       │  │     │     │  │  ╰─ {format} ○
-       │  │     │     │  │     ╰─ / ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     ╰─ s ○
-       │  │     │        ╰─ / ○
-       │  │     ├─ b
-       │  │     │  ├─ ackground_
-       │  │     │  │  ├─ jobs ○
-       │  │     │  │  │  ╰─ / ○
-       │  │     │  │  ╰─ migrations ○
-       │  │     │  │     ╰─ / ○
-       │  │     │  │        ├─ {background_migration_id}
-       │  │     │  │        │  ╰─ /batched_jobs/
-       │  │     │  │        │     ╰─ {id} ○
-       │  │     │  │        │        ╰─ / ○
-       │  │     │  │        ╰─ {id} ○
-       │  │     │  │           ╰─ / ○
-       │  │     │  │              ├─ pause ○
-       │  │     │  │              │  ╰─ / ○
-       │  │     │  │              ╰─ re
-       │  │     │  │                 ├─ sume ○
-       │  │     │  │                 │  ╰─ / ○
-       │  │     │  │                 ╰─ try ○
-       │  │     │  │                    ╰─ / ○
-       │  │     │  ╰─ roadcast_messages ○
-       │  │     │     ╰─ / ○
-       │  │     │        ├─ preview ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ╰─ {id} ○
-       │  │     │           ╰─ / ○
-       │  │     │              ╰─ edit ○
-       │  │     │                 ╰─ / ○
-       │  │     ├─ c
-       │  │     │  ├─ i/variables ○
+       │  │     │  ├─ buse_reports ○
        │  │     │  │  ╰─ / ○
+       │  │     │  │     ╰─ {id} ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  │           ╰─ moderate_user ○
+       │  │     │  │              ╰─ / ○
+       │  │     │  ├─ udit_log
+       │  │     │  │  ├─ _reports ○
+       │  │     │  │  │  ├─ / ○
+       │  │     │  │  │  ╰─ .
+       │  │     │  │  │     ╰─ {format} ○
+       │  │     │  │  │        ╰─ / ○
+       │  │     │  │  ╰─ s ○
+       │  │     │  │     ╰─ / ○
+       │  │     │  ╰─ i/
+       │  │     │     ├─ self_hosted_models ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     │     ├─ terms_and_conditions ○
+       │  │     │     │     │  ╰─ / ○
+       │  │     │     │     ├─ new ○
+       │  │     │     │     │  ╰─ / ○
+       │  │     │     │     ╰─ {id} ○
+       │  │     │     │        ╰─ / ○
+       │  │     │     │           ╰─ edit ○
+       │  │     │     │              ╰─ / ○
+       │  │     │     ╰─ feature_settings ○
+       │  │     │        ╰─ / ○
+       │  │     │           ╰─ {id} ○
+       │  │     │              ╰─ / ○
+       │  │     │                 ╰─ edit ○
+       │  │     │                    ╰─ / ○
+       │  │     ├─ b
+       │  │     │  ├─ roadcast_messages ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  │     ├─ preview ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ╰─ {id} ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  │           ╰─ edit ○
+       │  │     │  │              ╰─ / ○
+       │  │     │  ╰─ ackground_
+       │  │     │     ├─ migrations ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     │     ├─ {background_migration_id}
+       │  │     │     │     │  ╰─ /batched_jobs/
+       │  │     │     │     │     ╰─ {id} ○
+       │  │     │     │     │        ╰─ / ○
+       │  │     │     │     ╰─ {id} ○
+       │  │     │     │        ╰─ / ○
+       │  │     │     │           ├─ re
+       │  │     │     │           │  ├─ sume ○
+       │  │     │     │           │  │  ╰─ / ○
+       │  │     │     │           │  ╰─ try ○
+       │  │     │     │           │     ╰─ / ○
+       │  │     │     │           ╰─ pause ○
+       │  │     │     │              ╰─ / ○
+       │  │     │     ╰─ jobs ○
+       │  │     │        ╰─ / ○
+       │  │     ├─ c
        │  │     │  ├─ lusters ○
        │  │     │  │  ╰─ / ○
-       │  │     │  │     ├─ c
-       │  │     │  │     │  ├─ onnect ○
-       │  │     │  │     │  │  ╰─ / ○
-       │  │     │  │     │  ╰─ reate_user ○
-       │  │     │  │     │     ╰─ / ○
        │  │     │  │     ├─ new_cluster_docs ○
        │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ├─ c
+       │  │     │  │     │  ├─ reate_user ○
+       │  │     │  │     │  │  ╰─ / ○
+       │  │     │  │     │  ╰─ onnect ○
+       │  │     │  │     │     ╰─ / ○
        │  │     │  │     ├─ {cluster_id}
        │  │     │  │     │  ╰─ /integration/create_or_update ○
        │  │     │  │     │     ╰─ / ○
        │  │     │  │     ╰─ {id} ○
        │  │     │  │        ╰─ / ○
        │  │     │  │           ├─ cl
-       │  │     │  │           │  ├─ ear_cache ○
+       │  │     │  │           │  ├─ uster_status ○
        │  │     │  │           │  │  ╰─ / ○
-       │  │     │  │           │  ╰─ uster_status ○
+       │  │     │  │           │  ╰─ ear_cache ○
        │  │     │  │           │     ╰─ / ○
        │  │     │  │           ├─ environments ○
        │  │     │  │           │  ╰─ / ○
@@ -905,51 +2137,55 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │     │  │              ├─ / ○
        │  │     │  │              ╰─ _dashboard ○
        │  │     │  │                 ╰─ / ○
-       │  │     │  ├─ o
-       │  │     │  │  ├─ de_suggestions ○
-       │  │     │  │  │  ╰─ / ○
-       │  │     │  │  ╰─ horts ○
-       │  │     │  │     ╰─ / ○
-       │  │     │  ╰─ redentials ○
-       │  │     │     ╰─ / ○
-       │  │     │        ├─ {credential_id}
-       │  │     │        │  ╰─ /resources/
-       │  │     │        │     ╰─ {resource_id}
-       │  │     │        │        ╰─ /revoke ○
-       │  │     │        │           ╰─ / ○
-       │  │     │        ╰─ {id} ○
-       │  │     │           ╰─ / ○
-       │  │     │              ╰─ revoke ○
-       │  │     │                 ╰─ / ○
+       │  │     │  ├─ i/variables ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ├─ redentials ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  │     ├─ {credential_id}
+       │  │     │  │     │  ╰─ /resources/
+       │  │     │  │     │     ╰─ {resource_id}
+       │  │     │  │     │        ╰─ /revoke ○
+       │  │     │  │     │           ╰─ / ○
+       │  │     │  │     ╰─ {id} ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  │           ╰─ revoke ○
+       │  │     │  │              ╰─ / ○
+       │  │     │  ╰─ o
+       │  │     │     ├─ de_suggestions ○
+       │  │     │     │  ╰─ / ○
+       │  │     │     ╰─ horts ○
+       │  │     │        ╰─ / ○
        │  │     ├─ d
        │  │     │  ├─ ashboard/stats ○
        │  │     │  │  ╰─ / ○
        │  │     │  ╰─ e
-       │  │     │     ├─ ploy_keys ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     │     ├─ new ○
-       │  │     │     │     │  ╰─ / ○
-       │  │     │     │     ╰─ {id} ○
-       │  │     │     │        ╰─ / ○
-       │  │     │     │           ╰─ edit ○
-       │  │     │     │              ╰─ / ○
-       │  │     │     ╰─ v_ops_report ○
-       │  │     │        ├─ / ○
-       │  │     │        ╰─ s ○
-       │  │     │           ╰─ / ○
+       │  │     │     ├─ v_ops_report ○
+       │  │     │     │  ├─ / ○
+       │  │     │     │  ╰─ s ○
+       │  │     │     │     ╰─ / ○
+       │  │     │     ╰─ ploy_keys ○
+       │  │     │        ╰─ / ○
+       │  │     │           ├─ new ○
+       │  │     │           │  ╰─ / ○
+       │  │     │           ╰─ {id} ○
+       │  │     │              ╰─ / ○
+       │  │     │                 ╰─ edit ○
+       │  │     │                    ╰─ / ○
        │  │     ├─ e
        │  │     │  ├─ lasticsearch/
        │  │     │  │  ├─ cancel_index_deletion ○
        │  │     │  │  │  ╰─ / ○
-       │  │     │  │  ├─ enqueue_index ○
+       │  │     │  │  ├─ trigger_reindexing ○
        │  │     │  │  │  ╰─ / ○
        │  │     │  │  ├─ retry_migration ○
        │  │     │  │  │  ╰─ / ○
-       │  │     │  │  ╰─ trigger_reindexing ○
+       │  │     │  │  ╰─ enqueue_index ○
        │  │     │  │     ╰─ / ○
        │  │     │  ╰─ mail ○
        │  │     │     ╰─ / ○
        │  │     ├─ g
+       │  │     │  ├─ italy_servers ○
+       │  │     │  │  ╰─ / ○
        │  │     │  ├─ eo ○
        │  │     │  │  ╰─ / ○
        │  │     │  │     ├─ replication ○
@@ -965,37 +2201,35 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │     │  │              │  ╰─ / ○
        │  │     │  │              ╰─ {id} ○
        │  │     │  │                 ╰─ / ○
-       │  │     │  │                    ├─ edit ○
+       │  │     │  │                    ├─ replication ○
        │  │     │  │                    │  ╰─ / ○
-       │  │     │  │                    ╰─ replication ○
+       │  │     │  │                    │     ╰─ {replicable_name_plural} ○
+       │  │     │  │                    │        ╰─ / ○
+       │  │     │  │                    ╰─ edit ○
        │  │     │  │                       ╰─ / ○
-       │  │     │  │                          ╰─ {replicable_name_plural} ○
-       │  │     │  │                             ╰─ / ○
-       │  │     │  ├─ italy_servers ○
-       │  │     │  │  ╰─ / ○
        │  │     │  ╰─ roups ○
        │  │     │     ╰─ / ○
        │  │     │        ├─ new ○
        │  │     │        │  ╰─ / ○
        │  │     │        ├─ {*id}
-       │  │     │        │  ├─ .
-       │  │     │        │  │  ╰─ {format} ○
-       │  │     │        │  │     ╰─ / ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        │     ├─ edit ○
-       │  │     │        │     │  ├─ .
-       │  │     │        │     │  │  ╰─ {format} ○
-       │  │     │        │     │  │     ╰─ / ○
-       │  │     │        │     │  ╰─ / ○
-       │  │     │        │     ├─ members_update ○
-       │  │     │        │     │  ├─ .
-       │  │     │        │     │  │  ╰─ {format} ○
-       │  │     │        │     │  │     ╰─ / ○
-       │  │     │        │     │  ╰─ / ○
-       │  │     │        │     ╰─ reset_runners_minutes ○
-       │  │     │        │        ├─ .
-       │  │     │        │        │  ╰─ {format} ○
-       │  │     │        │        │     ╰─ / ○
+       │  │     │        │  ├─ / ○
+       │  │     │        │  │  ├─ reset_runners_minutes ○
+       │  │     │        │  │  │  ├─ / ○
+       │  │     │        │  │  │  ╰─ .
+       │  │     │        │  │  │     ╰─ {format} ○
+       │  │     │        │  │  │        ╰─ / ○
+       │  │     │        │  │  ├─ members_update ○
+       │  │     │        │  │  │  ├─ / ○
+       │  │     │        │  │  │  ╰─ .
+       │  │     │        │  │  │     ╰─ {format} ○
+       │  │     │        │  │  │        ╰─ / ○
+       │  │     │        │  │  ╰─ edit ○
+       │  │     │        │  │     ├─ / ○
+       │  │     │        │  │     ╰─ .
+       │  │     │        │  │        ╰─ {format} ○
+       │  │     │        │  │           ╰─ / ○
+       │  │     │        │  ╰─ .
+       │  │     │        │     ╰─ {format} ○
        │  │     │        │        ╰─ / ○
        │  │     │        ╰─ {*id} ○
        │  │     ├─ h
@@ -1016,1242 +2250,113 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │     │              ╰─ test ○
        │  │     │                 ╰─ / ○
        │  │     ├─ i
-       │  │     │  ├─ mpersonation ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ n
-       │  │     │     ├─ itial_setup ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     │     ╰─ new ○
-       │  │     │     │        ╰─ / ○
-       │  │     │     ╰─ stance_review ○
-       │  │     │        ╰─ / ○
-       │  │     ├─ jobs ○
-       │  │     │  ╰─ / ○
-       │  │     │     ╰─ cancel_all ○
-       │  │     │        ╰─ / ○
+       │  │     │  ├─ n
+       │  │     │  │  ├─ stance_review ○
+       │  │     │  │  │  ╰─ / ○
+       │  │     │  │  ╰─ itial_setup ○
+       │  │     │  │     ╰─ / ○
+       │  │     │  │        ╰─ new ○
+       │  │     │  │           ╰─ / ○
+       │  │     │  ╰─ mpersonation ○
+       │  │     │     ╰─ / ○
        │  │     ├─ l
-       │  │     │  ├─ abels ○
+       │  │     │  ├─ icense ○
        │  │     │  │  ╰─ / ○
+       │  │     │  │     ├─ sync_seat_link ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ├─ usage_export ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ╰─ download ○
+       │  │     │  │        ╰─ / ○
+       │  │     │  ╰─ abels ○
+       │  │     │     ╰─ / ○
+       │  │     │        ├─ new ○
+       │  │     │        │  ╰─ / ○
+       │  │     │        ╰─ {id} ○
+       │  │     │           ╰─ / ○
+       │  │     │              ╰─ edit ○
+       │  │     │                 ╰─ / ○
+       │  │     ├─ p
+       │  │     │  ├─ lan_limits ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ├─ ush_rule ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  ╰─ rojects ○
+       │  │     │     ╰─ / ○
+       │  │     │        ╰─ {*namespace_id}
+       │  │     │           ╰─ /
+       │  │     │              ├─ {id} ○
+       │  │     │              │  ╰─ / ○
+       │  │     │              │     ├─ repository_check ○
+       │  │     │              │     │  ╰─ / ○
+       │  │     │              │     ├─ transfer ○
+       │  │     │              │     │  ╰─ / ○
+       │  │     │              │     ╰─ edit ○
+       │  │     │              │        ╰─ / ○
+       │  │     │              ╰─ {project_id}
+       │  │     │                 ╰─ /runner_projects ○
+       │  │     │                    ╰─ / ○
+       │  │     │                       ╰─ {id} ○
+       │  │     │                          ╰─ / ○
+       │  │     ├─ r
+       │  │     │  ├─ unners ○
+       │  │     │  │  ╰─ / ○
+       │  │     │  │     ├─ runner_setup_scripts ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ├─ dashboard ○
+       │  │     │  │     │  ╰─ / ○
+       │  │     │  │     ├─ tag_list ○
+       │  │     │  │     │  ╰─ / ○
        │  │     │  │     ├─ new ○
        │  │     │  │     │  ╰─ / ○
        │  │     │  │     ╰─ {id} ○
        │  │     │  │        ╰─ / ○
-       │  │     │  │           ╰─ edit ○
-       │  │     │  │              ╰─ / ○
-       │  │     │  ╰─ icense ○
-       │  │     │     ╰─ / ○
-       │  │     │        ├─ download ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ├─ sync_seat_link ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ╰─ usage_export ○
-       │  │     │           ╰─ / ○
-       │  │     ├─ namespace_limits ○
-       │  │     │  ╰─ / ○
-       │  │     │     ╰─ export_usage ○
-       │  │     │        ╰─ / ○
-       │  │     ├─ organizations ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ p
-       │  │     │  ├─ lan_limits ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ├─ rojects ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  │     ╰─ {*namespace_id}
-       │  │     │  │        ╰─ /
-       │  │     │  │           ├─ {id} ○
+       │  │     │  │           ├─ pause ○
        │  │     │  │           │  ╰─ / ○
-       │  │     │  │           │     ├─ edit ○
-       │  │     │  │           │     │  ╰─ / ○
-       │  │     │  │           │     ├─ repository_check ○
-       │  │     │  │           │     │  ╰─ / ○
-       │  │     │  │           │     ╰─ transfer ○
-       │  │     │  │           │        ╰─ / ○
-       │  │     │  │           ╰─ {project_id}
-       │  │     │  │              ╰─ /runner_projects ○
+       │  │     │  │           ├─ edit ○
+       │  │     │  │           │  ╰─ / ○
+       │  │     │  │           ╰─ re
+       │  │     │  │              ├─ gister ○
+       │  │     │  │              │  ╰─ / ○
+       │  │     │  │              ╰─ sume ○
        │  │     │  │                 ╰─ / ○
-       │  │     │  │                    ╰─ {id} ○
-       │  │     │  │                       ╰─ / ○
-       │  │     │  ╰─ ush_rule ○
+       │  │     │  ╰─ ole_promotion_requests ○
        │  │     │     ╰─ / ○
-       │  │     ├─ r
-       │  │     │  ├─ ole_promotion_requests ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ unners ○
-       │  │     │     ╰─ / ○
-       │  │     │        ├─ dashboard ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ├─ new ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ├─ runner_setup_scripts ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ├─ tag_list ○
-       │  │     │        │  ╰─ / ○
-       │  │     │        ╰─ {id} ○
-       │  │     │           ╰─ / ○
-       │  │     │              ├─ edit ○
-       │  │     │              │  ╰─ / ○
-       │  │     │              ├─ pause ○
-       │  │     │              │  ╰─ / ○
-       │  │     │              ╰─ re
-       │  │     │                 ├─ gister ○
-       │  │     │                 │  ╰─ / ○
-       │  │     │                 ╰─ sume ○
-       │  │     │                    ╰─ / ○
-       │  │     ├─ s
-       │  │     │  ├─ ession ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  │     ├─ destroy ○
-       │  │     │  │     │  ╰─ / ○
-       │  │     │  │     ╰─ new ○
-       │  │     │  │        ╰─ / ○
-       │  │     │  ├─ idekiq ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ├─ pam_logs ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  │     ╰─ {id} ○
-       │  │     │  │        ╰─ / ○
-       │  │     │  │           ╰─ mark_as_ham ○
-       │  │     │  │              ╰─ / ○
-       │  │     │  ├─ ubscription ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ ystem_info ○
-       │  │     │     ╰─ / ○
-       │  │     ├─ topics ○
-       │  │     │  ╰─ / ○
-       │  │     │     ├─ merge ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     ├─ new ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     ├─ preview_markdown ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     ├─ {id} ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     │     ╰─ edit ○
-       │  │     │     │        ╰─ / ○
-       │  │     │     ╰─ {topic_id}
-       │  │     │        ╰─ /avatar ○
-       │  │     │           ╰─ / ○
-       │  │     ├─ us
-       │  │     │  ├─ age_trends ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ er
-       │  │     │     ├─ _permission_exports ○
-       │  │     │     │  ╰─ / ○
-       │  │     │     ╰─ s ○
-       │  │     │        ╰─ / ○
-       │  │     │           ├─ new ○
-       │  │     │           │  ╰─ / ○
-       │  │     │           ├─ {id} ○
-       │  │     │           │  ╰─ / ○
-       │  │     │           │     ├─ a
-       │  │     │           │     │  ├─ ctivate ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ╰─ pprove ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ b
-       │  │     │           │     │  ├─ an ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ╰─ lock ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ c
-       │  │     │           │     │  ├─ ard_match ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ╰─ onfirm ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ d
-       │  │     │           │     │  ├─ e
-       │  │     │           │     │  │  ├─ activate ○
-       │  │     │           │     │  │  │  ╰─ / ○
-       │  │     │           │     │  │  ╰─ stroy_identity_verification_exemption ○
-       │  │     │           │     │  │     ╰─ / ○
-       │  │     │           │     │  ╰─ isable_two_factor ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ edit ○
-       │  │     │           │     │  ╰─ / ○
-       │  │     │           │     ├─ i
-       │  │     │           │     │  ├─ dentity_verification_exemption ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ╰─ mpersonate ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ keys ○
-       │  │     │           │     │  ╰─ / ○
-       │  │     │           │     ├─ p
-       │  │     │           │     │  ├─ hone_match ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ╰─ rojects ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ re
-       │  │     │           │     │  ├─ ject ○
-       │  │     │           │     │  │  ╰─ / ○
-       │  │     │           │     │  ├─ move/
-       │  │     │           │     │  │  ╰─ {email_id} ○
-       │  │     │           │     │  │     ╰─ / ○
-       │  │     │           │     │  ╰─ set_runners_minutes ○
-       │  │     │           │     │     ╰─ / ○
-       │  │     │           │     ├─ trust ○
-       │  │     │           │     │  ╰─ / ○
-       │  │     │           │     ╰─ un
-       │  │     │           │        ├─ b
-       │  │     │           │        │  ├─ an ○
-       │  │     │           │        │  │  ╰─ / ○
-       │  │     │           │        │  ╰─ lock ○
-       │  │     │           │        │     ╰─ / ○
-       │  │     │           │        ├─ lock ○
-       │  │     │           │        │  ╰─ / ○
-       │  │     │           │        ╰─ trust ○
-       │  │     │           │           ╰─ / ○
-       │  │     │           ╰─ {user_id}
-       │  │     │              ╰─ /
-       │  │     │                 ├─ i
-       │  │     │                 │  ├─ dentities ○
-       │  │     │                 │  │  ╰─ / ○
-       │  │     │                 │  │     ├─ new ○
-       │  │     │                 │  │     │  ╰─ / ○
-       │  │     │                 │  │     ╰─ {id} ○
-       │  │     │                 │  │        ╰─ / ○
-       │  │     │                 │  │           ╰─ edit ○
-       │  │     │                 │  │              ╰─ / ○
-       │  │     │                 │  ╰─ mpersonation_tokens ○
-       │  │     │                 │     ╰─ / ○
-       │  │     │                 │        ╰─ {id}
-       │  │     │                 │           ╰─ /revoke ○
-       │  │     │                 │              ╰─ / ○
-       │  │     │                 ╰─ keys/
-       │  │     │                    ╰─ {id} ○
-       │  │     │                       ╰─ / ○
-       │  │     ╰─ version_check ○
-       │  │        ╰─ / ○
+       │  │     ╰─ s
+       │  │        ├─ ubscription ○
+       │  │        │  ╰─ / ○
+       │  │        ├─ ystem_info ○
+       │  │        │  ╰─ / ○
+       │  │        ├─ pam_logs ○
+       │  │        │  ╰─ / ○
+       │  │        │     ╰─ {id} ○
+       │  │        │        ╰─ / ○
+       │  │        │           ╰─ mark_as_ham ○
+       │  │        │              ╰─ / ○
+       │  │        ├─ ession ○
+       │  │        │  ╰─ / ○
+       │  │        │     ├─ destroy ○
+       │  │        │     │  ╰─ / ○
+       │  │        │     ╰─ new ○
+       │  │        │        ╰─ / ○
+       │  │        ╰─ idekiq ○
+       │  │           ╰─ / ○
        │  ╰─ pi/
-       │     ├─ graphql ○
+       │     ├─ v4/geo/graphql ○
        │     │  ╰─ / ○
-       │     ╰─ v4/geo/graphql ○
-       │        ╰─ / ○
-       ├─ dashboard ○
-       │  ╰─ / ○
-       │     ├─ activity ○
-       │     │  ╰─ / ○
-       │     ├─ groups ○
-       │     │  ╰─ / ○
-       │     ├─ issues ○
-       │     │  ╰─ / ○
-       │     ├─ labels ○
-       │     │  ╰─ / ○
-       │     ├─ m
-       │     │  ├─ erge_requests ○
-       │     │  │  ╰─ / ○
-       │     │  │     ╰─ search ○
-       │     │  │        ╰─ / ○
-       │     │  ╰─ ilestones ○
-       │     │     ╰─ / ○
-       │     ├─ projects ○
-       │     │  ╰─ / ○
-       │     │     ├─ contributed ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ member ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ personal ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ removed ○
-       │     │     │  ╰─ / ○
-       │     │     ╰─ starred ○
-       │     │        ╰─ / ○
-       │     ├─ snippets ○
-       │     │  ╰─ / ○
-       │     ╰─ todos ○
-       │        ╰─ / ○
-       │           ├─ bulk_restore ○
-       │           │  ╰─ / ○
-       │           ├─ destroy_all ○
-       │           │  ╰─ / ○
-       │           ├─ vue ○
-       │           │  ╰─ / ○
-       │           ╰─ {id} ○
-       │              ╰─ / ○
-       │                 ╰─ restore ○
-       │                    ╰─ / ○
-       ├─ explore ○
-       │  ╰─ / ○
-       │     ├─ catalog ○
-       │     │  ╰─ / ○
-       │     │     ├─ {*full_path}
-       │     │     │  ╰─ / ○
-       │     │     ╰─ {*full_path} ○
-       │     ├─ dependencies ○
-       │     │  ╰─ / ○
-       │     ├─ groups ○
-       │     │  ╰─ / ○
-       │     ├─ projects ○
-       │     │  ╰─ / ○
-       │     │     ├─ starred ○
-       │     │     │  ╰─ / ○
-       │     │     ╰─ t
-       │     │        ├─ opics ○
-       │     │        │  ╰─ / ○
-       │     │        │     ╰─ {topic_name} ○
-       │     │        │        ├─ .
-       │     │        │        │  ╰─ {format} ○
-       │     │        │        │     ╰─ / ○
-       │     │        │        ╰─ / ○
-       │     │        ╰─ rending ○
-       │     │           ╰─ / ○
-       │     ╰─ snippets ○
+       │     ╰─ graphql ○
        │        ╰─ / ○
        ├─ f
-       │  ├─ avicon.
-       │  │  ├─ ico ○
-       │  │  │  ╰─ / ○
-       │  │  ╰─ png ○
-       │  │     ╰─ / ○
-       │  ╰─ iles/note/
-       │     ╰─ {id}
-       │        ╰─ /
-       │           ╰─ {filename} ○
-       │              ╰─ / ○
-       ├─ groups ○
-       │  ╰─ / ○
-       │     ├─ new ○
-       │     │  ╰─ / ○
-       │     ├─ {*group_id}
-       │     │  ╰─ /-/
-       │     │     ├─ a
-       │     │     │  ├─ chievements ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ new ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ╰─ {id}
-       │     │     │  │        ╰─ /edit ○
-       │     │     │  │           ╰─ / ○
-       │     │     │  ├─ dd_ons/discover_duo_pro ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ├─ nalytics ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ c
-       │     │     │  │     │  ├─ i_cd ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  ├─ overage_reports ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  ╰─ ycle_analytics ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ├─ d
-       │     │     │  │     │  ├─ ashboards ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  │     ├─ {*vueroute}
-       │     │     │  │     │  │     │  ╰─ / ○
-       │     │     │  │     │  │     ╰─ {*vueroute} ○
-       │     │     │  │     │  ╰─ evops_adoption ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ├─ merge_request_analytics ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ productivity_analytics ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ repository_analytics ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ type_of_work/tasks_by_type ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ top_labels ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ╰─ value_stream_analytics ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  │           ├─ cycle_times ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ├─ lead_times ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ├─ summary ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ├─ time_summary ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ╰─ value_streams ○
-       │     │     │  │              ╰─ / ○
-       │     │     │  │                 ├─ new ○
-       │     │     │  │                 │  ╰─ / ○
-       │     │     │  │                 ├─ {id} ○
-       │     │     │  │                 │  ╰─ / ○
-       │     │     │  │                 │     ╰─ edit ○
-       │     │     │  │                 │        ╰─ / ○
-       │     │     │  │                 ╰─ {value_stream_id}
-       │     │     │  │                    ╰─ /stages ○
-       │     │     │  │                       ╰─ / ○
-       │     │     │  │                          ╰─ {id}
-       │     │     │  │                             ╰─ /
-       │     │     │  │                                ├─ average ○
-       │     │     │  │                                │  ├─ / ○
-       │     │     │  │                                │  ╰─ _duration_chart ○
-       │     │     │  │                                │     ╰─ / ○
-       │     │     │  │                                ├─ count ○
-       │     │     │  │                                │  ╰─ / ○
-       │     │     │  │                                ├─ median ○
-       │     │     │  │                                │  ╰─ / ○
-       │     │     │  │                                ╰─ records ○
-       │     │     │  │                                   ╰─ / ○
-       │     │     │  ├─ u
-       │     │     │  │  ├─ dit_events ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ╰─ tocomplete_sources/
-       │     │     │  │     ├─ commands ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ epics ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ i
-       │     │     │  │     │  ├─ ssues ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  ╰─ terations ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ├─ labels ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ m
-       │     │     │  │     │  ├─ e
-       │     │     │  │     │  │  ├─ mbers ○
-       │     │     │  │     │  │  │  ╰─ / ○
-       │     │     │  │     │  │  ╰─ rge_requests ○
-       │     │     │  │     │  │     ╰─ / ○
-       │     │     │  │     │  ╰─ ilestones ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ├─ vulnerabilities ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ╰─ wikis ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ╰─ vatar ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ b
-       │     │     │  ├─ illings ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ╰─ refresh_seats ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ╰─ oards ○
-       │     │     │     ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     ├─ c
-       │     │     │  ├─ adences ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ new ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ {id} ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ edit ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ├─ {iteration_cadence_id}
-       │     │     │  │     │  ╰─ /iterations ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     │        ├─ new ○
-       │     │     │  │     │        │  ╰─ / ○
-       │     │     │  │     │        ╰─ {id} ○
-       │     │     │  │     │           ╰─ / ○
-       │     │     │  │     │              ╰─ edit ○
-       │     │     │  │     │                 ╰─ / ○
-       │     │     │  │     ├─ {*vueroute}
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ├─ new ○
-       │     │     │  │     │     │  ╰─ / ○
-       │     │     │  │     │     ├─ {id} ○
-       │     │     │  │     │     │  ╰─ / ○
-       │     │     │  │     │     │     ╰─ edit ○
-       │     │     │  │     │     │        ╰─ / ○
-       │     │     │  │     │     ╰─ {iteration_cadence_id}
-       │     │     │  │     │        ╰─ /iterations ○
-       │     │     │  │     │           ╰─ / ○
-       │     │     │  │     │              ├─ new ○
-       │     │     │  │     │              │  ╰─ / ○
-       │     │     │  │     │              ╰─ {id} ○
-       │     │     │  │     │                 ╰─ / ○
-       │     │     │  │     │                    ╰─ edit ○
-       │     │     │  │     │                       ╰─ / ○
-       │     │     │  │     ╰─ {*vueroute} ○
-       │     │     │  ├─ hildren ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ├─ lusters ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ c
-       │     │     │  │     │  ├─ onnect ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  ╰─ reate_user ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ├─ new_cluster_docs ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ {cluster_id}
-       │     │     │  │     │  ╰─ /integration/create_or_update ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     ╰─ {id} ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  │           ├─ cl
-       │     │     │  │           │  ├─ ear_cache ○
-       │     │     │  │           │  │  ╰─ / ○
-       │     │     │  │           │  ╰─ uster_status ○
-       │     │     │  │           │     ╰─ / ○
-       │     │     │  │           ├─ environments ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ╰─ metrics ○
-       │     │     │  │              ├─ / ○
-       │     │     │  │              ╰─ _dashboard ○
-       │     │     │  │                 ╰─ / ○
-       │     │     │  ├─ o
-       │     │     │  │  ├─ mment_templates ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  │     ╰─ {id} ○
-       │     │     │  │  │        ╰─ / ○
-       │     │     │  │  ╰─ nt
-       │     │     │  │     ├─ ainer_registries ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ {id} ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ╰─ ribution_analytics ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ├─ rm/
-       │     │     │  │  ├─ contacts ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  │     ├─ new ○
-       │     │     │  │  │     │  ╰─ / ○
-       │     │     │  │  │     ╰─ {id}
-       │     │     │  │  │        ╰─ /edit ○
-       │     │     │  │  │           ╰─ / ○
-       │     │     │  │  ╰─ organizations ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  │        ├─ new ○
-       │     │     │  │        │  ╰─ / ○
-       │     │     │  │        ╰─ {id}
-       │     │     │  │           ╰─ /edit ○
-       │     │     │  │              ╰─ / ○
-       │     │     │  ╰─ ustom_emoji ○
-       │     │     │     ╰─ / ○
-       │     │     │        ╰─ new ○
-       │     │     │           ╰─ / ○
-       │     │     ├─ d
-       │     │     │  ├─ ep
-       │     │     │  │  ├─ endenc
-       │     │     │  │  │  ├─ ies ○
-       │     │     │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │     ╰─ l
-       │     │     │  │  │  │        ├─ icenses ○
-       │     │     │  │  │  │        │  ╰─ / ○
-       │     │     │  │  │  │        ╰─ ocations ○
-       │     │     │  │  │  │           ╰─ / ○
-       │     │     │  │  │  ╰─ y_proxy ○
-       │     │     │  │  │     ╰─ / ○
-       │     │     │  │  ╰─ loy_tokens/
-       │     │     │  │     ╰─ {id}
-       │     │     │  │        ╰─ /revoke ○
-       │     │     │  │           ╰─ / ○
-       │     │     │  ╰─ iscover ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ epic
-       │     │     │  ├─ _boards ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ╰─ {id} ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ╰─ s ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ bulk_update ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ new ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ {epic_id}
-       │     │     │        │  ╰─ /
-       │     │     │        │     ├─ issues ○
-       │     │     │        │     │  ╰─ / ○
-       │     │     │        │     │     ╰─ {id} ○
-       │     │     │        │     │        ╰─ / ○
-       │     │     │        │     ├─ links ○
-       │     │     │        │     │  ╰─ / ○
-       │     │     │        │     │     ╰─ {id} ○
-       │     │     │        │     │        ╰─ / ○
-       │     │     │        │     ├─ notes ○
-       │     │     │        │     │  ╰─ / ○
-       │     │     │        │     │     ╰─ {id} ○
-       │     │     │        │     │        ╰─ / ○
-       │     │     │        │     │           ╰─ toggle_award_emoji ○
-       │     │     │        │     │              ╰─ / ○
-       │     │     │        │     ╰─ related_epic_links ○
-       │     │     │        │        ╰─ / ○
-       │     │     │        │           ╰─ {id} ○
-       │     │     │        │              ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ├─ d
-       │     │     │              │  ├─ escriptions/
-       │     │     │              │  │  ╰─ {version_id} ○
-       │     │     │              │  │     ╰─ / ○
-       │     │     │              │  │        ╰─ diff ○
-       │     │     │              │  │           ╰─ / ○
-       │     │     │              │  ╰─ iscussions ○
-       │     │     │              │     ╰─ / ○
-       │     │     │              ├─ edit ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ realtime_changes ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ╰─ toggle_
-       │     │     │                 ├─ award_emoji ○
-       │     │     │                 │  ╰─ / ○
-       │     │     │                 ╰─ subscription ○
-       │     │     │                    ╰─ / ○
-       │     │     ├─ group_
-       │     │     │  ├─ links/
-       │     │     │  │  ╰─ {id} ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  ╰─ members ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ bulk_reassignment_file ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ export_csv ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ leave ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ request_access ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ├─ approve_access_request ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ ban ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ override ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ resend_invite ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ╰─ unban ○
-       │     │     │                 ╰─ / ○
-       │     │     ├─ h
-       │     │     │  ├─ arbor/repositories ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ {id} ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ╰─ {repository_id}
-       │     │     │  │        ╰─ /artifacts ○
-       │     │     │  │           ╰─ / ○
-       │     │     │  │              ╰─ {artifact_id}
-       │     │     │  │                 ╰─ /tags ○
-       │     │     │  │                    ╰─ / ○
-       │     │     │  ╰─ ooks ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ {hook_id}
-       │     │     │        │  ╰─ /hook_logs/
-       │     │     │        │     ╰─ {id} ○
-       │     │     │        │        ╰─ / ○
-       │     │     │        │           ╰─ retry ○
-       │     │     │        │              ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ├─ edit ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ╰─ test ○
-       │     │     │                 ╰─ / ○
-       │     │     ├─ i
-       │     │     │  ├─ mport ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ├─ n
-       │     │     │  │  ├─ frastructure_registry ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ╰─ sights ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  │        ╰─ query ○
-       │     │     │  │           ╰─ / ○
-       │     │     │  ├─ ssues
-       │     │     │  │  ├─ /bulk_update ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ╰─ _analytics ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  ╰─ terations ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ new ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ╰─ edit ○
-       │     │     │                 ╰─ / ○
-       │     │     ├─ l
-       │     │     │  ├─ abels ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ new ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ╰─ {id} ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  │           ├─ edit ○
-       │     │     │  │           │  ╰─ / ○
-       │     │     │  │           ╰─ toggle_subscription ○
-       │     │     │  │              ╰─ / ○
-       │     │     │  ╰─ dap
-       │     │     │     ├─ /sync ○
-       │     │     │     │  ╰─ / ○
-       │     │     │     ╰─ _group_links ○
-       │     │     │        ╰─ / ○
-       │     │     │           ╰─ {id} ○
-       │     │     │              ╰─ / ○
-       │     │     ├─ m
-       │     │     │  ├─ erge_requests/bulk_update ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ ilestones ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ new ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ├─ edit ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ issues ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ labels ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ merge_requests ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ╰─ participants ○
-       │     │     │                 ╰─ / ○
-       │     │     ├─ notification_setting ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ p
-       │     │     │  ├─ ackages ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ╰─ {id} ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ├─ r
-       │     │     │  │  ├─ eview_markdown ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ╰─ otected_
-       │     │     │  │     ├─ branches ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ {id} ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ╰─ environments ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  │           ╰─ {id} ○
-       │     │     │  │              ╰─ / ○
-       │     │     │  ╰─ ush_rules ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ r
-       │     │     │  ├─ e
-       │     │     │  │  ├─ leases ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ╰─ store ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  ├─ oadmap ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ unners ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ dashboard ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ├─ new ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ╰─ {id} ○
-       │     │     │           ╰─ / ○
-       │     │     │              ├─ edit ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ├─ pause ○
-       │     │     │              │  ╰─ / ○
-       │     │     │              ╰─ re
-       │     │     │                 ├─ gister ○
-       │     │     │                 │  ╰─ / ○
-       │     │     │                 ╰─ sume ○
-       │     │     │                    ╰─ / ○
-       │     │     ├─ s
-       │     │     │  ├─ aml ○
-       │     │     │  │  ├─ / ○
-       │     │     │  │  │  ├─ callback ○
-       │     │     │  │  │  │  ╰─ / ○
-       │     │     │  │  │  ├─ sso ○
-       │     │     │  │  │  │  ╰─ / ○
-       │     │     │  │  │  ╰─ u
-       │     │     │  │  │     ├─ nlink ○
-       │     │     │  │  │     │  ╰─ / ○
-       │     │     │  │  │     ╰─ pdate_microsoft_application ○
-       │     │     │  │  │        ╰─ / ○
-       │     │     │  │  ╰─ _group_links ○
-       │     │     │  │     ╰─ / ○
-       │     │     │  │        ╰─ {id} ○
-       │     │     │  │           ╰─ / ○
-       │     │     │  ├─ cim_oauth ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ├─ e
-       │     │     │  │  ├─ at_usage ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  ├─ curity/
-       │     │     │  │  │  ├─ c
-       │     │     │  │  │  │  ├─ ompliance_
-       │     │     │  │  │  │  │  ├─ dashboard ○
-       │     │     │  │  │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │  │  │     ├─ {*vueroute}
-       │     │     │  │  │  │  │  │     │  ╰─ / ○
-       │     │     │  │  │  │  │  │     ╰─ {*vueroute} ○
-       │     │     │  │  │  │  │  ├─ framework_reports ○
-       │     │     │  │  │  │  │  │  ├─ .
-       │     │     │  │  │  │  │  │  │  ╰─ {format} ○
-       │     │     │  │  │  │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │  │  ├─ project_framework_reports ○
-       │     │     │  │  │  │  │  │  ├─ .
-       │     │     │  │  │  │  │  │  │  ╰─ {format} ○
-       │     │     │  │  │  │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │  │  ├─ standards_adherence_reports ○
-       │     │     │  │  │  │  │  │  ├─ .
-       │     │     │  │  │  │  │  │  │  ╰─ {format} ○
-       │     │     │  │  │  │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │  │  ╰─ violation_reports ○
-       │     │     │  │  │  │  │     ├─ .
-       │     │     │  │  │  │  │     │  ╰─ {format} ○
-       │     │     │  │  │  │  │     │     ╰─ / ○
-       │     │     │  │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │  ╰─ redentials ○
-       │     │     │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │        ╰─ {id} ○
-       │     │     │  │  │  │           ╰─ / ○
-       │     │     │  │  │  │              ╰─ revoke ○
-       │     │     │  │  │  │                 ╰─ / ○
-       │     │     │  │  │  ├─ d
-       │     │     │  │  │  │  ├─ ashboard ○
-       │     │     │  │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │  ╰─ iscover ○
-       │     │     │  │  │  │     ╰─ / ○
-       │     │     │  │  │  ├─ merge_commit_reports ○
-       │     │     │  │  │  │  ├─ .
-       │     │     │  │  │  │  │  ╰─ {format} ○
-       │     │     │  │  │  │  │     ╰─ / ○
-       │     │     │  │  │  │  ╰─ / ○
-       │     │     │  │  │  ├─ policies ○
-       │     │     │  │  │  │  ╰─ / ○
-       │     │     │  │  │  │     ├─ new ○
-       │     │     │  │  │  │     │  ╰─ / ○
-       │     │     │  │  │  │     ├─ schema ○
-       │     │     │  │  │  │     │  ╰─ / ○
-       │     │     │  │  │  │     ╰─ {id}
-       │     │     │  │  │  │        ╰─ /edit ○
-       │     │     │  │  │  │           ╰─ / ○
-       │     │     │  │  │  ╰─ vulnerabilities ○
-       │     │     │  │  │     ╰─ / ○
-       │     │     │  │  ├─ rvice_accounts ○
-       │     │     │  │  │  ╰─ / ○
-       │     │     │  │  │     ├─ new ○
-       │     │     │  │  │     │  ╰─ / ○
-       │     │     │  │  │     ├─ {id} ○
-       │     │     │  │  │     │  ╰─ / ○
-       │     │     │  │  │     │     ╰─ edit ○
-       │     │     │  │  │     │        ╰─ / ○
-       │     │     │  │  │     ├─ {*vueroute}
-       │     │     │  │  │     │  ╰─ / ○
-       │     │     │  │  │     │     ├─ new ○
-       │     │     │  │  │     │     │  ╰─ / ○
-       │     │     │  │  │     │     ╰─ {id} ○
-       │     │     │  │  │     │        ╰─ / ○
-       │     │     │  │  │     │           ╰─ edit ○
-       │     │     │  │  │     │              ╰─ / ○
-       │     │     │  │  │     ╰─ {*vueroute} ○
-       │     │     │  │  ╰─ ttings/
-       │     │     │  │     ├─ a
-       │     │     │  │     │  ├─ ccess_tokens ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  │     ╰─ {id}
-       │     │     │  │     │  │        ╰─ /revoke ○
-       │     │     │  │     │  │           ╰─ / ○
-       │     │     │  │     │  ├─ nalytics ○
-       │     │     │  │     │  │  ╰─ / ○
-       │     │     │  │     │  ╰─ pplications ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     │        ├─ new ○
-       │     │     │  │     │        │  ╰─ / ○
-       │     │     │  │     │        ╰─ {id} ○
-       │     │     │  │     │           ╰─ / ○
-       │     │     │  │     │              ├─ edit ○
-       │     │     │  │     │              │  ╰─ / ○
-       │     │     │  │     │              ╰─ renew ○
-       │     │     │  │     │                 ╰─ / ○
-       │     │     │  │     ├─ ci_cd ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ├─ deploy_token/create ○
-       │     │     │  │     │     │  ╰─ / ○
-       │     │     │  │     │     ├─ r
-       │     │     │  │     │     │  ├─ eset_registration_token ○
-       │     │     │  │     │     │  │  ╰─ / ○
-       │     │     │  │     │     │  ╰─ unner_setup_scripts ○
-       │     │     │  │     │     │     ╰─ / ○
-       │     │     │  │     │     ╰─ update_auto_devops ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ├─ domain_verification ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ├─ new ○
-       │     │     │  │     │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ {id} ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     │           ├─ clean_certificate ○
-       │     │     │  │     │           │  ╰─ / ○
-       │     │     │  │     │           ├─ retry_auto_ssl ○
-       │     │     │  │     │           │  ╰─ / ○
-       │     │     │  │     │           ╰─ verify ○
-       │     │     │  │     │              ╰─ / ○
-       │     │     │  │     ├─ gitlab_duo_usage ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ integrations ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ {id} ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     │           ├─ edit ○
-       │     │     │  │     │           │  ╰─ / ○
-       │     │     │  │     │           ├─ reset ○
-       │     │     │  │     │           │  ╰─ / ○
-       │     │     │  │     │           ╰─ test ○
-       │     │     │  │     │              ╰─ / ○
-       │     │     │  │     ├─ merge_requests ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ packages_and_registries ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ├─ r
-       │     │     │  │     │  ├─ epo
-       │     │     │  │     │  │  ├─ rting ○
-       │     │     │  │     │  │  │  ╰─ / ○
-       │     │     │  │     │  │  ╰─ sitory ○
-       │     │     │  │     │  │     ╰─ / ○
-       │     │     │  │     │  │        ╰─ deploy_token/create ○
-       │     │     │  │     │  │           ╰─ / ○
-       │     │     │  │     │  ╰─ oles_and_permissions ○
-       │     │     │  │     │     ╰─ / ○
-       │     │     │  │     │        ├─ new ○
-       │     │     │  │     │        │  ╰─ / ○
-       │     │     │  │     │        ╰─ {id} ○
-       │     │     │  │     │           ╰─ / ○
-       │     │     │  │     │              ╰─ edit ○
-       │     │     │  │     │                 ╰─ / ○
-       │     │     │  │     ├─ slack ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     │     ╰─ slack_auth ○
-       │     │     │  │     │        ╰─ / ○
-       │     │     │  │     ╰─ workspaces ○
-       │     │     │  │        ╰─ / ○
-       │     │     │  ╰─ hared_projects ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ t
-       │     │     │  ├─ erraform_module_registry ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ├─ odos ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ wo_factor_auth ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ u
-       │     │     │  ├─ ploads ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  │     ├─ authorize ○
-       │     │     │  │     │  ╰─ / ○
-       │     │     │  │     ╰─ {secret}
-       │     │     │  │        ╰─ /
-       │     │     │  │           ╰─ {filename} ○
-       │     │     │  │              ├─ .
-       │     │     │  │              │  ╰─ {format} ○
-       │     │     │  │              │     ╰─ / ○
-       │     │     │  │              ╰─ / ○
-       │     │     │  ╰─ sage_quotas ○
-       │     │     │     ╰─ / ○
-       │     │     │        ├─ pending_members ○
-       │     │     │        │  ╰─ / ○
-       │     │     │        ╰─ subscription_history ○
-       │     │     │           ├─ .
-       │     │     │           │  ╰─ {format} ○
-       │     │     │           │     ╰─ / ○
-       │     │     │           ╰─ / ○
-       │     │     ├─ variables ○
-       │     │     │  ╰─ / ○
-       │     │     ╰─ w
-       │     │        ├─ ikis ○
-       │     │        │  ╰─ / ○
-       │     │        │     ├─ -/confluence ○
-       │     │        │     │  ╰─ / ○
-       │     │        │     ├─ git_access ○
-       │     │        │     │  ╰─ / ○
-       │     │        │     ├─ new ○
-       │     │        │     │  ╰─ / ○
-       │     │        │     ├─ pages ○
-       │     │        │     │  ╰─ / ○
-       │     │        │     ├─ templates ○
-       │     │        │     │  ╰─ / ○
-       │     │        │     ├─ {*id}
-       │     │        │     │  ╰─ / ○
-       │     │        │     │     ├─ diff ○
-       │     │        │     │     │  ╰─ / ○
-       │     │        │     │     ├─ edit ○
-       │     │        │     │     │  ╰─ / ○
-       │     │        │     │     ├─ history ○
-       │     │        │     │     │  ╰─ / ○
-       │     │        │     │     ├─ preview_markdown ○
-       │     │        │     │     │  ╰─ / ○
-       │     │        │     │     ╰─ raw ○
-       │     │        │     │        ╰─ / ○
-       │     │        │     ╰─ {*id} ○
-       │     │        ╰─ ork_items ○
-       │     │           ╰─ / ○
-       │     │              ╰─ {iid} ○
-       │     │                 ╰─ / ○
-       │     │                    ╰─ descriptions/
-       │     │                       ╰─ {version_id} ○
-       │     │                          ╰─ / ○
-       │     │                             ╰─ diff ○
-       │     │                                ╰─ / ○
-       │     ├─ {*id}
-       │     │  ├─ .
-       │     │  │  ╰─ {format} ○
-       │     │  │     ╰─ / ○
-       │     │  ╰─ / ○
-       │     │     ╰─ -/
-       │     │        ├─ a
-       │     │        │  ├─ ctivity ○
-       │     │        │  │  ├─ .
-       │     │        │  │  │  ╰─ {format} ○
-       │     │        │  │  │     ╰─ / ○
-       │     │        │  │  ╰─ / ○
-       │     │        │  ╰─ rchived ○
-       │     │        │     ├─ .
-       │     │        │     │  ╰─ {format} ○
-       │     │        │     │     ╰─ / ○
-       │     │        │     ╰─ / ○
-       │     │        ├─ d
-       │     │        │  ├─ etails ○
-       │     │        │  │  ├─ .
-       │     │        │  │  │  ╰─ {format} ○
-       │     │        │  │  │     ╰─ / ○
-       │     │        │  │  ╰─ / ○
-       │     │        │  ╰─ ownload_export ○
-       │     │        │     ├─ .
-       │     │        │     │  ╰─ {format} ○
-       │     │        │     │     ╰─ / ○
-       │     │        │     ╰─ / ○
-       │     │        ├─ e
-       │     │        │  ├─ dit ○
-       │     │        │  │  ├─ .
-       │     │        │  │  │  ╰─ {format} ○
-       │     │        │  │  │     ╰─ / ○
-       │     │        │  │  ╰─ / ○
-       │     │        │  ╰─ xport ○
-       │     │        │     ├─ .
-       │     │        │     │  ╰─ {format} ○
-       │     │        │     │     ╰─ / ○
-       │     │        │     ╰─ / ○
-       │     │        ├─ i
-       │     │        │  ├─ nactive ○
-       │     │        │  │  ├─ .
-       │     │        │  │  │  ╰─ {format} ○
-       │     │        │  │  │     ╰─ / ○
-       │     │        │  │  ╰─ / ○
-       │     │        │  ╰─ ssues ○
-       │     │        │     ├─ .
-       │     │        │     │  ╰─ {format} ○
-       │     │        │     │     ╰─ / ○
-       │     │        │     ╰─ / ○
-       │     │        ├─ merge_requests ○
-       │     │        │  ├─ .
-       │     │        │  │  ╰─ {format} ○
-       │     │        │  │     ╰─ / ○
-       │     │        │  ╰─ / ○
-       │     │        ├─ projects ○
-       │     │        │  ├─ .
-       │     │        │  │  ╰─ {format} ○
-       │     │        │  │     ╰─ / ○
-       │     │        │  ╰─ / ○
-       │     │        ├─ shared ○
-       │     │        │  ├─ .
-       │     │        │  │  ╰─ {format} ○
-       │     │        │  │     ╰─ / ○
-       │     │        │  ╰─ / ○
-       │     │        ├─ transfer ○
-       │     │        │  ├─ .
-       │     │        │  │  ╰─ {format} ○
-       │     │        │  │     ╰─ / ○
-       │     │        │  ╰─ / ○
-       │     │        ╰─ unfoldered_environment_names ○
-       │     │           ├─ .
-       │     │           │  ╰─ {format} ○
-       │     │           │     ╰─ / ○
-       │     │           ╰─ / ○
-       │     ╰─ {*id} ○
-       ├─ he
-       │  ├─ alth_check ○
-       │  │  ├─ .
-       │  │  │  ╰─ {format} ○
-       │  │  │     ╰─ / ○
-       │  │  ╰─ / ○
-       │  │     ╰─ {checks} ○
-       │  │        ├─ .
-       │  │        │  ╰─ {format} ○
-       │  │        │     ╰─ / ○
-       │  │        ╰─ / ○
-       │  ╰─ lp ○
-       │     ╰─ / ○
-       │        ├─ d
-       │        │  ├─ ocs ○
-       │        │  │  ╰─ / ○
-       │        │  ╰─ rawers/
-       │        │     ├─ {*markdown_file}
-       │        │     │  ╰─ / ○
-       │        │     ╰─ {*markdown_file} ○
-       │        ├─ instance_configuration ○
-       │        │  ╰─ / ○
-       │        ├─ shortcuts ○
-       │        │  ╰─ / ○
-       │        ├─ {*path}
-       │        │  ╰─ / ○
-       │        ╰─ {*path} ○
-       ├─ import/
-       │  ├─ b
-       │  │  ├─ itbucket ○
-       │  │  │  ├─ / ○
-       │  │  │  │  ├─ callback ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ realtime_changes ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ status ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ╰─ _server ○
-       │  │  │     ╰─ / ○
-       │  │  │        ├─ c
-       │  │  │        │  ├─ allback ○
-       │  │  │        │  │  ╰─ / ○
-       │  │  │        │  ╰─ onfigure ○
-       │  │  │        │     ╰─ / ○
-       │  │  │        ├─ new ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        ├─ realtime_changes ○
-       │  │  │        │  ╰─ / ○
-       │  │  │        ╰─ status ○
-       │  │  │           ╰─ / ○
-       │  │  ╰─ ulk_imports ○
-       │  │     ╰─ / ○
-       │  │        ├─ configure ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ history ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ realtime_changes ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ status ○
-       │  │        │  ╰─ / ○
-       │  │        ╰─ {id}
-       │  │           ╰─ /history ○
-       │  │              ╰─ / ○
-       │  │                 ╰─ {entity_id}
-       │  │                    ╰─ /failures ○
-       │  │                       ╰─ / ○
-       │  ├─ fogbugz ○
-       │  │  ╰─ / ○
-       │  │     ├─ callback ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ new ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ realtime_changes ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ status ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ user_map ○
-       │  │        ╰─ / ○
-       │  ├─ git
-       │  │  ├─ ea ○
-       │  │  │  ╰─ / ○
-       │  │  │     ├─ new ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ├─ personal_access_token ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ├─ realtime_changes ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ╰─ status ○
-       │  │  │        ╰─ / ○
-       │  │  ├─ hub ○
-       │  │  │  ├─ / ○
-       │  │  │  │  ├─ c
-       │  │  │  │  │  ├─ a
-       │  │  │  │  │  │  ├─ llback ○
-       │  │  │  │  │  │  │  ╰─ / ○
-       │  │  │  │  │  │  ╰─ ncel ○
-       │  │  │  │  │  │     ├─ / ○
-       │  │  │  │  │  │     ╰─ _all ○
-       │  │  │  │  │  │        ╰─ / ○
-       │  │  │  │  │  ╰─ ounts ○
-       │  │  │  │  │     ╰─ / ○
-       │  │  │  │  ├─ details ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ failures ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ new ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ personal_access_token ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ├─ realtime_changes ○
-       │  │  │  │  │  ╰─ / ○
-       │  │  │  │  ╰─ status ○
-       │  │  │  │     ╰─ / ○
-       │  │  │  ╰─ _group/status ○
-       │  │  │     ╰─ / ○
-       │  │  ╰─ lab_
-       │  │     ├─ group ○
-       │  │     │  ╰─ / ○
-       │  │     │     ╰─ authorize ○
-       │  │     │        ╰─ / ○
-       │  │     ╰─ project ○
-       │  │        ╰─ / ○
-       │  │           ├─ authorize ○
-       │  │           │  ╰─ / ○
-       │  │           ╰─ new ○
-       │  │              ╰─ / ○
-       │  ├─ history ○
-       │  │  ╰─ / ○
-       │  ├─ manifest ○
-       │  │  ╰─ / ○
-       │  │     ├─ new ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ realtime_changes ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ status ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ upload ○
-       │  │        ╰─ / ○
-       │  ├─ source_users/
-       │  │  ╰─ {id} ○
-       │  │     ╰─ / ○
-       │  │        ├─ accept ○
-       │  │        │  ╰─ / ○
-       │  │        ╰─ decline ○
+       │  ├─ iles/note/
+       │  │  ╰─ {id}
+       │  │     ╰─ /
+       │  │        ╰─ {filename} ○
        │  │           ╰─ / ○
-       │  ╰─ url/validate ○
-       │     ╰─ / ○
-       ├─ jwt/auth ○
-       │  ╰─ / ○
-       ├─ oauth/
-       │  ├─ a
-       │  │  ├─ pplications ○
-       │  │  │  ╰─ / ○
-       │  │  │     ├─ new ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ╰─ {id} ○
-       │  │  │        ╰─ / ○
-       │  │  │           ├─ edit ○
-       │  │  │           │  ╰─ / ○
-       │  │  │           ╰─ renew ○
-       │  │  │              ╰─ / ○
-       │  │  ╰─ uthorize ○
-       │  │     ├─ / ○
-       │  │     │  ╰─ native ○
-       │  │     │     ╰─ / ○
-       │  │     ├─ _device ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ d_applications ○
-       │  │        ╰─ / ○
-       │  │           ╰─ {id} ○
-       │  │              ╰─ / ○
-       │  ├─ d
-       │  │  ├─ evice ○
-       │  │  │  ╰─ / ○
-       │  │  │     ╰─ confirm ○
-       │  │  │        ╰─ / ○
-       │  │  ╰─ iscovery/keys ○
-       │  │     ╰─ / ○
-       │  ├─ geo/
-       │  │  ├─ auth ○
-       │  │  │  ╰─ / ○
-       │  │  ├─ callback ○
-       │  │  │  ╰─ / ○
-       │  │  ╰─ logout ○
-       │  │     ╰─ / ○
-       │  ├─ introspect ○
-       │  │  ╰─ / ○
-       │  ├─ revoke ○
-       │  │  ╰─ / ○
-       │  ├─ token ○
-       │  │  ╰─ / ○
-       │  │     ╰─ info ○
-       │  │        ╰─ / ○
-       │  ╰─ userinfo ○
-       │     ╰─ / ○
+       │  ╰─ avicon.
+       │     ├─ ico ○
+       │     │  ╰─ / ○
+       │     ╰─ png ○
+       │        ╰─ / ○
        ├─ p
        │  ├─ rojects ○
        │  │  ╰─ / ○
@@ -2263,90 +2368,6 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │     ╰─ / ○
        │        ╰─ projects ○
        │           ╰─ / ○
-       ├─ rails/
-       │  ├─ features ○
-       │  │  ╰─ /
-       │  │     ├─ definitions ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ {id} ○
-       │  │        ╰─ / ○
-       │  ├─ info ○
-       │  │  ╰─ / ○
-       │  │     ├─ properties ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ routes ○
-       │  │        ╰─ / ○
-       │  ├─ l
-       │  │  ├─ etter_opener ○
-       │  │  │  ╰─ / ○
-       │  │  │     ├─ clear ○
-       │  │  │     │  ╰─ / ○
-       │  │  │     ╰─ {id} ○
-       │  │  │        ╰─ / ○
-       │  │  │           ├─ attachments/
-       │  │  │           │  ╰─ {file} ○
-       │  │  │           │     ╰─ / ○
-       │  │  │           ├─ delete ○
-       │  │  │           │  ╰─ / ○
-       │  │  │           ╰─ {style} ○
-       │  │  │              ╰─ / ○
-       │  │  ╰─ ookbook ○
-       │  │     ╰─ /
-       │  │        ├─ cable ○
-       │  │        │  ╰─ / ○
-       │  │        ├─ embed ○
-       │  │        │  ╰─ / ○
-       │  │        │     ├─ {*path}
-       │  │        │     │  ╰─ / ○
-       │  │        │     ╰─ {*path} ○
-       │  │        ├─ inspect/
-       │  │        │  ├─ {*path}
-       │  │        │  │  ╰─ / ○
-       │  │        │  ╰─ {*path} ○
-       │  │        ├─ p
-       │  │        │  ├─ ages ○
-       │  │        │  │  ╰─ / ○
-       │  │        │  │     ├─ {*path}
-       │  │        │  │     │  ╰─ / ○
-       │  │        │  │     ╰─ {*path} ○
-       │  │        │  ╰─ review
-       │  │        │     ├─ /
-       │  │        │     │  ├─ {*path}
-       │  │        │     │  │  ╰─ / ○
-       │  │        │     │  ╰─ {*path} ○
-       │  │        │     ╰─ s ○
-       │  │        │        ╰─ / ○
-       │  │        ├─ {*path}
-       │  │        │  ╰─ / ○
-       │  │        ╰─ {*path} ○
-       │  ╰─ mailers ○
-       │     ╰─ / ○
-       │        ╰─ {path} ○
-       │           ╰─ / ○
-       ├─ s
-       │  ├─ earch ○
-       │  │  ╰─ / ○
-       │  │     ├─ a
-       │  │     │  ├─ ggregations ○
-       │  │     │  │  ╰─ / ○
-       │  │     │  ╰─ utocomplete ○
-       │  │     │     ╰─ / ○
-       │  │     ├─ count ○
-       │  │     │  ╰─ / ○
-       │  │     ├─ opensearch ○
-       │  │     │  ╰─ / ○
-       │  │     ╰─ settings ○
-       │  │        ╰─ / ○
-       │  ├─ itemap ○
-       │  │  ╰─ / ○
-       │  ╰─ nippets ○
-       │     ╰─ / ○
-       │        ├─ {id}
-       │        │  ╰─ /raw ○
-       │        │     ╰─ / ○
-       │        ├─ {*rest}
-       │        │  ╰─ / ○
-       │        ╰─ {*rest} ○
        ├─ u
        │  ├─ nsubscribes/
        │  │  ╰─ {email} ○
@@ -2360,15 +2381,15 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │  │  │           ╰─ / ○
        │  │  │  ╰─ {model}
        │  │  │     ╰─ /
-       │  │  │        ├─ {id}
+       │  │  │        ├─ {mounted_as}
        │  │  │        │  ╰─ /
-       │  │  │        │     ╰─ {secret}
+       │  │  │        │     ╰─ {id}
        │  │  │        │        ╰─ /
        │  │  │        │           ╰─ {filename} ○
        │  │  │        │              ╰─ / ○
-       │  │  │        ╰─ {mounted_as}
+       │  │  │        ╰─ {id}
        │  │  │           ╰─ /
-       │  │  │              ╰─ {id}
+       │  │  │              ╰─ {secret}
        │  │  │                 ╰─ /
        │  │  │                    ╰─ {filename} ○
        │  │  │                       ╰─ / ○
@@ -2378,36 +2399,10 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │  │           ╰─ / ○
        │  ╰─ sers ○
        │     ╰─ / ○
-       │        ├─ a
-       │        │  ├─ lmost_there ○
-       │        │  │  ╰─ / ○
-       │        │  ╰─ uth ○
-       │        │     ╰─ / ○
-       │        │        ├─ geo/sign_
-       │        │        │  ├─ in ○
-       │        │        │  │  ╰─ / ○
-       │        │        │  ╰─ out ○
-       │        │        │     ╰─ / ○
-       │        │        ╰─ kerberos/negotiate ○
-       │        │           ╰─ / ○
-       │        ├─ c
-       │        │  ├─ ancel ○
-       │        │  │  ╰─ / ○
-       │        │  ╰─ onfirmation ○
-       │        │     ╰─ / ○
-       │        │        ╰─ new ○
-       │        │           ╰─ / ○
-       │        ├─ edit ○
+       │        ├─ resend_verification_code ○
        │        │  ╰─ / ○
        │        ├─ identity_verification ○
        │        │  ╰─ / ○
-       │        │     ├─ arkose_labs_challenge ○
-       │        │     │  ╰─ / ○
-       │        │     ├─ res
-       │        │     │  ├─ end_email_code ○
-       │        │     │  │  ╰─ / ○
-       │        │     │  ╰─ tricted ○
-       │        │     │     ╰─ / ○
        │        │     ├─ s
        │        │     │  ├─ end_phone_verification_code ○
        │        │     │  │  ╰─ / ○
@@ -2415,19 +2410,26 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │        │     │     ╰─ / ○
        │        │     ├─ toggle_phone_exemption ○
        │        │     │  ╰─ / ○
+       │        │     ├─ arkose_labs_challenge ○
+       │        │     │  ╰─ / ○
+       │        │     ├─ res
+       │        │     │  ├─ end_email_code ○
+       │        │     │  │  ╰─ / ○
+       │        │     │  ╰─ tricted ○
+       │        │     │     ╰─ / ○
        │        │     ╰─ verif
        │        │        ├─ ication_state ○
        │        │        │  ╰─ / ○
        │        │        ╰─ y_
+       │        │           ├─ phone_verification_code ○
+       │        │           │  ╰─ / ○
        │        │           ├─ arkose_labs_session ○
        │        │           │  ╰─ / ○
        │        │           ├─ credit_card ○
        │        │           │  ├─ / ○
        │        │           │  ╰─ _captcha ○
        │        │           │     ╰─ / ○
-       │        │           ├─ email_code ○
-       │        │           │  ╰─ / ○
-       │        │           ╰─ phone_verification_code ○
+       │        │           ╰─ email_code ○
        │        │              ╰─ / ○
        │        ├─ password ○
        │        │  ╰─ / ○
@@ -2437,52 +2439,60 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │        │     │  ╰─ / ○
        │        │     ╰─ new ○
        │        │        ╰─ / ○
-       │        ├─ resend_verification_code ○
+       │        ├─ u
+       │        │  ├─ pdate_email ○
+       │        │  │  ╰─ / ○
+       │        │  ╰─ nlock ○
+       │        │     ╰─ / ○
+       │        │        ╰─ new ○
+       │        │           ╰─ / ○
+       │        ├─ edit ○
        │        │  ╰─ / ○
        │        ├─ s
-       │        │  ├─ ign_
-       │        │  │  ├─ in ○
-       │        │  │  │  ╰─ / ○
-       │        │  │  ├─ out ○
-       │        │  │  │  ╰─ / ○
-       │        │  │  ╰─ up ○
-       │        │  │     ╰─ / ○
-       │        │  │        ├─ company ○
-       │        │  │        │  ╰─ / ○
-       │        │  │        │     ╰─ new ○
-       │        │  │        │        ╰─ / ○
-       │        │  │        ├─ groups ○
-       │        │  │        │  ╰─ / ○
-       │        │  │        │     ╰─ new ○
-       │        │  │        │        ╰─ / ○
-       │        │  │        ╰─ welcome ○
-       │        │  │           ╰─ / ○
-       │        │  ╰─ uccessful_verification ○
+       │        │  ├─ uccessful_verification ○
+       │        │  │  ╰─ / ○
+       │        │  ╰─ ign_
+       │        │     ├─ out ○
+       │        │     │  ╰─ / ○
+       │        │     ├─ in ○
+       │        │     │  ╰─ / ○
+       │        │     ╰─ up ○
+       │        │        ╰─ / ○
+       │        │           ├─ company ○
+       │        │           │  ╰─ / ○
+       │        │           │     ╰─ new ○
+       │        │           │        ╰─ / ○
+       │        │           ├─ welcome ○
+       │        │           │  ╰─ / ○
+       │        │           ╰─ groups ○
+       │        │              ╰─ / ○
+       │        │                 ╰─ new ○
+       │        │                    ╰─ / ○
+       │        ├─ a
+       │        │  ├─ lmost_there ○
+       │        │  │  ╰─ / ○
+       │        │  ╰─ uth ○
        │        │     ╰─ / ○
-       │        ├─ u
-       │        │  ├─ nlock ○
+       │        │        ├─ kerberos/negotiate ○
+       │        │        │  ╰─ / ○
+       │        │        ╰─ geo/sign_
+       │        │           ├─ out ○
+       │        │           │  ╰─ / ○
+       │        │           ╰─ in ○
+       │        │              ╰─ / ○
+       │        ├─ c
+       │        │  ├─ onfirmation ○
        │        │  │  ╰─ / ○
        │        │  │     ╰─ new ○
        │        │  │        ╰─ / ○
-       │        │  ╰─ pdate_email ○
+       │        │  ╰─ ancel ○
        │        │     ╰─ / ○
        │        ╰─ {username} ○
        │           ╰─ / ○
-       │              ├─ a
-       │              │  ├─ ctivity ○
-       │              │  │  ╰─ / ○
-       │              │  ╰─ vailable_
-       │              │     ├─ group_templates ○
-       │              │     │  ╰─ / ○
-       │              │     ╰─ project_templates ○
-       │              │        ╰─ / ○
-       │              ├─ c
-       │              │  ├─ alendar ○
-       │              │  │  ├─ / ○
-       │              │  │  ╰─ _activities ○
-       │              │  │     ╰─ / ○
-       │              │  ╰─ ontributed ○
-       │              │     ╰─ / ○
+       │              ├─ projects ○
+       │              │  ╰─ / ○
+       │              ├─ unfollow ○
+       │              │  ╰─ / ○
        │              ├─ exists ○
        │              │  ╰─ / ○
        │              ├─ follow ○
@@ -2493,1972 +2503,1962 @@ fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
        │              │     ╰─ / ○
        │              ├─ groups ○
        │              │  ╰─ / ○
-       │              ├─ projects ○
-       │              │  ╰─ / ○
-       │              ├─ s
-       │              │  ├─ nippets ○
+       │              ├─ a
+       │              │  ├─ ctivity ○
        │              │  │  ╰─ / ○
-       │              │  ╰─ tarred ○
-       │              │     ╰─ / ○
-       │              ╰─ unfollow ○
-       │                 ╰─ / ○
-       ├─ v2 ○
-       │  ╰─ / ○
-       │     ╰─ {*group_id}
-       │        ╰─ /dependency_proxy/containers/
-       │           ╰─ {*image}
-       │              ╰─ /
-       │                 ├─ blobs/
-       │                 │  ╰─ {sha} ○
-       │                 │     ╰─ / ○
-       │                 │        ╰─ upload ○
-       │                 │           ╰─ / ○
-       │                 │              ╰─ authorize ○
-       │                 │                 ╰─ / ○
-       │                 ╰─ manifests/
-       │                    ├─ {*tag}
-       │                    │  ╰─ / ○
-       │                    │     ╰─ upload ○
-       │                    │        ╰─ / ○
-       │                    │           ╰─ authorize ○
-       │                    │              ╰─ / ○
-       │                    ╰─ {*tag} ○
+       │              │  ╰─ vailable_
+       │              │     ├─ project_templates ○
+       │              │     │  ╰─ / ○
+       │              │     ╰─ group_templates ○
+       │              │        ╰─ / ○
+       │              ├─ c
+       │              │  ├─ ontributed ○
+       │              │  │  ╰─ / ○
+       │              │  ╰─ alendar ○
+       │              │     ├─ / ○
+       │              │     ╰─ _activities ○
+       │              │        ╰─ / ○
+       │              ╰─ s
+       │                 ├─ nippets ○
+       │                 │  ╰─ / ○
+       │                 ╰─ tarred ○
+       │                    ╰─ / ○
        ├─ {username} ○
-       │  ├─ .
-       │  │  ├─ gpg ○
-       │  │  │  ╰─ / ○
-       │  │  ╰─ keys ○
-       │  │     ╰─ / ○
+       │  ├─ / ○
+       │  ╰─ .
+       │     ├─ keys ○
+       │     │  ╰─ / ○
+       │     ╰─ gpg ○
+       │        ╰─ / ○
+       ├─ {*repository_path}
        │  ╰─ / ○
-       ├─ {*id}
-       │  ├─ .
-       │  │  ╰─ {format} ○
-       │  │     ╰─ / ○
+       │     ├─ info/
+       │     │  ├─ lfs/
+       │     │  │  ├─ objects ○
+       │     │  │  │  ╰─ / ○
+       │     │  │  │     ├─ batch ○
+       │     │  │  │     │  ╰─ / ○
+       │     │  │  │     ├─ {*oid}
+       │     │  │  │     │  ╰─ / ○
+       │     │  │  │     ╰─ {*oid} ○
+       │     │  │  ╰─ locks ○
+       │     │  │     ╰─ / ○
+       │     │  │        ├─ verify ○
+       │     │  │        │  ╰─ / ○
+       │     │  │        ├─ new ○
+       │     │  │        │  ╰─ / ○
+       │     │  │        ╰─ {id} ○
+       │     │  │           ╰─ / ○
+       │     │  │              ├─ unlock ○
+       │     │  │              │  ╰─ / ○
+       │     │  │              ╰─ edit ○
+       │     │  │                 ╰─ / ○
+       │     │  ╰─ refs ○
+       │     │     ╰─ / ○
+       │     ├─ ssh-
+       │     │  ├─ receive-pack ○
+       │     │  │  ╰─ / ○
+       │     │  ╰─ upload-pack ○
+       │     │     ╰─ / ○
+       │     ╰─ git
+       │        ├─ lab-lfs/objects/
+       │        │  ├─ {*oid}
+       │        │  │  ╰─ / ○
+       │        │  │     ╰─ {size} ○
+       │        │  │        ╰─ / ○
+       │        │  │           ╰─ authorize ○
+       │        │  │              ╰─ / ○
+       │        │  ╰─ {*oid} ○
+       │        ╰─ -
+       │           ├─ receive-pack ○
+       │           │  ╰─ / ○
+       │           ╰─ upload-pack ○
+       │              ╰─ / ○
+       ├─ {*unmatched_route}
        │  ╰─ / ○
        ├─ {*namespace_id}
        │  ╰─ /
-       │     ├─ {id} ○
+       │     ├─ {project_id} ○
        │     │  ╰─ / ○
-       │     │     ├─ a
-       │     │     │  ├─ ctivity ○
+       │     │     ├─ v
+       │     │     │  ├─ ulnerability_feedback ○
        │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ rchive ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ ariables ○
        │     │     │     ╰─ / ○
-       │     │     ├─ download_export ○
+       │     │     │        ├─ {*rest}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*rest} ○
+       │     │     ├─ uploads ○
        │     │     │  ╰─ / ○
-       │     │     ├─ e
-       │     │     │  ├─ dit ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ xport ○
-       │     │     │     ╰─ / ○
-       │     │     ├─ generate_new_export ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ housekeeping ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ new_issuable_address ○
-       │     │     │  ╰─ / ○
-       │     │     ├─ re
-       │     │     │  ├─ fs ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ move_
-       │     │     │     ├─ export ○
+       │     │     │     ├─ authorize ○
        │     │     │     │  ╰─ / ○
-       │     │     │     ╰─ fork ○
-       │     │     │        ╰─ / ○
-       │     │     ├─ t
-       │     │     │  ├─ oggle_star ○
-       │     │     │  │  ╰─ / ○
-       │     │     │  ╰─ ransfer ○
-       │     │     │     ╰─ / ○
-       │     │     ╰─ un
-       │     │        ├─ archive ○
-       │     │        │  ╰─ / ○
-       │     │        ╰─ foldered_environment_names ○
-       │     │           ╰─ / ○
-       │     ╰─ {project_id} ○
-       │        ╰─ / ○
-       │           ├─ -/
-       │           │  ├─ a
-       │           │  │  ├─ lert_management ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ╰─ {id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ╰─ details ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  │                 ├─ {*page}
-       │           │  │  │                 │  ╰─ / ○
-       │           │  │  │                 ╰─ {*page} ○
-       │           │  │  ├─ nalytics/
-       │           │  │  │  ├─ code_reviews ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ├─ dashboards ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ├─ {*vueroute}
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ {*vueroute} ○
-       │           │  │  │  ├─ issues_analytics ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ├─ merge_request_analytics ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ value_stream_analytics ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ summary ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ time_summary ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ╰─ value_streams ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  │              ├─ new ○
-       │           │  │  │              │  ╰─ / ○
-       │           │  │  │              ├─ {id} ○
-       │           │  │  │              │  ╰─ / ○
-       │           │  │  │              │     ╰─ edit ○
-       │           │  │  │              │        ╰─ / ○
-       │           │  │  │              ╰─ {value_stream_id}
-       │           │  │  │                 ╰─ /stages ○
-       │           │  │  │                    ╰─ / ○
-       │           │  │  │                       ╰─ {id}
-       │           │  │  │                          ╰─ /
-       │           │  │  │                             ├─ average ○
-       │           │  │  │                             │  ├─ / ○
-       │           │  │  │                             │  ╰─ _duration_chart ○
-       │           │  │  │                             │     ╰─ / ○
-       │           │  │  │                             ├─ count ○
-       │           │  │  │                             │  ╰─ / ○
-       │           │  │  │                             ├─ median ○
-       │           │  │  │                             │  ╰─ / ○
-       │           │  │  │                             ╰─ records ○
-       │           │  │  │                                ╰─ / ○
-       │           │  │  ├─ pprover
-       │           │  │  │  ├─ _groups/
-       │           │  │  │  │  ╰─ {id} ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  ╰─ s/
-       │           │  │  │     ╰─ {id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ├─ r
-       │           │  │  │  ├─ chive/
-       │           │  │  │  │  ╰─ {id}
-       │           │  │  │  │     ╰─ .
-       │           │  │  │  │        ╰─ {format} ○
-       │           │  │  │  │           ╰─ / ○
-       │           │  │  │  ╰─ tifacts ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ├─ u
-       │           │  │  │  ├─ dit_events ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ to
-       │           │  │  │     ├─ complete_sources/
-       │           │  │  │     │  ├─ co
-       │           │  │  │     │  │  ├─ mmands ○
-       │           │  │  │     │  │  │  ╰─ / ○
-       │           │  │  │     │  │  ╰─ ntacts ○
-       │           │  │  │     │  │     ╰─ / ○
-       │           │  │  │     │  ├─ epics ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ├─ i
-       │           │  │  │     │  │  ├─ ssues ○
-       │           │  │  │     │  │  │  ╰─ / ○
-       │           │  │  │     │  │  ╰─ terations ○
-       │           │  │  │     │  │     ╰─ / ○
-       │           │  │  │     │  ├─ labels ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ├─ m
-       │           │  │  │     │  │  ├─ e
-       │           │  │  │     │  │  │  ├─ mbers ○
-       │           │  │  │     │  │  │  │  ╰─ / ○
-       │           │  │  │     │  │  │  ╰─ rge_requests ○
-       │           │  │  │     │  │  │     ╰─ / ○
-       │           │  │  │     │  │  ╰─ ilestones ○
-       │           │  │  │     │  │     ╰─ / ○
-       │           │  │  │     │  ├─ snippets ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ├─ vulnerabilities ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ╰─ wikis ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     ╰─ mations ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ├─ vatar ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ ws ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ configuration ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ b
-       │           │  │  ├─ adges/release ○
-       │           │  │  │  ├─ .
-       │           │  │  │  │  ╰─ {format} ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  ├─ l
-       │           │  │  │  ├─ ame
-       │           │  │  │  │  ├─ /
-       │           │  │  │  │  │  ├─ {*id}
-       │           │  │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     ╰─ streaming ○
-       │           │  │  │  │  │  │        ╰─ / ○
-       │           │  │  │  │  │  ╰─ {*id} ○
-       │           │  │  │  │  ╰─ _page/
-       │           │  │  │  │     ├─ {*id}
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ {*id} ○
-       │           │  │  │  ╰─ ob/
-       │           │  │  │     ├─ {*id}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ diff ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ {*id} ○
-       │           │  │  ├─ oards ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ╰─ {id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ╰─ ranches ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ diverging_commit_counts ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ├─ new ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ├─ {id} ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ╰─ {state} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ c
-       │           │  │  ├─ adences ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ {id} ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ edit ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ├─ {iteration_cadence_id}
-       │           │  │  │     │  ╰─ /iterations ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     │        ╰─ {id} ○
-       │           │  │  │     │           ╰─ / ○
-       │           │  │  │     ├─ {*vueroute}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ new ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ {id} ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     │     ╰─ edit ○
-       │           │  │  │     │     │        ╰─ / ○
-       │           │  │  │     │     ╰─ {iteration_cadence_id}
-       │           │  │  │     │        ╰─ /iterations ○
-       │           │  │  │     │           ╰─ / ○
-       │           │  │  │     │              ╰─ {id} ○
-       │           │  │  │     │                 ╰─ / ○
-       │           │  │  │     ╰─ {*vueroute} ○
-       │           │  │  ├─ i/
-       │           │  │  │  ├─ daily_build_group_report_results ○
-       │           │  │  │  │  ├─ .
-       │           │  │  │  │  │  ╰─ {format} ○
-       │           │  │  │  │  │     ╰─ / ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ├─ editor ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ├─ lint ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ prometheus_metrics/histograms ○
-       │           │  │  │     ├─ .
-       │           │  │  │     │  ╰─ {format} ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  ├─ luster
-       │           │  │  │  ├─ _agents/
-       │           │  │  │  │  ╰─ {name} ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  ╰─ s ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ c
-       │           │  │  │        │  ├─ onnect ○
-       │           │  │  │        │  │  ╰─ / ○
-       │           │  │  │        │  ╰─ reate_user ○
-       │           │  │  │        │     ╰─ / ○
-       │           │  │  │        ├─ new_cluster_docs ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ {cluster_id}
-       │           │  │  │        │  ╰─ /integration/create_or_update ○
-       │           │  │  │        │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  │              ├─ cl
-       │           │  │  │              │  ├─ ear_cache ○
-       │           │  │  │              │  │  ╰─ / ○
-       │           │  │  │              │  ╰─ uster_status ○
-       │           │  │  │              │     ╰─ / ○
-       │           │  │  │              ├─ environments ○
-       │           │  │  │              │  ╰─ / ○
-       │           │  │  │              ╰─ metrics ○
-       │           │  │  │                 ├─ / ○
-       │           │  │  │                 ╰─ _dashboard ○
-       │           │  │  │                    ╰─ / ○
-       │           │  │  ├─ om
-       │           │  │  │  ├─ m
-       │           │  │  │  │  ├─ ent_templates ○
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │     ╰─ {id} ○
-       │           │  │  │  │  │        ╰─ / ○
-       │           │  │  │  │  ╰─ it
-       │           │  │  │  │     ├─ /
-       │           │  │  │  │     │  ╰─ {id} ○
-       │           │  │  │  │     │     ╰─ / ○
-       │           │  │  │  │     │        ├─ branches ○
-       │           │  │  │  │     │        │  ╰─ / ○
-       │           │  │  │  │     │        ├─ cherry_pick ○
-       │           │  │  │  │     │        │  ╰─ / ○
-       │           │  │  │  │     │        ├─ diff_f
-       │           │  │  │  │     │        │  ├─ iles ○
-       │           │  │  │  │     │        │  │  ╰─ / ○
-       │           │  │  │  │     │        │  ╰─ or_path ○
-       │           │  │  │  │     │        │     ╰─ / ○
-       │           │  │  │  │     │        ├─ merge_requests ○
-       │           │  │  │  │     │        │  ╰─ / ○
-       │           │  │  │  │     │        ├─ pipelines ○
-       │           │  │  │  │     │        │  ╰─ / ○
-       │           │  │  │  │     │        ╰─ revert ○
-       │           │  │  │  │     │           ╰─ / ○
-       │           │  │  │  │     ╰─ s ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  │           ├─ {*id}
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           │     ╰─ signatures ○
-       │           │  │  │  │           │        ╰─ / ○
-       │           │  │  │  │           ╰─ {*id} ○
-       │           │  │  │  ╰─ pare ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ diff_for_path ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ signatures ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ╰─ {from}
-       │           │  │  │           ╰─ ...
-       │           │  │  │              ╰─ {to} ○
-       │           │  │  │                 ╰─ / ○
-       │           │  │  ├─ reate
-       │           │  │  │  ├─ /
-       │           │  │  │  │  ├─ {*id}
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  ╰─ {*id} ○
-       │           │  │  │  ╰─ _dir/
-       │           │  │  │     ├─ {*id}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {*id} ○
-       │           │  │  ╰─ ycle_analytics ○
-       │           │  │     ╰─ / ○
-       │           │  ├─ de
-       │           │  │  ├─ p
-       │           │  │  │  ├─ endencies ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ loy_
-       │           │  │  │     ├─ keys ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ available_p
-       │           │  │  │     │     │  ├─ roject_keys ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ╰─ ublic_keys ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ├─ enabled_keys ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ new ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ {id} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     │           ├─ disable ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ╰─ e
-       │           │  │  │     │              ├─ dit ○
-       │           │  │  │     │              │  ╰─ / ○
-       │           │  │  │     │              ╰─ nable ○
-       │           │  │  │     │                 ╰─ / ○
-       │           │  │  │     ╰─ tokens/
-       │           │  │  │        ╰─ {id}
-       │           │  │  │           ╰─ /revoke ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ╰─ sign_management/designs/
-       │           │  │     ╰─ {design_id}
-       │           │  │        ╰─ /
-       │           │  │           ├─ r
-       │           │  │           │  ├─ aw_image ○
-       │           │  │           │  │  ╰─ / ○
-       │           │  │           │  ╰─ esized_image/
-       │           │  │           │     ╰─ {id} ○
-       │           │  │           │        ╰─ / ○
-       │           │  │           ╰─ {sha}
-       │           │  │              ╰─ /r
-       │           │  │                 ├─ aw_image ○
-       │           │  │                 │  ╰─ / ○
-       │           │  │                 ╰─ esized_image/
-       │           │  │                    ╰─ {id} ○
-       │           │  │                       ╰─ / ○
-       │           │  ├─ e
-       │           │  │  ├─ dit/
-       │           │  │  │  ├─ {*id}
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ {*id} ○
-       │           │  │  ├─ nvironments ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ folders/
-       │           │  │  │     │  ├─ {*id}
-       │           │  │  │     │  │  ├─ .
-       │           │  │  │     │  │  │  ╰─ {format} ○
-       │           │  │  │     │  │  │     ╰─ / ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ╰─ {*id} ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ search ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ {environment_id}
-       │           │  │  │     │  ╰─ /deployments ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     │        ╰─ {id} ○
-       │           │  │  │     │           ╰─ / ○
-       │           │  │  │     │              ├─ additional_metrics ○
-       │           │  │  │     │              │  ╰─ / ○
-       │           │  │  │     │              ╰─ metrics ○
-       │           │  │  │     │                 ╰─ / ○
-       │           │  │  │     ╰─ {id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ cancel_auto_stop ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ├─ edit ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ├─ k8s ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           │     ├─ {*vueroute}
-       │           │  │  │           │     │  ╰─ / ○
-       │           │  │  │           │     ╰─ {*vueroute} ○
-       │           │  │  │           ├─ prometheus/api/v1/
-       │           │  │  │           │  ├─ {*proxy_path}
-       │           │  │  │           │  │  ╰─ / ○
-       │           │  │  │           │  ╰─ {*proxy_path} ○
-       │           │  │  │           ├─ stop ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ terminal ○
-       │           │  │  │              ├─ .ws/authorize ○
-       │           │  │  │              │  ╰─ / ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ rror_tracking ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ projects ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {issue_id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ details ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ stack_trace ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ╰─ scalation_policies ○
-       │           │  │     ╰─ / ○
-       │           │  ├─ f
-       │           │  │  ├─ eature_flags ○
-       │           │  │  │  ├─ / ○
-       │           │  │  │  │  ├─ new ○
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  ├─ {feature_flag_iid}
-       │           │  │  │  │  │  ╰─ /issues ○
-       │           │  │  │  │  │     ╰─ / ○
-       │           │  │  │  │  │        ╰─ {id} ○
-       │           │  │  │  │  │           ╰─ / ○
-       │           │  │  │  │  ╰─ {iid} ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  │        ╰─ edit ○
-       │           │  │  │  │           ╰─ / ○
-       │           │  │  │  ╰─ _
-       │           │  │  │     ├─ client/reset_token ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ user_lists ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ new ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ {iid} ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  │                 ╰─ edit ○
-       │           │  │  │                    ╰─ / ○
-       │           │  │  ├─ i
-       │           │  │  │  ├─ les/
-       │           │  │  │  │  ├─ {*id}
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  ╰─ {*id} ○
-       │           │  │  │  ╰─ nd_file/
-       │           │  │  │     ├─ {*id}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {*id} ○
-       │           │  │  ╰─ orks ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ new ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ g
-       │           │  │  ├─ oogle_cloud ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ artifact_registry ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ projects/
-       │           │  │  │     │        ╰─ {project}
-       │           │  │  │     │           ╰─ /locations/
-       │           │  │  │     │              ╰─ {location}
-       │           │  │  │     │                 ╰─ /repositories/
-       │           │  │  │     │                    ╰─ {repository}
-       │           │  │  │     │                       ╰─ /dockerImages/
-       │           │  │  │     │                          ╰─ {image} ○
-       │           │  │  │     │                             ╰─ / ○
-       │           │  │  │     ├─ configuration ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ d
-       │           │  │  │     │  ├─ atabases ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  │     ╰─ new/
-       │           │  │  │     │  │        ╰─ {product} ○
-       │           │  │  │     │  │           ╰─ / ○
-       │           │  │  │     │  ╰─ eployments ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     │        ╰─ cloud_
-       │           │  │  │     │           ├─ run ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ╰─ storage ○
-       │           │  │  │     │              ╰─ / ○
-       │           │  │  │     ├─ gcp_regions ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ revoke_oauth ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ service_accounts ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ╰─ r
-       │           │  │     ├─ aphs/
-       │           │  │     │  ╰─ {id} ○
-       │           │  │     │     ╰─ / ○
-       │           │  │     │        ├─ c
-       │           │  │     │        │  ├─ harts ○
-       │           │  │     │        │  │  ╰─ / ○
-       │           │  │     │        │  ├─ i ○
-       │           │  │     │        │  │  ╰─ / ○
-       │           │  │     │        │  ╰─ ommits ○
-       │           │  │     │        │     ╰─ / ○
-       │           │  │     │        ╰─ languages ○
-       │           │  │     │           ╰─ / ○
-       │           │  │     ╰─ oup_links/
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ h
-       │           │  │  ├─ arbor/repositories ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ {id} ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {repository_id}
-       │           │  │  │        ╰─ /artifacts ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  │              ╰─ {artifact_id}
-       │           │  │  │                 ╰─ /tags ○
-       │           │  │  │                    ╰─ / ○
-       │           │  │  ╰─ ooks ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ {hook_id}
-       │           │  │        │  ╰─ /hook_logs/
-       │           │  │        │     ╰─ {id} ○
-       │           │  │        │        ╰─ / ○
-       │           │  │        │           ╰─ retry ○
-       │           │  │        │              ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  │              ├─ edit ○
-       │           │  │              │  ╰─ / ○
-       │           │  │              ╰─ test ○
-       │           │  │                 ╰─ / ○
-       │           │  ├─ i
-       │           │  │  ├─ mport ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ jira ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ new ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ├─ n
-       │           │  │  │  ├─ cident
-       │           │  │  │  │  ├─ _management/timeline_events/preview_markdown ○
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  ╰─ s ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  │        ╰─ integrations/pagerduty ○
-       │           │  │  │  │           ╰─ / ○
-       │           │  │  │  ├─ frastructure_registry ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ tegrations/
-       │           │  │  │     ├─ jira/issues ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ {id} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ├─ slash_commands ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ confirm ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ zentao/issues ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ╰─ {id} ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ ssues ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ bulk_update ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ export_csv ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ i
-       │           │  │  │     │  ├─ mport_csv ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  ╰─ ncident/
-       │           │  │  │     │     ╰─ {id} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     │           ╰─ {incident_tab} ○
-       │           │  │  │     │              ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ service_desk ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ {id} ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ c
-       │           │  │  │     │     │  ├─ an_create_branch ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ╰─ reate_merge_request ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ├─ d
-       │           │  │  │     │     │  ├─ es
-       │           │  │  │     │     │  │  ├─ criptions/
-       │           │  │  │     │     │  │  │  ╰─ {version_id} ○
-       │           │  │  │     │     │  │  │     ╰─ / ○
-       │           │  │  │     │     │  │  │        ╰─ diff ○
-       │           │  │  │     │     │  │  │           ╰─ / ○
-       │           │  │  │     │     │  │  ╰─ igns ○
-       │           │  │  │     │     │  │     ╰─ / ○
-       │           │  │  │     │     │  │        ├─ {*vueroute}
-       │           │  │  │     │     │  │        │  ╰─ / ○
-       │           │  │  │     │     │  │        ╰─ {*vueroute} ○
-       │           │  │  │     │     │  ╰─ iscussions ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ├─ edit ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ m
-       │           │  │  │     │     │  ├─ ark_as_spam ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ╰─ ove ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ├─ re
-       │           │  │  │     │     │  ├─ altime_changes ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ├─ lated_branches ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ╰─ order ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ├─ toggle_
-       │           │  │  │     │     │  ├─ award_emoji ○
-       │           │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │     │     │  ╰─ subscription ○
-       │           │  │  │     │     │     ╰─ / ○
-       │           │  │  │     │     ╰─ {incident_tab} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ {issue_id}
-       │           │  │  │        ╰─ /
-       │           │  │  │           ├─ feature_flags ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           │     ╰─ {id} ○
-       │           │  │  │           │        ╰─ / ○
-       │           │  │  │           ╰─ links ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  │                 ╰─ {id} ○
-       │           │  │  │                    ╰─ / ○
-       │           │  │  ╰─ terations ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ jobs ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ artifacts/
-       │           │  │     │  ├─ {*ref_name_and_path}
-       │           │  │     │  │  ╰─ / ○
-       │           │  │     │  ╰─ {*ref_name_and_path} ○
-       │           │  │     ├─ {id} ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ├─ cancel ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ├─ erase ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ├─ p
-       │           │  │     │     │  ├─ lay ○
-       │           │  │     │     │  │  ╰─ / ○
-       │           │  │     │     │  ╰─ roxy ○
-       │           │  │     │     │     ├─ .ws/authorize ○
-       │           │  │     │     │     │  ╰─ / ○
-       │           │  │     │     │     ╰─ / ○
-       │           │  │     │     ├─ r
-       │           │  │     │     │  ├─ aw ○
-       │           │  │     │     │  │  ╰─ / ○
-       │           │  │     │     │  ╰─ etry ○
-       │           │  │     │     │     ╰─ / ○
-       │           │  │     │     ├─ status ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ├─ t
-       │           │  │     │     │  ├─ e
-       │           │  │     │     │  │  ├─ rminal ○
-       │           │  │     │     │  │  │  ├─ .ws/authorize ○
-       │           │  │     │     │  │  │  │  ╰─ / ○
-       │           │  │     │     │  │  │  ╰─ / ○
-       │           │  │     │     │  │  ╰─ st_report_summary ○
-       │           │  │     │     │  │     ╰─ / ○
-       │           │  │     │     │  ╰─ race ○
-       │           │  │     │     │     ├─ .
-       │           │  │     │     │     │  ╰─ {format} ○
-       │           │  │     │     │     │     ╰─ / ○
-       │           │  │     │     │     ╰─ / ○
-       │           │  │     │     ├─ unschedule ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ╰─ viewer ○
-       │           │  │     │        ╰─ / ○
-       │           │  │     ╰─ {job_id}
-       │           │  │        ╰─ /artifacts/
-       │           │  │           ├─ browse ○
-       │           │  │           │  ╰─ / ○
-       │           │  │           │     ├─ {*path}
-       │           │  │           │     │  ╰─ / ○
-       │           │  │           │     ╰─ {*path} ○
-       │           │  │           ├─ download ○
-       │           │  │           │  ╰─ / ○
-       │           │  │           ├─ external_file/
-       │           │  │           │  ├─ {*path}
-       │           │  │           │  │  ╰─ / ○
-       │           │  │           │  ╰─ {*path} ○
-       │           │  │           ├─ file/
-       │           │  │           │  ├─ {*path}
-       │           │  │           │  │  ╰─ / ○
-       │           │  │           │  ╰─ {*path} ○
-       │           │  │           ├─ keep ○
-       │           │  │           │  ╰─ / ○
-       │           │  │           ╰─ raw/
-       │           │  │              ├─ {*path}
-       │           │  │              │  ╰─ / ○
-       │           │  │              ╰─ {*path} ○
-       │           │  ├─ l
-       │           │  │  ├─ abels ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ generate ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ set_priorities ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {id} ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ edit ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ├─ promote ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ├─ remove_priority ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ toggle_subscription ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ earn_gitlab ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ╰─ end_tutorial ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ╰─ ogs ○
-       │           │  │     ╰─ / ○
-       │           │  ├─ m
-       │           │  │  ├─ attermost ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ╰─ new ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ├─ e
-       │           │  │  │  ├─ rge
-       │           │  │  │  │  ├─ _
-       │           │  │  │  │  │  ├─ requests ○
-       │           │  │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     ├─ bulk_update ○
-       │           │  │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │  │     ├─ diff_for_path ○
-       │           │  │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │  │     ├─ export_csv ○
-       │           │  │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │  │     ├─ new ○
-       │           │  │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ branch_
-       │           │  │  │  │  │  │     │     │  ├─ from ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ to ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ diff
-       │           │  │  │  │  │  │     │     │  ├─ _for_path ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ s ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ pipelines ○
-       │           │  │  │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     ╰─ target_projects ○
-       │           │  │  │  │  │  │     │        ╰─ / ○
-       │           │  │  │  │  │  │     ├─ {id} ○
-       │           │  │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ a
-       │           │  │  │  │  │  │     │     │  ├─ ccessibility_reports ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ├─ pi_fuzzing_reports ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ ssign_related_issues ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ c
-       │           │  │  │  │  │  │     │     │  ├─ a
-       │           │  │  │  │  │  │     │     │  │  ├─ ched_widget ○
-       │           │  │  │  │  │  │     │     │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ ncel_auto_merge ○
-       │           │  │  │  │  │  │     │     │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ├─ i_environments_status ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ o
-       │           │  │  │  │  │  │     │     │     ├─ dequality_
-       │           │  │  │  │  │  │     │     │     │  ├─ mr_diff_reports ○
-       │           │  │  │  │  │  │     │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ reports ○
-       │           │  │  │  │  │  │     │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ├─ mmit
-       │           │  │  │  │  │  │     │     │     │  ├─ _change_content ○
-       │           │  │  │  │  │  │     │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ s ○
-       │           │  │  │  │  │  │     │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ├─ n
-       │           │  │  │  │  │  │     │     │     │  ├─ flict
-       │           │  │  │  │  │  │     │     │     │  │  ├─ _for_path ○
-       │           │  │  │  │  │  │     │     │     │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  │  ╰─ s ○
-       │           │  │  │  │  │  │     │     │     │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ t
-       │           │  │  │  │  │  │     │     │     │     ├─ ainer_scanning_reports ○
-       │           │  │  │  │  │  │     │     │     │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │     ╰─ ext_commits ○
-       │           │  │  │  │  │  │     │     │     │        ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ╰─ verage_
-       │           │  │  │  │  │  │     │     │        ├─ fuzzing_reports ○
-       │           │  │  │  │  │  │     │     │        │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │        ╰─ reports ○
-       │           │  │  │  │  │  │     │     │           ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ d
-       │           │  │  │  │  │  │     │     │  ├─ ast_reports ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ├─ e
-       │           │  │  │  │  │  │     │     │  │  ├─ pendency_scanning_reports ○
-       │           │  │  │  │  │  │     │     │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ scriptions/
-       │           │  │  │  │  │  │     │     │  │     ╰─ {version_id} ○
-       │           │  │  │  │  │  │     │     │  │        ╰─ / ○
-       │           │  │  │  │  │  │     │     │  │           ╰─ diff ○
-       │           │  │  │  │  │  │     │     │  │              ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ i
-       │           │  │  │  │  │  │     │     │     ├─ ff
-       │           │  │  │  │  │  │     │     │     │  ├─ _
-       │           │  │  │  │  │  │     │     │     │  │  ├─ by_file_hash/
-       │           │  │  │  │  │  │     │     │     │  │  │  ╰─ {file_hash} ○
-       │           │  │  │  │  │  │     │     │     │  │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  │  ╰─ for_path ○
-       │           │  │  │  │  │  │     │     │     │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ s ○
-       │           │  │  │  │  │  │     │     │     │     ├─ / ○
-       │           │  │  │  │  │  │     │     │     │     ╰─ _
-       │           │  │  │  │  │  │     │     │     │        ├─ batch ○
-       │           │  │  │  │  │  │     │     │     │        │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │        ├─ metadata ○
-       │           │  │  │  │  │  │     │     │     │        │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     │        ╰─ stream ○
-       │           │  │  │  │  │  │     │     │     │           ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ╰─ scussions ○
-       │           │  │  │  │  │  │     │     │        ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ e
-       │           │  │  │  │  │  │     │     │  ├─ dit ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ xposed_artifacts ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ license_scanning_reports ○
-       │           │  │  │  │  │  │     │     │  ├─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ _collapsed ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ me
-       │           │  │  │  │  │  │     │     │  ├─ rge ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ trics_reports ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ pipeline
-       │           │  │  │  │  │  │     │     │  ├─ _status ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ s ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ re
-       │           │  │  │  │  │  │     │     │  ├─ base ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ├─ move_wip ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ├─ ports ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ solve_conflicts ○
-       │           │  │  │  │  │  │     │     │     ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ s
-       │           │  │  │  │  │  │     │     │  ├─ a
-       │           │  │  │  │  │  │     │     │  │  ├─ ml_approval ○
-       │           │  │  │  │  │  │     │     │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ st_reports ○
-       │           │  │  │  │  │  │     │     │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ ec
-       │           │  │  │  │  │  │     │     │     ├─ ret_detection_reports ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ╰─ urity_reports ○
-       │           │  │  │  │  │  │     │     │        ╰─ / ○
-       │           │  │  │  │  │  │     │     ├─ t
-       │           │  │  │  │  │  │     │     │  ├─ e
-       │           │  │  │  │  │  │     │     │  │  ├─ rraform_reports ○
-       │           │  │  │  │  │  │     │     │  │  │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │  │  ╰─ st_reports ○
-       │           │  │  │  │  │  │     │     │  │     ╰─ / ○
-       │           │  │  │  │  │  │     │     │  ╰─ oggle_
-       │           │  │  │  │  │  │     │     │     ├─ award_emoji ○
-       │           │  │  │  │  │  │     │     │     │  ╰─ / ○
-       │           │  │  │  │  │  │     │     │     ╰─ subscription ○
-       │           │  │  │  │  │  │     │     │        ╰─ / ○
-       │           │  │  │  │  │  │     │     ╰─ widget ○
-       │           │  │  │  │  │  │     │        ╰─ / ○
-       │           │  │  │  │  │  │     ╰─ {merge_request_id}
-       │           │  │  │  │  │  │        ╰─ /
-       │           │  │  │  │  │  │           ├─ approver
-       │           │  │  │  │  │  │           │  ├─ _groups/
-       │           │  │  │  │  │  │           │  │  ╰─ {id} ○
-       │           │  │  │  │  │  │           │  │     ╰─ / ○
-       │           │  │  │  │  │  │           │  ╰─ s ○
-       │           │  │  │  │  │  │           │     ╰─ / ○
-       │           │  │  │  │  │  │           │        ╰─ {id} ○
-       │           │  │  │  │  │  │           │           ╰─ / ○
-       │           │  │  │  │  │  │           ╰─ drafts ○
-       │           │  │  │  │  │  │              ╰─ / ○
-       │           │  │  │  │  │  │                 ├─ discard ○
-       │           │  │  │  │  │  │                 │  ╰─ / ○
-       │           │  │  │  │  │  │                 ├─ publish ○
-       │           │  │  │  │  │  │                 │  ╰─ / ○
-       │           │  │  │  │  │  │                 ╰─ {id} ○
-       │           │  │  │  │  │  │                    ╰─ / ○
-       │           │  │  │  │  │  ╰─ trains ○
-       │           │  │  │  │  │     ╰─ / ○
-       │           │  │  │  │  ╰─ d_branches ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  ╰─ trics ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ├─ i
-       │           │  │  │  ├─ lestones ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ├─ new ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ {id} ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  │           ├─ edit ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ├─ issues ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ├─ labels ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ├─ merge_requests ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ╰─ p
-       │           │  │  │  │              ├─ articipants ○
-       │           │  │  │  │              │  ╰─ / ○
-       │           │  │  │  │              ╰─ romote ○
-       │           │  │  │  │                 ╰─ / ○
-       │           │  │  │  ╰─ rror ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ ssh_host_keys ○
-       │           │  │  │        │  ├─ .
-       │           │  │  │        │  │  ╰─ {format} ○
-       │           │  │  │        │  │     ╰─ / ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ╰─ update_now ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ╰─ l/
-       │           │  │     ├─ agents ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ├─ new ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ├─ {id} ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     │     ╰─ edit ○
-       │           │  │     │     │        ╰─ / ○
-       │           │  │     │     ├─ {*vueroute}
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     │     ├─ new ○
-       │           │  │     │     │     │  ╰─ / ○
-       │           │  │     │     │     ╰─ {id} ○
-       │           │  │     │     │        ╰─ / ○
-       │           │  │     │     │           ╰─ edit ○
-       │           │  │     │     │              ╰─ / ○
-       │           │  │     │     ╰─ {*vueroute} ○
-       │           │  │     ├─ candidates/
-       │           │  │     │  ╰─ {iid} ○
-       │           │  │     │     ╰─ / ○
-       │           │  │     ├─ experiments ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ╰─ {iid} ○
-       │           │  │     │        ╰─ / ○
-       │           │  │     ├─ models ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ├─ new ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ├─ {model_id} ○
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ╰─ {model_model_id}
-       │           │  │     │        ╰─ /versions/
-       │           │  │     │           ╰─ {model_version_id} ○
-       │           │  │     │              ╰─ / ○
-       │           │  │     ╰─ preview_markdown ○
-       │           │  │        ╰─ / ○
-       │           │  ├─ ne
-       │           │  │  ├─ twork/
-       │           │  │  │  ╰─ {id} ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  ╰─ w/
-       │           │  │     ├─ {*id}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*id} ○
-       │           │  ├─ on
-       │           │  │  ├─ _demand_scans ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {id}
-       │           │  │  │        ╰─ /edit ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ╰─ call_schedules ○
-       │           │  │     ╰─ / ○
-       │           │  ├─ p
-       │           │  │  ├─ ackage
-       │           │  │  │  ├─ _files/
-       │           │  │  │  │  ╰─ {id}
-       │           │  │  │  │     ╰─ /download ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  ╰─ s ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ├─ ipeline
-       │           │  │  │  ├─ _schedules ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ├─ new ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ {id} ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  │           ├─ edit ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ├─ play ○
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ╰─ take_ownership ○
-       │           │  │  │  │              ╰─ / ○
-       │           │  │  │  ╰─ s ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ charts ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ latest ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ new ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ settings ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ├─ {id} ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        │     ├─ builds ○
-       │           │  │  │        │     │  ╰─ / ○
-       │           │  │  │        │     ├─ c
-       │           │  │  │        │     │  ├─ ancel ○
-       │           │  │  │        │     │  │  ╰─ / ○
-       │           │  │  │        │     │  ╰─ odequality_report ○
-       │           │  │  │        │     │     ╰─ / ○
-       │           │  │  │        │     ├─ d
-       │           │  │  │        │     │  ├─ ag ○
-       │           │  │  │        │     │  │  ╰─ / ○
-       │           │  │  │        │     │  ╰─ ownloadable_artifacts ○
-       │           │  │  │        │     │     ╰─ / ○
-       │           │  │  │        │     ├─ failures ○
-       │           │  │  │        │     │  ╰─ / ○
-       │           │  │  │        │     ├─ license
-       │           │  │  │        │     │  ├─ _count ○
-       │           │  │  │        │     │  │  ╰─ / ○
-       │           │  │  │        │     │  ╰─ s ○
-       │           │  │  │        │     │     ╰─ / ○
-       │           │  │  │        │     ├─ manual_variables ○
-       │           │  │  │        │     │  ╰─ / ○
-       │           │  │  │        │     ├─ retry ○
-       │           │  │  │        │     │  ╰─ / ○
-       │           │  │  │        │     ├─ s
-       │           │  │  │        │     │  ├─ ecurity ○
-       │           │  │  │        │     │  │  ╰─ / ○
-       │           │  │  │        │     │  ╰─ ta
-       │           │  │  │        │     │     ├─ ge ○
-       │           │  │  │        │     │     │  ╰─ / ○
-       │           │  │  │        │     │     ╰─ tus ○
-       │           │  │  │        │     │        ╰─ / ○
-       │           │  │  │        │     ╰─ test_report ○
-       │           │  │  │        │        ╰─ / ○
-       │           │  │  │        ├─ {pipeline_id}
-       │           │  │  │        │  ╰─ /
-       │           │  │  │        │     ├─ stages/
-       │           │  │  │        │     │  ╰─ {stage_name}
-       │           │  │  │        │     │     ╰─ /play_manual ○
-       │           │  │  │        │     │        ╰─ / ○
-       │           │  │  │        │     ├─ tests/
-       │           │  │  │        │     │  ├─ summary ○
-       │           │  │  │        │     │  │  ╰─ / ○
-       │           │  │  │        │     │  ╰─ {suite_name} ○
-       │           │  │  │        │     │     ╰─ / ○
-       │           │  │  │        │     ╰─ validate_account ○
-       │           │  │  │        │        ╰─ / ○
-       │           │  │  │        ╰─ {*ref}
-       │           │  │  │           ╰─ /latest ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ r
-       │           │  │  │  ├─ eview
-       │           │  │  │  │  ├─ /
-       │           │  │  │  │  │  ├─ {*id}
-       │           │  │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │  ╰─ {*id} ○
-       │           │  │  │  │  ╰─ _markdown ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  ╰─ o
-       │           │  │  │     ├─ ject_members ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ leave ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ request_access ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ {id} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     │           ├─ approve_access_request ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ╰─ resend_invite ○
-       │           │  │  │     │              ╰─ / ○
-       │           │  │  │     ╰─ tected_
-       │           │  │  │        ├─ branches ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        │     ╰─ {id} ○
-       │           │  │  │        │        ╰─ / ○
-       │           │  │  │        ├─ environments ○
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        │     ├─ search ○
-       │           │  │  │        │     │  ╰─ / ○
-       │           │  │  │        │     ╰─ {id} ○
-       │           │  │  │        │        ╰─ / ○
-       │           │  │  │        ╰─ tags ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  │              ╰─ {id} ○
-       │           │  │  │                 ╰─ / ○
-       │           │  │  ╰─ ush_rules/
-       │           │  │     ╰─ {id} ○
-       │           │  │        ╰─ / ○
-       │           │  ├─ quality/test_cases ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ new ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {id} ○
-       │           │  │        ╰─ / ○
-       │           │  ├─ r
-       │           │  │  ├─ aw/
-       │           │  │  │  ├─ {*id}
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ {*id} ○
-       │           │  │  ├─ e
-       │           │  │  │  ├─ fs/
-       │           │  │  │  │  ├─ switch ○
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  ╰─ {id}
-       │           │  │  │  │     ╰─ /logs_tree ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  │           ├─ {*path}
-       │           │  │  │  │           │  ╰─ / ○
-       │           │  │  │  │           ╰─ {*path} ○
-       │           │  │  │  ├─ leases ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ├─ inbox ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ├─ new ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ├─ outbox ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ├─ permalink/latest ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ {*suffix_path}
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ╰─ {*suffix_path} ○
-       │           │  │  │  │     ╰─ {tag} ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  │           ├─ downloads/
-       │           │  │  │  │           │  ├─ {*filepath}
-       │           │  │  │  │           │  │  ╰─ / ○
-       │           │  │  │  │           │  ╰─ {*filepath} ○
-       │           │  │  │  │           ╰─ e
-       │           │  │  │  │              ├─ dit ○
-       │           │  │  │  │              │  ╰─ / ○
-       │           │  │  │  │              ╰─ vidences/
-       │           │  │  │  │                 ╰─ {id} ○
-       │           │  │  │  │                    ╰─ / ○
-       │           │  │  │  ├─ pository ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ quirements_management/requirements ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ import_csv ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  │              ╰─ authorize ○
-       │           │  │  │                 ╰─ / ○
-       │           │  │  ╰─ unners ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ new ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ├─ toggle_
-       │           │  │        │  ├─ group_runners ○
-       │           │  │        │  │  ╰─ / ○
-       │           │  │        │  ╰─ shared_runners ○
-       │           │  │        │     ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  │              ├─ edit ○
-       │           │  │              │  ╰─ / ○
-       │           │  │              ├─ pause ○
-       │           │  │              │  ╰─ / ○
-       │           │  │              ╰─ re
-       │           │  │                 ├─ gister ○
-       │           │  │                 │  ╰─ / ○
-       │           │  │                 ╰─ sume ○
-       │           │  │                    ╰─ / ○
-       │           │  ├─ s
-       │           │  │  ├─ chema/
-       │           │  │  │  ╰─ {branch}
-       │           │  │  │     ╰─ /
-       │           │  │  │        ├─ {*filename}
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ╰─ {*filename} ○
-       │           │  │  ├─ e
-       │           │  │  │  ├─ c
-       │           │  │  │  │  ├─ rets ○
-       │           │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │     ├─ {*vueroute}
-       │           │  │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │  │     ╰─ {*vueroute} ○
-       │           │  │  │  │  ╰─ urity/
-       │           │  │  │  │     ├─ configuration ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ api_fuzzing ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ corpus_management ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ dast ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ profile_library ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     │     ╰─ dast_s
-       │           │  │  │  │     │     │        ├─ canner_profiles/
-       │           │  │  │  │     │     │        │  ├─ new ○
-       │           │  │  │  │     │     │        │  │  ╰─ / ○
-       │           │  │  │  │     │     │        │  ╰─ {id}
-       │           │  │  │  │     │     │        │     ╰─ /edit ○
-       │           │  │  │  │     │     │        │        ╰─ / ○
-       │           │  │  │  │     │     │        ╰─ ite_profiles/
-       │           │  │  │  │     │     │           ├─ new ○
-       │           │  │  │  │     │     │           │  ╰─ / ○
-       │           │  │  │  │     │     │           ╰─ {id}
-       │           │  │  │  │     │     │              ╰─ /edit ○
-       │           │  │  │  │     │     │                 ╰─ / ○
-       │           │  │  │  │     │     ╰─ s
-       │           │  │  │  │     │        ├─ ast ○
-       │           │  │  │  │     │        │  ╰─ / ○
-       │           │  │  │  │     │        ╰─ ecret_detection ○
-       │           │  │  │  │     │           ╰─ / ○
-       │           │  │  │  │     ├─ d
-       │           │  │  │  │     │  ├─ ashboard ○
-       │           │  │  │  │     │  │  ╰─ / ○
-       │           │  │  │  │     │  ╰─ iscover ○
-       │           │  │  │  │     │     ╰─ / ○
-       │           │  │  │  │     ├─ policies ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ new ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ├─ schema ○
-       │           │  │  │  │     │     │  ╰─ / ○
-       │           │  │  │  │     │     ╰─ {id}
-       │           │  │  │  │     │        ╰─ /edit ○
-       │           │  │  │  │     │           ╰─ / ○
-       │           │  │  │  │     ├─ scanned_resources ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ vulnerabilit
-       │           │  │  │  │        ├─ ies/
-       │           │  │  │  │        │  ├─ new ○
-       │           │  │  │  │        │  │  ╰─ / ○
-       │           │  │  │  │        │  ├─ {id} ○
-       │           │  │  │  │        │  │  ╰─ / ○
-       │           │  │  │  │        │  │     ╰─ discussions ○
-       │           │  │  │  │        │  │        ╰─ / ○
-       │           │  │  │  │        │  ╰─ {vulnerability_id}
-       │           │  │  │  │        │     ╰─ /notes ○
-       │           │  │  │  │        │        ╰─ / ○
-       │           │  │  │  │        │           ╰─ {id} ○
-       │           │  │  │  │        │              ╰─ / ○
-       │           │  │  │  │        │                 ╰─ toggle_award_emoji ○
-       │           │  │  │  │        │                    ╰─ / ○
-       │           │  │  │  │        ╰─ y_report ○
-       │           │  │  │  │           ╰─ / ○
-       │           │  │  │  ├─ rvice_desk/custom_email ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ ttings/
-       │           │  │  │     ├─ a
-       │           │  │  │     │  ├─ ccess_tokens ○
-       │           │  │  │     │  │  ╰─ / ○
-       │           │  │  │     │  │     ╰─ {id}
-       │           │  │  │     │  │        ╰─ /revoke ○
-       │           │  │  │     │  │           ╰─ / ○
-       │           │  │  │     │  ╰─ nalytics ○
-       │           │  │  │     │     ╰─ / ○
-       │           │  │  │     ├─ ci_cd ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ deploy_token/create ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ r
-       │           │  │  │     │        ├─ eset_
-       │           │  │  │     │        │  ├─ cache ○
-       │           │  │  │     │        │  │  ╰─ / ○
-       │           │  │  │     │        │  ╰─ registration_token ○
-       │           │  │  │     │        │     ╰─ / ○
-       │           │  │  │     │        ╰─ unner_setup_scripts ○
-       │           │  │  │     │           ╰─ / ○
-       │           │  │  │     ├─ integrations ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ {id} ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     │     ├─ edit ○
-       │           │  │  │     │     │     │  ╰─ / ○
-       │           │  │  │     │     │     ╰─ test ○
-       │           │  │  │     │     │        ╰─ / ○
-       │           │  │  │     │     ╰─ {integration_id}
-       │           │  │  │     │        ╰─ /hook_logs/
-       │           │  │  │     │           ╰─ {id} ○
-       │           │  │  │     │              ╰─ / ○
-       │           │  │  │     │                 ╰─ retry ○
-       │           │  │  │     │                    ╰─ / ○
-       │           │  │  │     ├─ merge_requests ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ operations ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ reset_
-       │           │  │  │     │        ├─ alerting_token ○
-       │           │  │  │     │        │  ╰─ / ○
-       │           │  │  │     │        ╰─ pagerduty_token ○
-       │           │  │  │     │           ╰─ / ○
-       │           │  │  │     ├─ packages_and_registries ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ cleanup_image_tags ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ├─ repository ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ branch_rules ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ cleanup ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ deploy_token/create ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ slack ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ edit ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ slack_auth ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ nippets ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ {id} ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ edit ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ mark_as_spam ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ raw ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ toggle_award_emoji ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ {snippet_id}
-       │           │  │  │        ╰─ /raw/
-       │           │  │  │           ╰─ {ref}
-       │           │  │  │              ╰─ /
-       │           │  │  │                 ├─ {*path}
-       │           │  │  │                 │  ╰─ / ○
-       │           │  │  │                 ╰─ {*path} ○
-       │           │  │  ├─ tarrers ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ ubscriptions ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ t
-       │           │  │  ├─ a
-       │           │  │  │  ├─ gs ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ├─ new ○
-       │           │  │  │  │     │  ╰─ / ○
-       │           │  │  │  │     ╰─ {id} ○
-       │           │  │  │  │        ╰─ / ○
-       │           │  │  │  ╰─ rget_branch_rules ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ├─ erraform ○
-       │           │  │  │  ├─ / ○
-       │           │  │  │  ╰─ _module_registry ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ╰─ {id} ○
-       │           │  │  │           ╰─ / ○
-       │           │  │  ╰─ r
-       │           │  │     ├─ acing ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ╰─ {id} ○
-       │           │  │     │        ╰─ / ○
-       │           │  │     ├─ ee/
-       │           │  │     │  ├─ {*id}
-       │           │  │     │  │  ╰─ / ○
-       │           │  │     │  ╰─ {*id} ○
-       │           │  │     ╰─ iggers ○
-       │           │  │        ╰─ / ○
-       │           │  │           ╰─ {id} ○
-       │           │  │              ╰─ / ○
-       │           │  ├─ u
-       │           │  │  ├─ pdate/
-       │           │  │  │  ├─ {*id}
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ {*id} ○
-       │           │  │  ╰─ sage_quotas ○
-       │           │  │     ╰─ / ○
-       │           │  ├─ v
-       │           │  │  ├─ a
-       │           │  │  │  ├─ lue_stream_analytics ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  │     ╰─ events/
-       │           │  │  │  │        ├─ code ○
-       │           │  │  │  │        │  ╰─ / ○
-       │           │  │  │  │        ├─ issue ○
-       │           │  │  │  │        │  ╰─ / ○
-       │           │  │  │  │        ├─ p
-       │           │  │  │  │        │  ├─ lan ○
-       │           │  │  │  │        │  │  ╰─ / ○
-       │           │  │  │  │        │  ╰─ roduction ○
-       │           │  │  │  │        │     ╰─ / ○
-       │           │  │  │  │        ├─ review ○
-       │           │  │  │  │        │  ╰─ / ○
-       │           │  │  │  │        ├─ staging ○
-       │           │  │  │  │        │  ╰─ / ○
-       │           │  │  │  │        ╰─ test ○
-       │           │  │  │  │           ╰─ / ○
-       │           │  │  │  ╰─ riables ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  ╰─ ulnerability_feedback ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ count ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ w
-       │           │  │  ├─ ikis ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ -/confluence ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ git_access ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ new ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ pages ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ templates ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ├─ {*id}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ diff ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ edit ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ history ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ├─ preview_markdown ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ raw ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     ╰─ {*id} ○
-       │           │  │  ╰─ ork_items/
-       │           │  │     ├─ import_csv ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ╰─ authorize ○
-       │           │  │     │        ╰─ / ○
-       │           │  │     ╰─ {iid} ○
-       │           │  │        ╰─ / ○
-       │           │  │           ╰─ designs ○
-       │           │  │              ╰─ / ○
-       │           │  │                 ├─ {*vueroute}
-       │           │  │                 │  ╰─ / ○
-       │           │  │                 ╰─ {*vueroute} ○
-       │           │  ╰─ {noteable_type}
-       │           │     ╰─ /
-       │           │        ╰─ {noteable_id}
-       │           │           ╰─ /discussions/
-       │           │              ╰─ {id} ○
-       │           │                 ╰─ / ○
-       │           │                    ╰─ resolve ○
-       │           │                       ╰─ / ○
-       │           ├─ a
-       │           │  ├─ lert
-       │           │  │  ├─ _management ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ {*rest}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {*rest} ○
-       │           │  │  ╰─ s/notify ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ {name}
-       │           │  │           ╰─ /
-       │           │  │              ╰─ {endpoint_identifier} ○
-       │           │  │                 ╰─ / ○
-       │           │  ╰─ udit_events ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ b
-       │           │  ├─ adges ○
-       │           │  │  ╰─ / ○
-       │           │  │     ╰─ {*ref}
-       │           │  │        ╰─ /
-       │           │  │           ├─ coverage ○
-       │           │  │           │  ├─ .
-       │           │  │           │  │  ╰─ {format} ○
-       │           │  │           │  │     ╰─ / ○
-       │           │  │           │  ╰─ / ○
-       │           │  │           ╰─ pipeline ○
-       │           │  │              ├─ .
-       │           │  │              │  ╰─ {format} ○
-       │           │  │              │     ╰─ / ○
-       │           │  │              ╰─ / ○
-       │           │  ├─ l
-       │           │  │  ├─ ame/
-       │           │  │  │  ├─ {*id}
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ {*id} ○
-       │           │  │  ╰─ ob/
-       │           │  │     ├─ {*id}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*id} ○
-       │           │  ╰─ uilds ○
-       │           │     ╰─ / ○
-       │           │        ├─ artifacts/
-       │           │        │  ├─ {*ref_name_and_path}
-       │           │        │  │  ╰─ / ○
-       │           │        │  ╰─ {*ref_name_and_path} ○
-       │           │        ├─ {build_id}
-       │           │        │  ╰─ /artifacts/
-       │           │        │     ├─ browse ○
-       │           │        │     │  ╰─ / ○
-       │           │        │     │     ├─ {*path}
-       │           │        │     │     │  ╰─ / ○
-       │           │        │     │     ╰─ {*path} ○
-       │           │        │     ├─ download ○
-       │           │        │     │  ╰─ / ○
-       │           │        │     ├─ file/
-       │           │        │     │  ├─ {*path}
-       │           │        │     │  │  ╰─ / ○
-       │           │        │     │  ╰─ {*path} ○
-       │           │        │     ╰─ raw/
-       │           │        │        ├─ {*path}
-       │           │        │        │  ╰─ / ○
-       │           │        │        ╰─ {*path} ○
-       │           │        ╰─ {id} ○
-       │           │           ╰─ / ○
-       │           │              ╰─ raw ○
-       │           │                 ╰─ / ○
-       │           ├─ c
-       │           │  ├─ lusters ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ├─ o
-       │           │  │  ├─ m
-       │           │  │  │  ├─ mit ○
-       │           │  │  │  │  ├─ / ○
-       │           │  │  │  │  │  ├─ {id} ○
-       │           │  │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │  ├─ {*rest}
-       │           │  │  │  │  │  │  ╰─ / ○
-       │           │  │  │  │  │  ╰─ {*rest} ○
-       │           │  │  │  │  ╰─ s ○
-       │           │  │  │  │     ╰─ / ○
-       │           │  │  │  │        ├─ {*rest}
-       │           │  │  │  │        │  ╰─ / ○
-       │           │  │  │  │        ╰─ {*rest} ○
-       │           │  │  │  ╰─ pare ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  │        ├─ {*rest}
-       │           │  │  │        │  ╰─ / ○
-       │           │  │  │        ╰─ {*rest} ○
-       │           │  │  ╰─ ntainer_registry ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ╰─ ycle_analytics ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ de
-       │           │  ├─ pendencies ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ╰─ scription_templates/names/
-       │           │     ╰─ {template_type} ○
-       │           │        ├─ .
-       │           │        │  ╰─ {format} ○
-       │           │        │     ╰─ / ○
-       │           │        ╰─ / ○
-       │           ├─ e
-       │           │  ├─ dit/
-       │           │  │  ├─ {*id}
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ {*id} ○
-       │           │  ├─ nvironments ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ╰─ rror_tracking ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ fi
-       │           │  ├─ les ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ╰─ nd_file ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ hooks ○
-       │           │  ╰─ / ○
-       │           │     ├─ {*rest}
-       │           │     │  ╰─ / ○
-       │           │     ╰─ {*rest} ○
-       │           ├─ i
-       │           │  ├─ de_terminals ○
-       │           │  │  ├─ .
-       │           │  │  │  ╰─ {format} ○
-       │           │  │  │     ╰─ / ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ check_config ○
-       │           │  │     │  ├─ .
-       │           │  │     │  │  ╰─ {format} ○
-       │           │  │     │  │     ╰─ / ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {id} ○
-       │           │  │        ├─ .
-       │           │  │        │  ╰─ {format} ○
-       │           │  │        │     ╰─ / ○
-       │           │  │        ╰─ / ○
-       │           │  │           ├─ cancel ○
-       │           │  │           │  ├─ .
-       │           │  │           │  │  ╰─ {format} ○
-       │           │  │           │  │     ╰─ / ○
-       │           │  │           │  ╰─ / ○
-       │           │  │           ╰─ retry ○
-       │           │  │              ├─ .
-       │           │  │              │  ╰─ {format} ○
-       │           │  │              │     ╰─ / ○
-       │           │  │              ╰─ / ○
-       │           │  ├─ nsights ○
-       │           │  │  ╰─ / ○
-       │           │  │     ╰─ query ○
-       │           │  │        ╰─ / ○
-       │           │  ╰─ ssues ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ m
-       │           │  ├─ attermost ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ├─ erge_requests ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ╰─ irror ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ n
-       │           │  ├─ ew/
-       │           │  │  ├─ {*id}
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ {*id} ○
-       │           │  ╰─ ote
-       │           │     ├─ able/
-       │           │     │  ╰─ {target_type}
-       │           │     │     ╰─ /
-       │           │     │        ╰─ {target_id}
-       │           │     │           ╰─ /notes ○
-       │           │     │              ╰─ / ○
-       │           │     ╰─ s ○
-       │           │        ╰─ / ○
-       │           │           ╰─ {id} ○
-       │           │              ╰─ / ○
-       │           │                 ├─ delete_attachment ○
-       │           │                 │  ╰─ / ○
-       │           │                 ├─ outdated_line_change ○
-       │           │                 │  ╰─ / ○
-       │           │                 ├─ resolve ○
-       │           │                 │  ╰─ / ○
-       │           │                 ╰─ toggle_award_emoji ○
-       │           │                    ╰─ / ○
-       │           ├─ p
-       │           │  ├─ a
-       │           │  │  ├─ ges ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ domains ○
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     │     ├─ new ○
-       │           │  │  │     │     │  ╰─ / ○
-       │           │  │  │     │     ╰─ {id} ○
-       │           │  │  │     │        ╰─ / ○
-       │           │  │  │     │           ├─ clean_certificate ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ├─ edit ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ├─ retry_auto_ssl ○
-       │           │  │  │     │           │  ╰─ / ○
-       │           │  │  │     │           ╰─ verify ○
-       │           │  │  │     │              ╰─ / ○
-       │           │  │  │     ╰─ new ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  ╰─ th_locks ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ toggle ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ╰─ {id} ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ ipeline
-       │           │  │  ├─ _schedules ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ {*rest}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {*rest} ○
-       │           │  │  ╰─ s ○
-       │           │  │     ╰─ / ○
-       │           │  │        ├─ {*rest}
-       │           │  │        │  ╰─ / ○
-       │           │  │        ╰─ {*rest} ○
-       │           │  ╰─ ro
-       │           │     ├─ metheus/
-       │           │     │  ├─ alerts/
-       │           │     │  │  ├─ notify ○
-       │           │     │  │  │  ╰─ / ○
-       │           │     │  │  ╰─ {id}
-       │           │     │  │     ╰─ /metrics_dashboard ○
-       │           │     │  │        ╰─ / ○
-       │           │     │  ╰─ metrics ○
-       │           │     │     ╰─ / ○
-       │           │     │        ├─ active_common ○
-       │           │     │        │  ╰─ / ○
-       │           │     │        ├─ new ○
-       │           │     │        │  ╰─ / ○
-       │           │     │        ├─ validate_query ○
-       │           │     │        │  ╰─ / ○
-       │           │     │        ╰─ {id} ○
-       │           │     │           ╰─ / ○
-       │           │     │              ╰─ edit ○
-       │           │     │                 ╰─ / ○
-       │           │     ╰─ tected_environments ○
-       │           │        ╰─ / ○
-       │           │           ├─ {*rest}
-       │           │           │  ╰─ / ○
-       │           │           ╰─ {*rest} ○
-       │           ├─ r
-       │           │  ├─ aw/
-       │           │  │  ├─ {*id}
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ {*id} ○
-       │           │  ├─ e
-       │           │  │  ├─ fs/
-       │           │  │  │  ├─ switch ○
-       │           │  │  │  │  ╰─ / ○
-       │           │  │  │  ╰─ {id}
-       │           │  │  │     ╰─ /logs_tree ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ {*path}
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ {*path} ○
-       │           │  │  ├─ gistry/repository/
-       │           │  │  │  ╰─ {repository_id}
-       │           │  │  │     ╰─ /tags ○
-       │           │  │  │        ╰─ / ○
-       │           │  │  │           ├─ bulk_destroy ○
-       │           │  │  │           │  ╰─ / ○
-       │           │  │  │           ╰─ {id} ○
-       │           │  │  │              ╰─ / ○
-       │           │  │  ├─ pository ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  ╰─ store ○
-       │           │  │     ╰─ / ○
-       │           │  ╰─ unner
-       │           │     ├─ _projects ○
-       │           │     │  ╰─ / ○
-       │           │     │     ╰─ {id} ○
-       │           │     │        ╰─ / ○
-       │           │     ╰─ s ○
-       │           │        ╰─ / ○
-       │           │           ├─ {*rest}
-       │           │           │  ╰─ / ○
-       │           │           ╰─ {*rest} ○
-       │           ├─ s
-       │           │  ├─ e
-       │           │  │  ├─ curity ○
-       │           │  │  │  ╰─ / ○
-       │           │  │  │     ├─ {*rest}
-       │           │  │  │     │  ╰─ / ○
-       │           │  │  │     ╰─ {*rest} ○
-       │           │  │  ╰─ rv
-       │           │  │     ├─ erless ○
-       │           │  │     │  ╰─ / ○
-       │           │  │     │     ├─ {*rest}
-       │           │  │     │     │  ╰─ / ○
-       │           │  │     │     ╰─ {*rest} ○
-       │           │  │     ╰─ ice_
-       │           │  │        ├─ desk ○
-       │           │  │        │  ╰─ / ○
-       │           │  │        ╰─ ping/web_ide_pipelines_count ○
-       │           │  │           ╰─ / ○
-       │           │  ╰─ nippets ○
-       │           │     ╰─ / ○
-       │           │        ├─ {id}
-       │           │        │  ╰─ /raw ○
-       │           │        │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ t
-       │           │  ├─ ags ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ├─ emplates/
-       │           │  │  ╰─ {template_type} ○
-       │           │  │     ├─ .
-       │           │  │     │  ╰─ {format} ○
-       │           │  │     │     ╰─ / ○
-       │           │  │     ╰─ / ○
-       │           │  │        ╰─ {key} ○
-       │           │  │           ├─ .
-       │           │  │           │  ╰─ {format} ○
-       │           │  │           │     ╰─ / ○
-       │           │  │           ╰─ / ○
-       │           │  ├─ odos ○
-       │           │  │  ╰─ / ○
-       │           │  ╰─ r
-       │           │     ├─ ee/
-       │           │     │  ├─ {*id}
-       │           │     │  │  ╰─ / ○
-       │           │     │  ╰─ {*id} ○
-       │           │     ╰─ iggers ○
-       │           │        ╰─ / ○
-       │           │           ├─ {*rest}
-       │           │           │  ╰─ / ○
-       │           │           ╰─ {*rest} ○
-       │           ├─ uploads ○
-       │           │  ╰─ / ○
-       │           │     ├─ authorize ○
-       │           │     │  ╰─ / ○
-       │           │     ╰─ {secret}
-       │           │        ╰─ /
-       │           │           ╰─ {filename} ○
-       │           │              ╰─ / ○
-       │           ├─ v
-       │           │  ├─ ariables ○
-       │           │  │  ╰─ / ○
-       │           │  │     ├─ {*rest}
-       │           │  │     │  ╰─ / ○
-       │           │  │     ╰─ {*rest} ○
-       │           │  ╰─ ulnerability_feedback ○
-       │           │     ╰─ / ○
-       │           │        ├─ {*rest}
-       │           │        │  ╰─ / ○
-       │           │        ╰─ {*rest} ○
-       │           ├─ wikis ○
-       │           │  ╰─ / ○
-       │           │     ├─ {*rest}
-       │           │     │  ╰─ / ○
-       │           │     ╰─ {*rest} ○
-       │           ├─ {*all}
-       │           │  ╰─ / ○
-       │           ╰─ {*all} ○
-       ├─ {*repository_path}
-       │  ╰─ / ○
-       │     ├─ git
-       │     │  ├─ -
-       │     │  │  ├─ receive-pack ○
-       │     │  │  │  ╰─ / ○
-       │     │  │  ╰─ upload-pack ○
-       │     │  │     ╰─ / ○
-       │     │  ╰─ lab-lfs/objects/
-       │     │     ├─ {*oid}
-       │     │     │  ╰─ / ○
-       │     │     │     ╰─ {size} ○
-       │     │     │        ╰─ / ○
-       │     │     │           ╰─ authorize ○
+       │     │     │     ╰─ {secret}
+       │     │     │        ╰─ /
+       │     │     │           ╰─ {filename} ○
        │     │     │              ╰─ / ○
-       │     │     ╰─ {*oid} ○
-       │     ├─ info/
-       │     │  ├─ lfs/
-       │     │  │  ├─ locks ○
-       │     │  │  │  ╰─ / ○
-       │     │  │  │     ├─ new ○
-       │     │  │  │     │  ╰─ / ○
-       │     │  │  │     ├─ verify ○
-       │     │  │  │     │  ╰─ / ○
-       │     │  │  │     ╰─ {id} ○
-       │     │  │  │        ╰─ / ○
-       │     │  │  │           ├─ edit ○
-       │     │  │  │           │  ╰─ / ○
-       │     │  │  │           ╰─ unlock ○
-       │     │  │  │              ╰─ / ○
-       │     │  │  ╰─ objects ○
-       │     │  │     ╰─ / ○
-       │     │  │        ├─ batch ○
-       │     │  │        │  ╰─ / ○
-       │     │  │        ├─ {*oid}
-       │     │  │        │  ╰─ / ○
-       │     │  │        ╰─ {*oid} ○
-       │     │  ╰─ refs ○
-       │     │     ╰─ / ○
-       │     ╰─ ssh-
-       │        ├─ receive-pack ○
-       │        │  ╰─ / ○
-       │        ╰─ upload-pack ○
-       │           ╰─ / ○
-       ├─ {*unmatched_route}
-       │  ╰─ / ○
-       ├─ {*id} ○
+       │     │     ├─ hooks ○
+       │     │     │  ╰─ / ○
+       │     │     │     ├─ {*rest}
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ {*rest} ○
+       │     │     ├─ wikis ○
+       │     │     │  ╰─ / ○
+       │     │     │     ├─ {*rest}
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ {*rest} ○
+       │     │     ├─ de
+       │     │     │  ├─ pendencies ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ scription_templates/names/
+       │     │     │     ╰─ {template_type} ○
+       │     │     │        ├─ / ○
+       │     │     │        ╰─ .
+       │     │     │           ╰─ {format} ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ -/
+       │     │     │  ├─ quality/test_cases ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ new ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ├─ jobs ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ artifacts/
+       │     │     │  │     │  ├─ {*ref_name_and_path}
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ {*ref_name_and_path} ○
+       │     │     │  │     ├─ {job_id}
+       │     │     │  │     │  ╰─ /artifacts/
+       │     │     │  │     │     ├─ download ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ browse ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ {*path}
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ {*path} ○
+       │     │     │  │     │     ├─ keep ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ external_file/
+       │     │     │  │     │     │  ├─ {*path}
+       │     │     │  │     │     │  │  ╰─ / ○
+       │     │     │  │     │     │  ╰─ {*path} ○
+       │     │     │  │     │     ├─ file/
+       │     │     │  │     │     │  ├─ {*path}
+       │     │     │  │     │     │  │  ╰─ / ○
+       │     │     │  │     │     │  ╰─ {*path} ○
+       │     │     │  │     │     ╰─ raw/
+       │     │     │  │     │        ├─ {*path}
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ╰─ {*path} ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ unschedule ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ cancel ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ status ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ viewer ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ erase ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ t
+       │     │     │  │           │  ├─ e
+       │     │     │  │           │  │  ├─ st_report_summary ○
+       │     │     │  │           │  │  │  ╰─ / ○
+       │     │     │  │           │  │  ╰─ rminal ○
+       │     │     │  │           │  │     ├─ .ws/authorize ○
+       │     │     │  │           │  │     │  ╰─ / ○
+       │     │     │  │           │  │     ╰─ / ○
+       │     │     │  │           │  ╰─ race ○
+       │     │     │  │           │     ├─ / ○
+       │     │     │  │           │     ╰─ .
+       │     │     │  │           │        ╰─ {format} ○
+       │     │     │  │           │           ╰─ / ○
+       │     │     │  │           ├─ p
+       │     │     │  │           │  ├─ roxy ○
+       │     │     │  │           │  │  ├─ .ws/authorize ○
+       │     │     │  │           │  │  │  ╰─ / ○
+       │     │     │  │           │  │  ╰─ / ○
+       │     │     │  │           │  ╰─ lay ○
+       │     │     │  │           │     ╰─ / ○
+       │     │     │  │           ╰─ r
+       │     │     │  │              ├─ etry ○
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ aw ○
+       │     │     │  │                 ╰─ / ○
+       │     │     │  ├─ h
+       │     │     │  │  ├─ ooks ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ {hook_id}
+       │     │     │  │  │     │  ╰─ /hook_logs/
+       │     │     │  │  │     │     ╰─ {id} ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     │           ╰─ retry ○
+       │     │     │  │  │     │              ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ edit ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ test ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ╰─ arbor/repositories ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ├─ {id} ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {repository_id}
+       │     │     │  │           ╰─ /artifacts ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  │                 ╰─ {artifact_id}
+       │     │     │  │                    ╰─ /tags ○
+       │     │     │  │                       ╰─ / ○
+       │     │     │  ├─ de
+       │     │     │  │  ├─ sign_management/designs/
+       │     │     │  │  │  ╰─ {design_id}
+       │     │     │  │  │     ╰─ /
+       │     │     │  │  │        ├─ r
+       │     │     │  │  │        │  ├─ aw_image ○
+       │     │     │  │  │        │  │  ╰─ / ○
+       │     │     │  │  │        │  ╰─ esized_image/
+       │     │     │  │  │        │     ╰─ {id} ○
+       │     │     │  │  │        │        ╰─ / ○
+       │     │     │  │  │        ╰─ {sha}
+       │     │     │  │  │           ╰─ /r
+       │     │     │  │  │              ├─ aw_image ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ╰─ esized_image/
+       │     │     │  │  │                 ╰─ {id} ○
+       │     │     │  │  │                    ╰─ / ○
+       │     │     │  │  ╰─ p
+       │     │     │  │     ├─ loy_
+       │     │     │  │     │  ├─ keys ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ enabled_keys ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ├─ new ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ├─ available_p
+       │     │     │  │     │  │     │  ├─ roject_keys ○
+       │     │     │  │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     │  ╰─ ublic_keys ○
+       │     │     │  │     │  │     │     ╰─ / ○
+       │     │     │  │     │  │     ╰─ {id} ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  │           ├─ disable ○
+       │     │     │  │     │  │           │  ╰─ / ○
+       │     │     │  │     │  │           ╰─ e
+       │     │     │  │     │  │              ├─ nable ○
+       │     │     │  │     │  │              │  ╰─ / ○
+       │     │     │  │     │  │              ╰─ dit ○
+       │     │     │  │     │  │                 ╰─ / ○
+       │     │     │  │     │  ╰─ tokens/
+       │     │     │  │     │     ╰─ {id}
+       │     │     │  │     │        ╰─ /revoke ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     ╰─ endencies ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ├─ ne
+       │     │     │  │  ├─ twork/
+       │     │     │  │  │  ╰─ {id} ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  ╰─ w/
+       │     │     │  │     ├─ {*id}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*id} ○
+       │     │     │  ├─ on
+       │     │     │  │  ├─ call_schedules ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ _demand_scans ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ├─ new ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {id}
+       │     │     │  │           ╰─ /edit ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ├─ a
+       │     │     │  │  ├─ vatar ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ├─ ws ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ configuration ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ lert_management ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ╰─ details ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  │                 ├─ {*page}
+       │     │     │  │  │                 │  ╰─ / ○
+       │     │     │  │  │                 ╰─ {*page} ○
+       │     │     │  │  ├─ nalytics/
+       │     │     │  │  │  ├─ value_stream_analytics ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ value_streams ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ new ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ {id} ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     │     ╰─ edit ○
+       │     │     │  │  │  │     │     │        ╰─ / ○
+       │     │     │  │  │  │     │     ╰─ {value_stream_id}
+       │     │     │  │  │  │     │        ╰─ /stages ○
+       │     │     │  │  │  │     │           ╰─ / ○
+       │     │     │  │  │  │     │              ╰─ {id}
+       │     │     │  │  │  │     │                 ╰─ /
+       │     │     │  │  │  │     │                    ├─ average ○
+       │     │     │  │  │  │     │                    │  ├─ / ○
+       │     │     │  │  │  │     │                    │  ╰─ _duration_chart ○
+       │     │     │  │  │  │     │                    │     ╰─ / ○
+       │     │     │  │  │  │     │                    ├─ records ○
+       │     │     │  │  │  │     │                    │  ╰─ / ○
+       │     │     │  │  │  │     │                    ├─ median ○
+       │     │     │  │  │  │     │                    │  ╰─ / ○
+       │     │     │  │  │  │     │                    ╰─ count ○
+       │     │     │  │  │  │     │                       ╰─ / ○
+       │     │     │  │  │  │     ├─ time_summary ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ summary ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ├─ merge_request_analytics ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ├─ issues_analytics ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ├─ code_reviews ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ╰─ dashboards ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ├─ {*vueroute}
+       │     │     │  │  │        │  ╰─ / ○
+       │     │     │  │  │        ╰─ {*vueroute} ○
+       │     │     │  │  ├─ pprover
+       │     │     │  │  │  ├─ _groups/
+       │     │     │  │  │  │  ╰─ {id} ○
+       │     │     │  │  │  │     ╰─ / ○
+       │     │     │  │  │  ╰─ s/
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ r
+       │     │     │  │  │  ├─ tifacts ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ {id} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ╰─ chive/
+       │     │     │  │  │     ╰─ {id}
+       │     │     │  │  │        ╰─ .
+       │     │     │  │  │           ╰─ {format} ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ╰─ u
+       │     │     │  │     ├─ dit_events ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ to
+       │     │     │  │        ├─ mations ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ complete_sources/
+       │     │     │  │           ├─ vulnerabilities ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ snippets ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ labels ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ epics ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ wikis ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ co
+       │     │     │  │           │  ├─ mmands ○
+       │     │     │  │           │  │  ╰─ / ○
+       │     │     │  │           │  ╰─ ntacts ○
+       │     │     │  │           │     ╰─ / ○
+       │     │     │  │           ├─ i
+       │     │     │  │           │  ├─ terations ○
+       │     │     │  │           │  │  ╰─ / ○
+       │     │     │  │           │  ╰─ ssues ○
+       │     │     │  │           │     ╰─ / ○
+       │     │     │  │           ╰─ m
+       │     │     │  │              ├─ ilestones ○
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ e
+       │     │     │  │                 ├─ rge_requests ○
+       │     │     │  │                 │  ╰─ / ○
+       │     │     │  │                 ╰─ mbers ○
+       │     │     │  │                    ╰─ / ○
+       │     │     │  ├─ b
+       │     │     │  │  ├─ adges/release ○
+       │     │     │  │  │  ├─ / ○
+       │     │     │  │  │  ╰─ .
+       │     │     │  │  │     ╰─ {format} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ ranches ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ diverging_commit_counts ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ {state} ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ oards ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ l
+       │     │     │  │     ├─ ame
+       │     │     │  │     │  ├─ _page/
+       │     │     │  │     │  │  ├─ {*id}
+       │     │     │  │     │  │  │  ╰─ / ○
+       │     │     │  │     │  │  ╰─ {*id} ○
+       │     │     │  │     │  ╰─ /
+       │     │     │  │     │     ├─ {*id}
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ streaming ○
+       │     │     │  │     │     │        ╰─ / ○
+       │     │     │  │     │     ╰─ {*id} ○
+       │     │     │  │     ╰─ ob/
+       │     │     │  │        ├─ {*id}
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        │     ╰─ diff ○
+       │     │     │  │        │        ╰─ / ○
+       │     │     │  │        ╰─ {*id} ○
+       │     │     │  ├─ c
+       │     │     │  │  ├─ ycle_analytics ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ├─ adences ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ {iteration_cadence_id}
+       │     │     │  │  │     │  ╰─ /iterations ○
+       │     │     │  │  │     │     ╰─ / ○
+       │     │     │  │  │     │        ╰─ {id} ○
+       │     │     │  │  │     │           ╰─ / ○
+       │     │     │  │  │     ├─ {id} ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     │     ╰─ edit ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     ├─ {*vueroute}
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ new ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ {iteration_cadence_id}
+       │     │     │  │  │     │     │  ╰─ /iterations ○
+       │     │     │  │  │     │     │     ╰─ / ○
+       │     │     │  │  │     │     │        ╰─ {id} ○
+       │     │     │  │  │     │     │           ╰─ / ○
+       │     │     │  │  │     │     ╰─ {id} ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     │           ╰─ edit ○
+       │     │     │  │  │     │              ╰─ / ○
+       │     │     │  │  │     ╰─ {*vueroute} ○
+       │     │     │  │  ├─ luster
+       │     │     │  │  │  ├─ s ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ new_cluster_docs ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ c
+       │     │     │  │  │  │     │  ├─ reate_user ○
+       │     │     │  │  │  │     │  │  ╰─ / ○
+       │     │     │  │  │  │     │  ╰─ onnect ○
+       │     │     │  │  │  │     │     ╰─ / ○
+       │     │     │  │  │  │     ├─ {cluster_id}
+       │     │     │  │  │  │     │  ╰─ /integration/create_or_update ○
+       │     │     │  │  │  │     │     ╰─ / ○
+       │     │     │  │  │  │     ╰─ {id} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  │           ├─ cl
+       │     │     │  │  │  │           │  ├─ uster_status ○
+       │     │     │  │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │  │           │  ╰─ ear_cache ○
+       │     │     │  │  │  │           │     ╰─ / ○
+       │     │     │  │  │  │           ├─ environments ○
+       │     │     │  │  │  │           │  ╰─ / ○
+       │     │     │  │  │  │           ╰─ metrics ○
+       │     │     │  │  │  │              ├─ / ○
+       │     │     │  │  │  │              ╰─ _dashboard ○
+       │     │     │  │  │  │                 ╰─ / ○
+       │     │     │  │  │  ╰─ _agents/
+       │     │     │  │  │     ╰─ {name} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ reate
+       │     │     │  │  │  ├─ _dir/
+       │     │     │  │  │  │  ├─ {*id}
+       │     │     │  │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │  ╰─ {*id} ○
+       │     │     │  │  │  ╰─ /
+       │     │     │  │  │     ├─ {*id}
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {*id} ○
+       │     │     │  │  ├─ i/
+       │     │     │  │  │  ├─ prometheus_metrics/histograms ○
+       │     │     │  │  │  │  ├─ / ○
+       │     │     │  │  │  │  ╰─ .
+       │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ├─ daily_build_group_report_results ○
+       │     │     │  │  │  │  ├─ / ○
+       │     │     │  │  │  │  ╰─ .
+       │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ├─ editor ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ╰─ lint ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  ╰─ om
+       │     │     │  │     ├─ m
+       │     │     │  │     │  ├─ ent_templates ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ {id} ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  ╰─ it
+       │     │     │  │     │     ├─ s ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ {*id}
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     │     ╰─ signatures ○
+       │     │     │  │     │     │     │        ╰─ / ○
+       │     │     │  │     │     │     ╰─ {*id} ○
+       │     │     │  │     │     ╰─ /
+       │     │     │  │     │        ╰─ {id} ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     │              ├─ merge_requests ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ├─ cherry_pick ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ├─ pipelines ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ├─ branches ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ├─ revert ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ╰─ diff_f
+       │     │     │  │     │                 ├─ or_path ○
+       │     │     │  │     │                 │  ╰─ / ○
+       │     │     │  │     │                 ╰─ iles ○
+       │     │     │  │     │                    ╰─ / ○
+       │     │     │  │     ╰─ pare ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ diff_for_path ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ signatures ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ {from}
+       │     │     │  │              ╰─ ...
+       │     │     │  │                 ╰─ {to} ○
+       │     │     │  │                    ╰─ / ○
+       │     │     │  ├─ e
+       │     │     │  │  ├─ scalation_policies ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ├─ rror_tracking ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ projects ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {issue_id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ stack_trace ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ details ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ├─ nvironments ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ search ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ folders/
+       │     │     │  │  │     │  ├─ {*id}
+       │     │     │  │  │     │  │  ├─ / ○
+       │     │     │  │  │     │  │  ╰─ .
+       │     │     │  │  │     │  │     ╰─ {format} ○
+       │     │     │  │  │     │  │        ╰─ / ○
+       │     │     │  │  │     │  ╰─ {*id} ○
+       │     │     │  │  │     ├─ {environment_id}
+       │     │     │  │  │     │  ╰─ /deployments ○
+       │     │     │  │  │     │     ╰─ / ○
+       │     │     │  │  │     │        ╰─ {id} ○
+       │     │     │  │  │     │           ╰─ / ○
+       │     │     │  │  │     │              ├─ additional_metrics ○
+       │     │     │  │  │     │              │  ╰─ / ○
+       │     │     │  │  │     │              ╰─ metrics ○
+       │     │     │  │  │     │                 ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ cancel_auto_stop ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ terminal ○
+       │     │     │  │  │           │  ├─ .ws/authorize ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ edit ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ stop ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ k8s ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           │     ├─ {*vueroute}
+       │     │     │  │  │           │     │  ╰─ / ○
+       │     │     │  │  │           │     ╰─ {*vueroute} ○
+       │     │     │  │  │           ╰─ prometheus/api/v1/
+       │     │     │  │  │              ├─ {*proxy_path}
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ╰─ {*proxy_path} ○
+       │     │     │  │  ╰─ dit/
+       │     │     │  │     ├─ {*id}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*id} ○
+       │     │     │  ├─ f
+       │     │     │  │  ├─ eature_flags ○
+       │     │     │  │  │  ├─ _
+       │     │     │  │  │  │  ├─ client/reset_token ○
+       │     │     │  │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │  ╰─ user_lists ○
+       │     │     │  │  │  │     ╰─ / ○
+       │     │     │  │  │  │        ├─ new ○
+       │     │     │  │  │  │        │  ╰─ / ○
+       │     │     │  │  │  │        ╰─ {iid} ○
+       │     │     │  │  │  │           ╰─ / ○
+       │     │     │  │  │  │              ╰─ edit ○
+       │     │     │  │  │  │                 ╰─ / ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ {feature_flag_iid}
+       │     │     │  │  │     │  ╰─ /issues ○
+       │     │     │  │  │     │     ╰─ / ○
+       │     │     │  │  │     │        ╰─ {id} ○
+       │     │     │  │  │     │           ╰─ / ○
+       │     │     │  │  │     ╰─ {iid} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ╰─ edit ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ├─ orks ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ new ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ i
+       │     │     │  │     ├─ nd_file/
+       │     │     │  │     │  ├─ {*id}
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ {*id} ○
+       │     │     │  │     ╰─ les/
+       │     │     │  │        ├─ {*id}
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {*id} ○
+       │     │     │  ├─ g
+       │     │     │  │  ├─ oogle_cloud ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ artifact_registry ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     │     ╰─ projects/
+       │     │     │  │  │     │        ╰─ {project}
+       │     │     │  │  │     │           ╰─ /locations/
+       │     │     │  │  │     │              ╰─ {location}
+       │     │     │  │  │     │                 ╰─ /repositories/
+       │     │     │  │  │     │                    ╰─ {repository}
+       │     │     │  │  │     │                       ╰─ /dockerImages/
+       │     │     │  │  │     │                          ╰─ {image} ○
+       │     │     │  │  │     │                             ╰─ / ○
+       │     │     │  │  │     ├─ service_accounts ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ configuration ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ revoke_oauth ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ d
+       │     │     │  │  │     │  ├─ eployments ○
+       │     │     │  │  │     │  │  ╰─ / ○
+       │     │     │  │  │     │  │     ╰─ cloud_
+       │     │     │  │  │     │  │        ├─ storage ○
+       │     │     │  │  │     │  │        │  ╰─ / ○
+       │     │     │  │  │     │  │        ╰─ run ○
+       │     │     │  │  │     │  │           ╰─ / ○
+       │     │     │  │  │     │  ╰─ atabases ○
+       │     │     │  │  │     │     ╰─ / ○
+       │     │     │  │  │     │        ╰─ new/
+       │     │     │  │  │     │           ╰─ {product} ○
+       │     │     │  │  │     │              ╰─ / ○
+       │     │     │  │  │     ╰─ gcp_regions ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ r
+       │     │     │  │     ├─ oup_links/
+       │     │     │  │     │  ╰─ {id} ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     ╰─ aphs/
+       │     │     │  │        ╰─ {id} ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  │              ├─ languages ○
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ c
+       │     │     │  │                 ├─ ommits ○
+       │     │     │  │                 │  ╰─ / ○
+       │     │     │  │                 ├─ harts ○
+       │     │     │  │                 │  ╰─ / ○
+       │     │     │  │                 ╰─ i ○
+       │     │     │  │                    ╰─ / ○
+       │     │     │  ├─ i
+       │     │     │  │  ├─ terations ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ mport ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ jira ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ new ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ ssues ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ service_desk ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ bulk_update ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ export_csv ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ i
+       │     │     │  │  │     │  ├─ mport_csv ○
+       │     │     │  │  │     │  │  ╰─ / ○
+       │     │     │  │  │     │  ╰─ ncident/
+       │     │     │  │  │     │     ╰─ {id} ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     │           ╰─ {incident_tab} ○
+       │     │     │  │  │     │              ╰─ / ○
+       │     │     │  │  │     ├─ {issue_id}
+       │     │     │  │  │     │  ╰─ /
+       │     │     │  │  │     │     ├─ feature_flags ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     │     ╰─ {id} ○
+       │     │     │  │  │     │     │        ╰─ / ○
+       │     │     │  │  │     │     ╰─ links ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     │           ╰─ {id} ○
+       │     │     │  │  │     │              ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ edit ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ toggle_
+       │     │     │  │  │           │  ├─ subscription ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ award_emoji ○
+       │     │     │  │  │           │     ╰─ / ○
+       │     │     │  │  │           ├─ re
+       │     │     │  │  │           │  ├─ altime_changes ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ├─ lated_branches ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ order ○
+       │     │     │  │  │           │     ╰─ / ○
+       │     │     │  │  │           ├─ c
+       │     │     │  │  │           │  ├─ reate_merge_request ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ an_create_branch ○
+       │     │     │  │  │           │     ╰─ / ○
+       │     │     │  │  │           ├─ d
+       │     │     │  │  │           │  ├─ iscussions ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ es
+       │     │     │  │  │           │     ├─ igns ○
+       │     │     │  │  │           │     │  ╰─ / ○
+       │     │     │  │  │           │     │     ├─ {*vueroute}
+       │     │     │  │  │           │     │     │  ╰─ / ○
+       │     │     │  │  │           │     │     ╰─ {*vueroute} ○
+       │     │     │  │  │           │     ╰─ criptions/
+       │     │     │  │  │           │        ╰─ {version_id} ○
+       │     │     │  │  │           │           ╰─ / ○
+       │     │     │  │  │           │              ╰─ diff ○
+       │     │     │  │  │           │                 ╰─ / ○
+       │     │     │  │  │           ├─ m
+       │     │     │  │  │           │  ├─ ark_as_spam ○
+       │     │     │  │  │           │  │  ╰─ / ○
+       │     │     │  │  │           │  ╰─ ove ○
+       │     │     │  │  │           │     ╰─ / ○
+       │     │     │  │  │           ╰─ {incident_tab} ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ╰─ n
+       │     │     │  │     ├─ cident
+       │     │     │  │     │  ├─ _management/timeline_events/preview_markdown ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ s ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     │        ╰─ integrations/pagerduty ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     ├─ frastructure_registry ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ tegrations/
+       │     │     │  │        ├─ slash_commands ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        │     ╰─ confirm ○
+       │     │     │  │        │        ╰─ / ○
+       │     │     │  │        ├─ zentao/issues ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        │     ╰─ {id} ○
+       │     │     │  │        │        ╰─ / ○
+       │     │     │  │        ╰─ jira/issues ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  │              ╰─ {id} ○
+       │     │     │  │                 ╰─ / ○
+       │     │     │  ├─ l
+       │     │     │  │  ├─ abels ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ set_priorities ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ generate ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ toggle_subscription ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ remove_priority ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ promote ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ edit ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ├─ earn_gitlab ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ end_tutorial ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ ogs ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  ├─ m
+       │     │     │  │  ├─ attermost ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ new ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ l/
+       │     │     │  │  │  ├─ preview_markdown ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ├─ experiments ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ {iid} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ├─ agents ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ new ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ {id} ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ╰─ edit ○
+       │     │     │  │  │  │     │        ╰─ / ○
+       │     │     │  │  │  │     ├─ {*vueroute}
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ new ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ╰─ {id} ○
+       │     │     │  │  │  │     │        ╰─ / ○
+       │     │     │  │  │  │     │           ╰─ edit ○
+       │     │     │  │  │  │     │              ╰─ / ○
+       │     │     │  │  │  │     ╰─ {*vueroute} ○
+       │     │     │  │  │  ├─ models ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ new ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ {model_id} ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ {model_model_id}
+       │     │     │  │  │  │        ╰─ /versions/
+       │     │     │  │  │  │           ╰─ {model_version_id} ○
+       │     │     │  │  │  │              ╰─ / ○
+       │     │     │  │  │  ╰─ candidates/
+       │     │     │  │  │     ╰─ {iid} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ i
+       │     │     │  │  │  ├─ rror ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ ssh_host_keys ○
+       │     │     │  │  │  │     │  ├─ / ○
+       │     │     │  │  │  │     │  ╰─ .
+       │     │     │  │  │  │     │     ╰─ {format} ○
+       │     │     │  │  │  │     │        ╰─ / ○
+       │     │     │  │  │  │     ╰─ update_now ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ╰─ lestones ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ├─ new ○
+       │     │     │  │  │        │  ╰─ / ○
+       │     │     │  │  │        ╰─ {id} ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  │              ├─ merge_requests ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ├─ issues ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ├─ labels ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ├─ edit ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ╰─ p
+       │     │     │  │  │                 ├─ articipants ○
+       │     │     │  │  │                 │  ╰─ / ○
+       │     │     │  │  │                 ╰─ romote ○
+       │     │     │  │  │                    ╰─ / ○
+       │     │     │  │  ╰─ e
+       │     │     │  │     ├─ rge
+       │     │     │  │     │  ├─ d_branches ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ _
+       │     │     │  │     │     ├─ trains ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ requests ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ├─ diff_for_path ○
+       │     │     │  │     │           │  ╰─ / ○
+       │     │     │  │     │           ├─ bulk_update ○
+       │     │     │  │     │           │  ╰─ / ○
+       │     │     │  │     │           ├─ export_csv ○
+       │     │     │  │     │           │  ╰─ / ○
+       │     │     │  │     │           ├─ new ○
+       │     │     │  │     │           │  ╰─ / ○
+       │     │     │  │     │           │     ├─ target_projects ○
+       │     │     │  │     │           │     │  ╰─ / ○
+       │     │     │  │     │           │     ├─ branch_
+       │     │     │  │     │           │     │  ├─ from ○
+       │     │     │  │     │           │     │  │  ╰─ / ○
+       │     │     │  │     │           │     │  ╰─ to ○
+       │     │     │  │     │           │     │     ╰─ / ○
+       │     │     │  │     │           │     ├─ pipelines ○
+       │     │     │  │     │           │     │  ╰─ / ○
+       │     │     │  │     │           │     ╰─ diff
+       │     │     │  │     │           │        ├─ _for_path ○
+       │     │     │  │     │           │        │  ╰─ / ○
+       │     │     │  │     │           │        ╰─ s ○
+       │     │     │  │     │           │           ╰─ / ○
+       │     │     │  │     │           ├─ {merge_request_id}
+       │     │     │  │     │           │  ╰─ /
+       │     │     │  │     │           │     ├─ drafts ○
+       │     │     │  │     │           │     │  ╰─ / ○
+       │     │     │  │     │           │     │     ├─ discard ○
+       │     │     │  │     │           │     │     │  ╰─ / ○
+       │     │     │  │     │           │     │     ├─ publish ○
+       │     │     │  │     │           │     │     │  ╰─ / ○
+       │     │     │  │     │           │     │     ╰─ {id} ○
+       │     │     │  │     │           │     │        ╰─ / ○
+       │     │     │  │     │           │     ╰─ approver
+       │     │     │  │     │           │        ├─ s ○
+       │     │     │  │     │           │        │  ╰─ / ○
+       │     │     │  │     │           │        │     ╰─ {id} ○
+       │     │     │  │     │           │        │        ╰─ / ○
+       │     │     │  │     │           │        ╰─ _groups/
+       │     │     │  │     │           │           ╰─ {id} ○
+       │     │     │  │     │           │              ╰─ / ○
+       │     │     │  │     │           ╰─ {id} ○
+       │     │     │  │     │              ╰─ / ○
+       │     │     │  │     │                 ├─ license_scanning_reports ○
+       │     │     │  │     │                 │  ├─ / ○
+       │     │     │  │     │                 │  ╰─ _collapsed ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ e
+       │     │     │  │     │                 │  ├─ xposed_artifacts ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ╰─ dit ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ widget ○
+       │     │     │  │     │                 │  ╰─ / ○
+       │     │     │  │     │                 ├─ pipeline
+       │     │     │  │     │                 │  ├─ _status ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ╰─ s ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ me
+       │     │     │  │     │                 │  ├─ trics_reports ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ╰─ rge ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ re
+       │     │     │  │     │                 │  ├─ solve_conflicts ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ├─ move_wip ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ├─ ports ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ╰─ base ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ a
+       │     │     │  │     │                 │  ├─ ccessibility_reports ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ├─ ssign_related_issues ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ╰─ pi_fuzzing_reports ○
+       │     │     │  │     │                 │     ╰─ / ○
+       │     │     │  │     │                 ├─ c
+       │     │     │  │     │                 │  ├─ i_environments_status ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ├─ a
+       │     │     │  │     │                 │  │  ├─ ncel_auto_merge ○
+       │     │     │  │     │                 │  │  │  ╰─ / ○
+       │     │     │  │     │                 │  │  ╰─ ched_widget ○
+       │     │     │  │     │                 │  │     ╰─ / ○
+       │     │     │  │     │                 │  ╰─ o
+       │     │     │  │     │                 │     ├─ n
+       │     │     │  │     │                 │     │  ├─ flict
+       │     │     │  │     │                 │     │  │  ├─ _for_path ○
+       │     │     │  │     │                 │     │  │  │  ╰─ / ○
+       │     │     │  │     │                 │     │  │  ╰─ s ○
+       │     │     │  │     │                 │     │  │     ╰─ / ○
+       │     │     │  │     │                 │     │  ╰─ t
+       │     │     │  │     │                 │     │     ├─ ainer_scanning_reports ○
+       │     │     │  │     │                 │     │     │  ╰─ / ○
+       │     │     │  │     │                 │     │     ╰─ ext_commits ○
+       │     │     │  │     │                 │     │        ╰─ / ○
+       │     │     │  │     │                 │     ├─ mmit
+       │     │     │  │     │                 │     │  ├─ _change_content ○
+       │     │     │  │     │                 │     │  │  ╰─ / ○
+       │     │     │  │     │                 │     │  ╰─ s ○
+       │     │     │  │     │                 │     │     ╰─ / ○
+       │     │     │  │     │                 │     ├─ dequality_
+       │     │     │  │     │                 │     │  ├─ mr_diff_reports ○
+       │     │     │  │     │                 │     │  │  ╰─ / ○
+       │     │     │  │     │                 │     │  ╰─ reports ○
+       │     │     │  │     │                 │     │     ╰─ / ○
+       │     │     │  │     │                 │     ╰─ verage_
+       │     │     │  │     │                 │        ├─ fuzzing_reports ○
+       │     │     │  │     │                 │        │  ╰─ / ○
+       │     │     │  │     │                 │        ╰─ reports ○
+       │     │     │  │     │                 │           ╰─ / ○
+       │     │     │  │     │                 ├─ d
+       │     │     │  │     │                 │  ├─ ast_reports ○
+       │     │     │  │     │                 │  │  ╰─ / ○
+       │     │     │  │     │                 │  ├─ i
+       │     │     │  │     │                 │  │  ├─ scussions ○
+       │     │     │  │     │                 │  │  │  ╰─ / ○
+       │     │     │  │     │                 │  │  ╰─ ff
+       │     │     │  │     │                 │  │     ├─ _
+       │     │     │  │     │                 │  │     │  ├─ for_path ○
+       │     │     │  │     │                 │  │     │  │  ╰─ / ○
+       │     │     │  │     │                 │  │     │  ╰─ by_file_hash/
+       │     │     │  │     │                 │  │     │     ╰─ {file_hash} ○
+       │     │     │  │     │                 │  │     │        ╰─ / ○
+       │     │     │  │     │                 │  │     ╰─ s ○
+       │     │     │  │     │                 │  │        ├─ / ○
+       │     │     │  │     │                 │  │        ╰─ _
+       │     │     │  │     │                 │  │           ├─ metadata ○
+       │     │     │  │     │                 │  │           │  ╰─ / ○
+       │     │     │  │     │                 │  │           ├─ stream ○
+       │     │     │  │     │                 │  │           │  ╰─ / ○
+       │     │     │  │     │                 │  │           ╰─ batch ○
+       │     │     │  │     │                 │  │              ╰─ / ○
+       │     │     │  │     │                 │  ╰─ e
+       │     │     │  │     │                 │     ├─ pendency_scanning_reports ○
+       │     │     │  │     │                 │     │  ╰─ / ○
+       │     │     │  │     │                 │     ╰─ scriptions/
+       │     │     │  │     │                 │        ╰─ {version_id} ○
+       │     │     │  │     │                 │           ╰─ / ○
+       │     │     │  │     │                 │              ╰─ diff ○
+       │     │     │  │     │                 │                 ╰─ / ○
+       │     │     │  │     │                 ├─ s
+       │     │     │  │     │                 │  ├─ ec
+       │     │     │  │     │                 │  │  ├─ ret_detection_reports ○
+       │     │     │  │     │                 │  │  │  ╰─ / ○
+       │     │     │  │     │                 │  │  ╰─ urity_reports ○
+       │     │     │  │     │                 │  │     ╰─ / ○
+       │     │     │  │     │                 │  ╰─ a
+       │     │     │  │     │                 │     ├─ ml_approval ○
+       │     │     │  │     │                 │     │  ╰─ / ○
+       │     │     │  │     │                 │     ╰─ st_reports ○
+       │     │     │  │     │                 │        ╰─ / ○
+       │     │     │  │     │                 ╰─ t
+       │     │     │  │     │                    ├─ oggle_
+       │     │     │  │     │                    │  ├─ subscription ○
+       │     │     │  │     │                    │  │  ╰─ / ○
+       │     │     │  │     │                    │  ╰─ award_emoji ○
+       │     │     │  │     │                    │     ╰─ / ○
+       │     │     │  │     │                    ╰─ e
+       │     │     │  │     │                       ├─ rraform_reports ○
+       │     │     │  │     │                       │  ╰─ / ○
+       │     │     │  │     │                       ╰─ st_reports ○
+       │     │     │  │     │                          ╰─ / ○
+       │     │     │  │     ╰─ trics ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ╰─ {id} ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ├─ p
+       │     │     │  │  ├─ ush_rules/
+       │     │     │  │  │  ╰─ {id} ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  ├─ ipeline
+       │     │     │  │  │  ├─ s ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ├─ settings ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ charts ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ latest ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ new ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     ├─ {pipeline_id}
+       │     │     │  │  │  │     │  ╰─ /
+       │     │     │  │  │  │     │     ├─ tests/
+       │     │     │  │  │  │     │     │  ├─ summary ○
+       │     │     │  │  │  │     │     │  │  ╰─ / ○
+       │     │     │  │  │  │     │     │  ╰─ {suite_name} ○
+       │     │     │  │  │  │     │     │     ╰─ / ○
+       │     │     │  │  │  │     │     ├─ validate_account ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ╰─ stages/
+       │     │     │  │  │  │     │        ╰─ {stage_name}
+       │     │     │  │  │  │     │           ╰─ /play_manual ○
+       │     │     │  │  │  │     │              ╰─ / ○
+       │     │     │  │  │  │     ├─ {id} ○
+       │     │     │  │  │  │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ manual_variables ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ test_report ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ failures ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ builds ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ retry ○
+       │     │     │  │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │  │     │     ├─ d
+       │     │     │  │  │  │     │     │  ├─ ownloadable_artifacts ○
+       │     │     │  │  │  │     │     │  │  ╰─ / ○
+       │     │     │  │  │  │     │     │  ╰─ ag ○
+       │     │     │  │  │  │     │     │     ╰─ / ○
+       │     │     │  │  │  │     │     ├─ license
+       │     │     │  │  │  │     │     │  ├─ _count ○
+       │     │     │  │  │  │     │     │  │  ╰─ / ○
+       │     │     │  │  │  │     │     │  ╰─ s ○
+       │     │     │  │  │  │     │     │     ╰─ / ○
+       │     │     │  │  │  │     │     ├─ c
+       │     │     │  │  │  │     │     │  ├─ odequality_report ○
+       │     │     │  │  │  │     │     │  │  ╰─ / ○
+       │     │     │  │  │  │     │     │  ╰─ ancel ○
+       │     │     │  │  │  │     │     │     ╰─ / ○
+       │     │     │  │  │  │     │     ╰─ s
+       │     │     │  │  │  │     │        ├─ ecurity ○
+       │     │     │  │  │  │     │        │  ╰─ / ○
+       │     │     │  │  │  │     │        ╰─ ta
+       │     │     │  │  │  │     │           ├─ tus ○
+       │     │     │  │  │  │     │           │  ╰─ / ○
+       │     │     │  │  │  │     │           ╰─ ge ○
+       │     │     │  │  │  │     │              ╰─ / ○
+       │     │     │  │  │  │     ╰─ {*ref}
+       │     │     │  │  │  │        ╰─ /latest ○
+       │     │     │  │  │  │           ╰─ / ○
+       │     │     │  │  │  ╰─ _schedules ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ├─ new ○
+       │     │     │  │  │        │  ╰─ / ○
+       │     │     │  │  │        ╰─ {id} ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  │              ├─ take_ownership ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ├─ edit ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ╰─ play ○
+       │     │     │  │  │                 ╰─ / ○
+       │     │     │  │  ├─ ackage
+       │     │     │  │  │  ├─ s ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ {id} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ╰─ _files/
+       │     │     │  │  │     ╰─ {id}
+       │     │     │  │  │        ╰─ /download ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  ╰─ r
+       │     │     │  │     ├─ o
+       │     │     │  │     │  ├─ ject_members ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ request_access ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ├─ leave ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ {id} ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  │           ├─ approve_access_request ○
+       │     │     │  │     │  │           │  ╰─ / ○
+       │     │     │  │     │  │           ╰─ resend_invite ○
+       │     │     │  │     │  │              ╰─ / ○
+       │     │     │  │     │  ╰─ tected_
+       │     │     │  │     │     ├─ environments ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ search ○
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ {id} ○
+       │     │     │  │     │     │        ╰─ / ○
+       │     │     │  │     │     ├─ branches ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ {id} ○
+       │     │     │  │     │     │        ╰─ / ○
+       │     │     │  │     │     ╰─ tags ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ╰─ {id} ○
+       │     │     │  │     │              ╰─ / ○
+       │     │     │  │     ╰─ eview
+       │     │     │  │        ├─ _markdown ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ /
+       │     │     │  │           ├─ {*id}
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ {*id} ○
+       │     │     │  ├─ r
+       │     │     │  │  ├─ unners ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ toggle_
+       │     │     │  │  │     │  ├─ shared_runners ○
+       │     │     │  │  │     │  │  ╰─ / ○
+       │     │     │  │  │     │  ╰─ group_runners ○
+       │     │     │  │  │     │     ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ pause ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ edit ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ re
+       │     │     │  │  │              ├─ gister ○
+       │     │     │  │  │              │  ╰─ / ○
+       │     │     │  │  │              ╰─ sume ○
+       │     │     │  │  │                 ╰─ / ○
+       │     │     │  │  ├─ aw/
+       │     │     │  │  │  ├─ {*id}
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  ╰─ {*id} ○
+       │     │     │  │  ╰─ e
+       │     │     │  │     ├─ quirements_management/requirements ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ import_csv ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ╰─ authorize ○
+       │     │     │  │     │              ╰─ / ○
+       │     │     │  │     ├─ pository ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ leases ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ├─ permalink/latest ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ {*suffix_path}
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ {*suffix_path} ○
+       │     │     │  │     │     ├─ outbox ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ inbox ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ new ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ {tag} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ├─ downloads/
+       │     │     │  │     │           │  ├─ {*filepath}
+       │     │     │  │     │           │  │  ╰─ / ○
+       │     │     │  │     │           │  ╰─ {*filepath} ○
+       │     │     │  │     │           ╰─ e
+       │     │     │  │     │              ├─ dit ○
+       │     │     │  │     │              │  ╰─ / ○
+       │     │     │  │     │              ╰─ vidences/
+       │     │     │  │     │                 ╰─ {id} ○
+       │     │     │  │     │                    ╰─ / ○
+       │     │     │  │     ╰─ fs/
+       │     │     │  │        ├─ switch ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {id}
+       │     │     │  │           ╰─ /logs_tree ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  │                 ├─ {*path}
+       │     │     │  │                 │  ╰─ / ○
+       │     │     │  │                 ╰─ {*path} ○
+       │     │     │  ├─ s
+       │     │     │  │  ├─ ubscriptions ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ├─ nippets ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ {snippet_id}
+       │     │     │  │  │     │  ╰─ /raw/
+       │     │     │  │  │     │     ╰─ {ref}
+       │     │     │  │  │     │        ╰─ /
+       │     │     │  │  │     │           ├─ {*path}
+       │     │     │  │  │     │           │  ╰─ / ○
+       │     │     │  │  │     │           ╰─ {*path} ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  │           ├─ toggle_award_emoji ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ mark_as_spam ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ├─ edit ○
+       │     │     │  │  │           │  ╰─ / ○
+       │     │     │  │  │           ╰─ raw ○
+       │     │     │  │  │              ╰─ / ○
+       │     │     │  │  ├─ tarrers ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ├─ chema/
+       │     │     │  │  │  ╰─ {branch}
+       │     │     │  │  │     ╰─ /
+       │     │     │  │  │        ├─ {*filename}
+       │     │     │  │  │        │  ╰─ / ○
+       │     │     │  │  │        ╰─ {*filename} ○
+       │     │     │  │  ╰─ e
+       │     │     │  │     ├─ rvice_desk/custom_email ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ├─ ttings/
+       │     │     │  │     │  ├─ packages_and_registries ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ cleanup_image_tags ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  ├─ merge_requests ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ├─ integrations ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ {integration_id}
+       │     │     │  │     │  │     │  ╰─ /hook_logs/
+       │     │     │  │     │  │     │     ╰─ {id} ○
+       │     │     │  │     │  │     │        ╰─ / ○
+       │     │     │  │     │  │     │           ╰─ retry ○
+       │     │     │  │     │  │     │              ╰─ / ○
+       │     │     │  │     │  │     ╰─ {id} ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  │           ├─ edit ○
+       │     │     │  │     │  │           │  ╰─ / ○
+       │     │     │  │     │  │           ╰─ test ○
+       │     │     │  │     │  │              ╰─ / ○
+       │     │     │  │     │  ├─ operations ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ reset_
+       │     │     │  │     │  │        ├─ pagerduty_token ○
+       │     │     │  │     │  │        │  ╰─ / ○
+       │     │     │  │     │  │        ╰─ alerting_token ○
+       │     │     │  │     │  │           ╰─ / ○
+       │     │     │  │     │  ├─ repository ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ deploy_token/create ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ├─ branch_rules ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ cleanup ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  ├─ ci_cd ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ deploy_token/create ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ r
+       │     │     │  │     │  │        ├─ unner_setup_scripts ○
+       │     │     │  │     │  │        │  ╰─ / ○
+       │     │     │  │     │  │        ╰─ eset_
+       │     │     │  │     │  │           ├─ registration_token ○
+       │     │     │  │     │  │           │  ╰─ / ○
+       │     │     │  │     │  │           ╰─ cache ○
+       │     │     │  │     │  │              ╰─ / ○
+       │     │     │  │     │  ├─ slack ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  │     ├─ slack_auth ○
+       │     │     │  │     │  │     │  ╰─ / ○
+       │     │     │  │     │  │     ╰─ edit ○
+       │     │     │  │     │  │        ╰─ / ○
+       │     │     │  │     │  ╰─ a
+       │     │     │  │     │     ├─ nalytics ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ ccess_tokens ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     │           ╰─ {id}
+       │     │     │  │     │              ╰─ /revoke ○
+       │     │     │  │     │                 ╰─ / ○
+       │     │     │  │     ╰─ c
+       │     │     │  │        ├─ rets ○
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        │     ├─ {*vueroute}
+       │     │     │  │        │     │  ╰─ / ○
+       │     │     │  │        │     ╰─ {*vueroute} ○
+       │     │     │  │        ╰─ urity/
+       │     │     │  │           ├─ vulnerabilit
+       │     │     │  │           │  ├─ y_report ○
+       │     │     │  │           │  │  ╰─ / ○
+       │     │     │  │           │  ╰─ ies/
+       │     │     │  │           │     ├─ new ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     ├─ {vulnerability_id}
+       │     │     │  │           │     │  ╰─ /notes ○
+       │     │     │  │           │     │     ╰─ / ○
+       │     │     │  │           │     │        ╰─ {id} ○
+       │     │     │  │           │     │           ╰─ / ○
+       │     │     │  │           │     │              ╰─ toggle_award_emoji ○
+       │     │     │  │           │     │                 ╰─ / ○
+       │     │     │  │           │     ╰─ {id} ○
+       │     │     │  │           │        ╰─ / ○
+       │     │     │  │           │           ╰─ discussions ○
+       │     │     │  │           │              ╰─ / ○
+       │     │     │  │           ├─ scanned_resources ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ policies ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           │     ├─ schema ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     ├─ new ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     ╰─ {id}
+       │     │     │  │           │        ╰─ /edit ○
+       │     │     │  │           │           ╰─ / ○
+       │     │     │  │           ├─ configuration ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           │     ├─ corpus_management ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     ├─ s
+       │     │     │  │           │     │  ├─ ecret_detection ○
+       │     │     │  │           │     │  │  ╰─ / ○
+       │     │     │  │           │     │  ╰─ ast ○
+       │     │     │  │           │     │     ╰─ / ○
+       │     │     │  │           │     ├─ profile_library ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     │     ╰─ dast_s
+       │     │     │  │           │     │        ├─ canner_profiles/
+       │     │     │  │           │     │        │  ├─ new ○
+       │     │     │  │           │     │        │  │  ╰─ / ○
+       │     │     │  │           │     │        │  ╰─ {id}
+       │     │     │  │           │     │        │     ╰─ /edit ○
+       │     │     │  │           │     │        │        ╰─ / ○
+       │     │     │  │           │     │        ╰─ ite_profiles/
+       │     │     │  │           │     │           ├─ new ○
+       │     │     │  │           │     │           │  ╰─ / ○
+       │     │     │  │           │     │           ╰─ {id}
+       │     │     │  │           │     │              ╰─ /edit ○
+       │     │     │  │           │     │                 ╰─ / ○
+       │     │     │  │           │     ├─ api_fuzzing ○
+       │     │     │  │           │     │  ╰─ / ○
+       │     │     │  │           │     ╰─ dast ○
+       │     │     │  │           │        ╰─ / ○
+       │     │     │  │           ╰─ d
+       │     │     │  │              ├─ ashboard ○
+       │     │     │  │              │  ╰─ / ○
+       │     │     │  │              ╰─ iscover ○
+       │     │     │  │                 ╰─ / ○
+       │     │     │  ├─ t
+       │     │     │  │  ├─ erraform ○
+       │     │     │  │  │  ├─ / ○
+       │     │     │  │  │  ╰─ _module_registry ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ╰─ {id} ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  ├─ a
+       │     │     │  │  │  ├─ rget_branch_rules ○
+       │     │     │  │  │  │  ╰─ / ○
+       │     │     │  │  │  │     ╰─ {id} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ╰─ gs ○
+       │     │     │  │  │     ╰─ / ○
+       │     │     │  │  │        ├─ new ○
+       │     │     │  │  │        │  ╰─ / ○
+       │     │     │  │  │        ╰─ {id} ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  ╰─ r
+       │     │     │  │     ├─ iggers ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ {id} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ├─ acing ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ {id} ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ╰─ ee/
+       │     │     │  │        ├─ {*id}
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {*id} ○
+       │     │     │  ├─ u
+       │     │     │  │  ├─ sage_quotas ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ pdate/
+       │     │     │  │     ├─ {*id}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*id} ○
+       │     │     │  ├─ v
+       │     │     │  │  ├─ ulnerability_feedback ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ count ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ a
+       │     │     │  │     ├─ lue_stream_analytics ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ events/
+       │     │     │  │     │        ├─ staging ○
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ├─ review ○
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ├─ issue ○
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ├─ code ○
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ├─ p
+       │     │     │  │     │        │  ├─ roduction ○
+       │     │     │  │     │        │  │  ╰─ / ○
+       │     │     │  │     │        │  ╰─ lan ○
+       │     │     │  │     │        │     ╰─ / ○
+       │     │     │  │     │        ╰─ test ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     ╰─ riables ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ├─ w
+       │     │     │  │  ├─ ikis ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ -/confluence ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ git_access ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ templates ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ pages ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ new ○
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ├─ {*id}
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ preview_markdown ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ history ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ diff ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     ├─ edit ○
+       │     │     │  │  │     │     │  ╰─ / ○
+       │     │     │  │  │     │     ╰─ raw ○
+       │     │     │  │  │     │        ╰─ / ○
+       │     │     │  │  │     ╰─ {*id} ○
+       │     │     │  │  ╰─ ork_items/
+       │     │     │  │     ├─ import_csv ○
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     │     ╰─ authorize ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ╰─ {iid} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ╰─ designs ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  │                 ├─ {*vueroute}
+       │     │     │  │                 │  ╰─ / ○
+       │     │     │  │                 ╰─ {*vueroute} ○
+       │     │     │  ╰─ {noteable_type}
+       │     │     │     ╰─ /
+       │     │     │        ╰─ {noteable_id}
+       │     │     │           ╰─ /discussions/
+       │     │     │              ╰─ {id} ○
+       │     │     │                 ╰─ / ○
+       │     │     │                    ╰─ resolve ○
+       │     │     │                       ╰─ / ○
+       │     │     ├─ fi
+       │     │     │  ├─ nd_file ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ les ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ {*rest}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*rest} ○
+       │     │     ├─ a
+       │     │     │  ├─ udit_events ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ lert
+       │     │     │     ├─ s/notify ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {name}
+       │     │     │     │        ╰─ /
+       │     │     │     │           ╰─ {endpoint_identifier} ○
+       │     │     │     │              ╰─ / ○
+       │     │     │     ╰─ _management ○
+       │     │     │        ╰─ / ○
+       │     │     │           ├─ {*rest}
+       │     │     │           │  ╰─ / ○
+       │     │     │           ╰─ {*rest} ○
+       │     │     ├─ b
+       │     │     │  ├─ adges ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ {*ref}
+       │     │     │  │        ╰─ /
+       │     │     │  │           ├─ coverage ○
+       │     │     │  │           │  ├─ / ○
+       │     │     │  │           │  ╰─ .
+       │     │     │  │           │     ╰─ {format} ○
+       │     │     │  │           │        ╰─ / ○
+       │     │     │  │           ╰─ pipeline ○
+       │     │     │  │              ├─ / ○
+       │     │     │  │              ╰─ .
+       │     │     │  │                 ╰─ {format} ○
+       │     │     │  │                    ╰─ / ○
+       │     │     │  ├─ uilds ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ artifacts/
+       │     │     │  │     │  ├─ {*ref_name_and_path}
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ {*ref_name_and_path} ○
+       │     │     │  │     ├─ {build_id}
+       │     │     │  │     │  ╰─ /artifacts/
+       │     │     │  │     │     ├─ download ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     ├─ browse ○
+       │     │     │  │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ├─ {*path}
+       │     │     │  │     │     │     │  ╰─ / ○
+       │     │     │  │     │     │     ╰─ {*path} ○
+       │     │     │  │     │     ├─ file/
+       │     │     │  │     │     │  ├─ {*path}
+       │     │     │  │     │     │  │  ╰─ / ○
+       │     │     │  │     │     │  ╰─ {*path} ○
+       │     │     │  │     │     ╰─ raw/
+       │     │     │  │     │        ├─ {*path}
+       │     │     │  │     │        │  ╰─ / ○
+       │     │     │  │     │        ╰─ {*path} ○
+       │     │     │  │     ╰─ {id} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ╰─ raw ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  ╰─ l
+       │     │     │     ├─ ame/
+       │     │     │     │  ├─ {*id}
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ╰─ {*id} ○
+       │     │     │     ╰─ ob/
+       │     │     │        ├─ {*id}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*id} ○
+       │     │     ├─ c
+       │     │     │  ├─ ycle_analytics ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ├─ lusters ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ o
+       │     │     │     ├─ ntainer_registry ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {id} ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     ╰─ m
+       │     │     │        ├─ pare ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ├─ {*rest}
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     ╰─ {*rest} ○
+       │     │     │        ╰─ mit ○
+       │     │     │           ├─ / ○
+       │     │     │           │  ├─ {id} ○
+       │     │     │           │  │  ╰─ / ○
+       │     │     │           │  ├─ {*rest}
+       │     │     │           │  │  ╰─ / ○
+       │     │     │           │  ╰─ {*rest} ○
+       │     │     │           ╰─ s ○
+       │     │     │              ╰─ / ○
+       │     │     │                 ├─ {*rest}
+       │     │     │                 │  ╰─ / ○
+       │     │     │                 ╰─ {*rest} ○
+       │     │     ├─ e
+       │     │     │  ├─ rror_tracking ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ├─ nvironments ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ dit/
+       │     │     │     ├─ {*id}
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ {*id} ○
+       │     │     ├─ i
+       │     │     │  ├─ de_terminals ○
+       │     │     │  │  ├─ / ○
+       │     │     │  │  │  ├─ check_config ○
+       │     │     │  │  │  │  ├─ / ○
+       │     │     │  │  │  │  ╰─ .
+       │     │     │  │  │  │     ╰─ {format} ○
+       │     │     │  │  │  │        ╰─ / ○
+       │     │     │  │  │  ╰─ {id} ○
+       │     │     │  │  │     ├─ / ○
+       │     │     │  │  │     │  ├─ cancel ○
+       │     │     │  │  │     │  │  ├─ / ○
+       │     │     │  │  │     │  │  ╰─ .
+       │     │     │  │  │     │  │     ╰─ {format} ○
+       │     │     │  │  │     │  │        ╰─ / ○
+       │     │     │  │  │     │  ╰─ retry ○
+       │     │     │  │  │     │     ├─ / ○
+       │     │     │  │  │     │     ╰─ .
+       │     │     │  │  │     │        ╰─ {format} ○
+       │     │     │  │  │     │           ╰─ / ○
+       │     │     │  │  │     ╰─ .
+       │     │     │  │  │        ╰─ {format} ○
+       │     │     │  │  │           ╰─ / ○
+       │     │     │  │  ╰─ .
+       │     │     │  │     ╰─ {format} ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ├─ nsights ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ╰─ query ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  ╰─ ssues ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ {*rest}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*rest} ○
+       │     │     ├─ m
+       │     │     │  ├─ erge_requests ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ├─ attermost ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ irror ○
+       │     │     │     ╰─ / ○
+       │     │     │        ├─ {*rest}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*rest} ○
+       │     │     ├─ n
+       │     │     │  ├─ ew/
+       │     │     │  │  ├─ {*id}
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ {*id} ○
+       │     │     │  ╰─ ote
+       │     │     │     ├─ s ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {id} ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     │           ├─ outdated_line_change ○
+       │     │     │     │           │  ╰─ / ○
+       │     │     │     │           ├─ toggle_award_emoji ○
+       │     │     │     │           │  ╰─ / ○
+       │     │     │     │           ├─ delete_attachment ○
+       │     │     │     │           │  ╰─ / ○
+       │     │     │     │           ╰─ resolve ○
+       │     │     │     │              ╰─ / ○
+       │     │     │     ╰─ able/
+       │     │     │        ╰─ {target_type}
+       │     │     │           ╰─ /
+       │     │     │              ╰─ {target_id}
+       │     │     │                 ╰─ /notes ○
+       │     │     │                    ╰─ / ○
+       │     │     ├─ p
+       │     │     │  ├─ ipeline
+       │     │     │  │  ├─ _schedules ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ {*rest}
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {*rest} ○
+       │     │     │  │  ╰─ s ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ├─ {*rest}
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {*rest} ○
+       │     │     │  ├─ ro
+       │     │     │  │  ├─ tected_environments ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ├─ {*rest}
+       │     │     │  │  │     │  ╰─ / ○
+       │     │     │  │  │     ╰─ {*rest} ○
+       │     │     │  │  ╰─ metheus/
+       │     │     │  │     ├─ alerts/
+       │     │     │  │     │  ├─ notify ○
+       │     │     │  │     │  │  ╰─ / ○
+       │     │     │  │     │  ╰─ {id}
+       │     │     │  │     │     ╰─ /metrics_dashboard ○
+       │     │     │  │     │        ╰─ / ○
+       │     │     │  │     ╰─ metrics ○
+       │     │     │  │        ╰─ / ○
+       │     │     │  │           ├─ validate_query ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ active_common ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ├─ new ○
+       │     │     │  │           │  ╰─ / ○
+       │     │     │  │           ╰─ {id} ○
+       │     │     │  │              ╰─ / ○
+       │     │     │  │                 ╰─ edit ○
+       │     │     │  │                    ╰─ / ○
+       │     │     │  ╰─ a
+       │     │     │     ├─ th_locks ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ├─ toggle ○
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {id} ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     ╰─ ges ○
+       │     │     │        ╰─ / ○
+       │     │     │           ├─ domains ○
+       │     │     │           │  ╰─ / ○
+       │     │     │           │     ├─ new ○
+       │     │     │           │     │  ╰─ / ○
+       │     │     │           │     ╰─ {id} ○
+       │     │     │           │        ╰─ / ○
+       │     │     │           │           ├─ clean_certificate ○
+       │     │     │           │           │  ╰─ / ○
+       │     │     │           │           ├─ retry_auto_ssl ○
+       │     │     │           │           │  ╰─ / ○
+       │     │     │           │           ├─ verify ○
+       │     │     │           │           │  ╰─ / ○
+       │     │     │           │           ╰─ edit ○
+       │     │     │           │              ╰─ / ○
+       │     │     │           ╰─ new ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ r
+       │     │     │  ├─ unner
+       │     │     │  │  ├─ _projects ○
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  │     ╰─ {id} ○
+       │     │     │  │  │        ╰─ / ○
+       │     │     │  │  ╰─ s ○
+       │     │     │  │     ╰─ / ○
+       │     │     │  │        ├─ {*rest}
+       │     │     │  │        │  ╰─ / ○
+       │     │     │  │        ╰─ {*rest} ○
+       │     │     │  ├─ aw/
+       │     │     │  │  ├─ {*id}
+       │     │     │  │  │  ╰─ / ○
+       │     │     │  │  ╰─ {*id} ○
+       │     │     │  ╰─ e
+       │     │     │     ├─ fs/
+       │     │     │     │  ├─ switch ○
+       │     │     │     │  │  ╰─ / ○
+       │     │     │     │  ╰─ {id}
+       │     │     │     │     ╰─ /logs_tree ○
+       │     │     │     │        ╰─ / ○
+       │     │     │     │           ├─ {*path}
+       │     │     │     │           │  ╰─ / ○
+       │     │     │     │           ╰─ {*path} ○
+       │     │     │     ├─ pository ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ├─ store ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     ╰─ gistry/repository/
+       │     │     │        ╰─ {repository_id}
+       │     │     │           ╰─ /tags ○
+       │     │     │              ╰─ / ○
+       │     │     │                 ├─ bulk_destroy ○
+       │     │     │                 │  ╰─ / ○
+       │     │     │                 ╰─ {id} ○
+       │     │     │                    ╰─ / ○
+       │     │     ├─ s
+       │     │     │  ├─ nippets ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {id}
+       │     │     │  │     │  ╰─ /raw ○
+       │     │     │  │     │     ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ╰─ e
+       │     │     │     ├─ curity ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ├─ {*rest}
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {*rest} ○
+       │     │     │     ╰─ rv
+       │     │     │        ├─ erless ○
+       │     │     │        │  ╰─ / ○
+       │     │     │        │     ├─ {*rest}
+       │     │     │        │     │  ╰─ / ○
+       │     │     │        │     ╰─ {*rest} ○
+       │     │     │        ╰─ ice_
+       │     │     │           ├─ ping/web_ide_pipelines_count ○
+       │     │     │           │  ╰─ / ○
+       │     │     │           ╰─ desk ○
+       │     │     │              ╰─ / ○
+       │     │     ├─ t
+       │     │     │  ├─ odos ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  ├─ ags ○
+       │     │     │  │  ╰─ / ○
+       │     │     │  │     ├─ {*rest}
+       │     │     │  │     │  ╰─ / ○
+       │     │     │  │     ╰─ {*rest} ○
+       │     │     │  ├─ emplates/
+       │     │     │  │  ╰─ {template_type} ○
+       │     │     │  │     ├─ / ○
+       │     │     │  │     │  ╰─ {key} ○
+       │     │     │  │     │     ├─ / ○
+       │     │     │  │     │     ╰─ .
+       │     │     │  │     │        ╰─ {format} ○
+       │     │     │  │     │           ╰─ / ○
+       │     │     │  │     ╰─ .
+       │     │     │  │        ╰─ {format} ○
+       │     │     │  │           ╰─ / ○
+       │     │     │  ╰─ r
+       │     │     │     ├─ iggers ○
+       │     │     │     │  ╰─ / ○
+       │     │     │     │     ├─ {*rest}
+       │     │     │     │     │  ╰─ / ○
+       │     │     │     │     ╰─ {*rest} ○
+       │     │     │     ╰─ ee/
+       │     │     │        ├─ {*id}
+       │     │     │        │  ╰─ / ○
+       │     │     │        ╰─ {*id} ○
+       │     │     ├─ {*all}
+       │     │     │  ╰─ / ○
+       │     │     ╰─ {*all} ○
+       │     ╰─ {id} ○
+       │        ╰─ / ○
+       │           ├─ new_issuable_address ○
+       │           │  ╰─ / ○
+       │           ├─ generate_new_export ○
+       │           │  ╰─ / ○
+       │           ├─ download_export ○
+       │           │  ╰─ / ○
+       │           ├─ housekeeping ○
+       │           │  ╰─ / ○
+       │           ├─ un
+       │           │  ├─ foldered_environment_names ○
+       │           │  │  ╰─ / ○
+       │           │  ╰─ archive ○
+       │           │     ╰─ / ○
+       │           ├─ e
+       │           │  ├─ xport ○
+       │           │  │  ╰─ / ○
+       │           │  ╰─ dit ○
+       │           │     ╰─ / ○
+       │           ├─ re
+       │           │  ├─ fs ○
+       │           │  │  ╰─ / ○
+       │           │  ╰─ move_
+       │           │     ├─ export ○
+       │           │     │  ╰─ / ○
+       │           │     ╰─ fork ○
+       │           │        ╰─ / ○
+       │           ├─ a
+       │           │  ├─ ctivity ○
+       │           │  │  ╰─ / ○
+       │           │  ╰─ rchive ○
+       │           │     ╰─ / ○
+       │           ╰─ t
+       │              ├─ oggle_star ○
+       │              │  ╰─ / ○
+       │              ╰─ ransfer ○
+       │                 ╰─ / ○
+       ├─ {*id}
+       │  ├─ / ○
+       │  ╰─ .
+       │     ╰─ {format} ○
+       │        ╰─ / ○
        ├─ {*repository_path} ○
-       ╰─ {*unmatched_route} ○
+       ├─ {*unmatched_route} ○
+       ╰─ {*id} ○
     "#);
 
     Ok(())

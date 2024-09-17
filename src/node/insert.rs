@@ -70,10 +70,12 @@ impl<T> Node<T> {
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
+                    dynamic_children_shortcut: false,
                     wildcard_children: Children::default(),
+                    wildcard_children_shortcut: false,
                     end_wildcard_children: Children::default(),
 
-                    quick_dynamic: false,
+                    priority: 0,
                     needs_optimization: false,
                 };
 
@@ -113,10 +115,12 @@ impl<T> Node<T> {
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
+            dynamic_children_shortcut: child.dynamic_children_shortcut,
             wildcard_children: std::mem::take(&mut child.wildcard_children),
+            wildcard_children_shortcut: child.wildcard_children_shortcut,
             end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
 
-            quick_dynamic: child.quick_dynamic,
+            priority: child.priority,
             needs_optimization: child.needs_optimization,
         };
 
@@ -129,10 +133,12 @@ impl<T> Node<T> {
 
             static_children: Children::default(),
             dynamic_children: Children::default(),
+            dynamic_children_shortcut: false,
             wildcard_children: Children::default(),
+            wildcard_children_shortcut: false,
             end_wildcard_children: Children::default(),
 
-            quick_dynamic: false,
+            priority: 0,
             needs_optimization: false,
         };
 
@@ -174,10 +180,12 @@ impl<T> Node<T> {
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
+                    dynamic_children_shortcut: false,
                     wildcard_children: Children::default(),
+                    wildcard_children_shortcut: false,
                     end_wildcard_children: Children::default(),
 
-                    quick_dynamic: false,
+                    priority: 0,
                     needs_optimization: false,
                 };
 
@@ -213,10 +221,12 @@ impl<T> Node<T> {
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
+                    dynamic_children_shortcut: false,
                     wildcard_children: Children::default(),
+                    wildcard_children_shortcut: false,
                     end_wildcard_children: Children::default(),
 
-                    quick_dynamic: false,
+                    priority: 0,
                     needs_optimization: false,
                 };
 
@@ -261,10 +271,12 @@ impl<T> Node<T> {
 
             static_children: Children::default(),
             dynamic_children: Children::default(),
+            dynamic_children_shortcut: false,
             wildcard_children: Children::default(),
+            wildcard_children_shortcut: false,
             end_wildcard_children: Children::default(),
 
-            quick_dynamic: false,
+            priority: 0,
             needs_optimization: false,
         });
 
