@@ -11,6 +11,9 @@
 
 A speedy, flexible router for Rust.
 
+> [!NOTE]
+> `wayfind` is still a work in progress.
+
 ## Why another router?
 
 `wayfind` attempts to bridge the gap between existing Rust router options:
@@ -26,13 +29,13 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ### Dynamic Routing
 
-Dynamic parameters allow matching for any byte, excluding the path delimiter `/`.
+Dynamic parameters can match any byte, **excluding** the path delimiter `/`.
 
 We support both:
 - whole segment parameters: `/{name}/`
 - inline parameters: `/{year}-{month}-{day}/`
 
-Inline dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
+Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
 
 #### Example
 
@@ -69,11 +72,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### Wildcard Routing
 
-Wildcard parameters enable matching of one or more segments within a path.
+Wildcard parameters can match any byte, **including** the path delimiter `/`.
 
 We support both:
+- inline wildcards: `/{*path}.html`
 - mid-route wildcards: `/api/{*path}/help`
 - end-route catch-all: `/{*catch_all}`
+
+Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 #### Example
 
@@ -340,6 +346,13 @@ use wayfind::Router;
 const ROUTER_DISPLAY: &str = "
 ▽
 ├─ /
+│  ├─ user ○
+│  │  ╰─ /
+│  │     ├─ createWithList ○
+│  │     ├─ log
+│  │     │  ├─ out ○
+│  │     │  ╰─ in ○
+│  │     ╰─ {username} ○
 │  ├─ pet ○
 │  │  ╰─ /
 │  │     ├─ findBy
@@ -347,18 +360,11 @@ const ROUTER_DISPLAY: &str = "
 │  │     │  ╰─ Tags ○
 │  │     ╰─ {petId} ○
 │  │        ╰─ /uploadImage ○
-│  ├─ store/
-│  │  ├─ inventory ○
-│  │  ╰─ order ○
-│  │     ╰─ /
-│  │        ╰─ {orderId} ○
-│  ╰─ user ○
-│     ╰─ /
-│        ├─ createWithList ○
-│        ├─ log
-│        │  ├─ in ○
-│        │  ╰─ out ○
-│        ╰─ {username} ○
+│  ╰─ store/
+│     ├─ inventory ○
+│     ╰─ order ○
+│        ╰─ /
+│           ╰─ {orderId} ○
 ╰─ {*catch_all} ○
 ";
 
@@ -416,14 +422,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| matchit          | 474.27 ns | 4           | 416 B      | 4             | 448 B        |
-| wayfind          | 491.99 ns | 7           | 649 B      | 7             | 649 B        |
-| xitca-router     | 572.38 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 654.92 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.7385 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 4.6430 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
-| routefinder      | 6.4078 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 21.067 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| matchit          | 499.02 ns | 4           | 416 B      | 4             | 448 B        |
+| wayfind          | 508.99 ns | 7           | 649 B      | 7             | 649 B        |
+| path-tree        | 577.41 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 580.88 ns | 7           | 800 B      | 7             | 832 B        |
+| ntex-router      | 1.7491 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 4.6071 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 6.3982 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 20.950 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -431,14 +437,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 7.3851 µs | 117         | 9.991 KB   | 117           | 9.991 KB     |
-| matchit          | 9.1277 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| path-tree        | 9.2065 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| xitca-router     | 10.795 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 29.634 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| routefinder      | 101.26 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| route-recognizer | 137.88 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
-| actix-router     | 177.49 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 7.7141 µs | 117         | 9.991 KB   | 117           | 9.991 KB     |
+| matchit          | 9.0602 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 9.2373 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 10.722 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 30.095 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 92.357 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 103.36 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 178.13 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

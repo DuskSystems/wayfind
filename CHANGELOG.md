@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added support for optional groups in routes.
+- Added support for inline wildcards.
 
 ### Changed
 
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Syntax for escaping parameters has changed to use the `\` character.
 - Route errors now have more consistent error messages.
 - Duplicate route error now shows which route caused the conflict.
+- Added priority ranking to routes.
 
 ### Removed
 

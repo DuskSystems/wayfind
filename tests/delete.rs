@@ -11,10 +11,10 @@ fn expanded() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /files/
        ╰─ {name} ○
-          ├─ .
-          │  ╰─ {extension} ○
-          │     ╰─ / ○
-          ╰─ / ○
+          ├─ / ○
+          ╰─ .
+             ╰─ {extension} ○
+                ╰─ / ○
     "#);
 
     assert_eq!(
@@ -29,10 +29,10 @@ fn expanded() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /files/
        ╰─ {name} ○
-          ├─ .
-          │  ╰─ {extension} ○
-          │     ╰─ / ○
-          ╰─ / ○
+          ├─ / ○
+          ╰─ .
+             ╰─ {extension} ○
+                ╰─ / ○
     "#);
 
     router.delete("/files/{name}(.{extension})(/)")?;

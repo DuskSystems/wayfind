@@ -77,14 +77,14 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     ▽
     ╰─ /
        ├─ p
-       │  ├─ osts/
-       │  │  ╰─ {year:even_year}
-       │  │     ╰─ /
-       │  │        ╰─ {slug:valid_slug} ○
-       │  ╰─ rofile/
-       │     ╰─ {username:length_3_to_10}
-       │        ╰─ .
-       │           ╰─ {ext:png_or_jpg} ○
+       │  ├─ rofile/
+       │  │  ╰─ {username:length_3_to_10}
+       │  │     ╰─ .
+       │  │        ╰─ {ext:png_or_jpg} ○
+       │  ╰─ osts/
+       │     ╰─ {year:even_year}
+       │        ╰─ /
+       │           ╰─ {slug:valid_slug} ○
        ╰─ user/
           ╰─ {name:length_3_to_10}
              ╰─ /

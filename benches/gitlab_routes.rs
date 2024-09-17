@@ -4097,17 +4097,13 @@ pub fn routes() -> impl IntoIterator<Item = &'static str> {
         // Route 2045
         // "/{*namespace_id}/{id}(/)",
         // Route 2046
-        // NOTE: We don't support optionals spanning across sections
-        "/-/jira/{*namespace_id}/{project_id}(/)",
-        // "/{*namespace_id}/{project_id}(/)",
+        // NOTE: Conflicts with "/{*namespace_id}/{project_id}/"
+        // "(/-/jira)/{*namespace_id}/{project_id}({format})(/)",
         // Route 2047
-        // NOTE: We don't support optionals spanning across sections
-        "/-/jira/{*namespace_id}/{project_id}/commit/{id}(/)",
-        "/{*namespace_id}/{project_id}/commit/{id}(/)",
+        "(/-/jira)/{*namespace_id}/{project_id}/commit/{id}(.{format})(/)",
         // Route 2048
-        // NOTE: We don't support optionals spanning across sections
-        "/-/jira/{*namespace_id}/{project_id}/tree/{*id}(/)",
-        // "/{*namespace_id}/{project_id}/tree/{*id}(/)",
+        // NOTE: Conflicts with "/{*namespace_id}/{project_id}/tree/{*id}(/)"
+        // "(/-/jira)/{*namespace_id}/{project_id}/tree/{*id}(.{format})(/)",
         // Route 2049
         "/{*namespace_id}/{project_id}/{*all}(/)",
         // Route 2050

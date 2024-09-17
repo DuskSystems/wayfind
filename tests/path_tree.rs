@@ -27,19 +27,19 @@ fn statics() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
-       ├─ a ○
-       │  ╰─ b ○
-       ├─ c ○
-       │  ╰─ o ○
-       │     ╰─ ntact ○
        ├─ doc/ ○
        │  ╰─ go
-       │     ├─ 1.html ○
-       │     ╰─ _faq.html ○
+       │     ├─ _faq.html ○
+       │     ╰─ 1.html ○
        ├─ hi ○
-       ╰─ �
-          ├─ � ○
-          ╰─ � ○
+       ├─ �
+       │  ├─ � ○
+       │  ╰─ � ○
+       ├─ a ○
+       │  ╰─ b ○
+       ╰─ c ○
+          ╰─ o ○
+             ╰─ ntact ○
     "#);
 
     assert_router_matches!(router, {
@@ -124,15 +124,10 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
-       ├─ cmd/
-       │  ├─ vet ○
-       │  ╰─ {tool}
-       │     ╰─ / ○
-       │        ╰─ {sub} ○
        ├─ doc/ ○
        │  ╰─ rust
-       │     ├─ 1.html ○
-       │     ╰─ _faq.html ○
+       │     ├─ _faq.html ○
+       │     ╰─ 1.html ○
        ├─ files/
        │  ╰─ {dir}
        │     ╰─ /
@@ -140,22 +135,27 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
        ├─ info/
        │  ╰─ {user}
        │     ╰─ /p
-       │        ├─ roject/
-       │        │  ╰─ {project} ○
-       │        ╰─ ublic ○
-       ├─ s
-       │  ├─ earch/ ○
-       │  │  ├─ invalid ○
-       │  │  ╰─ {query} ○
-       │  ╰─ rc
-       │     ├─ /
-       │     │  ╰─ {*filepath} ○
-       │     ╰─ 1/ ○
-       │        ╰─ {*filepath} ○
-       ╰─ user_
-          ├─ x ○
-          ╰─ {name} ○
-             ╰─ /about ○
+       │        ├─ ublic ○
+       │        ╰─ roject/
+       │           ╰─ {project} ○
+       ├─ user_
+       │  ├─ x ○
+       │  ╰─ {name} ○
+       │     ╰─ /about ○
+       ├─ cmd/
+       │  ├─ vet ○
+       │  ╰─ {tool}
+       │     ╰─ / ○
+       │        ╰─ {sub} ○
+       ╰─ s
+          ├─ earch/ ○
+          │  ├─ invalid ○
+          │  ╰─ {query} ○
+          ╰─ rc
+             ├─ 1/ ○
+             │  ╰─ {*filepath} ○
+             ╰─ /
+                ╰─ {*filepath} ○
     "#);
 
     assert_router_matches!(router, {
@@ -1071,6 +1071,8 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
+       ├─ name
+       │  ╰─ {name} ○
        ├─ -
        │  ╰─ {name} ○
        ├─ .
@@ -1078,8 +1080,6 @@ fn match_params() -> Result<(), Box<dyn Error>> {
        ├─ @
        │  ╰─ {name} ○
        ├─ _
-       │  ╰─ {name} ○
-       ├─ name
        │  ╰─ {name} ○
        ├─ ~
        │  ╰─ {name} ○
@@ -1277,41 +1277,41 @@ fn basic() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
-       ├─ api/
-       │  ╰─ {*plus} ○
        ├─ login ○
        ├─ public/
        │  ╰─ {*any} ○
+       ├─ api/
+       │  ╰─ {*plus} ○
        ├─ s
        │  ├─ ettings ○
        │  │  ╰─ /
        │  │     ╰─ {page} ○
        │  ╰─ ignup ○
-       ├─ {org}
+       ├─ {user} ○
        │  ╰─ /
-       │     ╰─ {repo}
-       │        ╰─ /
-       │           ├─ actions/
-       │           │  ╰─ {name}
-       │           │     ╰─ :
-       │           │        ╰─ {verb} ○
-       │           ├─ releases/download/
-       │           │  ╰─ {tag}
-       │           │     ╰─ /
-       │           │        ╰─ {filename}
-       │           │           ╰─ .
-       │           │              ╰─ {ext} ○
-       │           ├─ tags/
-       │           │  ╰─ {day}
-       │           │     ╰─ -
-       │           │        ╰─ {month}
-       │           │           ╰─ -
-       │           │              ╰─ {year} ○
-       │           ├─ {page} ○
-       │           ╰─ {*path} ○
-       ╰─ {user} ○
+       │     ╰─ {repo} ○
+       ╰─ {org}
           ╰─ /
-             ╰─ {repo} ○
+             ╰─ {repo}
+                ╰─ /
+                   ├─ releases/download/
+                   │  ╰─ {tag}
+                   │     ╰─ /
+                   │        ╰─ {filename}
+                   │           ╰─ .
+                   │              ╰─ {ext} ○
+                   ├─ actions/
+                   │  ╰─ {name}
+                   │     ╰─ :
+                   │        ╰─ {verb} ○
+                   ├─ tags/
+                   │  ╰─ {day}
+                   │     ╰─ -
+                   │        ╰─ {month}
+                   │           ╰─ -
+                   │              ╰─ {year} ○
+                   ├─ {page} ○
+                   ╰─ {*path} ○
     "#);
 
     assert_router_matches!(router, {
@@ -1553,148 +1553,116 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ / ○
+       ├─ organizations/
+       │  ├─ plan ○
+       │  ╰─ new ○
+       ├─ marketplace ○
+       ├─ features ○
+       │  ╰─ /
+       │     ├─ discussions ○
+       │     ├─ packages ○
+       │     ├─ security ○
+       │     ├─ actions ○
+       │     ├─ issues ○
+       │     ╰─ co
+       │        ├─ de
+       │        │  ├─ -review ○
+       │        │  ╰─ spaces ○
+       │        ╰─ pilot ○
+       ├─ issues ○
+       ├─ readme ○
+       ├─ login ○
        ├─ 404 ○
+       ├─ new ○
+       │  ╰─ /import ○
        ├─ 50
        │  ├─ 0 ○
        │  ╰─ 3 ○
        ├─ a
        │  ├─ bout ○
        │  │  ╰─ /
-       │  │     ├─ careers ○
        │  │     ├─ diversity ○
+       │  │     ├─ careers ○
        │  │     ╰─ press ○
        │  ╰─ pi ○
        ├─ c
-       │  ├─ ollections ○
-       │  ╰─ ustomer-stories ○
+       │  ├─ ustomer-stories ○
+       │  ╰─ ollections ○
        ├─ e
        │  ├─ nterprise ○
        │  ╰─ xplore ○
-       ├─ features ○
-       │  ╰─ /
-       │     ├─ actions ○
-       │     ├─ co
-       │     │  ├─ de
-       │     │  │  ├─ -review ○
-       │     │  │  ╰─ spaces ○
-       │     │  ╰─ pilot ○
-       │     ├─ discussions ○
-       │     ├─ issues ○
-       │     ├─ packages ○
-       │     ╰─ security ○
-       ├─ issues ○
-       ├─ login ○
-       ├─ marketplace ○
-       ├─ new ○
-       │  ╰─ /import ○
-       ├─ organizations/
-       │  ├─ new ○
-       │  ╰─ plan ○
        ├─ p
        │  ├─ ricing ○
        │  ╰─ ulls ○
-       ├─ readme ○
        ├─ s
+       │  ├─ ponsors ○
+       │  │  ╰─ /
+       │  │     ├─ accounts ○
+       │  │     ├─ explore ○
+       │  │     ╰─ {repo} ○
+       │  │        ╰─ /
+       │  │           ├─ issues/
+       │  │           │  ╰─ {*path} ○
+       │  │           ├─ {user} ○
+       │  │           ├─ {*plus}
+       │  │           │  ╰─ /
+       │  │           │     ├─ {file} ○
+       │  │           │     ╰─ {filename}
+       │  │           │        ╰─ .
+       │  │           │           ╰─ {ext} ○
+       │  │           ╰─ {*plus} ○
        │  ├─ e
-       │  │  ├─ arch ○
-       │  │  ╰─ ttings ○
-       │  │     ╰─ /
-       │  │        ├─ a
-       │  │        │  ├─ ccessibility ○
-       │  │        │  ├─ dmin ○
-       │  │        │  ╰─ pp
-       │  │        │     ├─ earance ○
-       │  │        │     ╰─ s ○
-       │  │        ├─ b
-       │  │        │  ├─ illing ○
-       │  │        │  │  ╰─ /plans ○
-       │  │        │  ╰─ locked_users ○
-       │  │        ├─ co
-       │  │        │  ├─ de
-       │  │        │  │  ├─ _review_limits ○
-       │  │        │  │  ╰─ spaces ○
-       │  │        │  ╰─ pilot ○
-       │  │        ├─ de
-       │  │        │  ├─ leted_packages ○
-       │  │        │  ╰─ velopers ○
-       │  │        ├─ in
-       │  │        │  ├─ stallations ○
-       │  │        │  ╰─ teraction_limits ○
-       │  │        ├─ keys ○
-       │  │        ├─ notifications ○
-       │  │        ├─ organizations ○
-       │  │        ├─ pages ○
-       │  │        ├─ re
-       │  │        │  ├─ minders ○
-       │  │        │  ╰─ p
-       │  │        │     ├─ lies ○
-       │  │        │     ╰─ ositories ○
-       │  │        ├─ s
-       │  │        │  ├─ ecurity ○
-       │  │        │  │  ├─ -log ○
-       │  │        │  │  ╰─ _analysis ○
-       │  │        │  ╰─ ponsors-log ○
-       │  │        ╰─ tokens ○
-       │  ├─ ignup ○
-       │  ╰─ ponsors ○
-       │     ╰─ /
-       │        ├─ accounts ○
-       │        ├─ explore ○
-       │        ╰─ {repo} ○
-       │           ╰─ /
-       │              ├─ issues/
-       │              │  ╰─ {*path} ○
-       │              ├─ {user} ○
-       │              ├─ {*plus}
-       │              │  ╰─ /
-       │              │     ├─ {file} ○
-       │              │     ╰─ {filename}
-       │              │        ╰─ .
-       │              │           ╰─ {ext} ○
-       │              ╰─ {*plus} ○
+       │  │  ├─ ttings ○
+       │  │  │  ╰─ /
+       │  │  │     ├─ notifications ○
+       │  │  │     ├─ organizations ○
+       │  │  │     ├─ tokens ○
+       │  │  │     ├─ pages ○
+       │  │  │     ├─ keys ○
+       │  │  │     ├─ co
+       │  │  │     │  ├─ pilot ○
+       │  │  │     │  ╰─ de
+       │  │  │     │     ├─ _review_limits ○
+       │  │  │     │     ╰─ spaces ○
+       │  │  │     ├─ de
+       │  │  │     │  ├─ leted_packages ○
+       │  │  │     │  ╰─ velopers ○
+       │  │  │     ├─ in
+       │  │  │     │  ├─ teraction_limits ○
+       │  │  │     │  ╰─ stallations ○
+       │  │  │     ├─ re
+       │  │  │     │  ├─ minders ○
+       │  │  │     │  ╰─ p
+       │  │  │     │     ├─ ositories ○
+       │  │  │     │     ╰─ lies ○
+       │  │  │     ├─ a
+       │  │  │     │  ├─ ccessibility ○
+       │  │  │     │  ├─ pp
+       │  │  │     │  │  ├─ earance ○
+       │  │  │     │  │  ╰─ s ○
+       │  │  │     │  ╰─ dmin ○
+       │  │  │     ├─ b
+       │  │  │     │  ├─ locked_users ○
+       │  │  │     │  ╰─ illing ○
+       │  │  │     │     ╰─ /plans ○
+       │  │  │     ╰─ s
+       │  │  │        ├─ ponsors-log ○
+       │  │  │        ╰─ ecurity ○
+       │  │  │           ├─ _analysis ○
+       │  │  │           ╰─ -log ○
+       │  │  ╰─ arch ○
+       │  ╰─ ignup ○
        ├─ t
-       │  ├─ eam ○
+       │  ├─ rending ○
        │  ├─ opics ○
-       │  ╰─ rending ○
+       │  ╰─ eam ○
        ╰─ {org} ○
           ╰─ /
              ╰─ {repo} ○
                 ╰─ /
-                   ├─ actions ○
-                   │  ╰─ /
-                   │     ├─ runs/
-                   │     │  ╰─ {id} ○
-                   │     ╰─ workflows/
-                   │        ╰─ {id} ○
-                   ├─ com
-                   │  ├─ m
-                   │  │  ├─ it/
-                   │  │  │  ╰─ {id} ○
-                   │  │  ╰─ unity ○
-                   │  ╰─ pare ○
                    ├─ discussions ○
                    │  ╰─ /
                    │     ╰─ {id} ○
-                   ├─ graphs/co
-                   │  ├─ de-frequency ○
-                   │  ├─ mmit-activity ○
-                   │  ╰─ ntributors ○
-                   ├─ issues ○
-                   │  ╰─ /
-                   │     ├─ new ○
-                   │     ╰─ {id} ○
-                   ├─ network ○
-                   │  ╰─ /
-                   │     ├─ dependen
-                   │     │  ├─ cies ○
-                   │     │  ╰─ ts ○
-                   │     ╰─ members ○
-                   ├─ pul
-                   │  ├─ l
-                   │  │  ├─ /
-                   │  │  │  ╰─ {id} ○
-                   │  │  ╰─ s ○
-                   │  ╰─ se ○
                    ├─ releases ○
                    │  ╰─ /
                    │     ├─ download/
@@ -1706,19 +1674,51 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
                    │     ├─ tag/
                    │     │  ╰─ {id} ○
                    │     ╰─ {*path} ○
-                   ├─ s
-                   │  ├─ ecurity ○
-                   │  │  ╰─ /
-                   │  │     ├─ advisories ○
-                   │  │     ╰─ policy ○
-                   │  ╰─ targazers ○
-                   │     ╰─ /yoou_know ○
+                   ├─ actions ○
+                   │  ╰─ /
+                   │     ├─ workflows/
+                   │     │  ╰─ {id} ○
+                   │     ╰─ runs/
+                   │        ╰─ {id} ○
+                   ├─ network ○
+                   │  ╰─ /
+                   │     ├─ members ○
+                   │     ╰─ dependen
+                   │        ├─ cies ○
+                   │        ╰─ ts ○
+                   ├─ issues ○
+                   │  ╰─ /
+                   │     ├─ new ○
+                   │     ╰─ {id} ○
                    ├─ t
                    │  ├─ ags ○
                    │  │  ╰─ /
                    │  │     ╰─ {id} ○
                    │  ╰─ ree/
                    │     ╰─ {id} ○
+                   ├─ graphs/co
+                   │  ├─ mmit-activity ○
+                   │  ├─ de-frequency ○
+                   │  ╰─ ntributors ○
+                   ├─ com
+                   │  ├─ m
+                   │  │  ├─ unity ○
+                   │  │  ╰─ it/
+                   │  │     ╰─ {id} ○
+                   │  ╰─ pare ○
+                   ├─ pul
+                   │  ├─ se ○
+                   │  ╰─ l
+                   │     ├─ s ○
+                   │     ╰─ /
+                   │        ╰─ {id} ○
+                   ├─ s
+                   │  ├─ targazers ○
+                   │  │  ╰─ /yoou_know ○
+                   │  ╰─ ecurity ○
+                   │     ╰─ /
+                   │        ├─ advisories ○
+                   │        ╰─ policy ○
                    ├─ w
                    │  ├─ atchers ○
                    │  ╰─ iki ○
