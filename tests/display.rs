@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "../benches/gitlab_routes.rs"]
 pub mod gitlab_routes;
 
-#[test]
+#[test_log::test]
 fn test_display_multibyte() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
@@ -77,7 +77,7 @@ fn test_display_multibyte() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_display_gitlab() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for route in gitlab_routes::routes() {

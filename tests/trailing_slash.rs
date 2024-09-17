@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users(/)", 1)?;

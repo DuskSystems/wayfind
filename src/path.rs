@@ -1,14 +1,10 @@
 use crate::{decode::percent_decode, errors::PathError};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Debug};
 
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
-#[derive(Debug)]
-pub struct Path<'path> {
-    /// Original, unaltered path bytes.
-    _raw: &'path [u8],
-
+pub struct Path<'a> {
     /// Percent-decoded path bytes.
-    decoded: Cow<'path, [u8]>,
+    decoded: Cow<'a, [u8]>,
 }
 
 impl<'path> Path<'path> {
@@ -42,11 +38,8 @@ impl<'path> Path<'path> {
     /// }));
     /// ```
     pub fn new(path: &'path str) -> Result<Self, PathError> {
-        let decoded = percent_decode(path.as_bytes())?;
-
         Ok(Self {
-            _raw: path.as_bytes(),
-            decoded,
+            decoded: percent_decode(path.as_bytes())?,
         })
     }
 
@@ -55,5 +48,11 @@ impl<'path> Path<'path> {
     #[must_use]
     pub fn decoded_bytes(&'path self) -> &'path [u8] {
         &self.decoded
+    }
+}
+
+impl<'a> Debug for Path<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\"{}\"", String::from_utf8_lossy(&self.decoded))
     }
 }

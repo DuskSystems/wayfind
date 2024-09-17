@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn percent_encoding() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hello@world", 1)?;
@@ -82,7 +82,7 @@ fn percent_encoding() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn percent_encoding_insert() {
     let mut router = Router::new();
 

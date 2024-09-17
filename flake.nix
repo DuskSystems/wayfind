@@ -52,6 +52,7 @@
 
             NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
+            RUST_LOG = "trace";
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
             CARGO_INCREMENTAL = "0";
 

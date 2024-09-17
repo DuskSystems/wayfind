@@ -5,7 +5,7 @@ use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::Router;
 
-#[test]
+#[test_log::test]
 fn normalized() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/x/{foo}/bar", 0)?;
@@ -80,7 +80,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/home", 0)?;
@@ -118,7 +118,7 @@ fn test() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn blog() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{page}", 0)?;
@@ -157,7 +157,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn catchall() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{*catchall}", 0)?;
@@ -211,7 +211,7 @@ fn catchall() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/home", 0)?;
@@ -618,7 +618,7 @@ fn overlapping_routes() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{home}/", 0)?;
@@ -715,7 +715,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn remove_root() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
@@ -732,7 +732,7 @@ fn remove_root() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn check_escaped_params() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{id}", 0)?;

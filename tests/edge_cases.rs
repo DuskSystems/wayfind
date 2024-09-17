@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn test_specific_matching_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{file}", 1)?;
@@ -39,7 +39,7 @@ fn test_specific_matching_simple() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_specific_matching_complex() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{year}", 1)?;

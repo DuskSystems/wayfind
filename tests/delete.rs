@@ -2,7 +2,7 @@ use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::{errors::DeleteError, Router};
 
-#[test]
+#[test_log::test]
 fn expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/files/{name}(.{extension})(/)", 1)?;

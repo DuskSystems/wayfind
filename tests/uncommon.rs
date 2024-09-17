@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn uncommon() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
