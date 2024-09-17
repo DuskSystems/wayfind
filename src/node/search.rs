@@ -22,10 +22,16 @@ pub struct Match<'router, 'path, T> {
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Parameter<'router, 'path> {
     pub key: &'router str,
     pub value: &'path str,
+}
+
+impl<'router, 'path> std::fmt::Debug for Parameter<'router, 'path> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}=\"{}\"", self.key, self.value)
+    }
 }
 
 impl<T> Node<T> {
@@ -39,29 +45,59 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching for path in node tree"
+        );
+
         if path.is_empty() {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Path is empty, checking if current node has data");
+
             return if self.data.is_some() {
+                #[cfg(feature = "tracing")]
+                tracing::debug!("Found matching node with data");
+
                 Ok(Some(self))
             } else {
+                #[cfg(feature = "tracing")]
+                tracing::debug!("No matching node found");
+
                 Ok(None)
             };
         }
 
         if let Some(search) = self.search_static(path, parameters, constraints)? {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Found matching static node");
+
             return Ok(Some(search));
         }
 
         if let Some(search) = self.search_dynamic(path, parameters, constraints)? {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Found matching dynamic node");
+
             return Ok(Some(search));
         }
 
         if let Some(search) = self.search_wildcard(path, parameters, constraints)? {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Found matching wildcard node");
+
             return Ok(Some(search));
         }
 
         if let Some(search) = self.search_end_wildcard(path, parameters, constraints)? {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Found matching end wildcard node");
+
             return Ok(Some(search));
         }
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!("No matching node found");
 
         Ok(None)
     }
@@ -72,11 +108,23 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching static children"
+        );
+
         for static_child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= static_child.prefix.len()
                 && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    prefix = ?String::from_utf8_lossy(&static_child.prefix),
+                    "Found matching static prefix"
+                );
+
                 let remaining_path = &path[static_child.prefix.len()..];
                 if let Some(node) = static_child.search(remaining_path, parameters, constraints)? {
                     return Ok(Some(node));
@@ -93,6 +141,12 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching dynamic children"
+        );
+
         if self.quick_dynamic {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -109,6 +163,12 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching dynamic children inline"
+        );
+
         for dynamic_child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
@@ -152,22 +212,47 @@ impl<T> Node<T> {
                     continue;
                 };
 
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    current_route_length = node.route_length(),
+                    best_route_length = best_match.map(Self::route_length),
+                    "Comparing current match to best match"
+                );
+
                 if let Some(best) = &best_match {
                     if node.route_length() >= best.route_length() {
+                        #[cfg(feature = "tracing")]
+                        tracing::debug!("Found better or equal length match");
+
                         best_match = Some(node);
                         best_match_parameters = current_parameters;
+                    } else {
+                        #[cfg(feature = "tracing")]
+                        tracing::debug!("Current match is shorter, keeping previous best match");
                     }
                 } else {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!("First match found, setting as best match");
+
                     best_match = Some(node);
                     best_match_parameters = current_parameters;
                 }
             }
 
             if let Some(node) = best_match {
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    route_length = node.route_length(),
+                    "Found best matching dynamic node"
+                );
+
                 *parameters = best_match_parameters;
                 return Ok(Some(node));
             }
         }
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!("No matching dynamic node found");
 
         Ok(None)
     }
@@ -190,6 +275,12 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching dynamic children by segment"
+        );
+
         for dynamic_child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -214,6 +305,9 @@ impl<T> Node<T> {
             if let Some(node) =
                 dynamic_child.search(&path[segment_end..], parameters, constraints)?
             {
+                #[cfg(feature = "tracing")]
+                tracing::debug!("Found matching dynamic segment node");
+
                 return Ok(Some(node));
             }
 
@@ -229,6 +323,12 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching wildcard children"
+        );
+
         for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -280,6 +380,9 @@ impl<T> Node<T> {
                     parameters,
                     constraints,
                 )? {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!("Found matching wildcard node");
+
                     return Ok(Some(node));
                 }
 
@@ -302,6 +405,12 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            path = ?String::from_utf8_lossy(path),
+            "Searching end wildcard children"
+        );
+
         for end_wildcard_child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(end_wildcard_child, path, constraints) {
                 continue;
@@ -319,6 +428,9 @@ impl<T> Node<T> {
                     value: String::from_utf8_lossy(path).to_string(),
                 })?,
             });
+
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Found matching end wildcard node");
 
             return if end_wildcard_child.data.is_some() {
                 Ok(Some(end_wildcard_child))
@@ -344,6 +456,23 @@ impl<T> Node<T> {
             return false;
         };
 
-        (constraint.check)(segment)
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            constraint = ?String::from_utf8_lossy(name),
+            segment = segment,
+            "Checking constraint"
+        );
+
+        let result = (constraint.check)(segment);
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            constraint = ?String::from_utf8_lossy(name),
+            segment = segment,
+            result = result,
+            "Constraint check result"
+        );
+
+        result
     }
 }

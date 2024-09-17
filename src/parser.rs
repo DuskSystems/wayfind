@@ -4,13 +4,22 @@ use std::collections::HashMap;
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Route {
     pub raw: Vec<u8>,
     pub parts: Vec<Part>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+impl std::fmt::Debug for Route {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Route")
+            .field("raw", &String::from_utf8_lossy(&self.raw))
+            .field("parts", &self.parts)
+            .finish()
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
 pub enum Part {
     Static {
         prefix: Vec<u8>,
@@ -27,10 +36,44 @@ pub enum Part {
     },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+impl std::fmt::Debug for Part {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Static { prefix } => f
+                .debug_struct("Static")
+                .field("prefix", &String::from_utf8_lossy(prefix))
+                .finish(),
+
+            Self::Dynamic { name, constraint } => {
+                let mut debug_struct = f.debug_struct("Dynamic");
+                debug_struct.field("name", &String::from_utf8_lossy(name));
+
+                if let Some(c) = constraint {
+                    debug_struct.field("constraint", &String::from_utf8_lossy(c));
+                }
+
+                debug_struct.finish()
+            }
+
+            Self::Wildcard { name, constraint } => {
+                let mut debug_struct = f.debug_struct("Wildcard");
+                debug_struct.field("name", &String::from_utf8_lossy(name));
+
+                if let Some(c) = constraint {
+                    debug_struct.field("constraint", &String::from_utf8_lossy(c));
+                }
+
+                debug_struct.finish()
+            }
+        }
+    }
+}
+
+#[derive(PartialEq, Eq)]
 pub struct Parser {
     pub raw: Vec<u8>,
     pub routes: Vec<Route>,
+    pub is_expanded: bool,
 }
 
 impl Parser {
@@ -45,9 +88,12 @@ impl Parser {
             .map(|raw| Self::parse_route(&raw))
             .collect::<Result<Vec<_>, _>>()?;
 
+        let is_expanded = routes.len() > 1;
+
         Ok(Self {
             raw: input.to_vec(),
             routes,
+            is_expanded,
         })
     }
 
@@ -318,12 +364,22 @@ impl Parser {
     }
 }
 
+impl std::fmt::Debug for Parser {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Parser")
+            .field("raw", &String::from_utf8_lossy(&self.raw))
+            .field("routes", &self.routes)
+            .field("is_expanded", &self.is_expanded)
+            .finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use similar_asserts::assert_eq;
 
-    #[test]
+    #[test_log::test]
     fn test_parser_static_route() {
         assert_eq!(
             Parser::new(b"/abcd"),
@@ -335,11 +391,12 @@ mod tests {
                         prefix: b"/abcd".to_vec()
                     }],
                 }],
+                is_expanded: false,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_dynamic_route() {
         assert_eq!(
             Parser::new(b"/{name}"),
@@ -357,11 +414,12 @@ mod tests {
                         },
                     ],
                 }],
+                is_expanded: false,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_wildcard_route() {
         assert_eq!(
             Parser::new(b"/{*route}"),
@@ -379,11 +437,12 @@ mod tests {
                         },
                     ],
                 }],
+                is_expanded: false,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_complex_route() {
         assert_eq!(
             Parser::new(b"/{*name:alpha}/{id:numeric}"),
@@ -408,11 +467,12 @@ mod tests {
                         },
                     ],
                 }],
+                is_expanded: false,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_optional_group_simple() {
         assert_eq!(
             Parser::new(b"/users(/{id})"),
@@ -438,11 +498,12 @@ mod tests {
                         }],
                     },
                 ],
+                is_expanded: true,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_optional_groups_nested() {
         assert_eq!(
             Parser::new(b"/users(/{id}(/profile))"),
@@ -483,11 +544,12 @@ mod tests {
                         }],
                     },
                 ],
+                is_expanded: true,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_escaped_characters() {
         assert_eq!(
             Parser::new(b"/path/with\\{braces\\}and\\(parens\\)"),
@@ -499,11 +561,12 @@ mod tests {
                         prefix: b"/path/with{braces}and(parens)".to_vec()
                     }],
                 }],
+                is_expanded: false,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_edge_case_starting_optional_group() {
         assert_eq!(
             Parser::new(b"(/{lang})/users"),
@@ -532,11 +595,12 @@ mod tests {
                         }],
                     },
                 ],
+                is_expanded: true,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_edge_case_only_optional_groups() {
         assert_eq!(
             Parser::new(b"(/{lang})(/{page})"),
@@ -591,11 +655,12 @@ mod tests {
                         parts: vec![],
                     },
                 ],
+                is_expanded: true,
             }),
         );
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty() {
         let error = Parser::new(b"").unwrap_err();
         assert_eq!(error, RouteError::Empty);
@@ -603,7 +668,7 @@ mod tests {
         insta::assert_snapshot!(error, @"empty route");
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty_braces() {
         let error = Parser::new(b"/users/{}").unwrap_err();
         assert_eq!(
@@ -622,7 +687,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_unbalanced_brace_opening() {
         let error = Parser::new(b"/users/{id/profile").unwrap_err();
         assert_eq!(
@@ -643,7 +708,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_unbalanced_brace_closing() {
         let error = Parser::new(b"/users/id}/profile").unwrap_err();
         assert_eq!(
@@ -664,7 +729,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty_parenthesis() {
         let error = Parser::new(b"/products()/category").unwrap_err();
         assert_eq!(
@@ -683,7 +748,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_unbalanced_parenthesis_opening() {
         let error = Parser::new(b"/products(/category").unwrap_err();
         assert_eq!(
@@ -704,7 +769,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_unbalanced_parenthesis_closing() {
         let error = Parser::new(b"/products)/category").unwrap_err();
         assert_eq!(
@@ -725,7 +790,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty_parameter() {
         let error = Parser::new(b"/users/{:constraint}/profile").unwrap_err();
         assert_eq!(
@@ -745,7 +810,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_invalid_parameter() {
         let error = Parser::new(b"/users/{user*name}/profile").unwrap_err();
         assert_eq!(
@@ -768,7 +833,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_duplicate_parameter() {
         let error = Parser::new(b"/users/{id}/posts/{id:uuid}").unwrap_err();
         assert_eq!(
@@ -793,7 +858,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty_wildcard() {
         let error = Parser::new(b"/files/{*}").unwrap_err();
         assert_eq!(
@@ -813,7 +878,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_empty_constraint() {
         let error = Parser::new(b"/users/{id:}/profile").unwrap_err();
         assert_eq!(
@@ -833,7 +898,7 @@ mod tests {
         "#);
     }
 
-    #[test]
+    #[test_log::test]
     fn test_parser_error_invalid_constraint() {
         let error = Parser::new(b"/users/{id:*}/profile").unwrap_err();
         assert_eq!(

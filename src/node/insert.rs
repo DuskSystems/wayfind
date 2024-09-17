@@ -9,41 +9,88 @@ impl<T> Node<T> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, fields(route = ?route)))]
     pub fn insert(&mut self, route: &mut Route, data: Data<T>) -> Result<(), InsertError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Inserting route into node");
+
         if let Some(part) = route.parts.pop() {
             match part {
-                Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
+                Part::Static { prefix } => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(
+                        prefix = ?String::from_utf8_lossy(&prefix),
+                        "Inserting static part"
+                    );
+
+                    self.insert_static(route, data, &prefix)?;
+                }
                 Part::Dynamic {
                     name, constraint, ..
                 } => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(
+                        name = ?String::from_utf8_lossy(&name),
+                        constraint = ?constraint.as_ref().map(|c| String::from_utf8_lossy(c)),
+                        "Inserting dynamic part"
+                    );
+
                     self.insert_dynamic(route, data, &name, constraint)?;
                 }
                 Part::Wildcard {
                     name, constraint, ..
                 } if route.parts.is_empty() => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(
+                        name = ?String::from_utf8_lossy(&name),
+                        constraint = ?constraint.as_ref().map(|c| String::from_utf8_lossy(c)),
+                        "Inserting end wildcard part"
+                    );
+
                     self.insert_end_wildcard(route, data, &name, constraint)?;
                 }
                 Part::Wildcard {
                     name, constraint, ..
                 } => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(
+                        name = ?String::from_utf8_lossy(&name),
+                        constraint = ?constraint.as_ref().map(|c| String::from_utf8_lossy(c)),
+                        "Inserting wildcard part"
+                    );
+
                     self.insert_wildcard(route, data, &name, constraint)?;
                 }
             };
         } else {
-            if let Some(data) = &self.data {
-                let conflict = match data {
+            if let Some(existing_data) = &self.data {
+                let conflict = match existing_data {
                     Data::Inline { route, .. } | Data::Shared { route, .. } => route.to_string(),
                 };
 
-                return Err(InsertError::DuplicateRoute {
+                let error = Err(InsertError::DuplicateRoute {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
                     conflict,
                 });
+
+                #[cfg(feature = "tracing")]
+                tracing::error!(
+                    error = ?error,
+                    "Failed to insert route: duplicate route"
+                );
+
+                return error;
             }
 
             self.data = Some(data);
             self.needs_optimization = true;
+
+            #[cfg(feature = "tracing")]
+            tracing::debug!("Inserted data at node");
         }
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Route inserted successfully");
 
         Ok(())
     }

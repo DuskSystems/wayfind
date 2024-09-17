@@ -4,7 +4,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("(/{*name})/abc", 1)?;

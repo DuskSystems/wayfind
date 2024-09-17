@@ -26,7 +26,7 @@ impl Constraint for EndsWithTgz {
     }
 }
 
-#[test]
+#[test_log::test]
 fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc", 1)?;
@@ -43,7 +43,7 @@ fn test_insert_static_child_1() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abcd", 1)?;
@@ -64,7 +64,7 @@ fn test_insert_static_child_2() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_insert_static_child_3() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc", 1)?;
@@ -79,7 +79,7 @@ fn test_insert_static_child_3() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_insert_param_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc/{p1}", 1)?;
@@ -98,7 +98,7 @@ fn test_insert_param_child() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc/{*p1}", 1)?;
@@ -115,7 +115,7 @@ fn test_catch_all_child_1() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("{*p1}", 1)?;
@@ -128,7 +128,7 @@ fn test_catch_all_child_2() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
@@ -149,7 +149,7 @@ fn test_insert_regex_child() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_add_result() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<DigitString>()?;
@@ -202,7 +202,7 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_matches() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<DigitString>()?;
@@ -333,7 +333,7 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_match_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/bc", 1)?;
@@ -420,7 +420,7 @@ fn test_match_priority() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/{*path}", 1)?;
@@ -486,7 +486,7 @@ fn test_catch_all_priority_in_sub_path() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_issue_275() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{id1}/a", 1)?;
@@ -521,7 +521,7 @@ fn test_issue_275() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_percent_decoded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/{id}", 1)?;
