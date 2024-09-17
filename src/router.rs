@@ -51,10 +51,11 @@ impl<T> Router<T> {
 
                 static_children: Children::default(),
                 dynamic_children: Children::default(),
+                dynamic_children_shortcut: false,
                 wildcard_children: Children::default(),
+                wildcard_children_shortcut: false,
                 end_wildcard_children: Children::default(),
 
-                quick_dynamic: false,
                 needs_optimization: false,
             },
             constraints: HashMap::new(),

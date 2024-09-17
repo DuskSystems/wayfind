@@ -26,12 +26,11 @@ pub struct Node<T> {
 
     pub static_children: Children<T>,
     pub dynamic_children: Children<T>,
+    pub dynamic_children_shortcut: bool,
     pub wildcard_children: Children<T>,
+    pub wildcard_children_shortcut: bool,
     pub end_wildcard_children: Children<T>,
 
-    /// A flag indicating whether this node's dynamic children can be matched quickly.
-    /// This allows us to traverse the next section of the path by segment, rather than byte-by-byte, when matching.
-    pub quick_dynamic: bool,
     /// Flag indicating whether this node or its children need optimization.
     pub needs_optimization: bool,
 }
