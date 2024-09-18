@@ -331,7 +331,6 @@ pub enum RouteError {
 impl std::error::Error for RouteError {}
 
 impl std::fmt::Display for RouteError {
-    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Empty => write!(f, "empty route"),

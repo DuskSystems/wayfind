@@ -1,8 +1,6 @@
 //! Tests sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.4/tests/remove.rs>
 
-#![allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-
 use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::Router;

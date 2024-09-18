@@ -22,7 +22,6 @@ pub mod routes;
 pub mod state;
 pub mod types;
 
-#[allow(clippy::too_many_lines)]
 pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
     tracing::info!(
         address = %listener.local_addr()?,

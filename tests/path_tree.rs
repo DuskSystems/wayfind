@@ -1,8 +1,6 @@
 //! Tests sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/tests/tree.rs>
 
-#![allow(clippy::too_many_lines)]
-
 use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::Router;

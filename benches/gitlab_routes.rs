@@ -1,5 +1,4 @@
 #[must_use]
-#[allow(clippy::too_many_lines)]
 pub fn routes() -> impl IntoIterator<Item = &'static str> {
     [
         // Route 1
