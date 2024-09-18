@@ -75,11 +75,20 @@ categories.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = []
+tracing = ["dep:tracing"]
+
+[dependencies]
+# Logging
+tracing = { version = "0.1", optional = true }
+
 [dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.
 insta = "=1.40.0"
 similar-asserts = "1.6"
+test-log = { version = "=0.2.15", features = ["trace"] }
 
 # Encoding
 percent-encoding = "2.3"

@@ -59,7 +59,7 @@ impl Constraint for ValidSlug {
     }
 }
 
-#[test]
+#[test_log::test]
 fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
@@ -157,7 +157,7 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_unknown_constraints() {
     let mut router = Router::new();
 
@@ -189,7 +189,7 @@ impl Constraint for ConstraintB {
     }
 }
 
-#[test]
+#[test_log::test]
 fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
     let mut router: Router<usize> = Router::new();
     router.constraint::<ConstraintA>()?;

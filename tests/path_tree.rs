@@ -8,7 +8,7 @@ use wayfind::Router;
 #[path = "./utils.rs"]
 mod utils;
 
-#[test]
+#[test_log::test]
 fn statics() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
@@ -96,7 +96,7 @@ fn statics() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn wildcards() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
@@ -236,7 +236,7 @@ fn wildcards() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users/{id}", 0)?;
@@ -271,7 +271,7 @@ fn single_named_parameter() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 #[ignore = "undecided on behaviour"]
 fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -295,7 +295,7 @@ fn repeated_single_named_param() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/b/c", "/a/b/c")?;
@@ -341,7 +341,7 @@ fn static_and_named_parameter() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{lang}/{keyword}", true)?;
@@ -381,7 +381,7 @@ fn multi_named_parameters() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/src/{*filepath}", "* files")?;
@@ -432,7 +432,7 @@ fn catch_all_parameter() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 #[ignore = "wildcards not yet implemented"]
 fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -512,7 +512,7 @@ fn catch_all_parameter_with_prefix() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/b/c", "/a/b/c")?;
@@ -556,7 +556,7 @@ fn static_and_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
@@ -595,7 +595,7 @@ fn root_catch_all_parameter() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{*wildcard}", 1)?;
@@ -643,7 +643,7 @@ fn root_catch_all_parameter_1() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
@@ -693,7 +693,7 @@ fn test_named_routes_with_non_ascii_paths() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
     let mut router = Router::<usize>::new();
     router.insert("/git/{org}/{repo}", 1)?;
@@ -729,7 +729,7 @@ fn test_named_wildcard_collide() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn match_params() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/api/v1/{param}/{*wildcard}", 1)?;
@@ -1256,7 +1256,7 @@ fn match_params() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn basic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 0)?;
@@ -1414,7 +1414,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn github_tree() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
@@ -1786,7 +1786,7 @@ fn github_tree() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn cloneable() {
     let router = Router::<usize>::new();
     assert_eq!(
@@ -1795,7 +1795,7 @@ fn cloneable() {
     );
 }
 
-#[test]
+#[test_log::test]
 fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{name}", 1)?;
@@ -1819,7 +1819,7 @@ fn test_dots_no_ext() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 #[ignore = "we don't support 'one or more' or 'inline wildcard' logic"]
 fn test_dots_ext() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -1848,7 +1848,7 @@ fn test_dots_ext() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn test_dots_ext_no_qualifier() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{name}.js", 2)?;

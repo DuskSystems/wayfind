@@ -8,7 +8,7 @@ use wayfind::Router;
 mod utils;
 
 // https://github.com/ibraheemdev/matchit/issues/22
-#[test]
+#[test_log::test]
 fn partial_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo_bar", "Welcome!")?;
@@ -43,7 +43,7 @@ fn partial_overlap() -> Result<(), Box<dyn Error>> {
 }
 
 // https://github.com/ibraheemdev/matchit/issues/31
-#[test]
+#[test_log::test]
 fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/path/foo", "foo")?;
@@ -117,7 +117,7 @@ fn wildcard_overlap() -> Result<(), Box<dyn Error>> {
 }
 
 // https://github.com/ibraheemdev/matchit/issues/12
-#[test]
+#[test_log::test]
 fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{object}/{id}", "object with id")?;
@@ -164,7 +164,7 @@ fn overlapping_param_backtracking() -> Result<(), Box<dyn Error>> {
 }
 
 // https://github.com/ibraheemdev/matchit/issues/42
-#[test]
+#[test_log::test]
 fn bare_catchall() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("{*foo}", 1)?;
@@ -211,7 +211,7 @@ fn bare_catchall() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn normalized() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/x/{foo}/bar", 1)?;
@@ -371,7 +371,7 @@ fn normalized() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn blog() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{page}", 1)?;
@@ -446,7 +446,7 @@ fn blog() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn double_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{object}/{id}", 1)?;
@@ -528,7 +528,7 @@ fn double_overlap() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{*catchall}", 1)?;
@@ -576,7 +576,7 @@ fn catchall_off_by_one() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo", 1)?;
@@ -661,7 +661,7 @@ fn overlap() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{object}/{id}", 1)?;
@@ -696,7 +696,7 @@ fn missing_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{object}/{id}", 1)?;
@@ -724,7 +724,7 @@ fn extra_trailing_slash_param() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{*bar}", 1)?;
@@ -756,7 +756,7 @@ fn missing_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{*bar}", 1)?;
@@ -788,7 +788,7 @@ fn extra_trailing_slash_catch_all() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/{object}/{id}", 1)?;
@@ -849,7 +849,7 @@ fn double_overlap_trailing_slash() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo/{x}/baz/", 1)?;
@@ -889,7 +889,7 @@ fn trailing_slash_overlap() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hi", 1)?;
@@ -1023,7 +1023,7 @@ fn trailing_slash() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/a/{b}/{c}", 1)?;
@@ -1047,7 +1047,7 @@ fn backtracking_trailing_slash() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/foo", 1)?;
@@ -1069,7 +1069,7 @@ fn root_trailing_slash() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn catchall_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/yyy/{*x}", 1)?;
@@ -1103,7 +1103,7 @@ fn catchall_overlap() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn escaped() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
@@ -1252,7 +1252,7 @@ fn escaped() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn basic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hi", 1)?;
@@ -1383,7 +1383,7 @@ fn basic() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[test]
+#[test_log::test]
 fn wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;

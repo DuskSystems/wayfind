@@ -104,7 +104,11 @@ impl<T> Router<T> {
     /// let mut router: Router<usize> = Router::new();
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, fields(constraint = ?C::NAME)))]
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Adding constraint");
+
         match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
             Entry::Vacant(entry) => {
                 entry.insert(StoredConstraint {
@@ -112,13 +116,26 @@ impl<T> Router<T> {
                     check: C::check,
                 });
 
+                #[cfg(feature = "tracing")]
+                tracing::debug!("Constraint added successfully");
+
                 Ok(())
             }
-            Entry::Occupied(entry) => Err(ConstraintError::DuplicateName {
-                name: C::NAME,
-                existing_type: entry.get().type_name,
-                new_type: type_name::<C>(),
-            }),
+            Entry::Occupied(entry) => {
+                let error = Err(ConstraintError::DuplicateName {
+                    name: C::NAME,
+                    existing_type: entry.get().type_name,
+                    new_type: type_name::<C>(),
+                });
+
+                #[cfg(feature = "tracing")]
+                tracing::error!(
+                    error = ?error,
+                    "Failed to add constraint"
+                );
+
+                error
+            }
         }
     }
 
@@ -139,13 +156,25 @@ impl<T> Router<T> {
     /// router.insert("/hello", 1).unwrap();
     /// router.insert("/hello/{world}", 2).unwrap();
     /// ```
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, fields(route = ?route)))]
     pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Inserting route");
+
         let decoded_route = percent_decode(route.as_bytes())?;
         if route.as_bytes() != decoded_route.as_ref() {
-            return Err(EncodingError::EncodedRoute {
+            let error = Err(EncodingError::EncodedRoute {
                 input: route.to_string(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
-            })?;
+            });
+
+            #[cfg(feature = "tracing")]
+            tracing::error!(
+                error = ?error,
+                "Failed to insert route: encoded route"
+            );
+
+            return error?;
         }
 
         let route_arc = Arc::from(route);
@@ -163,20 +192,34 @@ impl<T> Router<T> {
                 } = part
                 {
                     if !self.constraints.contains_key(name) {
-                        return Err(InsertError::UnknownConstraint {
+                        let error = Err(InsertError::UnknownConstraint {
                             constraint: String::from_utf8_lossy(name).to_string(),
                         });
+
+                        #[cfg(feature = "tracing")]
+                        tracing::error!(
+                            error = ?error,
+                            "Failed to insert route: unknown constraint"
+                        );
+
+                        return error;
                     }
                 }
             }
         }
 
-        if parsed.routes.len() > 1 {
+        if parsed.is_expanded {
             let value = Arc::new(value);
             for mut route in parsed.routes {
                 let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
 
-                if let Err(err) = self.root.insert(
+                #[cfg(feature = "tracing")]
+                tracing::debug!(
+                    insert = ?expanded,
+                    "Inserting parsed, expanded route"
+                );
+
+                if let Err(error) = self.root.insert(
                     &mut route,
                     Data::Shared {
                         route: Arc::clone(&route_arc),
@@ -184,24 +227,53 @@ impl<T> Router<T> {
                         value: Arc::clone(&value),
                     },
                 ) {
-                    // Attempt to clean up any prior inserts on failure.
-                    // TODO: Consider adding tracing/log support?
-                    // TODO: Consider returning a vec of errors?
+                    #[cfg(feature = "tracing")]
+                    tracing::error!(
+                        error = ?error,
+                        "Failed to insert expanded route"
+                    );
+
+                    // Attempt to clean up any invalid state.
                     drop(self.delete(&route_arc));
-                    return Err(err);
+
+                    return Err(error);
                 }
             }
-        } else if let Some(route) = parsed.routes.first_mut() {
-            self.root.insert(
+        } else {
+            let route = &mut parsed.routes[0];
+
+            #[cfg(feature = "tracing")]
+            tracing::debug!(
+                insert = ?route,
+                "Inserting parsed route"
+            );
+
+            let result = self.root.insert(
                 route,
                 Data::Inline {
                     route: Arc::clone(&route_arc),
                     value,
                 },
-            )?;
+            );
+
+            #[cfg(feature = "tracing")]
+            if let Err(error) = result {
+                tracing::error!(
+                    error = ?error,
+                    "Failed to insert route"
+                );
+
+                return Err(error);
+            }
+
+            result?;
         };
 
         self.root.optimize();
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Route inserted successfully");
+
         Ok(())
     }
 
@@ -222,35 +294,48 @@ impl<T> Router<T> {
     /// router.insert("/hello", 1).unwrap();
     /// router.delete("/hello").unwrap();
     /// ```
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, fields(route = ?route)))]
     pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Deleting route");
+
         let decoded_route = percent_decode(route.as_bytes())?;
         if route.as_bytes() != decoded_route.as_ref() {
-            return Err(EncodingError::EncodedRoute {
+            let error = Err(EncodingError::EncodedRoute {
                 input: route.to_string(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
-            })?;
+            });
+
+            #[cfg(feature = "tracing")]
+            tracing::error!(
+                error = ?error,
+                "Failed to delete route: encoded route"
+            );
+
+            return error?;
         }
 
-        let mut parsed = Parser::new(route.as_bytes())?;
-        if parsed.routes.len() > 1 {
-            let mut failure: Option<DeleteError> = None;
-            for mut expanded_route in parsed.routes {
-                // If a delete fails, keep trying the remaining paths, then return the first error.
-                // TODO: Consider adding tracing/log support?
-                // TODO: Consider returning a vec of errors?
-                if let Err(err) = self.root.delete(&mut expanded_route, true) {
-                    failure = Some(err);
-                }
-            }
+        let parsed = Parser::new(route.as_bytes())?;
+        for mut route in parsed.routes {
+            if let Err(error) = self.root.delete(&mut route, parsed.is_expanded) {
+                #[cfg(feature = "tracing")]
+                tracing::error!(
+                    error = ?error,
+                    "Failed to delete route"
+                );
 
-            if let Some(err) = failure {
-                return Err(err);
+                // Attempt to clean up any invalid state.
+                self.root.optimize();
+
+                return Err(error);
             }
-        } else if let Some(route) = parsed.routes.first_mut() {
-            self.root.delete(route, false)?;
         }
 
         self.root.optimize();
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Route deleted successfully");
+
         Ok(())
     }
 
@@ -271,15 +356,22 @@ impl<T> Router<T> {
     /// let path = Path::new("/hello").unwrap();
     /// let search = router.search(&path).unwrap();
     /// ```
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip_all, fields(path = ?path)))]
     pub fn search<'router, 'path>(
         &'router self,
         path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!("Searching for route");
+
         let mut parameters = vec![];
         let Some(node) =
             self.root
                 .search(path.decoded_bytes(), &mut parameters, &self.constraints)?
         else {
+            #[cfg(feature = "tracing")]
+            tracing::debug!("No matching route found");
+
             return Ok(None);
         };
 
@@ -294,8 +386,21 @@ impl<T> Router<T> {
                 Some(Arc::clone(expanded)),
                 value.as_ref(),
             ),
-            None => return Ok(None),
+            None => {
+                #[cfg(feature = "tracing")]
+                tracing::debug!("Matched node with no data");
+
+                return Ok(None);
+            }
         };
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            route = ?route,
+            expanded = ?expanded,
+            parameters = ?parameters,
+            "Found matching route"
+        );
 
         Ok(Some(Match {
             route,
