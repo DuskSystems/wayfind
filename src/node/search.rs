@@ -93,7 +93,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        if self.quick_dynamic {
+        if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
             self.search_dynamic_inline(path, parameters, constraints)
@@ -101,8 +101,6 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    /// It uses a greedy matching approach for parameters.
-    /// We also prefer longer routes to shorter routes.
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -224,6 +222,30 @@ impl<T> Node<T> {
     }
 
     fn search_wildcard<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut Vec<Parameter<'router, 'path>>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+    ) -> Result<Option<&'router Self>, SearchError> {
+        if self.wildcard_children_shortcut {
+            self.search_wildcard_segment(path, parameters, constraints)
+        } else {
+            self.search_wildcard_inline(path, parameters, constraints)
+        }
+    }
+
+    /// Can handle complex wildcard routes like `/{*name}.{extension}`.
+    fn search_wildcard_inline<'router, 'path>(
+        &'router self,
+        _path: &'path [u8],
+        _parameters: &mut [Parameter<'router, 'path>],
+        _constraints: &HashMap<Vec<u8>, StoredConstraint>,
+    ) -> Result<Option<&'router Self>, SearchError> {
+        todo!()
+    }
+
+    /// Can only handle simple wildcard routes like `/{*segment}/`.
+    fn search_wildcard_segment<'router, 'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Vec<Parameter<'router, 'path>>,
