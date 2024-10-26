@@ -1,3 +1,5 @@
+#![allow(clippy::multiple_crate_versions)]
+
 use anyhow::Error;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use tokio::net::TcpListener;

@@ -19,7 +19,7 @@
     };
   };
 
-  # nix flake show --all-systems
+  # nix flake show
   outputs =
     {
       nixpkgs,
@@ -69,7 +69,7 @@
 
             buildInputs = with pkgs; [
               # Rust
-              (rust-bin.stable."1.81.0".minimal.override {
+              (rust-bin.stable."1.82.0".minimal.override {
                 extensions = [
                   "clippy"
                   "rust-analyzer"
@@ -108,7 +108,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal)
+              (rust-bin.stable."1.82.0".minimal)
               sccache
               cargo-codspeed
             ];
@@ -122,7 +122,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal.override {
+              (rust-bin.stable."1.82.0".minimal.override {
                 extensions = [
                   "clippy"
                   "rustfmt"
@@ -140,7 +140,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.nightly."2024-07-25".minimal.override { extensions = [ "llvm-tools" ]; })
+              (rust-bin.nightly."2024-10-18".minimal.override { extensions = [ "llvm-tools" ]; })
               sccache
               cargo-llvm-cov
             ];
@@ -154,7 +154,7 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal)
+              (rust-bin.stable."1.82.0".minimal)
               sccache
             ];
           };
@@ -206,7 +206,7 @@
             OCI_HIDE_SKIPPED_WORKFLOWS = 1;
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal)
+              (rust-bin.stable."1.82.0".minimal)
               sccache
               oci-distribution-spec-conformance
             ];

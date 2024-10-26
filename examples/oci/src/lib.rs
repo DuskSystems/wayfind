@@ -1,4 +1,8 @@
-#![allow(clippy::missing_panics_doc, clippy::missing_errors_doc)]
+#![allow(
+    clippy::missing_panics_doc,
+    clippy::missing_errors_doc,
+    clippy::multiple_crate_versions
+)]
 
 use anyhow::Error;
 use constraints::name::NameConstraint;

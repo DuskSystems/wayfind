@@ -67,7 +67,7 @@ impl<T> Node<T> {
                 prefix.len() >= child.prefix.len()
                     && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
-            .ok_or(DeleteError::NotFound {
+            .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
@@ -101,7 +101,7 @@ impl<T> Node<T> {
             .dynamic_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound {
+            .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
@@ -127,7 +127,7 @@ impl<T> Node<T> {
             .wildcard_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound {
+            .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
@@ -152,7 +152,7 @@ impl<T> Node<T> {
             .end_wildcard_children
             .iter()
             .position(|child| child.prefix == name && child.constraint == *constraint)
-            .ok_or(DeleteError::NotFound {
+            .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
