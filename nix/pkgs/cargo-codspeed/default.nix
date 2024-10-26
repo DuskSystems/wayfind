@@ -11,14 +11,14 @@ rustPlatform.buildRustPackage rec {
   pname = "cargo-codspeed";
 
   # NOTE: Keep in sync with `codspeed-criterion-compat` Rust package.
-  version = "2.7.1";
+  version = "2.7.2";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-crucisC3wCiEX5eXufricyBY/UuueJNDXQoyGY2+RF0=";
+    hash = "sha256-BtuY3reG5BMMlas1PYtaxPygbK2dptVRnYG/JRRev3c=";
   };
 
-  cargoHash = "sha256-47aJR4ZXax39fjhSu/0eVOtnCmmGw+S/8ea/I7/RAg0=";
+  cargoHash = "sha256-vioMkv0496s0zVdvi9/aQxtIsk6awXWxLyjTUBJSYhg=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs =
