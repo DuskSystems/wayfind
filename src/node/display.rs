@@ -8,12 +8,12 @@ impl<T> Display for Node<T> {
             output: &mut String,
             node: &Node<T>,
             padding: &str,
-            is_root: bool,
+            is_top: bool,
             is_last: bool,
         ) -> std::fmt::Result {
             let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
             let key = match &node.kind {
-                Kind::Root => "▽".to_string(),
+                Kind::Root => unreachable!(),
                 Kind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
                 Kind::Dynamic => {
                     let name = String::from_utf8_lossy(&node.prefix);
@@ -31,18 +31,18 @@ impl<T> Display for Node<T> {
                 }
             };
 
-            if is_root {
+            if is_top {
                 writeln!(output, "{key}")?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
                 if node.data.is_some() {
-                    writeln!(output, "{padding}{branch} {key} ○")?;
+                    writeln!(output, "{padding}{branch} {key} [*]")?;
                 } else {
                     writeln!(output, "{padding}{branch} {key}")?;
                 }
             }
 
-            let new_prefix = if is_root {
+            let new_prefix = if is_top {
                 padding.to_string()
             } else if is_last {
                 format!("{padding}   ")
@@ -69,7 +69,25 @@ impl<T> Display for Node<T> {
 
         let mut output = String::new();
         let padding = " ".repeat(self.prefix.len().saturating_sub(1));
-        debug_node(&mut output, self, &padding, true, true)?;
+
+        // Handle root node manually.
+        if matches!(self.kind, Kind::Root) {
+            let mut children = self
+                .static_children
+                .iter()
+                .chain(self.dynamic_children.iter())
+                .chain(self.wildcard_children.iter())
+                .chain(self.end_wildcard_children.iter())
+                .peekable();
+
+            while let Some(child) = children.next() {
+                let is_last = children.peek().is_none();
+                debug_node(&mut output, child, "", true, is_last)?;
+            }
+        } else {
+            debug_node(&mut output, self, &padding, true, true)?;
+        }
+
         write!(f, "{}", output.trim_end())
     }
 }

@@ -4,6 +4,32 @@ pub enum RouteError {
     /// The route is empty.
     Empty,
 
+    /// The route must start with '/'.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::MissingLeadingSlash {
+    ///     route: "abc".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// missing leading slash
+    ///
+    ///     Route: abc
+    ///
+    /// tip: Routes must begin with '/'
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    MissingLeadingSlash {
+        /// The route missing a leading slash.
+        route: String,
+    },
+
     /// Empty braces were found in the route.
     ///
     /// # Examples
@@ -334,6 +360,17 @@ impl std::fmt::Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Empty => write!(f, "empty route"),
+
+            Self::MissingLeadingSlash { route } => {
+                write!(
+                    f,
+                    r#"missing leading slash
+
+    Route: {route}
+
+tip: Routes must begin with '/'"#
+                )
+            }
 
             Self::EmptyBraces { route, position } => {
                 let arrow = " ".repeat(*position) + "^^";

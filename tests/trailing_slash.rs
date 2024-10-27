@@ -13,23 +13,22 @@ fn test_trailing_slashes() -> Result<(), Box<dyn Error>> {
     router.insert("/files/{name}(.{extension})(/)", 4)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ├─ articles ○
-       │  ╰─ / ○
-       │     ╰─ {category} ○
-       │        ╰─ / ○
-       ├─ users ○
-       │  ╰─ / ○
-       ├─ files/
-       │  ╰─ {name} ○
-       │     ├─ / ○
-       │     ╰─ .
-       │        ╰─ {extension} ○
-       │           ╰─ / ○
-       ╰─ posts/
-          ╰─ {id} ○
-             ╰─ / ○
+    /
+    ├─ articles [*]
+    │  ╰─ / [*]
+    │     ╰─ {category} [*]
+    │        ╰─ / [*]
+    ├─ users [*]
+    │  ╰─ / [*]
+    ├─ files/
+    │  ╰─ {name} [*]
+    │     ├─ / [*]
+    │     ╰─ .
+    │        ╰─ {extension} [*]
+    │           ╰─ / [*]
+    ╰─ posts/
+       ╰─ {id} [*]
+          ╰─ / [*]
     "#);
 
     assert_router_matches!(router, {

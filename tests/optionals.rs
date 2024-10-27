@@ -12,21 +12,20 @@ fn test_optional_wildcards() -> Result<(), Box<dyn Error>> {
     router.insert("(/{*prefix})/ghi(/{*suffix})", 3)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ├─ abc ○
-       ├─ def ○
-       │  ╰─ /
-       │     ╰─ {*rest} ○
-       ├─ ghi ○
-       │  ╰─ /
-       │     ╰─ {*suffix} ○
-       ├─ {*prefix}
-       │  ╰─ /ghi ○
-       │     ╰─ /
-       │        ╰─ {*suffix} ○
-       ╰─ {*name}
-          ╰─ /abc ○
+    /
+    ├─ abc [*]
+    ├─ def [*]
+    │  ╰─ /
+    │     ╰─ {*rest} [*]
+    ├─ ghi [*]
+    │  ╰─ /
+    │     ╰─ {*suffix} [*]
+    ├─ {*prefix}
+    │  ╰─ /ghi [*]
+    │     ╰─ /
+    │        ╰─ {*suffix} [*]
+    ╰─ {*name}
+       ╰─ /abc [*]
     "#);
 
     assert_router_matches!(router, {

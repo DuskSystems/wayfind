@@ -33,42 +33,41 @@ fn test_inline_wildcards_extensive() -> Result<(), Box<dyn Error>> {
     router.insert("/{*prefix}_{dynamic}_{*suffix}.{extension}", 8)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ├─ articles/
-       │  ╰─ {*title}
-       │     ╰─ -
-       │        ╰─ {year}
-       │           ╰─ /
-       │              ╰─ {*rest} ○
-       ├─ greedy-
-       │  ╰─ {*middle}
-       │     ╰─ -end.txt ○
-       ├─ {category}
-       │  ╰─ /
-       │     ╰─ {*title}
-       │        ╰─ -
-       │           ╰─ {id}
-       │              ╰─ .html ○
-       ├─ {*prefix}
-       │  ├─ -file.txt ○
-       │  ╰─ _
-       │     ╰─ {dynamic}
-       │        ╰─ _
-       │           ╰─ {*suffix}
-       │              ╰─ .
-       │                 ╰─ {extension} ○
-       ├─ {*start}
-       │  ╰─ -
-       │     ╰─ {*middle}
-       │        ╰─ -
-       │           ╰─ {*end}
-       │              ╰─ .txt ○
-       ╰─ {*path}
-          ├─ .
-          │  ╰─ {extension} ○
-          ╰─ /
-             ╰─ {filename} ○
+    /
+    ├─ articles/
+    │  ╰─ {*title}
+    │     ╰─ -
+    │        ╰─ {year}
+    │           ╰─ /
+    │              ╰─ {*rest} [*]
+    ├─ greedy-
+    │  ╰─ {*middle}
+    │     ╰─ -end.txt [*]
+    ├─ {category}
+    │  ╰─ /
+    │     ╰─ {*title}
+    │        ╰─ -
+    │           ╰─ {id}
+    │              ╰─ .html [*]
+    ├─ {*prefix}
+    │  ├─ -file.txt [*]
+    │  ╰─ _
+    │     ╰─ {dynamic}
+    │        ╰─ _
+    │           ╰─ {*suffix}
+    │              ╰─ .
+    │                 ╰─ {extension} [*]
+    ├─ {*start}
+    │  ╰─ -
+    │     ╰─ {*middle}
+    │        ╰─ -
+    │           ╰─ {*end}
+    │              ╰─ .txt [*]
+    ╰─ {*path}
+       ├─ .
+       │  ╰─ {extension} [*]
+       ╰─ /
+          ╰─ {filename} [*]
     "#);
 
     assert_router_matches!(router, {

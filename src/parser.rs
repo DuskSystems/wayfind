@@ -137,10 +137,22 @@ impl Parser {
                 .for_each(|route| route.extend_from_slice(&input[group..end]));
         }
 
+        for route in &mut result {
+            if route.is_empty() {
+                route.push(b'/');
+            }
+        }
+
         Ok(result)
     }
 
     fn parse_route(input: &[u8]) -> Result<Route, RouteError> {
+        if !input.is_empty() && input[0] != b'/' {
+            return Err(RouteError::MissingLeadingSlash {
+                route: String::from_utf8_lossy(input).to_string(),
+            });
+        }
+
         let mut parts = vec![];
         let mut cursor = 0;
 
@@ -587,8 +599,10 @@ mod tests {
                         ],
                     },
                     Route {
-                        raw: b"".to_vec(),
-                        parts: vec![],
+                        raw: b"/".to_vec(),
+                        parts: vec![Part::Static {
+                            prefix: b"/".to_vec()
+                        }],
                     },
                 ],
             }),
@@ -619,6 +633,25 @@ mod tests {
 
             Route: /users/{}
                           ^^
+        "#);
+    }
+
+    #[test]
+    fn test_parser_error_missing_leading_slash() {
+        let error = Parser::new(b"abc").unwrap_err();
+        assert_eq!(
+            error,
+            RouteError::MissingLeadingSlash {
+                route: "abc".to_string(),
+            }
+        );
+
+        insta::assert_snapshot!(error, @r#"
+        missing leading slash
+
+            Route: abc
+
+        tip: Routes must begin with '/'
         "#);
     }
 
