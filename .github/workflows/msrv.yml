@@ -6,10 +6,6 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  id-token: write
-
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
@@ -21,12 +17,17 @@ env:
 jobs:
   msrv:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         shell: nix develop .#msrv --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v14

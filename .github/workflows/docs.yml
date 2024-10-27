@@ -5,11 +5,6 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  id-token: write
-  pages: write
-
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
@@ -21,12 +16,17 @@ env:
 jobs:
   docs:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
     defaults:
       run:
         shell: nix develop .#docs --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v14
@@ -64,6 +64,9 @@ jobs:
   deploy:
     needs: docs
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      pages: write
     environment:
       name: github-pages
       url: "${{ steps.deployment.outputs.page_url }}"
