@@ -186,17 +186,17 @@ fn test_add_result() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
-       ├─ a/
-       │  ├─ b ○
-       │  │  ╰─ /
-       │  │     ├─ c/d ○
-       │  │     ├─ {p}
-       │  │     │  ╰─ /d ○
-       │  │     ╰─ {p2}
-       │  │        ╰─ /d ○
-       │  ╰─ {*p} ○
-       ╰─ k/h/
-          ╰─ {name:digit_string} ○
+       ├─ k/h/
+       │  ╰─ {name:digit_string} ○
+       ╰─ a/
+          ├─ b ○
+          │  ╰─ /
+          │     ├─ c/d ○
+          │     ├─ {p2}
+          │     │  ╰─ /d ○
+          │     ╰─ {p}
+          │        ╰─ /d ○
+          ╰─ {*p} ○
     "#);
 
     Ok(())
@@ -224,6 +224,8 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r#"
     ▽
     ╰─ /
+       ├─ kcd/
+       │  ╰─ {p1:digit_string} ○
        ├─ a
        │  ├─ /
        │  │  ├─ b/c/d ○
@@ -232,19 +234,17 @@ fn test_matches() -> Result<(), Box<dyn Error>> {
        │  │        ╰─ {p2}
        │  │           ╰─ /c ○
        │  ╰─ b
-       │     ├─ /def ○
-       │     ╰─ c/
-       │        ├─ def ○
-       │        │  ╰─ /
-       │        │     ╰─ {*p1} ○
-       │        ├─ {param:digit_string}
-       │        │  ╰─ /def ○
-       │        ╰─ {p1} ○
-       │           ╰─ /
-       │              ├─ def ○
-       │              ╰─ {p2} ○
-       ├─ kcd/
-       │  ╰─ {p1:digit_string} ○
+       │     ├─ c/
+       │     │  ├─ def ○
+       │     │  │  ╰─ /
+       │     │  │     ╰─ {*p1} ○
+       │     │  ├─ {param:digit_string}
+       │     │  │  ╰─ /def ○
+       │     │  ╰─ {p1} ○
+       │     │     ╰─ /
+       │     │        ├─ def ○
+       │     │        ╰─ {p2} ○
+       │     ╰─ /def ○
        ├─ {package}
        │  ╰─ /-/
        │     ╰─ {package_tgz:ends_with_tgz} ○

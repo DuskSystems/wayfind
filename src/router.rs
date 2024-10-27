@@ -51,10 +51,12 @@ impl<T> Router<T> {
 
                 static_children: Children::default(),
                 dynamic_children: Children::default(),
+                dynamic_children_shortcut: false,
                 wildcard_children: Children::default(),
+                wildcard_children_shortcut: false,
                 end_wildcard_children: Children::default(),
 
-                quick_dynamic: false,
+                priority: 0,
                 needs_optimization: false,
             },
             constraints: HashMap::new(),
@@ -185,7 +187,6 @@ impl<T> Router<T> {
                     },
                 ) {
                     // Attempt to clean up any prior inserts on failure.
-                    // TODO: Consider adding tracing/log support?
                     // TODO: Consider returning a vec of errors?
                     drop(self.delete(&route_arc));
                     return Err(err);
@@ -236,7 +237,6 @@ impl<T> Router<T> {
             let mut failure: Option<DeleteError> = None;
             for mut expanded_route in parsed.routes {
                 // If a delete fails, keep trying the remaining paths, then return the first error.
-                // TODO: Consider adding tracing/log support?
                 // TODO: Consider returning a vec of errors?
                 if let Err(err) = self.root.delete(&mut expanded_route, true) {
                     failure = Some(err);
