@@ -11,11 +11,10 @@ fn test_specific_matching_simple() -> Result<(), Box<dyn Error>> {
     router.insert("/{file}.{extension}", 1)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ╰─ {file} ○
-          ╰─ .
-             ╰─ {extension} ○
+    /
+    ╰─ {file} [*]
+       ╰─ .
+          ╰─ {extension} [*]
     "#);
 
     assert_router_matches!(router, {
@@ -47,13 +46,12 @@ fn test_specific_matching_complex() -> Result<(), Box<dyn Error>> {
     router.insert("/{year}-{month}-{day}", 1)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ╰─ {year} ○
-          ╰─ -
-             ╰─ {month} ○
-                ╰─ -
-                   ╰─ {day} ○
+    /
+    ╰─ {year} [*]
+       ╰─ -
+          ╰─ {month} [*]
+             ╰─ -
+                ╰─ {day} [*]
     "#);
 
     assert_router_matches!(router, {

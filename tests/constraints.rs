@@ -74,21 +74,20 @@ fn test_multiple_constraints() -> Result<(), Box<dyn Error>> {
     router.insert("/posts/{year:even_year}/{slug:valid_slug}", 3)?;
 
     insta::assert_snapshot!(router, @r#"
-    ▽
-    ╰─ /
-       ├─ p
-       │  ├─ rofile/
-       │  │  ╰─ {username:length_3_to_10}
-       │  │     ╰─ .
-       │  │        ╰─ {ext:png_or_jpg} ○
-       │  ╰─ osts/
-       │     ╰─ {year:even_year}
-       │        ╰─ /
-       │           ╰─ {slug:valid_slug} ○
-       ╰─ user/
-          ╰─ {name:length_3_to_10}
-             ╰─ /
-                ╰─ {id:year_1000_to_10000} ○
+    /
+    ├─ p
+    │  ├─ rofile/
+    │  │  ╰─ {username:length_3_to_10}
+    │  │     ╰─ .
+    │  │        ╰─ {ext:png_or_jpg} [*]
+    │  ╰─ osts/
+    │     ╰─ {year:even_year}
+    │        ╰─ /
+    │           ╰─ {slug:valid_slug} [*]
+    ╰─ user/
+       ╰─ {name:length_3_to_10}
+          ╰─ /
+             ╰─ {id:year_1000_to_10000} [*]
     "#);
 
     assert_router_matches!(router, {

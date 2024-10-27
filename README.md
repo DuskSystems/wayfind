@@ -332,8 +332,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 Routers can print their routes as an tree diagram.
 
-- `▽` represents the root node.
-- `○` represents nodes within the tree that can be matched against.
+- `[*]` denotes nodes within the tree that can be matched against.
 
 Currenty, this doesn't handle split multi-byte characters well.
 
@@ -344,28 +343,27 @@ use std::error::Error;
 use wayfind::Router;
 
 const ROUTER_DISPLAY: &str = "
-▽
-├─ /
-│  ├─ user ○
-│  │  ╰─ /
-│  │     ├─ createWithList ○
-│  │     ├─ log
-│  │     │  ├─ out ○
-│  │     │  ╰─ in ○
-│  │     ╰─ {username} ○
-│  ├─ pet ○
-│  │  ╰─ /
-│  │     ├─ findBy
-│  │     │  ├─ Status ○
-│  │     │  ╰─ Tags ○
-│  │     ╰─ {petId} ○
-│  │        ╰─ /uploadImage ○
-│  ╰─ store/
-│     ├─ inventory ○
-│     ╰─ order ○
-│        ╰─ /
-│           ╰─ {orderId} ○
-╰─ {*catch_all} ○
+/
+├─ user [*]
+│  ╰─ /
+│     ├─ createWithList [*]
+│     ├─ log
+│     │  ├─ out [*]
+│     │  ╰─ in [*]
+│     ╰─ {username} [*]
+├─ pet [*]
+│  ╰─ /
+│     ├─ findBy
+│     │  ├─ Status [*]
+│     │  ╰─ Tags [*]
+│     ╰─ {petId} [*]
+│        ╰─ /uploadImage [*]
+├─ store/
+│  ├─ inventory [*]
+│  ╰─ order [*]
+│     ╰─ /
+│        ╰─ {orderId} [*]
+╰─ {*catch_all} [*]
 ";
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -387,7 +385,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/user/logout", 12)?;
     router.insert("/user/{username}", 13)?;
 
-    router.insert("{*catch_all}", 14)?;
+    router.insert("/{*catch_all}", 14)?;
 
     assert_eq!(router.to_string(), ROUTER_DISPLAY.trim());
     Ok(())
