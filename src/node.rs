@@ -1,5 +1,4 @@
 use std::{
-    cmp::Ordering,
     fmt::Debug,
     ops::{Index, IndexMut},
     sync::Arc,
@@ -19,19 +18,20 @@ pub struct Node<T> {
     /// The prefix may either be the static bytes of a path, or the name of a variable.
     pub prefix: Vec<u8>,
     /// Optional data associated with this node.
-    /// The presense of this data is needed to successfully match a route.
+    /// The presence of this data is needed to successfully match a route.
     pub data: Option<Data<T>>,
     /// An optional check to run, to restrict routing to this node.
     pub constraint: Option<Vec<u8>>,
 
     pub static_children: Children<T>,
     pub dynamic_children: Children<T>,
+    pub dynamic_children_shortcut: bool,
     pub wildcard_children: Children<T>,
+    pub wildcard_children_shortcut: bool,
     pub end_wildcard_children: Children<T>,
 
-    /// A flag indicating whether this node's dynamic children can be matched quickly.
-    /// This allows us to traverse the next section of the path by segment, rather than byte-by-byte, when matching.
-    pub quick_dynamic: bool,
+    /// Higher values indicate more specific matches.
+    pub priority: usize,
     /// Flag indicating whether this node or its children need optimization.
     pub needs_optimization: bool,
 }
@@ -104,13 +104,12 @@ impl<T> Children<T> {
             return;
         }
 
-        self.nodes.sort_by(
-            |a, b| match (a.constraint.is_some(), b.constraint.is_some()) {
-                (true, false) => Ordering::Less,
-                (false, true) => Ordering::Greater,
-                _ => a.prefix.cmp(&b.prefix),
-            },
-        );
+        self.nodes.sort_by(|a, b| {
+            b.priority
+                .cmp(&a.priority)
+                .then_with(|| a.prefix.cmp(&b.prefix))
+                .then_with(|| a.constraint.cmp(&b.constraint))
+        });
 
         self.sorted = true;
     }

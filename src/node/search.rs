@@ -1,4 +1,4 @@
-use super::{Data, Node};
+use super::Node;
 use crate::{errors::SearchError, router::StoredConstraint};
 use std::{collections::HashMap, sync::Arc};
 
@@ -93,7 +93,7 @@ impl<T> Node<T> {
         parameters: &mut Vec<Parameter<'router, 'path>>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
-        if self.quick_dynamic {
+        if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
             self.search_dynamic_inline(path, parameters, constraints)
@@ -101,8 +101,6 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    /// It uses a greedy matching approach for parameters.
-    /// We also prefer longer routes to shorter routes.
     fn search_dynamic_inline<'router, 'path>(
         &'router self,
         path: &'path [u8],
@@ -112,8 +110,6 @@ impl<T> Node<T> {
         for dynamic_child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
-            // Often the last match, except for when we have multiple options on the same branch.
-            // In that case, the longer route is chosen.
             let mut best_match: Option<&Self> = None;
             let mut best_match_parameters = vec![];
 
@@ -152,12 +148,7 @@ impl<T> Node<T> {
                     continue;
                 };
 
-                if let Some(best) = &best_match {
-                    if node.route_length() >= best.route_length() {
-                        best_match = Some(node);
-                        best_match_parameters = current_parameters;
-                    }
-                } else {
+                if best_match.map_or(true, |best| node.priority >= best.priority) {
                     best_match = Some(node);
                     best_match_parameters = current_parameters;
                 }
@@ -170,17 +161,6 @@ impl<T> Node<T> {
         }
 
         Ok(None)
-    }
-
-    fn route_length(&self) -> usize {
-        let Some(data) = self.data.as_ref() else {
-            return 0;
-        };
-
-        match data {
-            Data::Inline { route, .. } => route.len(),
-            Data::Shared { expanded, .. } => expanded.len(),
-        }
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
@@ -224,6 +204,79 @@ impl<T> Node<T> {
     }
 
     fn search_wildcard<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut Vec<Parameter<'router, 'path>>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+    ) -> Result<Option<&'router Self>, SearchError> {
+        if self.wildcard_children_shortcut {
+            self.search_wildcard_segment(path, parameters, constraints)
+        } else {
+            self.search_wildcard_inline(path, parameters, constraints)
+        }
+    }
+
+    /// Can handle complex wildcard routes like `/{*name}.{extension}`.
+    fn search_wildcard_inline<'router, 'path>(
+        &'router self,
+        path: &'path [u8],
+        parameters: &mut Vec<Parameter<'router, 'path>>,
+        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+    ) -> Result<Option<&'router Self>, SearchError> {
+        for wildcard_child in self.wildcard_children.iter() {
+            let mut consumed = 0;
+
+            let mut best_match: Option<&Self> = None;
+            let mut best_match_parameters = vec![];
+
+            while consumed < path.len() {
+                consumed += 1;
+
+                let segment = &path[..consumed];
+                if !Self::check_constraint(wildcard_child, segment, constraints) {
+                    continue;
+                }
+
+                let mut current_parameters = parameters.clone();
+                current_parameters.push(Parameter {
+                    key: std::str::from_utf8(&wildcard_child.prefix).map_err(|_| {
+                        SearchError::Utf8Error {
+                            key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
+                            value: String::from_utf8_lossy(segment).to_string(),
+                        }
+                    })?,
+                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
+                        value: String::from_utf8_lossy(segment).to_string(),
+                    })?,
+                });
+
+                let Some(node) = wildcard_child.search(
+                    &path[consumed..],
+                    &mut current_parameters,
+                    constraints,
+                )?
+                else {
+                    continue;
+                };
+
+                if best_match.map_or(true, |best| node.priority >= best.priority) {
+                    best_match = Some(node);
+                    best_match_parameters = current_parameters;
+                }
+            }
+
+            if let Some(node) = best_match {
+                *parameters = best_match_parameters;
+                return Ok(Some(node));
+            }
+        }
+
+        Ok(None)
+    }
+
+    /// Can only handle simple wildcard routes like `/{*segment}/`.
+    fn search_wildcard_segment<'router, 'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Vec<Parameter<'router, 'path>>,
