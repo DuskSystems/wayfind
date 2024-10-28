@@ -11,8 +11,7 @@
 
 A speedy, flexible router for Rust.
 
-> [!NOTE]
-> `wayfind` is still a work in progress.
+NOTE: `wayfind` is still a work in progress.
 
 ## Why another router?
 

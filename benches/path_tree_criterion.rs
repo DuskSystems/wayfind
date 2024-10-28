@@ -21,7 +21,7 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
     group.bench_function("path-tree benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for (index, route) in routes!(brackets).iter().enumerate() {
-            router.insert(route, index).unwrap();
+            router.insert(*route, index).unwrap();
         }
 
         bencher.iter(|| {
