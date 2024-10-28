@@ -5,6 +5,7 @@ use crate::{
     node::{search::Match, Children, Data, Kind, Node},
     parser::{Parser, Part},
     path::Path,
+    Routable,
 };
 use std::{
     any::type_name,
@@ -124,35 +125,47 @@ impl<T> Router<T> {
         }
     }
 
-    /// Inserts a new route with an associated value into the router.
+    /// Inserts a new routable with an associated value into the router.
     ///
     /// The route should not contain any percent-encoded characters.
     ///
     /// # Errors
     ///
-    /// Returns an [`InsertError`] if the route is invalid or uses unknown constraints.
+    /// Returns an [`InsertError`] if the routable is invalid or uses unknown constraints.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::{Constraint, Router, Routable};
     ///
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/hello", 1).unwrap();
-    /// router.insert("/hello/{world}", 2).unwrap();
+    ///
+    /// let route = Routable::builder()
+    ///     .route("/hello/{world}")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// router.insert(route, 2).unwrap();
     /// ```
-    pub fn insert(&mut self, route: &str, value: T) -> Result<(), InsertError> {
-        let decoded_route = percent_decode(route.as_bytes())?;
-        if route.as_bytes() != decoded_route.as_ref() {
+    pub fn insert<'a>(
+        &mut self,
+        routable: impl Into<Routable<'a>>,
+        value: T,
+    ) -> Result<(), InsertError> {
+        let routable = routable.into();
+
+        let decoded_route = percent_decode(routable.route.as_bytes())?;
+        if routable.route.as_bytes() != decoded_route.as_ref() {
             return Err(EncodingError::EncodedRoute {
-                input: route.to_string(),
+                input: routable.route.to_string(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             })?;
         }
 
-        let route_arc = Arc::from(route);
+        let route_arc = Arc::from(routable.route);
 
-        let mut parsed = Parser::new(route.as_bytes())?;
+        let mut parsed = Parser::new(routable.route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
                 if let Part::Dynamic {
@@ -188,7 +201,7 @@ impl<T> Router<T> {
                 ) {
                     // Attempt to clean up any prior inserts on failure.
                     // TODO: Consider returning a vec of errors?
-                    drop(self.delete(&route_arc));
+                    drop(self.delete(&*route_arc));
                     return Err(err);
                 }
             }
@@ -206,33 +219,41 @@ impl<T> Router<T> {
         Ok(())
     }
 
-    /// Deletes a route from the router.
+    /// Deletes a routable from the router.
     ///
-    /// The route provided must exactly match the route inserted.
+    /// The routable provided must exactly match the routable inserted.
     ///
     /// # Errors
     ///
-    /// Returns a [`DeleteError`] if the route is invalid, cannot be deleted, or cannot be found.
+    /// Returns a [`DeleteError`] if the routable is invalid, cannot be deleted, or cannot be found.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::{Constraint, Router, Routable};
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
-    /// router.delete("/hello").unwrap();
+    ///
+    /// let route = Routable::builder()
+    ///     .route("/hello")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// router.insert(route.clone(), 1).unwrap();
+    /// router.delete(route).unwrap();
     /// ```
-    pub fn delete(&mut self, route: &str) -> Result<(), DeleteError> {
-        let decoded_route = percent_decode(route.as_bytes())?;
-        if route.as_bytes() != decoded_route.as_ref() {
+    pub fn delete<'a>(&mut self, routable: impl Into<Routable<'a>>) -> Result<(), DeleteError> {
+        let routable = routable.into();
+
+        let decoded_route = percent_decode(routable.route.as_bytes())?;
+        if routable.route.as_bytes() != decoded_route.as_ref() {
             return Err(EncodingError::EncodedRoute {
-                input: route.to_string(),
+                input: routable.route.to_string(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             })?;
         }
 
-        let mut parsed = Parser::new(route.as_bytes())?;
+        let mut parsed = Parser::new(routable.route.as_bytes())?;
         if parsed.routes.len() > 1 {
             let mut failure: Option<DeleteError> = None;
             for mut expanded_route in parsed.routes {
@@ -254,7 +275,7 @@ impl<T> Router<T> {
         Ok(())
     }
 
-    /// Searches for a matching route in the router.
+    /// Searches for a matching routable in the router.
     ///
     /// # Errors
     ///

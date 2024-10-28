@@ -15,5 +15,8 @@ pub use path::Path;
 
 pub(crate) mod parser;
 
+pub(crate) mod routable;
+pub use routable::{Routable, RoutableBuilder};
+
 pub(crate) mod router;
 pub use router::Router;
