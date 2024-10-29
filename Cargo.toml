@@ -75,6 +75,9 @@ categories.workspace = true
 [lints]
 workspace = true
 
+[dependencies]
+http = "1.1"
+
 [dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.

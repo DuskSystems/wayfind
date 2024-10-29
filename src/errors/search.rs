@@ -1,8 +1,12 @@
+use super::EncodingError;
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to search for a match in a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum SearchError {
+    /// A [`EncodingError`] that occurred during the search.
+    EncodingError(EncodingError),
+
     /// Invalid UTF-8 sequence encountered.
     ///
     /// # Examples
@@ -42,6 +46,7 @@ impl Error for SearchError {}
 impl Display for SearchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::EncodingError(error) => error.fmt(f),
             Self::Utf8Error { key, value } => {
                 write!(
                     f,
@@ -55,5 +60,11 @@ Expected: valid UTF-8 characters
                 )
             }
         }
+    }
+}
+
+impl From<EncodingError> for SearchError {
+    fn from(error: EncodingError) -> Self {
+        Self::EncodingError(error)
     }
 }

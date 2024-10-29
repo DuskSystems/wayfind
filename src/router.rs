@@ -2,11 +2,11 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
-    node::{search::Match, Children, Data, Kind, Node},
+    node::{Children, Data, Kind, Node},
     parser::{Parser, Part},
-    path::Path,
     Routable,
 };
+use http::Request;
 use std::{
     any::type_name,
     collections::{hash_map::Entry, HashMap},
@@ -20,6 +20,29 @@ use std::{
 pub struct StoredConstraint {
     pub type_name: &'static str,
     pub check: fn(&str) -> bool,
+}
+
+/// Stores data from a successful router match.
+#[derive(Debug, Eq, PartialEq)]
+pub struct Match<'router, T> {
+    /// The matching route.
+    pub route: Arc<str>,
+
+    /// The expanded route, if applicable.
+    pub expanded: Option<Arc<str>>,
+
+    /// A reference to the matching route data.
+    pub data: &'router T,
+
+    /// Key-value pairs of parameters, extracted from the route.
+    pub parameters: Vec<Parameter>,
+}
+
+/// A key-value parameter pair.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Parameter {
+    pub key: Arc<str>,
+    pub value: Arc<str>,
 }
 
 /// The [`wayfind`](crate) router.
@@ -155,11 +178,11 @@ impl<T> Router<T> {
     ) -> Result<(), InsertError> {
         let routable = routable.into();
 
-        let decoded_route = percent_decode(routable.route.as_bytes())?;
-        if routable.route.as_bytes() != decoded_route.as_ref() {
+        let decoded = percent_decode(routable.route.as_bytes())?;
+        if routable.route.as_bytes() != decoded.as_ref() {
             return Err(EncodingError::EncodedRoute {
                 input: routable.route.to_string(),
-                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
+                decoded: String::from_utf8_lossy(&decoded).to_string(),
             })?;
         }
 
@@ -245,11 +268,11 @@ impl<T> Router<T> {
     pub fn delete<'a>(&mut self, routable: impl Into<Routable<'a>>) -> Result<(), DeleteError> {
         let routable = routable.into();
 
-        let decoded_route = percent_decode(routable.route.as_bytes())?;
-        if routable.route.as_bytes() != decoded_route.as_ref() {
+        let decoded = percent_decode(routable.route.as_bytes())?;
+        if routable.route.as_bytes() != decoded.as_ref() {
             return Err(EncodingError::EncodedRoute {
                 input: routable.route.to_string(),
-                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
+                decoded: String::from_utf8_lossy(&decoded).to_string(),
             })?;
         }
 
@@ -284,22 +307,23 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Path, Router};
+    /// use wayfind::{Constraint, Router};
     ///
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/hello", 1).unwrap();
     ///
-    /// let path = Path::new("/hello").unwrap();
-    /// let search = router.search(&path).unwrap();
+    /// let search = router.search("/hello").unwrap();
     /// ```
-    pub fn search<'router, 'path>(
+    pub fn search<'router>(
         &'router self,
-        path: &'path Path<'_>,
-    ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
+        path: &str,
+    ) -> Result<Option<Match<'router, T>>, SearchError> {
+        let decoded = percent_decode(path.as_bytes())?;
+
         let mut parameters = vec![];
-        let Some(node) =
-            self.root
-                .search(path.decoded_bytes(), &mut parameters, &self.constraints)?
+        let Some(node) = self
+            .root
+            .search(&decoded, &mut parameters, &self.constraints)?
         else {
             return Ok(None);
         };
@@ -318,12 +342,66 @@ impl<T> Router<T> {
             None => return Ok(None),
         };
 
+        let parameters: Result<Vec<Parameter>, SearchError> = parameters
+            .iter_mut()
+            .map(|parameter| {
+                let key =
+                    std::str::from_utf8(&parameter.key).map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&parameter.key).to_string(),
+                        value: String::from_utf8_lossy(&parameter.value).to_string(),
+                    })?;
+
+                let value =
+                    std::str::from_utf8(&parameter.value).map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&parameter.key).to_string(),
+                        value: String::from_utf8_lossy(&parameter.value).to_string(),
+                    })?;
+
+                Ok(Parameter {
+                    key: key.into(),
+                    value: value.into(),
+                })
+            })
+            .collect();
+
+        let parameters = parameters?;
+
         Ok(Some(Match {
             route,
             expanded,
             data,
             parameters,
         }))
+    }
+
+    /// Searches for a matching routable in the router using a HTTP request.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SearchError`] if the search resulted in invalid parameters.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::Router;
+    /// use http::Request;
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    ///
+    /// let request = Request::builder()
+    ///     .uri("/hello")
+    ///     .body(())
+    ///     .unwrap();
+    ///
+    /// let search = router.search_request(&request).unwrap();
+    /// ```
+    pub fn search_request<'router, B>(
+        &'router self,
+        request: &'router Request<B>,
+    ) -> Result<Option<Match<'router, T>>, SearchError> {
+        let path = request.uri().path();
+        self.search(path)
     }
 }
 

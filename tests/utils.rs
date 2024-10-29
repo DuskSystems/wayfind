@@ -1,12 +1,12 @@
 use similar_asserts::assert_eq;
 use std::{fmt::Debug, sync::Arc};
-use wayfind::{Match, Parameter, Path, Router};
+use wayfind::{Match, Parameter, Router};
 
-pub struct ExpectedMatch<'k, 'v, T> {
+pub struct ExpectedMatch<T> {
     pub route: Arc<str>,
     pub expanded: Option<Arc<str>>,
     pub data: T,
-    pub params: Vec<Parameter<'k, 'v>>,
+    pub params: Vec<Parameter>,
 }
 
 #[macro_export]
@@ -35,8 +35,8 @@ macro_rules! assert_router_matches {
             params: vec![
                 $(
                     $( wayfind::Parameter {
-                        key: $param_key,
-                        value: $param_value,
+                        key: $param_key.into(),
+                        value: $param_value.into(),
                     } ),+
                 )?
             ]
@@ -57,8 +57,8 @@ macro_rules! assert_router_matches {
             params: vec![
                 $(
                     $( wayfind::Parameter {
-                        key: $param_key,
-                        value: $param_value,
+                        key: $param_key.into(),
+                        value: $param_value.into(),
                     } ),+
                 )?
             ]
@@ -74,15 +74,14 @@ macro_rules! assert_router_matches {
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
     router: &'a Router<T>,
     input: &'a str,
-    expected: Option<ExpectedMatch<'_, 'a, T>>,
+    expected: Option<ExpectedMatch<T>>,
 ) {
-    let path = Path::new(input).expect("Invalid path!");
     let Ok(Some(Match {
         route,
         expanded,
         data,
         parameters,
-    })) = router.search(&path)
+    })) = router.search(input)
     else {
         assert!(expected.is_none(), "No match found for input: {input}");
         return;

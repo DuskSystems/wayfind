@@ -4,9 +4,7 @@ use crate::{
     response::{AppResponse, IntoResponse},
     state::SharedAppState,
 };
-use bytes::Bytes;
-use http::{Method, Response, StatusCode};
-use http_body_util::Full;
+use http::{Method, StatusCode};
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
 use wayfind::Constraint;
 
@@ -79,18 +77,11 @@ impl AppRouter {
         let method = req.method();
         let path = req.uri().path();
 
-        let Ok(path) = wayfind::Path::new(path) else {
-            return Response::builder()
-                .status(StatusCode::NOT_FOUND)
-                .body(Full::new(Bytes::from("Not Found")))
-                .unwrap();
-        };
-
         let Some(router) = self.routes.get(method) else {
             return StatusCode::METHOD_NOT_ALLOWED.into_response();
         };
 
-        let Ok(Some(search)) = router.search(&path) else {
+        let Ok(Some(search)) = router.search(path) else {
             return StatusCode::NOT_FOUND.into_response();
         };
 

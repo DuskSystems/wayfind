@@ -1,42 +1,26 @@
 use super::Node;
 use crate::{errors::SearchError, router::StoredConstraint};
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
-/// Stores data from a successful router match.
-#[derive(Debug, Eq, PartialEq)]
-pub struct Match<'router, 'path, T> {
-    /// The matching route.
-    pub route: Arc<str>,
-
-    /// The expanded route, if applicable.
-    pub expanded: Option<Arc<str>>,
-
-    /// A reference to the matching route data.
-    pub data: &'router T,
-
-    /// Key-value pairs of parameters, extracted from the route.
-    pub parameters: Vec<Parameter<'router, 'path>>,
-}
-
-/// A key-value parameter pair.
-///
-/// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
-/// Meanwhile, the value is extracted from the path.
+/// Internal key-value parameter pair.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Parameter<'router, 'path> {
-    pub key: &'router str,
-    pub value: &'path str,
+pub struct Parameter {
+    pub key: Vec<u8>,
+    pub value: Vec<u8>,
 }
+
+// FIXME: We should have an internal vs external Parameter type.
+// Move the attempt to convert to strs into the search method?
 
 impl<T> Node<T> {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
-    pub fn search<'router, 'path>(
+    pub fn search<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if path.is_empty() {
@@ -66,10 +50,10 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_static<'router, 'path>(
+    fn search_static<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for static_child in self.static_children.iter() {
@@ -87,10 +71,10 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_dynamic<'router, 'path>(
+    fn search_dynamic<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.dynamic_children_shortcut {
@@ -101,10 +85,10 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    fn search_dynamic_inline<'router, 'path>(
+    fn search_dynamic_inline<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
@@ -127,16 +111,18 @@ impl<T> Node<T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: std::str::from_utf8(&dynamic_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
+                    key: std::str::from_utf8(&dynamic_child.prefix)
+                        .map_err(|_| SearchError::Utf8Error {
                             key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
                             value: String::from_utf8_lossy(segment).to_string(),
-                        }
-                    })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
-                    })?,
+                        })?
+                        .into(),
+                    value: std::str::from_utf8(segment)
+                        .map_err(|_| SearchError::Utf8Error {
+                            key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
+                            value: String::from_utf8_lossy(segment).to_string(),
+                        })?
+                        .into(),
                 });
 
                 let Some(node) = dynamic_child.search(
@@ -164,10 +150,10 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
-    fn search_dynamic_segment<'router, 'path>(
+    fn search_dynamic_segment<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
@@ -179,16 +165,18 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&dynamic_child.prefix).map_err(|_| {
-                    SearchError::Utf8Error {
+                key: std::str::from_utf8(&dynamic_child.prefix)
+                    .map_err(|_| SearchError::Utf8Error {
                         key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
                         value: String::from_utf8_lossy(segment).to_string(),
-                    }
-                })?,
-                value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                    key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                    value: String::from_utf8_lossy(segment).to_string(),
-                })?,
+                    })?
+                    .into(),
+                value: std::str::from_utf8(segment)
+                    .map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
+                        value: String::from_utf8_lossy(segment).to_string(),
+                    })?
+                    .into(),
             });
 
             if let Some(node) =
@@ -203,10 +191,10 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_wildcard<'router, 'path>(
+    fn search_wildcard<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.wildcard_children_shortcut {
@@ -217,10 +205,10 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex wildcard routes like `/{*name}.{extension}`.
-    fn search_wildcard_inline<'router, 'path>(
+    fn search_wildcard_inline<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
@@ -239,16 +227,18 @@ impl<T> Node<T> {
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: std::str::from_utf8(&wildcard_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
+                    key: std::str::from_utf8(&wildcard_child.prefix)
+                        .map_err(|_| SearchError::Utf8Error {
                             key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
                             value: String::from_utf8_lossy(segment).to_string(),
-                        }
-                    })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
-                    })?,
+                        })?
+                        .into(),
+                    value: std::str::from_utf8(segment)
+                        .map_err(|_| SearchError::Utf8Error {
+                            key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
+                            value: String::from_utf8_lossy(segment).to_string(),
+                        })?
+                        .into(),
                 });
 
                 let Some(node) = wildcard_child.search(
@@ -276,10 +266,10 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple wildcard routes like `/{*segment}/`.
-    fn search_wildcard_segment<'router, 'path>(
+    fn search_wildcard_segment<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
@@ -316,16 +306,18 @@ impl<T> Node<T> {
                 }
 
                 parameters.push(Parameter {
-                    key: std::str::from_utf8(&wildcard_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
+                    key: std::str::from_utf8(&wildcard_child.prefix)
+                        .map_err(|_| SearchError::Utf8Error {
                             key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
                             value: String::from_utf8_lossy(segment).to_string(),
-                        }
-                    })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
-                    })?,
+                        })?
+                        .into(),
+                    value: std::str::from_utf8(segment)
+                        .map_err(|_| SearchError::Utf8Error {
+                            key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
+                            value: String::from_utf8_lossy(segment).to_string(),
+                        })?
+                        .into(),
                 });
 
                 if let Some(node) = wildcard_child.search(
@@ -349,10 +341,10 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_end_wildcard<'router, 'path>(
+    fn search_end_wildcard<'router>(
         &'router self,
-        path: &'path [u8],
-        parameters: &mut Vec<Parameter<'router, 'path>>,
+        path: &[u8],
+        parameters: &mut Vec<Parameter>,
         constraints: &HashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for end_wildcard_child in self.end_wildcard_children.iter() {
@@ -361,16 +353,18 @@ impl<T> Node<T> {
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&end_wildcard_child.prefix).map_err(|_| {
-                    SearchError::Utf8Error {
+                key: std::str::from_utf8(&end_wildcard_child.prefix)
+                    .map_err(|_| SearchError::Utf8Error {
                         key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
                         value: String::from_utf8_lossy(path).to_string(),
-                    }
-                })?,
-                value: std::str::from_utf8(path).map_err(|_| SearchError::Utf8Error {
-                    key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
-                    value: String::from_utf8_lossy(path).to_string(),
-                })?,
+                    })?
+                    .into(),
+                value: std::str::from_utf8(path)
+                    .map_err(|_| SearchError::Utf8Error {
+                        key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
+                        value: String::from_utf8_lossy(path).to_string(),
+                    })?
+                    .into(),
             });
 
             return if end_wildcard_child.data.is_some() {

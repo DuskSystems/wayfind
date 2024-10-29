@@ -40,30 +40,28 @@ Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attem
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users/{id}", 1)?;
     router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/users/123")?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users/{id}".into());
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
+    assert_eq!(search.parameters[0].key, "id".into());
+    assert_eq!(search.parameters[0].value, "123".into());
 
-    let path = Path::new("/users/123/files/my.document.pdf")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/users/123/files/my.document.pdf")?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}".into());
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
-    assert_eq!(search.parameters[1].key, "filename");
-    assert_eq!(search.parameters[1].value, "my.document");
-    assert_eq!(search.parameters[2].key, "extension");
-    assert_eq!(search.parameters[2].value, "pdf");
+    assert_eq!(search.parameters[0].key, "id".into());
+    assert_eq!(search.parameters[0].value, "123".into());
+    assert_eq!(search.parameters[1].key, "filename".into());
+    assert_eq!(search.parameters[1].value, "my.document".into());
+    assert_eq!(search.parameters[2].key, "extension".into());
+    assert_eq!(search.parameters[2].value, "pdf".into());
 
     Ok(())
 }
@@ -84,26 +82,24 @@ Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/files/{*slug}/delete", 1)?;
     router.insert("/{*catch_all}", 2)?;
 
-    let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/files/documents/reports/annual.pdf/delete")?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/files/{*slug}/delete".into());
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
+    assert_eq!(search.parameters[0].key, "slug".into());
+    assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf".into());
 
-    let path = Path::new("/any/other/path")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/any/other/path")?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/{*catch_all}".into());
-    assert_eq!(search.parameters[0].key, "catch_all");
-    assert_eq!(search.parameters[0].value, "any/other/path");
+    assert_eq!(search.parameters[0].key, "catch_all".into());
+    assert_eq!(search.parameters[0].value, "any/other/path".into());
 
     Ok(())
 }
@@ -131,48 +127,44 @@ There is a small overhead to using optional groups, due to `Arc` usage internall
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users(/{id})", 1)?;
     router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/users")?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users(/{id})".into());
     assert_eq!(search.expanded, Some("/users".into()));
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/users/123")?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users(/{id})".into());
     assert_eq!(search.expanded, Some("/users/{id}".into()));
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
+    assert_eq!(search.parameters[0].key, "id".into());
+    assert_eq!(search.parameters[0].value, "123".into());
 
-    let path = Path::new("/files/documents/folder/report.pdf")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/files/documents/folder/report.pdf")?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}".into()));
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/folder");
-    assert_eq!(search.parameters[1].key, "file");
-    assert_eq!(search.parameters[1].value, "report");
-    assert_eq!(search.parameters[2].key, "extension");
-    assert_eq!(search.parameters[2].value, "pdf");
+    assert_eq!(search.parameters[0].key, "slug".into());
+    assert_eq!(search.parameters[0].value, "documents/folder".into());
+    assert_eq!(search.parameters[1].key, "file".into());
+    assert_eq!(search.parameters[1].value, "report".into());
+    assert_eq!(search.parameters[2].key, "extension".into());
+    assert_eq!(search.parameters[2].value, "pdf".into());
 
-    let path = Path::new("/files/documents/folder/readme")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/files/documents/folder/readme")?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}".into()));
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/folder");
-    assert_eq!(search.parameters[1].key, "file");
-    assert_eq!(search.parameters[1].value, "readme");
+    assert_eq!(search.parameters[0].key, "slug".into());
+    assert_eq!(search.parameters[0].value, "documents/folder".into());
+    assert_eq!(search.parameters[1].key, "file".into());
+    assert_eq!(search.parameters[1].value, "readme".into());
 
     Ok(())
 }
@@ -229,7 +221,7 @@ Curently, these can't be disabled.
 
 ```rust
 use std::error::Error;
-use wayfind::{Constraint, Path, Router};
+use wayfind::{Constraint, Router};
 
 struct NamespaceConstraint;
 impl Constraint for NamespaceConstraint {
@@ -251,24 +243,21 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2", 1)?;
     router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
 
-    let path = Path::new("/v2")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/v2")?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/v2".into());
 
-    let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
-    let search = router.search(&path)?.unwrap();
+    let search = router.search("/v2/my-org/my-repo/blobs/sha256:1234567890")?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
-    assert_eq!(search.parameters[0].key, "name");
-    assert_eq!(search.parameters[0].value, "my-org/my-repo");
-    assert_eq!(search.parameters[1].key, "type");
-    assert_eq!(search.parameters[1].value, "sha256");
-    assert_eq!(search.parameters[2].key, "digest");
-    assert_eq!(search.parameters[2].value, "1234567890");
+    assert_eq!(search.parameters[0].key, "name".into());
+    assert_eq!(search.parameters[0].value, "my-org/my-repo".into());
+    assert_eq!(search.parameters[1].key, "type".into());
+    assert_eq!(search.parameters[1].value, "sha256".into());
+    assert_eq!(search.parameters[2].key, "digest".into());
+    assert_eq!(search.parameters[2].value, "1234567890".into());
 
-    let path = Path::new("/v2/invalid repo/blobs/uploads")?;
-    assert!(router.search(&path)?.is_none());
+    assert!(router.search("/v2/invalid repo/blobs/uploads")?.is_none());
 
     Ok(())
 }
