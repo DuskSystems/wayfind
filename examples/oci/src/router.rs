@@ -77,9 +77,9 @@ impl AppRouter {
     /// Handles an incoming request by routing it to the appropriate handler.
     pub async fn handle(&self, mut req: AppRequest, state: SharedAppState) -> AppResponse {
         let method = req.method();
-        let path = req.uri().path();
+        let path = req.uri().path().to_string();
 
-        let Ok(path) = wayfind::Path::new(path) else {
+        let Ok(path) = wayfind::Path::new(&path) else {
             return Response::builder()
                 .status(StatusCode::NOT_FOUND)
                 .body(Full::new(Bytes::from("Not Found")))

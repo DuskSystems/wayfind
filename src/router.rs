@@ -2,11 +2,12 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
-    node::{search::Match, Children, Data, Kind, Node},
+    node::{Children, Data, Kind, Node},
     parser::{Parser, Part},
     path::Path,
     Routable,
 };
+use smallvec::{smallvec, SmallVec};
 use std::{
     any::type_name,
     collections::{hash_map::Entry, HashMap},
@@ -14,6 +15,35 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
     sync::Arc,
 };
+
+/// Stores data from a successful router match.
+#[derive(Debug, Eq, PartialEq)]
+pub struct Match<'router, 'path, T> {
+    /// The matching route.
+    pub route: Arc<str>,
+
+    /// The expanded route, if applicable.
+    pub expanded: Option<Arc<str>>,
+
+    /// A reference to the matching route data.
+    pub data: &'router T,
+
+    /// Key-value pairs of parameters, extracted from the route.
+    pub parameters: Parameters<'router, 'path>,
+}
+
+/// All the parameter pairs of a given match.
+pub type Parameters<'router, 'path> = SmallVec<[Parameter<'router, 'path>; 4]>;
+
+/// A key-value parameter pair.
+///
+/// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
+/// Meanwhile, the value is extracted from the path.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Parameter<'router, 'path> {
+    pub key: &'router str,
+    pub value: &'path str,
+}
 
 /// A constraint with its type name.
 #[derive(Clone)]
@@ -296,7 +326,7 @@ impl<T> Router<T> {
         &'router self,
         path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
-        let mut parameters = vec![];
+        let mut parameters = smallvec![];
         let Some(node) =
             self.root
                 .search(path.decoded_bytes(), &mut parameters, &self.constraints)?

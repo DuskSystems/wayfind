@@ -8,7 +8,6 @@ pub(crate) mod decode;
 pub mod errors;
 
 pub(crate) mod node;
-pub use node::search::{Match, Parameter};
 
 pub(crate) mod path;
 pub use path::Path;
@@ -19,4 +18,4 @@ pub(crate) mod routable;
 pub use routable::{Routable, RoutableBuilder};
 
 pub(crate) mod router;
-pub use router::Router;
+pub use router::{Match, Parameter, Parameters, Router};
