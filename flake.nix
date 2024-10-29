@@ -53,6 +53,7 @@
             NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             OCI_ROOT_URL = "http://127.0.0.1:8000";
@@ -105,6 +106,7 @@
             name = "wayfind-benchmarks-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -119,6 +121,7 @@
             name = "wayfind-ci-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -137,6 +140,7 @@
             name = "wayfind-coverage-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -151,6 +155,7 @@
             name = "wayfind-docs-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -164,6 +169,7 @@
             name = "wayfind-fuzz-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -178,6 +184,7 @@
             name = "wayfind-msrv-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
@@ -191,6 +198,7 @@
             name = "wayfind-oci-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
             OCI_ROOT_URL = "http://127.0.0.1:8000";
