@@ -1,11 +1,12 @@
 use super::Data;
 use crate::{
     errors::DeleteError,
+    id::RoutableId,
     node::Node,
     parser::{Part, Route},
 };
 
-impl<T> Node<T> {
+impl Node {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -14,7 +15,11 @@ impl<T> Node<T> {
     /// If the route is found and deleted, we re-optimize the tree structure.
     ///
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
-    pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
+    pub fn delete(
+        &mut self,
+        route: &mut Route,
+        is_expanded: bool,
+    ) -> Result<RoutableId, DeleteError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
@@ -29,15 +34,15 @@ impl<T> Node<T> {
                 } => self.delete_wildcard(route, is_expanded, &name, &constraint),
             }
         } else {
-            let Some(data) = &self.data else {
+            let Some(data) = self.data.take() else {
                 return Err(DeleteError::NotFound {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
                 });
             };
 
-            let (is_shared, inserted) = match data {
-                Data::Inline { route, .. } => (false, route),
-                Data::Shared { route, .. } => (true, route),
+            let (id, is_shared, inserted) = match data {
+                Data::Inline { id, route, .. } => (id, false, route),
+                Data::Shared { id, route, .. } => (id, true, route),
             };
 
             if is_expanded != is_shared {
@@ -47,10 +52,8 @@ impl<T> Node<T> {
                 });
             }
 
-            self.data = None;
             self.needs_optimization = true;
-
-            Ok(())
+            Ok(id)
         }
     }
 
@@ -59,7 +62,7 @@ impl<T> Node<T> {
         route: &mut Route,
         is_expanded: bool,
         prefix: &[u8],
-    ) -> Result<(), DeleteError> {
+    ) -> Result<RoutableId, DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -96,7 +99,7 @@ impl<T> Node<T> {
         is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<RoutableId, DeleteError> {
         let index = self
             .dynamic_children
             .iter()
@@ -122,7 +125,7 @@ impl<T> Node<T> {
         is_expanded: bool,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<RoutableId, DeleteError> {
         let index = self
             .wildcard_children
             .iter()
@@ -147,7 +150,7 @@ impl<T> Node<T> {
         route: &Route,
         name: &[u8],
         constraint: &Option<Vec<u8>>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<RoutableId, DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
@@ -156,10 +159,18 @@ impl<T> Node<T> {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
 
-        self.end_wildcard_children.remove(index);
+        let child = self.end_wildcard_children.remove(index);
         self.needs_optimization = true;
 
-        Ok(())
+        let Some(data) = child.data else {
+            return Err(DeleteError::NotFound {
+                route: String::from_utf8_lossy(&route.raw).to_string(),
+            });
+        };
+
+        match data {
+            Data::Shared { id, .. } | Data::Inline { id, .. } => Ok(id),
+        }
     }
 
     fn is_empty(&self) -> bool {

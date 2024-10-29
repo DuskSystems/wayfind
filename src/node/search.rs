@@ -6,7 +6,7 @@ use crate::{
 use smallvec::smallvec;
 use std::collections::HashMap;
 
-impl<T> Node<T> {
+impl Node {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.

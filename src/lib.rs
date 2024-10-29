@@ -7,6 +7,8 @@ pub(crate) mod decode;
 
 pub mod errors;
 
+pub(crate) mod id;
+
 pub(crate) mod node;
 
 pub(crate) mod path;

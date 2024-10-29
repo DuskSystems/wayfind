@@ -2,11 +2,13 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
+    id::RoutableId,
     node::{Children, Data, Kind, Node},
     parser::{Parser, Part},
     path::Path,
     Routable,
 };
+use rustc_hash::FxHashMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     any::type_name,
@@ -58,10 +60,13 @@ pub struct StoredConstraint {
 #[derive(Clone)]
 pub struct Router<T> {
     /// The root node of the tree.
-    root: Node<T>,
+    root: Node,
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<Vec<u8>, StoredConstraint>,
+
+    // A map of routable IDs to actual values.
+    values: FxHashMap<RoutableId, T>,
 }
 
 impl<T> Router<T> {
@@ -91,6 +96,7 @@ impl<T> Router<T> {
                 needs_optimization: false,
             },
             constraints: HashMap::new(),
+            values: FxHashMap::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -193,6 +199,7 @@ impl<T> Router<T> {
             })?;
         }
 
+        let id = RoutableId::next();
         let route_arc = Arc::from(routable.route);
 
         let mut parsed = Parser::new(routable.route.as_bytes())?;
@@ -217,16 +224,15 @@ impl<T> Router<T> {
         }
 
         if parsed.routes.len() > 1 {
-            let value = Arc::new(value);
             for mut route in parsed.routes {
                 let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
 
                 if let Err(err) = self.root.insert(
                     &mut route,
                     Data::Shared {
+                        id,
                         route: Arc::clone(&route_arc),
                         expanded,
-                        value: Arc::clone(&value),
                     },
                 ) {
                     // Attempt to clean up any prior inserts on failure.
@@ -239,11 +245,13 @@ impl<T> Router<T> {
             self.root.insert(
                 route,
                 Data::Inline {
+                    id,
                     route: Arc::clone(&route_arc),
-                    value,
                 },
             )?;
         };
+
+        self.values.insert(id, value);
 
         self.root.optimize();
         Ok(())
@@ -289,8 +297,13 @@ impl<T> Router<T> {
             for mut expanded_route in parsed.routes {
                 // If a delete fails, keep trying the remaining paths, then return the first error.
                 // TODO: Consider returning a vec of errors?
-                if let Err(err) = self.root.delete(&mut expanded_route, true) {
-                    failure = Some(err);
+                match self.root.delete(&mut expanded_route, true) {
+                    Ok(id) => {
+                        self.values.remove(&id);
+                    }
+                    Err(err) => {
+                        failure = Some(err);
+                    }
                 }
             }
 
@@ -298,7 +311,8 @@ impl<T> Router<T> {
                 return Err(err);
             }
         } else if let Some(route) = parsed.routes.first_mut() {
-            self.root.delete(route, false)?;
+            let id = self.root.delete(route, false)?;
+            self.values.remove(&id);
         }
 
         self.root.optimize();
@@ -334,18 +348,18 @@ impl<T> Router<T> {
             return Ok(None);
         };
 
-        let (route, expanded, data) = match &node.data {
-            Some(Data::Inline { route, value }) => (Arc::clone(route), None, value),
+        let (id, route, expanded) = match &node.data {
+            Some(Data::Inline { id, route }) => (id, Arc::clone(route), None),
             Some(Data::Shared {
+                id,
                 route,
                 expanded,
-                value,
-            }) => (
-                Arc::clone(route),
-                Some(Arc::clone(expanded)),
-                value.as_ref(),
-            ),
+            }) => (id, Arc::clone(route), Some(Arc::clone(expanded))),
             None => return Ok(None),
+        };
+
+        let Some(data) = self.values.get(id) else {
+            return Ok(None);
         };
 
         Ok(Some(Match {

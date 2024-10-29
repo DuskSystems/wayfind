@@ -4,6 +4,8 @@ use std::{
     sync::Arc,
 };
 
+use crate::id::RoutableId;
+
 pub mod delete;
 pub mod display;
 pub mod insert;
@@ -12,23 +14,23 @@ pub mod search;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<T> {
+pub struct Node {
     pub kind: Kind,
 
     /// The prefix may either be the static bytes of a path, or the name of a variable.
     pub prefix: Vec<u8>,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
-    pub data: Option<Data<T>>,
+    pub data: Option<Data>,
     /// An optional check to run, to restrict routing to this node.
     pub constraint: Option<Vec<u8>>,
 
-    pub static_children: Children<T>,
-    pub dynamic_children: Children<T>,
+    pub static_children: Children,
+    pub dynamic_children: Children,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_children: Children<T>,
+    pub wildcard_children: Children,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Children<T>,
+    pub end_wildcard_children: Children,
 
     /// Higher values indicate more specific matches.
     pub priority: usize,
@@ -58,44 +60,44 @@ pub enum Kind {
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Data<T> {
+pub enum Data {
     /// Data is stored inline.
     Inline {
+        /// The data lookup key.
+        id: RoutableId,
+
         /// The original route.
         route: Arc<str>,
-
-        /// The associated data.
-        value: T,
     },
 
     /// Data is shared between 2 or more nodes.
     Shared {
+        /// The data lookup key.
+        id: RoutableId,
+
         /// The original route.
         route: Arc<str>,
 
         /// The expanded route.
         expanded: Arc<str>,
-
-        /// The associated data, shared.
-        value: Arc<T>,
     },
 }
 
 /// A list of node children.
 /// Maintains whether it is sorted automatically.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Children<T> {
-    nodes: Vec<Node<T>>,
+pub struct Children {
+    nodes: Vec<Node>,
     sorted: bool,
 }
 
-impl<T> Children<T> {
-    fn push(&mut self, node: Node<T>) {
+impl Children {
+    fn push(&mut self, node: Node) {
         self.nodes.push(node);
         self.sorted = false;
     }
 
-    fn remove(&mut self, index: usize) -> Node<T> {
+    fn remove(&mut self, index: usize) -> Node {
         self.nodes.remove(index)
     }
 
@@ -118,23 +120,23 @@ impl<T> Children<T> {
         self.nodes.is_empty()
     }
 
-    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<T>>
+    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node>
     where
-        F: Fn(&Node<T>) -> bool,
+        F: Fn(&Node) -> bool,
     {
         self.nodes.iter_mut().find(|node| predicate(node))
     }
 
-    fn iter(&self) -> impl Iterator<Item = &Node<T>> {
+    fn iter(&self) -> impl Iterator<Item = &Node> {
         self.nodes.iter()
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<T>> {
+    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node> {
         self.nodes.iter_mut()
     }
 }
 
-impl<T> Default for Children<T> {
+impl Default for Children {
     fn default() -> Self {
         Self {
             nodes: vec![],
@@ -143,8 +145,8 @@ impl<T> Default for Children<T> {
     }
 }
 
-impl<T> From<Vec<Node<T>>> for Children<T> {
-    fn from(value: Vec<Node<T>>) -> Self {
+impl From<Vec<Node>> for Children {
+    fn from(value: Vec<Node>) -> Self {
         Self {
             nodes: value,
             sorted: false,
@@ -152,15 +154,15 @@ impl<T> From<Vec<Node<T>>> for Children<T> {
     }
 }
 
-impl<T> Index<usize> for Children<T> {
-    type Output = Node<T>;
+impl Index<usize> for Children {
+    type Output = Node;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index]
     }
 }
 
-impl<T> IndexMut<usize> for Children<T> {
+impl IndexMut<usize> for Children {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }
