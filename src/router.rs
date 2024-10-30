@@ -236,7 +236,6 @@ impl<T> Router<T> {
                     },
                 ) {
                     // Attempt to clean up any prior inserts on failure.
-                    // TODO: Consider returning a vec of errors?
                     drop(self.delete(&*route_arc));
                     return Err(err);
                 }
@@ -252,8 +251,8 @@ impl<T> Router<T> {
         };
 
         self.values.insert(id, value);
-
         self.root.optimize();
+
         Ok(())
     }
 
@@ -292,30 +291,65 @@ impl<T> Router<T> {
         }
 
         let mut parsed = Parser::new(routable.route.as_bytes())?;
-        if parsed.routes.len() > 1 {
-            let mut failure: Option<DeleteError> = None;
-            for mut expanded_route in parsed.routes {
-                // If a delete fails, keep trying the remaining paths, then return the first error.
-                // TODO: Consider returning a vec of errors?
-                match self.root.delete(&mut expanded_route, true) {
-                    Ok(id) => {
-                        self.values.remove(&id);
-                    }
-                    Err(err) => {
-                        failure = Some(err);
-                    }
-                }
+        let is_expanded = parsed.routes.len() > 1;
+
+        let mut common_data: Option<&Data> = None;
+
+        for mut route in parsed.routes.clone() {
+            let Some(node) = self.root.find(&mut route) else {
+                return Err(DeleteError::NotFound {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                });
+            };
+
+            let Some(data) = &node.data else {
+                return Err(DeleteError::NotFound {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                });
+            };
+
+            let common_data = common_data.map_or_else(
+                || {
+                    common_data = Some(data);
+                    data
+                },
+                |common_data| common_data,
+            );
+
+            // Ensure all IDs match.
+            if data.id() != common_data.id() {
+                return Err(DeleteError::RouteMismatch {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                    inserted: data.route().to_string(),
+                });
             }
 
-            if let Some(err) = failure {
-                return Err(err);
+            // Ensure data kinds match.
+            if data.expanded().is_some() != is_expanded {
+                return Err(DeleteError::RouteMismatch {
+                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                    inserted: data.route().to_string(),
+                });
             }
-        } else if let Some(route) = parsed.routes.first_mut() {
-            let id = self.root.delete(route, false)?;
-            self.values.remove(&id);
         }
 
+        let id = match common_data {
+            Some(data) => data.id(),
+            None => {
+                return Err(DeleteError::NotFound {
+                    route: routable.route.to_string(),
+                });
+            }
+        };
+
+        // If an error occurs here, there's not much we can do.
+        for route in &mut parsed.routes {
+            self.root.delete(route)?;
+        }
+
+        self.values.remove(&id);
         self.root.optimize();
+
         Ok(())
     }
 

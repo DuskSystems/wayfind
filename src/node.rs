@@ -8,6 +8,7 @@ use crate::id::RoutableId;
 
 pub mod delete;
 pub mod display;
+pub mod find;
 pub mod insert;
 pub mod optimize;
 pub mod search;
@@ -81,6 +82,27 @@ pub enum Data {
         /// The expanded route.
         expanded: Arc<str>,
     },
+}
+
+impl Data {
+    pub const fn id(&self) -> RoutableId {
+        match self {
+            Self::Inline { id, .. } | Self::Shared { id, .. } => *id,
+        }
+    }
+
+    pub fn route(&self) -> Arc<str> {
+        match self {
+            Self::Inline { route, .. } | Self::Shared { route, .. } => Arc::clone(route),
+        }
+    }
+
+    pub fn expanded(&self) -> Option<Arc<str>> {
+        match self {
+            Self::Inline { .. } => None,
+            Self::Shared { expanded, .. } => Some(Arc::clone(expanded)),
+        }
+    }
 }
 
 /// A list of node children.
