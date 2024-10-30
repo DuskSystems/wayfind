@@ -5,7 +5,7 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<T> Node<T> {
+impl<'router, T> Node<'router, T> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -43,7 +43,7 @@ impl<T> Node<T> {
             if is_expanded != is_shared {
                 return Err(DeleteError::RouteMismatch {
                     route: String::from_utf8_lossy(&route.raw).to_string(),
-                    inserted: inserted.to_string(),
+                    inserted: (*inserted).to_string(),
                 });
             }
 

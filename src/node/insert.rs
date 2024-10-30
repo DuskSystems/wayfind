@@ -4,12 +4,12 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<T> Node<T> {
+impl<'router, T> Node<'router, T> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: Data<T>) -> Result<(), InsertError> {
+    pub fn insert(&mut self, route: &mut Route, data: Data<'router, T>) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
@@ -32,7 +32,7 @@ impl<T> Node<T> {
         } else {
             if let Some(data) = &self.data {
                 let conflict = match data {
-                    Data::Inline { route, .. } | Data::Shared { route, .. } => route.to_string(),
+                    Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_string(),
                 };
 
                 return Err(InsertError::DuplicateRoute {
@@ -51,7 +51,7 @@ impl<T> Node<T> {
     fn insert_static(
         &mut self,
         route: &mut Route,
-        data: Data<T>,
+        data: Data<'router, T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
         // Check if the first byte is already a child here.
@@ -160,7 +160,7 @@ impl<T> Node<T> {
     fn insert_dynamic(
         &mut self,
         route: &mut Route,
-        data: Data<T>,
+        data: Data<'router, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -201,7 +201,7 @@ impl<T> Node<T> {
     fn insert_wildcard(
         &mut self,
         route: &mut Route,
-        data: Data<T>,
+        data: Data<'router, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -242,7 +242,7 @@ impl<T> Node<T> {
     fn insert_end_wildcard(
         &mut self,
         route: &Route,
-        data: Data<T>,
+        data: Data<'router, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -252,7 +252,9 @@ impl<T> Node<T> {
             .find(|child| child.prefix == name && child.constraint == constraint)
         {
             let conflict = match &child.data {
-                Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => route.to_string(),
+                Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => {
+                    (*route).to_string()
+                }
                 None => "Unknown".to_string(),
             };
 

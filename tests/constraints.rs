@@ -190,7 +190,7 @@ impl Constraint for ConstraintB {
 
 #[test]
 fn constraint_duplicate_name_error() -> Result<(), Box<dyn Error>> {
-    let mut router: Router<usize> = Router::new();
+    let mut router: Router<'_, usize> = Router::new();
     router.constraint::<ConstraintA>()?;
 
     let error = router.constraint::<ConstraintB>().unwrap_err();

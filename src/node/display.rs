@@ -2,11 +2,11 @@ use super::Node;
 use crate::node::Kind;
 use std::fmt::{Display, Write};
 
-impl<T> Display for Node<T> {
+impl<'router, T> Display for Node<'router, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T>(
             output: &mut String,
-            node: &Node<T>,
+            node: &Node<'_, T>,
             padding: &str,
             is_top: bool,
             is_last: bool,

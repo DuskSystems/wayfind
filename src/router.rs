@@ -7,10 +7,11 @@ use crate::{
     path::Path,
     Routable,
 };
+use rustc_hash::FxHashMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     any::type_name,
-    collections::{hash_map::Entry, HashMap},
+    collections::hash_map::Entry,
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
     sync::Arc,
@@ -20,10 +21,10 @@ use std::{
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'router, 'path, T> {
     /// The matching route.
-    pub route: Arc<str>,
+    pub route: &'router str,
 
     /// The expanded route, if applicable.
-    pub expanded: Option<Arc<str>>,
+    pub expanded: Option<&'router str>,
 
     /// A reference to the matching route data.
     pub data: &'router T,
@@ -56,15 +57,15 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct Router<T> {
+pub struct Router<'router, T> {
     /// The root node of the tree.
-    root: Node<T>,
+    root: Node<'router, T>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: HashMap<Vec<u8>, StoredConstraint>,
+    constraints: FxHashMap<Vec<u8>, StoredConstraint>,
 }
 
-impl<T> Router<T> {
+impl<'router, T> Router<'router, T> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -90,7 +91,7 @@ impl<T> Router<T> {
                 priority: 0,
                 needs_optimization: false,
             },
-            constraints: HashMap::new(),
+            constraints: FxHashMap::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -178,9 +179,9 @@ impl<T> Router<T> {
     ///
     /// router.insert(route, 2).unwrap();
     /// ```
-    pub fn insert<'a>(
+    pub fn insert(
         &mut self,
-        routable: impl Into<Routable<'a>>,
+        routable: impl Into<Routable<'router>>,
         value: T,
     ) -> Result<(), InsertError> {
         let routable = routable.into();
@@ -192,8 +193,6 @@ impl<T> Router<T> {
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             })?;
         }
-
-        let route_arc = Arc::from(routable.route);
 
         let mut parsed = Parser::new(routable.route.as_bytes())?;
         for route in &parsed.routes {
@@ -224,14 +223,14 @@ impl<T> Router<T> {
                 if let Err(err) = self.root.insert(
                     &mut route,
                     Data::Shared {
-                        route: Arc::clone(&route_arc),
+                        route: routable.route,
                         expanded,
                         value: Arc::clone(&value),
                     },
                 ) {
                     // Attempt to clean up any prior inserts on failure.
                     // TODO: Consider returning a vec of errors?
-                    drop(self.delete(&*route_arc));
+                    drop(self.delete(routable.route));
                     return Err(err);
                 }
             }
@@ -239,7 +238,7 @@ impl<T> Router<T> {
             self.root.insert(
                 route,
                 Data::Inline {
-                    route: Arc::clone(&route_arc),
+                    route: routable.route,
                     value,
                 },
             )?;
@@ -272,7 +271,7 @@ impl<T> Router<T> {
     /// router.insert(route.clone(), 1).unwrap();
     /// router.delete(route).unwrap();
     /// ```
-    pub fn delete<'a>(&mut self, routable: impl Into<Routable<'a>>) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, routable: impl Into<Routable<'router>>) -> Result<(), DeleteError> {
         let routable = routable.into();
 
         let decoded_route = percent_decode(routable.route.as_bytes())?;
@@ -322,7 +321,7 @@ impl<T> Router<T> {
     /// let path = Path::new("/hello").unwrap();
     /// let search = router.search(&path).unwrap();
     /// ```
-    pub fn search<'router, 'path>(
+    pub fn search<'path>(
         &'router self,
         path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
@@ -335,16 +334,12 @@ impl<T> Router<T> {
         };
 
         let (route, expanded, data) = match &node.data {
-            Some(Data::Inline { route, value }) => (Arc::clone(route), None, value),
+            Some(Data::Inline { route, value }) => (route, None, value),
             Some(Data::Shared {
                 route,
                 expanded,
                 value,
-            }) => (
-                Arc::clone(route),
-                Some(Arc::clone(expanded)),
-                value.as_ref(),
-            ),
+            }) => (route, Some(expanded.as_ref()), value.as_ref()),
             None => return Ok(None),
         };
 
@@ -357,13 +352,13 @@ impl<T> Router<T> {
     }
 }
 
-impl<T> Default for Router<T> {
+impl<'router, T> Default for Router<'router, T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> Display for Router<T> {
+impl<'router, T> Display for Router<'router, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }

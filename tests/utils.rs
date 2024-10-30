@@ -1,10 +1,10 @@
 use similar_asserts::assert_eq;
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 use wayfind::{Match, Parameter, Path, Router};
 
 pub struct ExpectedMatch<'k, 'v, T> {
-    pub route: Arc<str>,
-    pub expanded: Option<Arc<str>>,
+    pub route: &'k str,
+    pub expanded: Option<&'k str>,
     pub data: T,
     pub params: Vec<Parameter<'k, 'v>>,
 }
@@ -29,8 +29,8 @@ macro_rules! assert_router_matches {
         })?
     }) => {
         Some($crate::utils::ExpectedMatch {
-            route: std::sync::Arc::from($route),
-            expanded: Some(std::sync::Arc::from($expanded)),
+            route: $route,
+            expanded: Some($expanded),
             data: $data,
             params: vec![
                 $(
@@ -51,7 +51,7 @@ macro_rules! assert_router_matches {
         })?
     }) => {
         Some($crate::utils::ExpectedMatch {
-            route: std::sync::Arc::from($route),
+            route: $route,
             expanded: None,
             data: $data,
             params: vec![
@@ -72,7 +72,7 @@ macro_rules! assert_router_matches {
 
 #[allow(clippy::missing_panics_doc)]
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
-    router: &'a Router<T>,
+    router: &'a Router<'a, T>,
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {

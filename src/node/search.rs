@@ -3,19 +3,19 @@ use crate::{
     errors::SearchError,
     router::{Parameter, Parameters, StoredConstraint},
 };
+use rustc_hash::FxHashMap;
 use smallvec::smallvec;
-use std::collections::HashMap;
 
-impl<T> Node<T> {
+impl<'router, T> Node<'router, T> {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
-    pub fn search<'router, 'path>(
+    pub fn search<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if path.is_empty() {
             return if self.data.is_some() {
@@ -44,11 +44,11 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_static<'router, 'path>(
+    fn search_static<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for static_child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
@@ -65,11 +65,11 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_dynamic<'router, 'path>(
+    fn search_dynamic<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
@@ -79,11 +79,11 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    fn search_dynamic_inline<'router, 'path>(
+    fn search_dynamic_inline<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
             let mut consumed = 0;
@@ -142,11 +142,11 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
-    fn search_dynamic_segment<'router, 'path>(
+    fn search_dynamic_segment<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -181,11 +181,11 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_wildcard<'router, 'path>(
+    fn search_wildcard<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
@@ -195,11 +195,11 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex wildcard routes like `/{*name}.{extension}`.
-    fn search_wildcard_inline<'router, 'path>(
+    fn search_wildcard_inline<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -254,11 +254,11 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple wildcard routes like `/{*segment}/`.
-    fn search_wildcard_segment<'router, 'path>(
+    fn search_wildcard_segment<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -327,11 +327,11 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_end_wildcard<'router, 'path>(
+    fn search_end_wildcard<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for end_wildcard_child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(end_wildcard_child, path, constraints) {
@@ -364,7 +364,7 @@ impl<T> Node<T> {
     fn check_constraint(
         node: &Self,
         segment: &[u8],
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> bool {
         let Some(name) = &node.constraint else {
             return true;
