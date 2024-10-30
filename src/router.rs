@@ -7,10 +7,11 @@ use crate::{
     path::Path,
     Routable,
 };
+use rustc_hash::FxHashMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     any::type_name,
-    collections::{hash_map::Entry, HashMap},
+    collections::hash_map::Entry,
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
     sync::Arc,
@@ -61,7 +62,7 @@ pub struct Router<'router, T> {
     root: Node<'router, T>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: HashMap<Vec<u8>, StoredConstraint>,
+    constraints: FxHashMap<Vec<u8>, StoredConstraint>,
 }
 
 impl<'router, T> Router<'router, T> {
@@ -90,7 +91,7 @@ impl<'router, T> Router<'router, T> {
                 priority: 0,
                 needs_optimization: false,
             },
-            constraints: HashMap::new(),
+            constraints: FxHashMap::default(),
         };
 
         router.constraint::<u8>().unwrap();

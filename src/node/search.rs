@@ -3,8 +3,8 @@ use crate::{
     errors::SearchError,
     router::{Parameter, Parameters, StoredConstraint},
 };
+use rustc_hash::FxHashMap;
 use smallvec::smallvec;
-use std::collections::HashMap;
 
 impl<'router, T> Node<'router, T> {
     /// Searches for a matching route in the node tree.
@@ -15,7 +15,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if path.is_empty() {
             return if self.data.is_some() {
@@ -48,7 +48,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for static_child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
@@ -69,7 +69,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
@@ -83,7 +83,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
             let mut consumed = 0;
@@ -146,7 +146,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for dynamic_child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -185,7 +185,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
@@ -199,7 +199,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -258,7 +258,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for wildcard_child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -331,7 +331,7 @@ impl<'router, T> Node<'router, T> {
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> Result<Option<&'router Self>, SearchError> {
         for end_wildcard_child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(end_wildcard_child, path, constraints) {
@@ -364,7 +364,7 @@ impl<'router, T> Node<'router, T> {
     fn check_constraint(
         node: &Self,
         segment: &[u8],
-        constraints: &HashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
     ) -> bool {
         let Some(name) = &node.constraint else {
             return true;
