@@ -50,14 +50,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users/{id}".into());
+    assert_eq!(search.route, "/users/{id}");
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/users/123/files/my.document.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}".into());
+    assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}");
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
     assert_eq!(search.parameters[1].key, "filename");
@@ -94,14 +94,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/files/{*slug}/delete".into());
+    assert_eq!(search.route, "/files/{*slug}/delete");
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
 
     let path = Path::new("/any/other/path")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/{*catch_all}".into());
+    assert_eq!(search.route, "/{*catch_all}");
     assert_eq!(search.parameters[0].key, "catch_all");
     assert_eq!(search.parameters[0].value, "any/other/path");
 
@@ -141,22 +141,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/users")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users(/{id})".into());
-    assert_eq!(search.expanded, Some("/users".into()));
+    assert_eq!(search.route, "/users(/{id})");
+    assert_eq!(search.expanded, Some("/users"));
 
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users(/{id})".into());
-    assert_eq!(search.expanded, Some("/users/{id}".into()));
+    assert_eq!(search.route, "/users(/{id})");
+    assert_eq!(search.expanded, Some("/users/{id}"));
     assert_eq!(search.parameters[0].key, "id");
     assert_eq!(search.parameters[0].value, "123");
 
     let path = Path::new("/files/documents/folder/report.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
-    assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}".into()));
+    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
     assert_eq!(search.parameters[1].key, "file");
@@ -167,8 +167,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/files/documents/folder/readme")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})".into());
-    assert_eq!(search.expanded, Some("/files/{*slug}/{file}".into()));
+    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
     assert_eq!(search.parameters[0].key, "slug");
     assert_eq!(search.parameters[0].value, "documents/folder");
     assert_eq!(search.parameters[1].key, "file");
@@ -254,12 +254,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new("/v2")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/v2".into());
+    assert_eq!(search.route, "/v2");
 
     let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
+    assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
     assert_eq!(search.parameters[0].key, "name");
     assert_eq!(search.parameters[0].value, "my-org/my-repo");
     assert_eq!(search.parameters[1].key, "type");

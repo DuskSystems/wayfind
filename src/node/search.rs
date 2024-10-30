@@ -6,12 +6,12 @@ use crate::{
 use smallvec::smallvec;
 use std::collections::HashMap;
 
-impl<T> Node<T> {
+impl<'router, T> Node<'router, T> {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
-    pub fn search<'router, 'path>(
+    pub fn search<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -44,7 +44,7 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_static<'router, 'path>(
+    fn search_static<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -65,7 +65,7 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_dynamic<'router, 'path>(
+    fn search_dynamic<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -79,7 +79,7 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    fn search_dynamic_inline<'router, 'path>(
+    fn search_dynamic_inline<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -142,7 +142,7 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
-    fn search_dynamic_segment<'router, 'path>(
+    fn search_dynamic_segment<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -181,7 +181,7 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_wildcard<'router, 'path>(
+    fn search_wildcard<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -195,7 +195,7 @@ impl<T> Node<T> {
     }
 
     /// Can handle complex wildcard routes like `/{*name}.{extension}`.
-    fn search_wildcard_inline<'router, 'path>(
+    fn search_wildcard_inline<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -254,7 +254,7 @@ impl<T> Node<T> {
     }
 
     /// Can only handle simple wildcard routes like `/{*segment}/`.
-    fn search_wildcard_segment<'router, 'path>(
+    fn search_wildcard_segment<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
@@ -327,7 +327,7 @@ impl<T> Node<T> {
         Ok(None)
     }
 
-    fn search_end_wildcard<'router, 'path>(
+    fn search_end_wildcard<'path>(
         &'router self,
         path: &'path [u8],
         parameters: &mut Parameters<'router, 'path>,
