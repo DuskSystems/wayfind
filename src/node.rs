@@ -1,10 +1,9 @@
+use crate::id::RoutableId;
 use std::{
     fmt::Debug,
     ops::{Index, IndexMut},
     sync::Arc,
 };
-
-use crate::id::RoutableId;
 
 pub mod delete;
 pub mod display;
@@ -15,23 +14,23 @@ pub mod search;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node {
+pub struct Node<'router> {
     pub kind: Kind,
 
     /// The prefix may either be the static bytes of a path, or the name of a variable.
     pub prefix: Vec<u8>,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
-    pub data: Option<Data>,
+    pub data: Option<Data<'router>>,
     /// An optional check to run, to restrict routing to this node.
     pub constraint: Option<Vec<u8>>,
 
-    pub static_children: Children,
-    pub dynamic_children: Children,
+    pub static_children: Children<'router>,
+    pub dynamic_children: Children<'router>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_children: Children,
+    pub wildcard_children: Children<'router>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Children,
+    pub end_wildcard_children: Children<'router>,
 
     /// Higher values indicate more specific matches.
     pub priority: usize,
@@ -61,14 +60,14 @@ pub enum Kind {
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Data {
+pub enum Data<'a> {
     /// Data is stored inline.
     Inline {
         /// The data lookup key.
         id: RoutableId,
 
         /// The original route.
-        route: Arc<str>,
+        route: &'a str,
     },
 
     /// Data is shared between 2 or more nodes.
@@ -77,30 +76,30 @@ pub enum Data {
         id: RoutableId,
 
         /// The original route.
-        route: Arc<str>,
+        route: &'a str,
 
         /// The expanded route.
         expanded: Arc<str>,
     },
 }
 
-impl Data {
+impl<'a> Data<'a> {
     pub const fn id(&self) -> RoutableId {
         match self {
             Self::Inline { id, .. } | Self::Shared { id, .. } => *id,
         }
     }
 
-    pub fn route(&self) -> Arc<str> {
+    pub const fn route(&self) -> &'a str {
         match self {
-            Self::Inline { route, .. } | Self::Shared { route, .. } => Arc::clone(route),
+            Self::Inline { route, .. } | Self::Shared { route, .. } => route,
         }
     }
 
-    pub fn expanded(&self) -> Option<Arc<str>> {
+    pub fn expanded(&'a self) -> Option<&'a str> {
         match self {
             Self::Inline { .. } => None,
-            Self::Shared { expanded, .. } => Some(Arc::clone(expanded)),
+            Self::Shared { expanded, .. } => Some(expanded),
         }
     }
 }
@@ -108,18 +107,18 @@ impl Data {
 /// A list of node children.
 /// Maintains whether it is sorted automatically.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Children {
-    nodes: Vec<Node>,
+pub struct Children<'a> {
+    nodes: Vec<Node<'a>>,
     sorted: bool,
 }
 
-impl Children {
-    fn push(&mut self, node: Node) {
+impl<'a> Children<'a> {
+    fn push(&mut self, node: Node<'a>) {
         self.nodes.push(node);
         self.sorted = false;
     }
 
-    fn remove(&mut self, index: usize) -> Node {
+    fn remove(&mut self, index: usize) -> Node<'a> {
         self.nodes.remove(index)
     }
 
@@ -142,23 +141,23 @@ impl Children {
         self.nodes.is_empty()
     }
 
-    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node>
+    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'a>>
     where
-        F: Fn(&Node) -> bool,
+        F: Fn(&Node<'a>) -> bool,
     {
         self.nodes.iter_mut().find(|node| predicate(node))
     }
 
-    fn iter(&self) -> impl Iterator<Item = &Node> {
+    fn iter(&self) -> impl Iterator<Item = &Node<'a>> {
         self.nodes.iter()
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node> {
+    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'a>> {
         self.nodes.iter_mut()
     }
 }
 
-impl Default for Children {
+impl<'a> Default for Children<'a> {
     fn default() -> Self {
         Self {
             nodes: vec![],
@@ -167,8 +166,8 @@ impl Default for Children {
     }
 }
 
-impl From<Vec<Node>> for Children {
-    fn from(value: Vec<Node>) -> Self {
+impl<'a> From<Vec<Node<'a>>> for Children<'a> {
+    fn from(value: Vec<Node<'a>>) -> Self {
         Self {
             nodes: value,
             sorted: false,
@@ -176,15 +175,15 @@ impl From<Vec<Node>> for Children {
     }
 }
 
-impl Index<usize> for Children {
-    type Output = Node;
+impl<'a> Index<usize> for Children<'a> {
+    type Output = Node<'a>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index]
     }
 }
 
-impl IndexMut<usize> for Children {
+impl<'a> IndexMut<usize> for Children<'a> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }

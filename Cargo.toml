@@ -75,7 +75,12 @@ categories.workspace = true
 [lints]
 workspace = true
 
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [dependencies]
+# Data Structures
 smallvec = { version = "1.13", features = ["const_generics", "union"] }
 rustc-hash = "2.0"
 

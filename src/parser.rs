@@ -1,5 +1,5 @@
 use crate::errors::RouteError;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
@@ -156,7 +156,7 @@ impl Parser {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: HashMap<Vec<u8>, (usize, usize)> = HashMap::new();
+        let mut seen_parameters: FxHashMap<Vec<u8>, (usize, usize)> = FxHashMap::default();
 
         while cursor < input.len() {
             match input[cursor] {
