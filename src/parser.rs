@@ -1,19 +1,8 @@
 use crate::errors::RouteError;
 use rustc_hash::FxHashMap;
-use smallvec::SmallVec;
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PartBytes<'a> {
-    pub bytes: &'a [u8],
-
-    pub start: usize,
-    pub end: usize,
-
-    pub skip: SmallVec<[u8; 4]>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Route {
@@ -39,13 +28,13 @@ pub enum Part {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parser<'a> {
-    pub raw: &'a [u8],
+pub struct Parser {
+    pub raw: Vec<u8>,
     pub routes: Vec<Route>,
 }
 
-impl<'a> Parser<'a> {
-    pub fn new(input: &'a [u8]) -> Result<Self, RouteError> {
+impl Parser {
+    pub fn new(input: &[u8]) -> Result<Self, RouteError> {
         if input.is_empty() {
             return Err(RouteError::Empty);
         }
@@ -56,7 +45,10 @@ impl<'a> Parser<'a> {
             .map(|raw| Self::parse_route(&raw))
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(Self { raw: input, routes })
+        Ok(Self {
+            raw: input.to_vec(),
+            routes,
+        })
     }
 
     // Recursively expands optional groups in the route, generating all possible combinations
@@ -348,7 +340,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/abcd"),
             Ok(Parser {
-                raw: b"/abcd",
+                raw: b"/abcd".to_vec(),
                 routes: vec![Route {
                     raw: b"/abcd".to_vec(),
                     parts: vec![Part::Static {
@@ -364,7 +356,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{name}"),
             Ok(Parser {
-                raw: b"/{name}",
+                raw: b"/{name}".to_vec(),
                 routes: vec![Route {
                     raw: b"/{name}".to_vec(),
                     parts: vec![
@@ -386,7 +378,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{*route}"),
             Ok(Parser {
-                raw: b"/{*route}",
+                raw: b"/{*route}".to_vec(),
                 routes: vec![Route {
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
@@ -408,7 +400,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{*name:alpha}/{id:numeric}"),
             Ok(Parser {
-                raw: b"/{*name:alpha}/{id:numeric}",
+                raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                 routes: vec![Route {
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
@@ -437,7 +429,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/users(/{id})"),
             Ok(Parser {
-                raw: b"/users(/{id})",
+                raw: b"/users(/{id})".to_vec(),
                 routes: vec![
                     Route {
                         raw: b"/users/{id}".to_vec(),
@@ -467,7 +459,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/users(/{id}(/profile))"),
             Ok(Parser {
-                raw: b"/users(/{id}(/profile))",
+                raw: b"/users(/{id}(/profile))".to_vec(),
                 routes: vec![
                     Route {
                         raw: b"/users/{id}/profile".to_vec(),
@@ -512,7 +504,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"/path/with\\{braces\\}and\\(parens\\)"),
             Ok(Parser {
-                raw: b"/path/with\\{braces\\}and\\(parens\\)",
+                raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                 routes: vec![Route {
                     raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                     parts: vec![Part::Static {
@@ -528,7 +520,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"(/{lang})/users"),
             Ok(Parser {
-                raw: b"(/{lang})/users",
+                raw: b"(/{lang})/users".to_vec(),
                 routes: vec![
                     Route {
                         raw: b"/{lang}/users".to_vec(),
@@ -561,7 +553,7 @@ mod tests {
         assert_eq!(
             Parser::new(b"(/{lang})(/{page})"),
             Ok(Parser {
-                raw: b"(/{lang})(/{page})",
+                raw: b"(/{lang})(/{page})".to_vec(),
                 routes: vec![
                     Route {
                         raw: b"/{lang}/{page}".to_vec(),

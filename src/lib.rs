@@ -9,6 +9,9 @@ pub mod errors;
 
 pub(crate) mod node;
 
+// FIXME: Kill.
+pub mod nue_parser;
+
 pub(crate) mod path;
 pub use path::Path;
 
