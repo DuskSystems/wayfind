@@ -9,35 +9,29 @@ impl<'router, T> Node<'router, T> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: Data<'router, T>) -> Result<(), InsertError> {
+    pub fn insert(
+        &mut self,
+        route: &mut Route<'router>,
+        data: Data<'router, T>,
+    ) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
-                Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
-                Part::Dynamic {
-                    name, constraint, ..
-                } => {
-                    self.insert_dynamic(route, data, &name, constraint)?;
+                Part::Static { prefix } => self.insert_static(route, data, prefix)?,
+                Part::Dynamic { name, .. } => {
+                    self.insert_dynamic(route, data, name)?;
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } if route.parts.is_empty() => {
-                    self.insert_end_wildcard(route, data, &name, constraint)?;
+                Part::Wildcard { name, .. } if route.parts.is_empty() => {
+                    self.insert_end_wildcard(route, data, name)?;
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } => {
-                    self.insert_wildcard(route, data, &name, constraint)?;
+                Part::Wildcard { name, .. } => {
+                    self.insert_wildcard(route, data, name)?;
                 }
             };
         } else {
             if let Some(data) = &self.data {
-                let conflict = match data {
-                    Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_string(),
-                };
-
                 return Err(InsertError::DuplicateRoute {
-                    route: String::from_utf8_lossy(&route.raw).to_string(),
-                    conflict,
+                    route: String::from_utf8_lossy(route.raw).to_string(),
+                    conflict: data.route.to_string(),
                 });
             }
 
@@ -50,9 +44,9 @@ impl<'router, T> Node<'router, T> {
 
     fn insert_static(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'router>,
         data: Data<'router, T>,
-        prefix: &[u8],
+        prefix: &'router [u8],
     ) -> Result<(), InsertError> {
         // Check if the first byte is already a child here.
         let Some(child) = self
@@ -64,9 +58,8 @@ impl<'router, T> Node<'router, T> {
                 let mut new_child = Self {
                     kind: Kind::Static,
 
-                    prefix: prefix.to_vec(),
+                    prefix,
                     data: None,
-                    constraint: None,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -89,7 +82,7 @@ impl<'router, T> Node<'router, T> {
 
         let common_prefix = prefix
             .iter()
-            .zip(&child.prefix)
+            .zip(child.prefix)
             .take_while(|&(x, y)| x == y)
             .count();
 
@@ -109,9 +102,8 @@ impl<'router, T> Node<'router, T> {
         let new_child_a = Self {
             kind: Kind::Static,
 
-            prefix: child.prefix[common_prefix..].to_vec(),
+            prefix: &child.prefix[common_prefix..],
             data: child.data.take(),
-            constraint: None,
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -127,9 +119,8 @@ impl<'router, T> Node<'router, T> {
         let new_child_b = Self {
             kind: Kind::Static,
 
-            prefix: prefix[common_prefix..].to_vec(),
+            prefix: &prefix[common_prefix..],
             data: None,
-            constraint: None,
 
             static_children: Children::default(),
             dynamic_children: Children::default(),
@@ -142,7 +133,7 @@ impl<'router, T> Node<'router, T> {
             needs_optimization: false,
         };
 
-        child.prefix = child.prefix[..common_prefix].to_vec();
+        child.prefix = &child.prefix[..common_prefix];
         child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
@@ -159,24 +150,19 @@ impl<'router, T> Node<'router, T> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'router>,
         data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: &'router [u8],
     ) -> Result<(), InsertError> {
-        if let Some(child) = self
-            .dynamic_children
-            .find_mut(|child| child.prefix == name && child.constraint == constraint)
-        {
+        if let Some(child) = self.dynamic_children.find_mut(|child| child.prefix == name) {
             child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
                     kind: Kind::Dynamic,
 
-                    prefix: name.to_vec(),
+                    prefix: name,
                     data: None,
-                    constraint,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -200,14 +186,13 @@ impl<'router, T> Node<'router, T> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'router>,
         data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: &'router [u8],
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
-            .find_mut(|child| child.prefix == name && child.constraint == constraint)
+            .find_mut(|child| child.prefix == name)
         {
             child.insert(route, data)?;
         } else {
@@ -215,9 +200,8 @@ impl<'router, T> Node<'router, T> {
                 let mut new_child = Self {
                     kind: Kind::Wildcard,
 
-                    prefix: name.to_vec(),
+                    prefix: name,
                     data: None,
-                    constraint,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -241,25 +225,22 @@ impl<'router, T> Node<'router, T> {
 
     fn insert_end_wildcard(
         &mut self,
-        route: &Route,
+        route: &Route<'router>,
         data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: &'router [u8],
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .end_wildcard_children
             .iter()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find(|child| child.prefix == name)
         {
             let conflict = match &child.data {
-                Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => {
-                    (*route).to_string()
-                }
+                Some(Data { route, .. }) => (*route).to_string(),
                 None => "Unknown".to_string(),
             };
 
             return Err(InsertError::DuplicateRoute {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(route.raw).to_string(),
                 conflict,
             });
         }
@@ -267,9 +248,8 @@ impl<'router, T> Node<'router, T> {
         self.end_wildcard_children.push(Self {
             kind: Kind::EndWildcard,
 
-            prefix: name.to_vec(),
+            prefix: name,
             data: Some(data),
-            constraint,
 
             static_children: Children::default(),
             dynamic_children: Children::default(),

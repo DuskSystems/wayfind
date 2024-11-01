@@ -1249,8 +1249,6 @@ fn basic() -> Result<(), Box<dyn Error>> {
     │     ├─ 1.26.html [*]
     │     ╰─ _faq.html [*]
     ├─ sd
-    │  ├─ (here [*]
-    │  ├─ )here [*]
     │  ├─ !here [*]
     │  ├─ $here [*]
     │  ├─ &here [*]
@@ -1258,7 +1256,10 @@ fn basic() -> Result<(), Box<dyn Error>> {
     │  ├─ +here [*]
     │  ├─ ,here [*]
     │  ├─ ;here [*]
-    │  ╰─ =here [*]
+    │  ├─ =here [*]
+    │  ╰─ \
+    │     ├─ (here [*]
+    │     ╰─ )here [*]
     ├─ hi [*]
     ├─ ʯ [*]
     ├─ β [*]

@@ -11,23 +11,16 @@ impl<'router, T> Display for Node<'router, T> {
             is_top: bool,
             is_last: bool,
         ) -> std::fmt::Result {
-            let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
             let key = match &node.kind {
                 Kind::Root => unreachable!(),
-                Kind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
+                Kind::Static => String::from_utf8_lossy(node.prefix).to_string(),
                 Kind::Dynamic => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{{name}}}"),
-                        |constraint| format!("{{{name}:{constraint}}}"),
-                    )
+                    let name = String::from_utf8_lossy(node.prefix);
+                    format!("{{{name}}}")
                 }
                 Kind::Wildcard | Kind::EndWildcard => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{*{name}}}"),
-                        |constraint| format!("{{*{name}:{constraint}}}"),
-                    )
+                    let name = String::from_utf8_lossy(node.prefix);
+                    format!("{{*{name}}}")
                 }
             };
 

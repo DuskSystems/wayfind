@@ -285,73 +285,6 @@ pub enum RouteError {
         /// The length of the parameter (including braces).
         length: usize,
     },
-
-    /// An empty constraint name was found in the route.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::RouteError;
-    ///
-    /// let error = RouteError::EmptyConstraint {
-    ///     route: "/{a:}".to_string(),
-    ///     start: 1,
-    ///     length: 4,
-    /// };
-    ///
-    /// let display = "
-    /// empty constraint name
-    ///
-    ///     Route: /{a:}
-    ///             ^^^^
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    EmptyConstraint {
-        /// The route containing an empty constraint.
-        route: String,
-        /// The position of the opening brace of the empty constraint parameter.
-        start: usize,
-        /// The length of the parameter (including braces).
-        length: usize,
-    },
-
-    /// An invalid constraint name was found in the route.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::RouteError;
-    ///
-    /// let error = RouteError::InvalidConstraint {
-    ///     route: "/{a:b/c}".to_string(),
-    ///     name: "b/c".to_string(),
-    ///     start: 1,
-    ///     length: 7,
-    /// };
-    ///
-    /// let display = "
-    /// invalid constraint name
-    ///
-    ///     Route: /{a:b/c}
-    ///             ^^^^^^^
-    ///
-    /// tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    InvalidConstraint {
-        /// The route containing an invalid constraint.
-        route: String,
-        /// The invalid constraint name.
-        name: String,
-        /// The position of the opening brace of the invalid constraint parameter.
-        start: usize,
-        /// The length of the parameter (including braces).
-        length: usize,
-    },
 }
 
 impl std::error::Error for RouteError {}
@@ -493,39 +426,6 @@ tip: Parameter names must be unique within a route"#
 
     Route: {route}
            {arrow}"#
-                )
-            }
-
-            Self::EmptyConstraint {
-                route,
-                start,
-                length,
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
-                write!(
-                    f,
-                    r#"empty constraint name
-
-    Route: {route}
-           {arrow}"#
-                )
-            }
-
-            Self::InvalidConstraint {
-                route,
-                start,
-                length,
-                ..
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
-                write!(
-                    f,
-                    r#"invalid constraint name
-
-    Route: {route}
-           {arrow}
-
-tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
                 )
             }
         }

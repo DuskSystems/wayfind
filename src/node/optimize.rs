@@ -1,4 +1,3 @@
-use super::Data;
 use crate::node::Node;
 
 impl<'router, T> Node<'router, T> {
@@ -39,20 +38,10 @@ impl<'router, T> Node<'router, T> {
     fn calculate_priority(&self) -> usize {
         let mut priority = self.prefix.len();
 
-        if self.constraint.is_some() {
-            priority += 10_000;
-        }
-
         if let Some(data) = &self.data {
             priority += 1_000;
-            priority += match data {
-                Data::Inline { route, .. } => {
-                    route.len() + (route.bytes().filter(|&b| b == b'/').count() * 100)
-                }
-                Data::Shared { expanded, .. } => {
-                    expanded.len() + (expanded.bytes().filter(|&b| b == b'/').count() * 100)
-                }
-            };
+            priority +=
+                data.route.len() + (data.route.bytes().filter(|&b| b == b'/').count() * 100);
         }
 
         priority

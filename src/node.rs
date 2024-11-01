@@ -1,7 +1,6 @@
 use std::{
     fmt::Debug,
     ops::{Index, IndexMut},
-    sync::Arc,
 };
 
 pub mod delete;
@@ -16,12 +15,10 @@ pub struct Node<'router, T> {
     pub kind: Kind,
 
     /// The prefix may either be the static bytes of a path, or the name of a variable.
-    pub prefix: Vec<u8>,
+    pub prefix: &'router [u8],
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
     pub data: Option<Data<'router, T>>,
-    /// An optional check to run, to restrict routing to this node.
-    pub constraint: Option<Vec<u8>>,
 
     pub static_children: Children<'router, T>,
     pub dynamic_children: Children<'router, T>,
@@ -58,27 +55,12 @@ pub enum Kind {
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Data<'router, T> {
-    /// Data is stored inline.
-    Inline {
-        /// The original route.
-        route: &'router str,
+pub struct Data<'router, T> {
+    /// The original route.
+    pub(crate) route: &'router str,
 
-        /// The associated data.
-        value: T,
-    },
-
-    /// Data is shared between 2 or more nodes.
-    Shared {
-        /// The original route.
-        route: &'router str,
-
-        /// The expanded route.
-        expanded: Arc<str>,
-
-        /// The associated data, shared.
-        value: Arc<T>,
-    },
+    /// The associated data.
+    pub(crate) value: T,
 }
 
 /// A list of node children.
@@ -107,8 +89,7 @@ impl<'router, T> Children<'router, T> {
         self.nodes.sort_by(|a, b| {
             b.priority
                 .cmp(&a.priority)
-                .then_with(|| a.prefix.cmp(&b.prefix))
-                .then_with(|| a.constraint.cmp(&b.constraint))
+                .then_with(|| a.prefix.cmp(b.prefix))
         });
 
         self.sorted = true;

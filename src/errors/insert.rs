@@ -38,32 +38,6 @@ pub enum InsertError {
         /// The route that is conflicting.
         conflict: String,
     },
-
-    /// The constraint specified in the route is not recognized by the router.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::InsertError;
-    ///
-    /// let error = InsertError::UnknownConstraint {
-    ///     constraint: "unknown_constraint".to_string(),
-    /// };
-    ///
-    /// let display = "
-    /// unknown constraint
-    ///
-    ///    Constraint: unknown_constraint
-    ///
-    /// The router doesn't recognize this constraint
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    UnknownConstraint {
-        /// The name of the unrecognized constraint.
-        constraint: String,
-    },
 }
 
 impl Error for InsertError {}
@@ -79,14 +53,6 @@ impl Display for InsertError {
 
       Route: {route}
    Conflict: {conflict}"#
-            ),
-            Self::UnknownConstraint { constraint } => write!(
-                f,
-                r#"unknown constraint
-
-   Constraint: {constraint}
-
-The router doesn't recognize this constraint"#
             ),
         }
     }

@@ -4,9 +4,6 @@ use std::borrow::Cow;
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug)]
 pub struct Path<'path> {
-    /// Original, unaltered path bytes.
-    _raw: &'path [u8],
-
     /// Percent-decoded path bytes.
     decoded: Cow<'path, [u8]>,
 }
@@ -42,11 +39,8 @@ impl<'path> Path<'path> {
     /// }));
     /// ```
     pub fn new(path: &'path str) -> Result<Self, PathError> {
-        let decoded = percent_decode(path.as_bytes())?;
-
         Ok(Self {
-            _raw: path.as_bytes(),
-            decoded,
+            decoded: percent_decode(path.as_bytes())?,
         })
     }
 
