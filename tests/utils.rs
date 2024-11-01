@@ -72,7 +72,7 @@ macro_rules! assert_router_matches {
 
 #[allow(clippy::missing_panics_doc)]
 pub fn assert_router_match<'a, T: PartialEq + Debug>(
-    router: &'a Router<'a, T>,
+    router: &'a Router<T>,
     input: &'a str,
     expected: Option<ExpectedMatch<'_, 'a, T>>,
 ) {

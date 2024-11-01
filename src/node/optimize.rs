@@ -1,7 +1,7 @@
 use super::Data;
 use crate::node::Node;
 
-impl<'router, T> Node<'router, T> {
+impl<T> Node<T> {
     /// Re-optimizes the tree after an insert/delete.
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);
@@ -61,7 +61,7 @@ impl<'router, T> Node<'router, T> {
     fn update_dynamic_children_shortcut(&mut self) {
         self.dynamic_children_shortcut = self.dynamic_children.iter().all(|child| {
             // Leading slash?
-            if child.prefix.first() == Some(&b'/') {
+            if child.prefix.as_bytes().first() == Some(&b'/') {
                 return true;
             }
 
@@ -78,7 +78,7 @@ impl<'router, T> Node<'router, T> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.prefix.first() == Some(&b'/'))
+                .all(|child| child.prefix.as_bytes().first() == Some(&b'/'))
             {
                 return true;
             }
@@ -102,7 +102,7 @@ impl<'router, T> Node<'router, T> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.prefix.first() == Some(&b'/'))
+                .all(|child| child.prefix.as_bytes().first() == Some(&b'/'))
             {
                 return true;
             }

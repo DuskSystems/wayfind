@@ -1,15 +1,15 @@
 use super::{Children, Data, Kind, Node};
 use crate::{
-    errors::InsertError,
+    errors::{EncodingError, InsertError},
     parser::{Part, Route},
 };
 
-impl<'router, T> Node<'router, T> {
+impl<T> Node<T> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: Data<'router, T>) -> Result<(), InsertError> {
+    pub fn insert(&mut self, route: &mut Route, data: Data<T>) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
@@ -51,20 +51,20 @@ impl<'router, T> Node<'router, T> {
     fn insert_static(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
-        prefix: &[u8],
+        data: Data<T>,
+        prefix: &str,
     ) -> Result<(), InsertError> {
         // Check if the first byte is already a child here.
         let Some(child) = self
             .static_children
             .iter_mut()
-            .find(|child| child.prefix[0] == prefix[0])
+            .find(|child| child.prefix.as_bytes()[0] == prefix.as_bytes()[0])
         else {
             self.static_children.push({
                 let mut new_child = Self {
                     kind: Kind::Static,
 
-                    prefix: prefix.to_vec(),
+                    prefix: prefix.to_owned(),
                     data: None,
                     constraint: None,
 
@@ -88,8 +88,9 @@ impl<'router, T> Node<'router, T> {
         };
 
         let common_prefix = prefix
+            .as_bytes()
             .iter()
-            .zip(&child.prefix)
+            .zip(child.prefix.as_bytes())
             .take_while(|&(x, y)| x == y)
             .count();
 
@@ -109,7 +110,13 @@ impl<'router, T> Node<'router, T> {
         let new_child_a = Self {
             kind: Kind::Static,
 
-            prefix: child.prefix[common_prefix..].to_vec(),
+            prefix: String::from_utf8(child.prefix.as_bytes()[common_prefix..].to_vec()).map_err(
+                |_| EncodingError::Utf8Error {
+                    key: String::from_utf8_lossy(&child.prefix.as_bytes()[common_prefix..])
+                        .to_string(),
+                    value: String::new(),
+                },
+            )?,
             data: child.data.take(),
             constraint: None,
 
@@ -127,7 +134,7 @@ impl<'router, T> Node<'router, T> {
         let new_child_b = Self {
             kind: Kind::Static,
 
-            prefix: prefix[common_prefix..].to_vec(),
+            prefix: prefix[common_prefix..].to_string(),
             data: None,
             constraint: None,
 
@@ -142,7 +149,11 @@ impl<'router, T> Node<'router, T> {
             needs_optimization: false,
         };
 
-        child.prefix = child.prefix[..common_prefix].to_vec();
+        child.prefix = String::from_utf8(child.prefix.as_bytes()[..common_prefix].to_vec())
+            .map_err(|_| EncodingError::Utf8Error {
+                key: String::from_utf8_lossy(&child.prefix.as_bytes()[..common_prefix]).to_string(),
+                value: String::new(),
+            })?;
         child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
@@ -160,21 +171,20 @@ impl<'router, T> Node<'router, T> {
     fn insert_dynamic(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        data: Data<T>,
+        name: &str,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
-        if let Some(child) = self
-            .dynamic_children
-            .find_mut(|child| child.prefix == name && child.constraint == constraint)
-        {
+        if let Some(child) = self.dynamic_children.find_mut(|child| {
+            child.prefix == name && child.constraint.as_ref() == constraint.as_ref()
+        }) {
             child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
                 let mut new_child = Self {
                     kind: Kind::Dynamic,
 
-                    prefix: name.to_vec(),
+                    prefix: name.to_string(),
                     data: None,
                     constraint,
 
@@ -201,9 +211,9 @@ impl<'router, T> Node<'router, T> {
     fn insert_wildcard(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        data: Data<T>,
+        name: &str,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
@@ -215,7 +225,7 @@ impl<'router, T> Node<'router, T> {
                 let mut new_child = Self {
                     kind: Kind::Wildcard,
 
-                    prefix: name.to_vec(),
+                    prefix: name.to_string(),
                     data: None,
                     constraint,
 
@@ -242,9 +252,9 @@ impl<'router, T> Node<'router, T> {
     fn insert_end_wildcard(
         &mut self,
         route: &Route,
-        data: Data<'router, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        data: Data<T>,
+        name: &str,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .end_wildcard_children
@@ -267,7 +277,7 @@ impl<'router, T> Node<'router, T> {
         self.end_wildcard_children.push(Self {
             kind: Kind::EndWildcard,
 
-            prefix: name.to_vec(),
+            prefix: name.to_string(),
             data: Some(data),
             constraint,
 

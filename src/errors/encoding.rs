@@ -3,6 +3,40 @@ use std::{error::Error, fmt::Display};
 /// Errors relating to attempting to decode percent-encoded strings.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EncodingError {
+    // FIXME: Make this only take 1 input, turn key value to key:value ?
+    /// Invalid UTF-8 sequence encountered.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::EncodingError;
+    ///
+    /// let error = EncodingError::Utf8Error {
+    ///     key: "parameter".to_string(),
+    ///     value: "hello�world".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// invalid UTF-8 sequence
+    ///
+    ///      Key: parameter
+    ///    Value: hello�world
+    ///
+    /// Expected: valid UTF-8 characters
+    ///    Found: invalid byte sequence
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    Utf8Error {
+        /// The parameter key.
+        /// This may contain UTF-8 replacement symbols.
+        key: String,
+        /// The parameter value.
+        /// This may contain UTF-8 replacement symbols.
+        value: String,
+    },
+
     /// Invalid percent-encoding sequence encountered.
     ///
     /// # Examples
@@ -73,6 +107,19 @@ impl Error for EncodingError {}
 impl Display for EncodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Utf8Error { key, value } => {
+                write!(
+                    f,
+                    "invalid UTF-8 sequence
+
+     Key: {key}
+   Value: {value}
+
+Expected: valid UTF-8 characters
+   Found: invalid byte sequence",
+                )
+            }
+
             Self::InvalidEncoding {
                 input,
                 position,

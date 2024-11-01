@@ -1,4 +1,4 @@
-use crate::errors::RouteError;
+use crate::errors::{EncodingError, RouteError};
 use rustc_hash::FxHashMap;
 
 /// Characters that are not allowed in parameter names or constraints.
@@ -13,17 +13,17 @@ pub struct Route {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Part {
     Static {
-        prefix: Vec<u8>,
+        prefix: String,
     },
 
     Dynamic {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     },
 
     Wildcard {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     },
 }
 
@@ -156,18 +156,18 @@ impl Parser {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: FxHashMap<Vec<u8>, (usize, usize)> = FxHashMap::default();
+        let mut seen_parameters: FxHashMap<String, (usize, usize)> = FxHashMap::default();
 
         while cursor < input.len() {
             match input[cursor] {
                 b'{' => {
                     let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
 
-                    if let Part::Dynamic { name, .. } | Part::Wildcard { name, .. } = &part {
+                    if let Part::Dynamic { ref name, .. } | Part::Wildcard { ref name, .. } = part {
                         if let Some(&(first, first_length)) = seen_parameters.get(name) {
                             return Err(RouteError::DuplicateParameter {
                                 route: String::from_utf8_lossy(input).to_string(),
-                                name: String::from_utf8_lossy(name).to_string(),
+                                name: name.clone(),
                                 first,
                                 first_length,
                                 second: cursor,
@@ -188,7 +188,7 @@ impl Parser {
                     })
                 }
                 _ => {
-                    let (part, next_cursor) = Self::parse_static_part(input, cursor);
+                    let (part, next_cursor) = Self::parse_static_part(input, cursor)?;
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -203,7 +203,7 @@ impl Parser {
         })
     }
 
-    fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
+    fn parse_static_part(input: &[u8], cursor: usize) -> Result<(Part, usize), RouteError> {
         let mut prefix = vec![];
 
         let mut end = cursor;
@@ -225,7 +225,17 @@ impl Parser {
             }
         }
 
-        (Part::Static { prefix }, end)
+        Ok((
+            Part::Static {
+                prefix: String::from_utf8(prefix.clone()).map_err(|_| {
+                    EncodingError::Utf8Error {
+                        key: String::from_utf8_lossy(&prefix).to_string(),
+                        value: String::new(),
+                    }
+                })?,
+            },
+            end,
+        ))
     }
 
     fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), RouteError> {
@@ -317,8 +327,8 @@ impl Parser {
             }
         }
 
-        let name = name.to_vec();
-        let constraint = constraint.map(<[u8]>::to_vec);
+        let name = String::from_utf8_lossy(name).into_owned();
+        let constraint = constraint.map(|c| String::from_utf8_lossy(c).into_owned());
 
         let part = if is_wildcard {
             Part::Wildcard { name, constraint }
@@ -344,7 +354,7 @@ mod tests {
                 routes: vec![Route {
                     raw: b"/abcd".to_vec(),
                     parts: vec![Part::Static {
-                        prefix: b"/abcd".to_vec()
+                        prefix: "/abcd".to_string()
                     }],
                 }],
             }),
@@ -361,11 +371,11 @@ mod tests {
                     raw: b"/{name}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"name".to_vec(),
+                            name: "name".to_string(),
                             constraint: None
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: "/".to_string()
                         },
                     ],
                 }],
@@ -383,11 +393,11 @@ mod tests {
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
-                            name: b"route".to_vec(),
+                            name: "route".to_string(),
                             constraint: None
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: "/".to_string()
                         },
                     ],
                 }],
@@ -405,18 +415,18 @@ mod tests {
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"id".to_vec(),
-                            constraint: Some(b"numeric".to_vec())
+                            name: "id".to_string(),
+                            constraint: Some("numeric".to_string())
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: "/".to_string()
                         },
                         Part::Wildcard {
-                            name: b"name".to_vec(),
-                            constraint: Some(b"alpha".to_vec())
+                            name: "name".to_string(),
+                            constraint: Some("alpha".to_string())
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: "/".to_string()
                         },
                     ],
                 }],
@@ -435,18 +445,18 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: "/users/".to_string()
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: "/users".to_string()
                         }],
                     },
                 ],
@@ -465,14 +475,14 @@ mod tests {
                         raw: b"/users/{id}/profile".to_vec(),
                         parts: vec![
                             Part::Static {
-                                prefix: b"/profile".to_vec()
+                                prefix: "/profile".to_string()
                             },
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: "/users/".to_string()
                             },
                         ],
                     },
@@ -480,18 +490,18 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: "/users/".to_string()
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: "/users".to_string()
                         }],
                     },
                 ],
@@ -508,7 +518,7 @@ mod tests {
                 routes: vec![Route {
                     raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                     parts: vec![Part::Static {
-                        prefix: b"/path/with{braces}and(parens)".to_vec()
+                        prefix: "/path/with{braces}and(parens)".to_string()
                     }],
                 }],
             }),
@@ -526,21 +536,21 @@ mod tests {
                         raw: b"/{lang}/users".to_vec(),
                         parts: vec![
                             Part::Static {
-                                prefix: b"/users".to_vec()
+                                prefix: "/users".to_string()
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: "/".to_string()
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: "/users".to_string()
                         }],
                     },
                 ],
@@ -559,18 +569,18 @@ mod tests {
                         raw: b"/{lang}/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: "page".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: "/".to_string()
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: "/".to_string()
                             },
                         ],
                     },
@@ -578,11 +588,11 @@ mod tests {
                         raw: b"/{lang}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: "/".to_string()
                             },
                         ],
                     },
@@ -590,18 +600,18 @@ mod tests {
                         raw: b"/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: "page".to_string(),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: "/".to_string()
                             },
                         ],
                     },
                     Route {
                         raw: b"/".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: "/".to_string()
                         }],
                     },
                 ],

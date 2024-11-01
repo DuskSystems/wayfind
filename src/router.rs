@@ -57,15 +57,15 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct Router<'router, T> {
+pub struct Router<T> {
     /// The root node of the tree.
-    root: Node<'router, T>,
+    root: Node<T>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: FxHashMap<Vec<u8>, StoredConstraint>,
+    constraints: FxHashMap<&'static str, StoredConstraint>,
 }
 
-impl<'router, T> Router<'router, T> {
+impl<T> Router<T> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -77,7 +77,7 @@ impl<'router, T> Router<'router, T> {
             root: Node {
                 kind: Kind::Root,
 
-                prefix: vec![],
+                prefix: String::new(),
                 data: None,
                 constraint: None,
 
@@ -139,7 +139,7 @@ impl<'router, T> Router<'router, T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
+        match self.constraints.entry(C::NAME) {
             Entry::Vacant(entry) => {
                 entry.insert(StoredConstraint {
                     type_name: type_name::<C>(),
@@ -179,9 +179,9 @@ impl<'router, T> Router<'router, T> {
     ///
     /// router.insert(route, 2).unwrap();
     /// ```
-    pub fn insert(
+    pub fn insert<'a>(
         &mut self,
-        routable: impl Into<Routable<'router>>,
+        routable: impl Into<Routable<'a>>,
         value: T,
     ) -> Result<(), InsertError> {
         let routable = routable.into();
@@ -206,9 +206,10 @@ impl<'router, T> Router<'router, T> {
                     ..
                 } = part
                 {
+                    let name: &str = name.as_ref();
                     if !self.constraints.contains_key(name) {
                         return Err(InsertError::UnknownConstraint {
-                            constraint: String::from_utf8_lossy(name).to_string(),
+                            constraint: name.to_string(),
                         });
                     }
                 }
@@ -218,12 +219,12 @@ impl<'router, T> Router<'router, T> {
         if parsed.routes.len() > 1 {
             let value = Arc::new(value);
             for mut route in parsed.routes {
-                let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
+                let expanded = String::from_utf8_lossy(&route.raw).to_string();
 
                 if let Err(err) = self.root.insert(
                     &mut route,
                     Data::Shared {
-                        route: routable.route,
+                        route: routable.route.to_string(),
                         expanded,
                         value: Arc::clone(&value),
                     },
@@ -238,7 +239,7 @@ impl<'router, T> Router<'router, T> {
             self.root.insert(
                 route,
                 Data::Inline {
-                    route: routable.route,
+                    route: routable.route.to_string(),
                     value,
                 },
             )?;
@@ -271,7 +272,7 @@ impl<'router, T> Router<'router, T> {
     /// router.insert(route.clone(), 1).unwrap();
     /// router.delete(route).unwrap();
     /// ```
-    pub fn delete(&mut self, routable: impl Into<Routable<'router>>) -> Result<(), DeleteError> {
+    pub fn delete<'a>(&mut self, routable: impl Into<Routable<'a>>) -> Result<(), DeleteError> {
         let routable = routable.into();
 
         let decoded_route = percent_decode(routable.route.as_bytes())?;
@@ -321,7 +322,7 @@ impl<'router, T> Router<'router, T> {
     /// let path = Path::new("/hello").unwrap();
     /// let search = router.search(&path).unwrap();
     /// ```
-    pub fn search<'path>(
+    pub fn search<'router, 'path>(
         &'router self,
         path: &'path Path<'_>,
     ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
@@ -352,13 +353,13 @@ impl<'router, T> Router<'router, T> {
     }
 }
 
-impl<'router, T> Default for Router<'router, T> {
+impl<T> Default for Router<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'router, T> Display for Router<'router, T> {
+impl<T> Display for Router<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }

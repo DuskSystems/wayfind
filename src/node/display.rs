@@ -2,33 +2,26 @@ use super::Node;
 use crate::node::Kind;
 use std::fmt::{Display, Write};
 
-impl<'router, T> Display for Node<'router, T> {
+impl<T> Display for Node<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T>(
             output: &mut String,
-            node: &Node<'_, T>,
+            node: &Node<T>,
             padding: &str,
             is_top: bool,
             is_last: bool,
         ) -> std::fmt::Result {
-            let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
             let key = match &node.kind {
                 Kind::Root => unreachable!(),
-                Kind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
-                Kind::Dynamic => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{{name}}}"),
-                        |constraint| format!("{{{name}:{constraint}}}"),
-                    )
-                }
-                Kind::Wildcard | Kind::EndWildcard => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{*{name}}}"),
-                        |constraint| format!("{{*{name}:{constraint}}}"),
-                    )
-                }
+                Kind::Static => node.prefix.clone(),
+                Kind::Dynamic => node.constraint.as_ref().map_or_else(
+                    || format!("{{{}}}", node.prefix),
+                    |constraint| format!("{{{}:{constraint}}}", node.prefix),
+                ),
+                Kind::Wildcard | Kind::EndWildcard => node.constraint.as_ref().map_or_else(
+                    || format!("{{*{}}}", node.prefix),
+                    |constraint| format!("{{*{}:{constraint}}}", node.prefix),
+                ),
             };
 
             if is_top {

@@ -5,7 +5,7 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<'router, T> Node<'router, T> {
+impl<T> Node<T> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -58,14 +58,19 @@ impl<'router, T> Node<'router, T> {
         &mut self,
         route: &mut Route,
         is_expanded: bool,
-        prefix: &[u8],
+        prefix: &str,
     ) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
             .position(|child| {
                 prefix.len() >= child.prefix.len()
-                    && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
+                    && child
+                        .prefix
+                        .as_bytes()
+                        .iter()
+                        .zip(prefix.as_bytes())
+                        .all(|(a, b)| a == b)
             })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
@@ -94,8 +99,8 @@ impl<'router, T> Node<'router, T> {
         &mut self,
         route: &mut Route,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
@@ -120,8 +125,8 @@ impl<'router, T> Node<'router, T> {
         &mut self,
         route: &mut Route,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
@@ -145,8 +150,8 @@ impl<'router, T> Node<'router, T> {
     fn delete_end_wildcard(
         &mut self,
         route: &Route,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
