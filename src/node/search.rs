@@ -15,7 +15,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         if path.is_empty() {
             return if self.data.is_some() {
@@ -48,7 +48,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
@@ -69,7 +69,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
@@ -83,7 +83,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.dynamic_children.iter() {
             let mut consumed = 0;
@@ -141,7 +141,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -174,7 +174,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
@@ -188,7 +188,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -242,7 +242,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -311,7 +311,7 @@ impl<'r, T> Node<'r, T> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> Result<Option<&'r Self>, SearchError> {
         for child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(child, path, constraints) {
@@ -340,13 +340,13 @@ impl<'r, T> Node<'r, T> {
     fn check_constraint(
         node: &Self,
         segment: &[u8],
-        constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
+        constraints: &FxHashMap<&'r [u8], StoredConstraint>,
     ) -> bool {
         let Some(name) = &node.constraint else {
             return true;
         };
 
-        let constraint = constraints.get(name).unwrap();
+        let constraint = constraints.get(name.as_ref()).unwrap();
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };

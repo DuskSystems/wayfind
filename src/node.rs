@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt::Debug,
     ops::{Index, IndexMut},
     sync::Arc,
@@ -16,12 +17,12 @@ pub struct Node<'r, T> {
     pub kind: Kind,
 
     /// The prefix may either be the static bytes of a path, or the name of a variable.
-    pub prefix: Vec<u8>,
+    pub prefix: Cow<'r, [u8]>,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
     pub data: Option<Data<'r, T>>,
     /// An optional check to run, to restrict routing to this node.
-    pub constraint: Option<Vec<u8>>,
+    pub constraint: Option<Cow<'r, [u8]>>,
 
     pub static_children: Children<'r, T>,
     pub dynamic_children: Children<'r, T>,

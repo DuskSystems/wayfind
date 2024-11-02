@@ -1,40 +1,41 @@
 use crate::errors::RouteError;
 use rustc_hash::FxHashMap;
+use std::borrow::Cow;
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Route {
+pub struct Route<'r> {
     pub raw: Vec<u8>,
-    pub parts: Vec<Part>,
+    pub parts: Vec<Part<'r>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Part {
+pub enum Part<'r> {
     Static {
-        prefix: Vec<u8>,
+        prefix: Cow<'r, [u8]>,
     },
 
     Dynamic {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: Cow<'r, [u8]>,
+        constraint: Option<Cow<'r, [u8]>>,
     },
 
     Wildcard {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: Cow<'r, [u8]>,
+        constraint: Option<Cow<'r, [u8]>>,
     },
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parser {
+pub struct Parser<'r> {
     pub raw: Vec<u8>,
-    pub routes: Vec<Route>,
+    pub routes: Vec<Route<'r>>,
 }
 
-impl Parser {
-    pub fn new(input: &[u8]) -> Result<Self, RouteError> {
+impl<'r> Parser<'r> {
+    pub fn new(input: &'r [u8]) -> Result<Self, RouteError> {
         if input.is_empty() {
             return Err(RouteError::Empty);
         }
@@ -42,7 +43,7 @@ impl Parser {
         let routes = Self::expand_optional_groups(input, 0, input.len())?;
         let routes = routes
             .into_iter()
-            .map(|raw| Self::parse_route(&raw))
+            .map(|raw| Self::parse_route(input, &raw))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
@@ -51,7 +52,12 @@ impl Parser {
         })
     }
 
-    // Recursively expands optional groups in the route, generating all possible combinations
+    fn find_slice(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+        haystack
+            .windows(needle.len())
+            .position(|window| window == needle)
+    }
+
     fn expand_optional_groups(
         input: &[u8],
         start: usize,
@@ -66,7 +72,6 @@ impl Parser {
         while cursor < end {
             match (input[cursor], input.get(cursor + 1)) {
                 (b'\\', Some(_)) => {
-                    // Skip the backslash and the escaped character
                     cursor += 2;
                 }
                 (b'(', _) => {
@@ -146,7 +151,7 @@ impl Parser {
         Ok(result)
     }
 
-    fn parse_route(input: &[u8]) -> Result<Route, RouteError> {
+    fn parse_route(original: &'r [u8], input: &[u8]) -> Result<Route<'r>, RouteError> {
         if !input.is_empty() && input[0] != b'/' {
             return Err(RouteError::MissingLeadingSlash {
                 route: String::from_utf8_lossy(input).to_string(),
@@ -161,10 +166,10 @@ impl Parser {
         while cursor < input.len() {
             match input[cursor] {
                 b'{' => {
-                    let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
+                    let (part, next_cursor) = Self::parse_parameter_part(original, input, cursor)?;
 
                     if let Part::Dynamic { name, .. } | Part::Wildcard { name, .. } = &part {
-                        if let Some(&(first, first_length)) = seen_parameters.get(name) {
+                        if let Some(&(first, first_length)) = seen_parameters.get(name.as_ref()) {
                             return Err(RouteError::DuplicateParameter {
                                 route: String::from_utf8_lossy(input).to_string(),
                                 name: String::from_utf8_lossy(name).to_string(),
@@ -175,7 +180,7 @@ impl Parser {
                             });
                         }
 
-                        seen_parameters.insert(name.clone(), (cursor, next_cursor - cursor));
+                        seen_parameters.insert(name.to_vec(), (cursor, next_cursor - cursor));
                     }
 
                     parts.push(part);
@@ -188,7 +193,7 @@ impl Parser {
                     })
                 }
                 _ => {
-                    let (part, next_cursor) = Self::parse_static_part(input, cursor);
+                    let (part, next_cursor) = Self::parse_static_part(original, input, cursor);
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -203,10 +208,10 @@ impl Parser {
         })
     }
 
-    fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
+    fn parse_static_part(original: &'r [u8], input: &[u8], cursor: usize) -> (Part<'r>, usize) {
         let mut prefix = vec![];
-
         let mut end = cursor;
+
         while end < input.len() {
             match (input[end], input.get(end + 1)) {
                 (b'\\', Some(&next_char)) => {
@@ -225,10 +230,30 @@ impl Parser {
             }
         }
 
-        (Part::Static { prefix }, end)
+        let needle = &input[cursor..end];
+        Self::find_slice(original, needle).map_or(
+            (
+                Part::Static {
+                    prefix: Cow::Owned(prefix),
+                },
+                end,
+            ),
+            |pos| {
+                (
+                    Part::Static {
+                        prefix: Cow::Borrowed(&original[pos..pos + needle.len()]),
+                    },
+                    end,
+                )
+            },
+        )
     }
 
-    fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), RouteError> {
+    fn parse_parameter_part(
+        original: &'r [u8],
+        input: &[u8],
+        cursor: usize,
+    ) -> Result<(Part<'r>, usize), RouteError> {
         let start = cursor + 1;
         let mut end = start;
 
@@ -317,8 +342,17 @@ impl Parser {
             }
         }
 
-        let name = name.to_vec();
-        let constraint = constraint.map(<[u8]>::to_vec);
+        let name = Self::find_slice(original, name).map_or_else(
+            || Cow::Owned(name.to_vec()),
+            |pos| Cow::Borrowed(&original[pos..pos + name.len()]),
+        );
+
+        let constraint = constraint.map(|c| {
+            Self::find_slice(original, c).map_or_else(
+                || Cow::Owned(c.to_vec()),
+                |pos| Cow::Borrowed(&original[pos..pos + c.len()]),
+            )
+        });
 
         let part = if is_wildcard {
             Part::Wildcard { name, constraint }
@@ -344,7 +378,7 @@ mod tests {
                 routes: vec![Route {
                     raw: b"/abcd".to_vec(),
                     parts: vec![Part::Static {
-                        prefix: b"/abcd".to_vec()
+                        prefix: Cow::Borrowed(b"/abcd")
                     }],
                 }],
             }),
@@ -361,11 +395,11 @@ mod tests {
                     raw: b"/{name}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"name".to_vec(),
+                            name: Cow::Borrowed(b"name"),
                             constraint: None
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: Cow::Borrowed(b"/")
                         },
                     ],
                 }],
@@ -383,11 +417,11 @@ mod tests {
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
-                            name: b"route".to_vec(),
+                            name: Cow::Borrowed(b"route"),
                             constraint: None
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: Cow::Borrowed(b"/")
                         },
                     ],
                 }],
@@ -405,18 +439,18 @@ mod tests {
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"id".to_vec(),
-                            constraint: Some(b"numeric".to_vec())
+                            name: Cow::Borrowed(b"id"),
+                            constraint: Some(Cow::Borrowed(b"numeric"))
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: Cow::Borrowed(b"/")
                         },
                         Part::Wildcard {
-                            name: b"name".to_vec(),
-                            constraint: Some(b"alpha".to_vec())
+                            name: Cow::Borrowed(b"name"),
+                            constraint: Some(Cow::Borrowed(b"alpha"))
                         },
                         Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: Cow::Borrowed(b"/")
                         },
                     ],
                 }],
@@ -435,18 +469,18 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: Cow::Borrowed(b"id"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: Cow::Borrowed(b"/users/")
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: Cow::Borrowed(b"/users")
                         }],
                     },
                 ],
@@ -465,14 +499,14 @@ mod tests {
                         raw: b"/users/{id}/profile".to_vec(),
                         parts: vec![
                             Part::Static {
-                                prefix: b"/profile".to_vec()
+                                prefix: Cow::Borrowed(b"/profile")
                             },
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: Cow::Borrowed(b"id"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: Cow::Borrowed(b"/users/")
                             },
                         ],
                     },
@@ -480,18 +514,18 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: Cow::Borrowed(b"id"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/users/".to_vec()
+                                prefix: Cow::Borrowed(b"/users/")
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: Cow::Borrowed(b"/users")
                         }],
                     },
                 ],
@@ -508,7 +542,7 @@ mod tests {
                 routes: vec![Route {
                     raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                     parts: vec![Part::Static {
-                        prefix: b"/path/with{braces}and(parens)".to_vec()
+                        prefix: Cow::Borrowed(b"/path/with{braces}and(parens)")
                     }],
                 }],
             }),
@@ -526,21 +560,21 @@ mod tests {
                         raw: b"/{lang}/users".to_vec(),
                         parts: vec![
                             Part::Static {
-                                prefix: b"/users".to_vec()
+                                prefix: Cow::Borrowed(b"/users")
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: Cow::Borrowed(b"lang"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: Cow::Borrowed(b"/")
                             },
                         ],
                     },
                     Route {
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
+                            prefix: Cow::Borrowed(b"/users")
                         }],
                     },
                 ],
@@ -559,18 +593,18 @@ mod tests {
                         raw: b"/{lang}/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: Cow::Borrowed(b"page"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: Cow::Borrowed(b"/")
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: Cow::Borrowed(b"lang"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: Cow::Borrowed(b"/")
                             },
                         ],
                     },
@@ -578,11 +612,11 @@ mod tests {
                         raw: b"/{lang}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: Cow::Borrowed(b"lang"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: Cow::Borrowed(b"/")
                             },
                         ],
                     },
@@ -590,18 +624,18 @@ mod tests {
                         raw: b"/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: Cow::Borrowed(b"page"),
                                 constraint: None
                             },
                             Part::Static {
-                                prefix: b"/".to_vec()
+                                prefix: Cow::Borrowed(b"/")
                             },
                         ],
                     },
                     Route {
                         raw: b"/".to_vec(),
                         parts: vec![Part::Static {
-                            prefix: b"/".to_vec()
+                            prefix: Cow::Borrowed(b"/")
                         }],
                     },
                 ],

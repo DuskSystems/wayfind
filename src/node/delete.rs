@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use super::Data;
 use crate::{
     errors::DeleteError,
@@ -14,19 +16,19 @@ impl<'r, T> Node<'r, T> {
     /// If the route is found and deleted, we re-optimize the tree structure.
     ///
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
-    pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, route: &mut Route<'r>, is_expanded: bool) -> Result<(), DeleteError> {
         if let Some(part) = route.parts.pop() {
             match part {
-                Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
+                Part::Static { prefix } => self.delete_static(route, is_expanded, prefix),
                 Part::Dynamic {
                     name, constraint, ..
-                } => self.delete_dynamic(route, is_expanded, &name, &constraint),
+                } => self.delete_dynamic(route, is_expanded, name, constraint),
                 Part::Wildcard {
                     name, constraint, ..
-                } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
+                } if route.parts.is_empty() => self.delete_end_wildcard(route, name, constraint),
                 Part::Wildcard {
                     name, constraint, ..
-                } => self.delete_wildcard(route, is_expanded, &name, &constraint),
+                } => self.delete_wildcard(route, is_expanded, name, constraint),
             }
         } else {
             let Some(data) = &self.data else {
@@ -54,18 +56,23 @@ impl<'r, T> Node<'r, T> {
         }
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_static(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'r>,
         is_expanded: bool,
-        prefix: &[u8],
+        prefix: Cow<'r, [u8]>,
     ) -> Result<(), DeleteError> {
         let index = self
             .static_children
             .iter()
             .position(|child| {
                 prefix.len() >= child.prefix.len()
-                    && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
+                    && child
+                        .prefix
+                        .iter()
+                        .zip(prefix.as_ref())
+                        .all(|(a, b)| a == b)
             })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
@@ -79,7 +86,7 @@ impl<'r, T> Node<'r, T> {
         let result = if remaining_prefix.is_empty() {
             child.delete(route, is_expanded)
         } else {
-            child.delete_static(route, is_expanded, remaining_prefix)
+            child.delete_static(route, is_expanded, Cow::Owned(remaining_prefix.to_vec()))
         };
 
         if child.is_empty() {
@@ -90,17 +97,18 @@ impl<'r, T> Node<'r, T> {
         result
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_dynamic(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'r>,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: Cow<'r, [u8]>,
+        constraint: Option<Cow<'r, [u8]>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -116,17 +124,18 @@ impl<'r, T> Node<'r, T> {
         result
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_wildcard(
         &mut self,
-        route: &mut Route,
+        route: &mut Route<'r>,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: Cow<'r, [u8]>,
+        constraint: Option<Cow<'r, [u8]>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -142,16 +151,17 @@ impl<'r, T> Node<'r, T> {
         result
     }
 
+    #[allow(clippy::needless_pass_by_value)]
     fn delete_end_wildcard(
         &mut self,
-        route: &Route,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        route: &Route<'r>,
+        name: Cow<'r, [u8]>,
+        constraint: Option<Cow<'r, [u8]>>,
     ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.prefix == name && child.constraint == constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;

@@ -11,6 +11,7 @@ use rustc_hash::FxHashMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     any::type_name,
+    borrow::Cow,
     collections::hash_map::Entry,
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
@@ -62,7 +63,7 @@ pub struct Router<'r, T> {
     root: Node<'r, T>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: FxHashMap<Vec<u8>, StoredConstraint>,
+    constraints: FxHashMap<&'r [u8], StoredConstraint>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -77,7 +78,7 @@ impl<'r, T> Router<'r, T> {
             root: Node {
                 kind: Kind::Root,
 
-                prefix: vec![],
+                prefix: Cow::Borrowed(&[]),
                 data: None,
                 constraint: None,
 
@@ -139,7 +140,7 @@ impl<'r, T> Router<'r, T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
+        match self.constraints.entry(C::NAME.as_bytes()) {
             Entry::Vacant(entry) => {
                 entry.insert(StoredConstraint {
                     type_name: type_name::<C>(),
@@ -206,7 +207,7 @@ impl<'r, T> Router<'r, T> {
                     ..
                 } = part
                 {
-                    if !self.constraints.contains_key(name) {
+                    if !self.constraints.contains_key(name.as_ref()) {
                         return Err(InsertError::UnknownConstraint {
                             constraint: String::from_utf8_lossy(name).to_string(),
                         });
