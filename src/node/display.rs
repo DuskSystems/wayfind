@@ -1,35 +1,16 @@
-use super::Node;
-use crate::node::Kind;
+use super::{Node, State};
 use std::fmt::{Display, Write};
 
-impl<'r, T> Display for Node<'r, T> {
+impl<'r, T, S: State> Display for Node<'r, T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn debug_node<T>(
+        fn debug_node<T, S: State>(
             output: &mut String,
-            node: &Node<'_, T>,
+            node: &Node<'_, T, S>,
             padding: &str,
             is_top: bool,
             is_last: bool,
         ) -> std::fmt::Result {
-            let constraint = node.constraint.as_ref().map(|c| String::from_utf8_lossy(c));
-            let key = match &node.kind {
-                Kind::Root => unreachable!(),
-                Kind::Static => String::from_utf8_lossy(&node.prefix).to_string(),
-                Kind::Dynamic => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{{name}}}"),
-                        |constraint| format!("{{{name}:{constraint}}}"),
-                    )
-                }
-                Kind::Wildcard | Kind::EndWildcard => {
-                    let name = String::from_utf8_lossy(&node.prefix);
-                    constraint.map_or_else(
-                        || format!("{{*{name}}}"),
-                        |constraint| format!("{{*{name}:{constraint}}}"),
-                    )
-                }
-            };
+            let key = node.state.key();
 
             if is_top {
                 writeln!(output, "{key}")?;
@@ -50,39 +31,64 @@ impl<'r, T> Display for Node<'r, T> {
                 format!("{padding}│  ")
             };
 
-            // Chain all children together, in order
-            let mut children = node
-                .static_children
-                .iter()
-                .chain(node.dynamic_children.iter())
-                .chain(node.wildcard_children.iter())
-                .chain(node.end_wildcard_children.iter())
-                .peekable();
+            let mut total_children = node.static_children.nodes.len()
+                + node.dynamic_children.nodes.len()
+                + node.wildcard_children.nodes.len()
+                + node.end_wildcard_children.nodes.len();
 
-            while let Some(child) = children.next() {
-                let is_last = children.peek().is_none();
-                debug_node(output, child, &new_prefix, false, is_last)?;
+            for child in node.static_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
+            for child in node.dynamic_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
+            for child in node.wildcard_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
+            for child in node.end_wildcard_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
             }
 
             Ok(())
         }
 
         let mut output = String::new();
-        let padding = " ".repeat(self.prefix.len().saturating_sub(1));
+        let padding = " ".repeat(self.state.padding());
 
-        // Handle root node manually.
-        if matches!(self.kind, Kind::Root) {
-            let mut children = self
-                .static_children
-                .iter()
-                .chain(self.dynamic_children.iter())
-                .chain(self.wildcard_children.iter())
-                .chain(self.end_wildcard_children.iter())
-                .peekable();
+        // Handle root node manually
+        if self.state.key().is_empty() {
+            let total_children = self.static_children.nodes.len()
+                + self.dynamic_children.nodes.len()
+                + self.wildcard_children.nodes.len()
+                + self.end_wildcard_children.nodes.len();
 
-            while let Some(child) = children.next() {
-                let is_last = children.peek().is_none();
-                debug_node(&mut output, child, "", true, is_last)?;
+            let mut remaining = total_children;
+
+            for child in self.static_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
+            for child in self.dynamic_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
+            for child in self.wildcard_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
+            for child in self.end_wildcard_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
             }
         } else {
             debug_node(&mut output, self, &padding, true, true)?;

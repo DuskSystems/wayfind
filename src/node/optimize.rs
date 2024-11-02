@@ -1,8 +1,7 @@
-use super::Data;
+use super::{Data, State};
 use crate::node::Node;
 
-impl<'r, T> Node<'r, T> {
-    /// Re-optimizes the tree after an insert/delete.
+impl<'r, T, S: State> Node<'r, T, S> {
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);
     }
@@ -14,15 +13,20 @@ impl<'r, T> Node<'r, T> {
             return;
         }
 
-        for children in [
-            &mut self.static_children,
-            &mut self.dynamic_children,
-            &mut self.wildcard_children,
-            &mut self.end_wildcard_children,
-        ] {
-            for child in children.iter_mut() {
-                child.optimize_inner(self.priority);
-            }
+        for child in self.static_children.iter_mut() {
+            child.optimize_inner(self.priority);
+        }
+
+        for child in self.dynamic_children.iter_mut() {
+            child.optimize_inner(self.priority);
+        }
+
+        for child in self.wildcard_children.iter_mut() {
+            child.optimize_inner(self.priority);
+        }
+
+        for child in self.end_wildcard_children.iter_mut() {
+            child.optimize_inner(self.priority);
         }
 
         self.static_children.sort();
@@ -37,21 +41,17 @@ impl<'r, T> Node<'r, T> {
     }
 
     fn calculate_priority(&self) -> usize {
-        let mut priority = self.prefix.len();
-
-        if self.constraint.is_some() {
-            priority += 10_000;
-        }
-
-        if let Some(data) = &self.data {
+        let mut priority = self.state.priority();
+        if self.data.is_some() {
             priority += 1_000;
-            priority += match data {
-                Data::Inline { route, .. } => {
+            priority += match &self.data {
+                Some(Data::Inline { route, .. }) => {
                     route.len() + (route.bytes().filter(|&b| b == b'/').count() * 100)
                 }
-                Data::Shared { expanded, .. } => {
+                Some(Data::Shared { expanded, .. }) => {
                     expanded.len() + (expanded.bytes().filter(|&b| b == b'/').count() * 100)
                 }
+                None => 0,
             };
         }
 
@@ -61,7 +61,7 @@ impl<'r, T> Node<'r, T> {
     fn update_dynamic_children_shortcut(&mut self) {
         self.dynamic_children_shortcut = self.dynamic_children.iter().all(|child| {
             // Leading slash?
-            if child.prefix.first() == Some(&b'/') {
+            if child.state.name.as_bytes().first() == Some(&b'/') {
                 return true;
             }
 
@@ -78,7 +78,7 @@ impl<'r, T> Node<'r, T> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.prefix.first() == Some(&b'/'))
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
             {
                 return true;
             }
@@ -102,7 +102,7 @@ impl<'r, T> Node<'r, T> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.prefix.first() == Some(&b'/'))
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
             {
                 return true;
             }
