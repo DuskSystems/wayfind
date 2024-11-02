@@ -1,7 +1,7 @@
 use super::Data;
 use crate::node::Node;
 
-impl<'router, T> Node<'router, T> {
+impl<'r, T> Node<'r, T> {
     /// Re-optimizes the tree after an insert/delete.
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);

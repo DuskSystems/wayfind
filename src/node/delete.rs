@@ -5,7 +5,7 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<'router, T> Node<'router, T> {
+impl<'r, T> Node<'r, T> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.

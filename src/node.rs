@@ -12,23 +12,23 @@ pub mod search;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<'router, T> {
+pub struct Node<'r, T> {
     pub kind: Kind,
 
     /// The prefix may either be the static bytes of a path, or the name of a variable.
     pub prefix: Vec<u8>,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
-    pub data: Option<Data<'router, T>>,
+    pub data: Option<Data<'r, T>>,
     /// An optional check to run, to restrict routing to this node.
     pub constraint: Option<Vec<u8>>,
 
-    pub static_children: Children<'router, T>,
-    pub dynamic_children: Children<'router, T>,
+    pub static_children: Children<'r, T>,
+    pub dynamic_children: Children<'r, T>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_children: Children<'router, T>,
+    pub wildcard_children: Children<'r, T>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Children<'router, T>,
+    pub end_wildcard_children: Children<'r, T>,
 
     /// Higher values indicate more specific matches.
     pub priority: usize,
@@ -58,11 +58,11 @@ pub enum Kind {
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Data<'router, T> {
+pub enum Data<'r, T> {
     /// Data is stored inline.
     Inline {
         /// The original route.
-        route: &'router str,
+        route: &'r str,
 
         /// The associated data.
         value: T,
@@ -71,7 +71,7 @@ pub enum Data<'router, T> {
     /// Data is shared between 2 or more nodes.
     Shared {
         /// The original route.
-        route: &'router str,
+        route: &'r str,
 
         /// The expanded route.
         expanded: Arc<str>,
@@ -84,18 +84,18 @@ pub enum Data<'router, T> {
 /// A list of node children.
 /// Maintains whether it is sorted automatically.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Children<'router, T> {
-    nodes: Vec<Node<'router, T>>,
+pub struct Children<'r, T> {
+    nodes: Vec<Node<'r, T>>,
     sorted: bool,
 }
 
-impl<'router, T> Children<'router, T> {
-    fn push(&mut self, node: Node<'router, T>) {
+impl<'r, T> Children<'r, T> {
+    fn push(&mut self, node: Node<'r, T>) {
         self.nodes.push(node);
         self.sorted = false;
     }
 
-    fn remove(&mut self, index: usize) -> Node<'router, T> {
+    fn remove(&mut self, index: usize) -> Node<'r, T> {
         self.nodes.remove(index)
     }
 
@@ -118,23 +118,23 @@ impl<'router, T> Children<'router, T> {
         self.nodes.is_empty()
     }
 
-    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'router, T>>
+    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'r, T>>
     where
-        F: Fn(&Node<'router, T>) -> bool,
+        F: Fn(&Node<'r, T>) -> bool,
     {
         self.nodes.iter_mut().find(|node| predicate(node))
     }
 
-    fn iter(&self) -> impl Iterator<Item = &Node<'router, T>> {
+    fn iter(&self) -> impl Iterator<Item = &Node<'r, T>> {
         self.nodes.iter()
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'router, T>> {
+    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'r, T>> {
         self.nodes.iter_mut()
     }
 }
 
-impl<'router, T> Default for Children<'router, T> {
+impl<'r, T> Default for Children<'r, T> {
     fn default() -> Self {
         Self {
             nodes: vec![],
@@ -143,8 +143,8 @@ impl<'router, T> Default for Children<'router, T> {
     }
 }
 
-impl<'router, T> From<Vec<Node<'router, T>>> for Children<'router, T> {
-    fn from(value: Vec<Node<'router, T>>) -> Self {
+impl<'r, T> From<Vec<Node<'r, T>>> for Children<'r, T> {
+    fn from(value: Vec<Node<'r, T>>) -> Self {
         Self {
             nodes: value,
             sorted: false,
@@ -152,15 +152,15 @@ impl<'router, T> From<Vec<Node<'router, T>>> for Children<'router, T> {
     }
 }
 
-impl<'router, T> Index<usize> for Children<'router, T> {
-    type Output = Node<'router, T>;
+impl<'r, T> Index<usize> for Children<'r, T> {
+    type Output = Node<'r, T>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index]
     }
 }
 
-impl<'router, T> IndexMut<usize> for Children<'router, T> {
+impl<'r, T> IndexMut<usize> for Children<'r, T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }

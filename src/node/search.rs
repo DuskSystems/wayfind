@@ -1,22 +1,22 @@
 use super::Node;
 use crate::{
-    errors::SearchError,
+    errors::{EncodingError, SearchError},
     router::{Parameter, Parameters, StoredConstraint},
 };
 use rustc_hash::FxHashMap;
 use smallvec::smallvec;
 
-impl<'router, T> Node<'router, T> {
+impl<'r, T> Node<'r, T> {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
     /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
-    pub fn search<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    pub fn search<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
+    ) -> Result<Option<&'r Self>, SearchError> {
         if path.is_empty() {
             return if self.data.is_some() {
                 Ok(Some(self))
@@ -44,19 +44,19 @@ impl<'router, T> Node<'router, T> {
         Ok(None)
     }
 
-    fn search_static<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_static<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for static_child in self.static_children.iter() {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.static_children.iter() {
             // This was previously a "starts_with" call, but turns out this is much faster.
-            if path.len() >= static_child.prefix.len()
-                && static_child.prefix.iter().zip(path).all(|(a, b)| a == b)
+            if path.len() >= child.prefix.len()
+                && child.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
-                let remaining_path = &path[static_child.prefix.len()..];
-                if let Some(node) = static_child.search(remaining_path, parameters, constraints)? {
+                let remaining_path = &path[child.prefix.len()..];
+                if let Some(node) = child.search(remaining_path, parameters, constraints)? {
                     return Ok(Some(node));
                 }
             }
@@ -65,12 +65,12 @@ impl<'router, T> Node<'router, T> {
         Ok(None)
     }
 
-    fn search_dynamic<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_dynamic<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
+    ) -> Result<Option<&'r Self>, SearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -79,13 +79,13 @@ impl<'router, T> Node<'router, T> {
     }
 
     /// Can handle complex dynamic routes like `{name}.{extension}`.
-    fn search_dynamic_inline<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_dynamic_inline<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for dynamic_child in self.dynamic_children.iter() {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
             let mut best_match: Option<&Self> = None;
@@ -99,29 +99,24 @@ impl<'router, T> Node<'router, T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(dynamic_child, segment, constraints) {
+                if !Self::check_constraint(child, segment, constraints) {
                     continue;
                 }
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: std::str::from_utf8(&dynamic_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
-                            key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                            value: String::from_utf8_lossy(segment).to_string(),
+                    key: std::str::from_utf8(&child.prefix).map_err(|_| {
+                        EncodingError::Utf8Error {
+                            input: String::from_utf8_lossy(&child.prefix).to_string(),
                         }
                     })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
+                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                        input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 });
 
-                let Some(node) = dynamic_child.search(
-                    &path[consumed..],
-                    &mut current_parameters,
-                    constraints,
-                )?
+                let Some(node) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)?
                 else {
                     continue;
                 };
@@ -142,36 +137,30 @@ impl<'router, T> Node<'router, T> {
     }
 
     /// Can only handle simple dynamic routes like `/{segment}/`.
-    fn search_dynamic_segment<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_dynamic_segment<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for dynamic_child in self.dynamic_children.iter() {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraint(dynamic_child, segment, constraints) {
+            if !Self::check_constraint(child, segment, constraints) {
                 continue;
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&dynamic_child.prefix).map_err(|_| {
-                    SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
-                    }
+                key: std::str::from_utf8(&child.prefix).map_err(|_| EncodingError::Utf8Error {
+                    input: String::from_utf8_lossy(&child.prefix).to_string(),
                 })?,
-                value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                    key: String::from_utf8_lossy(&dynamic_child.prefix).to_string(),
-                    value: String::from_utf8_lossy(segment).to_string(),
+                value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    input: String::from_utf8_lossy(segment).to_string(),
                 })?,
             });
 
-            if let Some(node) =
-                dynamic_child.search(&path[segment_end..], parameters, constraints)?
-            {
+            if let Some(node) = child.search(&path[segment_end..], parameters, constraints)? {
                 return Ok(Some(node));
             }
 
@@ -181,12 +170,12 @@ impl<'router, T> Node<'router, T> {
         Ok(None)
     }
 
-    fn search_wildcard<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_wildcard<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
+    ) -> Result<Option<&'r Self>, SearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
         } else {
@@ -195,13 +184,13 @@ impl<'router, T> Node<'router, T> {
     }
 
     /// Can handle complex wildcard routes like `/{*name}.{extension}`.
-    fn search_wildcard_inline<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_wildcard_inline<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for wildcard_child in self.wildcard_children.iter() {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.wildcard_children.iter() {
             let mut consumed = 0;
 
             let mut best_match: Option<&Self> = None;
@@ -211,29 +200,24 @@ impl<'router, T> Node<'router, T> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(wildcard_child, segment, constraints) {
+                if !Self::check_constraint(child, segment, constraints) {
                     continue;
                 }
 
                 let mut current_parameters = parameters.clone();
                 current_parameters.push(Parameter {
-                    key: std::str::from_utf8(&wildcard_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
-                            key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                            value: String::from_utf8_lossy(segment).to_string(),
+                    key: std::str::from_utf8(&child.prefix).map_err(|_| {
+                        EncodingError::Utf8Error {
+                            input: String::from_utf8_lossy(&child.prefix).to_string(),
                         }
                     })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
+                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                        input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 });
 
-                let Some(node) = wildcard_child.search(
-                    &path[consumed..],
-                    &mut current_parameters,
-                    constraints,
-                )?
+                let Some(node) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)?
                 else {
                     continue;
                 };
@@ -254,13 +238,13 @@ impl<'router, T> Node<'router, T> {
     }
 
     /// Can only handle simple wildcard routes like `/{*segment}/`.
-    fn search_wildcard_segment<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_wildcard_segment<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for wildcard_child in self.wildcard_children.iter() {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.wildcard_children.iter() {
             let mut consumed = 0;
             let mut remaining_path = path;
             let mut section_end = false;
@@ -289,28 +273,24 @@ impl<'router, T> Node<'router, T> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraint(wildcard_child, segment, constraints) {
+                if !Self::check_constraint(child, segment, constraints) {
                     break;
                 }
 
                 parameters.push(Parameter {
-                    key: std::str::from_utf8(&wildcard_child.prefix).map_err(|_| {
-                        SearchError::Utf8Error {
-                            key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                            value: String::from_utf8_lossy(segment).to_string(),
+                    key: std::str::from_utf8(&child.prefix).map_err(|_| {
+                        EncodingError::Utf8Error {
+                            input: String::from_utf8_lossy(&child.prefix).to_string(),
                         }
                     })?,
-                    value: std::str::from_utf8(segment).map_err(|_| SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&wildcard_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(segment).to_string(),
+                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                        input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 });
 
-                if let Some(node) = wildcard_child.search(
-                    &remaining_path[segment_end..],
-                    parameters,
-                    constraints,
-                )? {
+                if let Some(node) =
+                    child.search(&remaining_path[segment_end..], parameters, constraints)?
+                {
                     return Ok(Some(node));
                 }
 
@@ -327,32 +307,28 @@ impl<'router, T> Node<'router, T> {
         Ok(None)
     }
 
-    fn search_end_wildcard<'path>(
-        &'router self,
-        path: &'path [u8],
-        parameters: &mut Parameters<'router, 'path>,
+    fn search_end_wildcard<'p>(
+        &'r self,
+        path: &'p [u8],
+        parameters: &mut Parameters<'r, 'p>,
         constraints: &FxHashMap<Vec<u8>, StoredConstraint>,
-    ) -> Result<Option<&'router Self>, SearchError> {
-        for end_wildcard_child in self.end_wildcard_children.iter() {
-            if !Self::check_constraint(end_wildcard_child, path, constraints) {
+    ) -> Result<Option<&'r Self>, SearchError> {
+        for child in self.end_wildcard_children.iter() {
+            if !Self::check_constraint(child, path, constraints) {
                 continue;
             }
 
             parameters.push(Parameter {
-                key: std::str::from_utf8(&end_wildcard_child.prefix).map_err(|_| {
-                    SearchError::Utf8Error {
-                        key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
-                        value: String::from_utf8_lossy(path).to_string(),
-                    }
+                key: std::str::from_utf8(&child.prefix).map_err(|_| EncodingError::Utf8Error {
+                    input: String::from_utf8_lossy(&child.prefix).to_string(),
                 })?,
-                value: std::str::from_utf8(path).map_err(|_| SearchError::Utf8Error {
-                    key: String::from_utf8_lossy(&end_wildcard_child.prefix).to_string(),
-                    value: String::from_utf8_lossy(path).to_string(),
+                value: std::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
+                    input: String::from_utf8_lossy(path).to_string(),
                 })?,
             });
 
-            return if end_wildcard_child.data.is_some() {
-                Ok(Some(end_wildcard_child))
+            return if child.data.is_some() {
+                Ok(Some(child))
             } else {
                 Ok(None)
             };

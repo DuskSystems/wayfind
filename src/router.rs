@@ -19,31 +19,31 @@ use std::{
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Match<'router, 'path, T> {
+pub struct Match<'r, 'p, T> {
     /// The matching route.
-    pub route: &'router str,
+    pub route: &'r str,
 
     /// The expanded route, if applicable.
-    pub expanded: Option<&'router str>,
+    pub expanded: Option<&'r str>,
 
     /// A reference to the matching route data.
-    pub data: &'router T,
+    pub data: &'r T,
 
     /// Key-value pairs of parameters, extracted from the route.
-    pub parameters: Parameters<'router, 'path>,
+    pub parameters: Parameters<'r, 'p>,
 }
 
 /// All the parameter pairs of a given match.
-pub type Parameters<'router, 'path> = SmallVec<[Parameter<'router, 'path>; 4]>;
+pub type Parameters<'r, 'p> = SmallVec<[Parameter<'r, 'p>; 4]>;
 
 /// A key-value parameter pair.
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Parameter<'router, 'path> {
-    pub key: &'router str,
-    pub value: &'path str,
+pub struct Parameter<'r, 'p> {
+    pub key: &'r str,
+    pub value: &'p str,
 }
 
 /// A constraint with its type name.
@@ -57,15 +57,15 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct Router<'router, T> {
+pub struct Router<'r, T> {
     /// The root node of the tree.
-    root: Node<'router, T>,
+    root: Node<'r, T>,
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: FxHashMap<Vec<u8>, StoredConstraint>,
 }
 
-impl<'router, T> Router<'router, T> {
+impl<'r, T> Router<'r, T> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -181,7 +181,7 @@ impl<'router, T> Router<'router, T> {
     /// ```
     pub fn insert(
         &mut self,
-        routable: impl Into<Routable<'router>>,
+        routable: impl Into<Routable<'r>>,
         value: T,
     ) -> Result<(), InsertError> {
         let routable = routable.into();
@@ -271,7 +271,7 @@ impl<'router, T> Router<'router, T> {
     /// router.insert(route.clone(), 1).unwrap();
     /// router.delete(route).unwrap();
     /// ```
-    pub fn delete(&mut self, routable: impl Into<Routable<'router>>) -> Result<(), DeleteError> {
+    pub fn delete(&mut self, routable: impl Into<Routable<'r>>) -> Result<(), DeleteError> {
         let routable = routable.into();
 
         let decoded_route = percent_decode(routable.route.as_bytes())?;
@@ -321,14 +321,14 @@ impl<'router, T> Router<'router, T> {
     /// let path = Path::new("/hello").unwrap();
     /// let search = router.search(&path).unwrap();
     /// ```
-    pub fn search<'path>(
-        &'router self,
-        path: &'path Path<'_>,
-    ) -> Result<Option<Match<'router, 'path, T>>, SearchError> {
+    pub fn search<'p>(
+        &'r self,
+        path: &'p Path<'_>,
+    ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
         let mut parameters = smallvec![];
-        let Some(node) =
-            self.root
-                .search(path.decoded_bytes(), &mut parameters, &self.constraints)?
+        let Some(node) = self
+            .root
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?
         else {
             return Ok(None);
         };
@@ -352,13 +352,13 @@ impl<'router, T> Router<'router, T> {
     }
 }
 
-impl<'router, T> Default for Router<'router, T> {
+impl<'r, T> Default for Router<'r, T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'router, T> Display for Router<'router, T> {
+impl<'r, T> Display for Router<'r, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }

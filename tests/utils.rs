@@ -71,10 +71,10 @@ macro_rules! assert_router_matches {
 }
 
 #[allow(clippy::missing_panics_doc)]
-pub fn assert_router_match<'a, T: PartialEq + Debug>(
-    router: &'a Router<'a, T>,
-    input: &'a str,
-    expected: Option<ExpectedMatch<'_, 'a, T>>,
+pub fn assert_router_match<'r, T: PartialEq + Debug>(
+    router: &'r Router<'r, T>,
+    input: &'r str,
+    expected: Option<ExpectedMatch<'r, 'r, T>>,
 ) {
     let path = Path::new(input).expect("Invalid path!");
     let Ok(Some(Match {
