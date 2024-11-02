@@ -38,9 +38,20 @@ pub fn percent_decode(input: &[u8]) -> Result<Cow<'_, [u8]>, EncodingError> {
 }
 
 #[inline]
-#[allow(clippy::cast_possible_truncation)]
-fn decode_hex(a: u8, b: u8) -> Option<u8> {
-    let a = (a as char).to_digit(16)?;
-    let b = (b as char).to_digit(16)?;
-    Some((a as u8) << 4 | (b as u8))
+const fn decode_hex(a: u8, b: u8) -> Option<u8> {
+    let high = match a {
+        b'0'..=b'9' => a - b'0',
+        b'A'..=b'F' => a - b'A' + 10,
+        b'a'..=b'f' => a - b'a' + 10,
+        _ => return None,
+    };
+
+    let low = match b {
+        b'0'..=b'9' => b - b'0',
+        b'A'..=b'F' => b - b'A' + 10,
+        b'a'..=b'f' => b - b'a' + 10,
+        _ => return None,
+    };
+
+    Some((high << 4) | low)
 }
