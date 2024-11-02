@@ -2,7 +2,7 @@ use super::Node;
 use crate::node::Kind;
 use std::fmt::{Display, Write};
 
-impl<'router, T> Display for Node<'router, T> {
+impl<'r, T> Display for Node<'r, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T>(
             output: &mut String,

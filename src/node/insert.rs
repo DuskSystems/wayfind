@@ -4,12 +4,12 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<'router, T> Node<'router, T> {
+impl<'r, T> Node<'r, T> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: Data<'router, T>) -> Result<(), InsertError> {
+    pub fn insert(&mut self, route: &mut Route, data: Data<'r, T>) -> Result<(), InsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
@@ -51,7 +51,7 @@ impl<'router, T> Node<'router, T> {
     fn insert_static(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
+        data: Data<'r, T>,
         prefix: &[u8],
     ) -> Result<(), InsertError> {
         // Check if the first byte is already a child here.
@@ -160,7 +160,7 @@ impl<'router, T> Node<'router, T> {
     fn insert_dynamic(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
+        data: Data<'r, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -201,7 +201,7 @@ impl<'router, T> Node<'router, T> {
     fn insert_wildcard(
         &mut self,
         route: &mut Route,
-        data: Data<'router, T>,
+        data: Data<'r, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {
@@ -242,7 +242,7 @@ impl<'router, T> Node<'router, T> {
     fn insert_end_wildcard(
         &mut self,
         route: &Route,
-        data: Data<'router, T>,
+        data: Data<'r, T>,
         name: &[u8],
         constraint: Option<Vec<u8>>,
     ) -> Result<(), InsertError> {

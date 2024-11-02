@@ -3,15 +3,12 @@ use std::borrow::Cow;
 
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug)]
-pub struct Path<'path> {
-    /// Original, unaltered path bytes.
-    _raw: &'path [u8],
-
+pub struct Path<'p> {
     /// Percent-decoded path bytes.
-    decoded: Cow<'path, [u8]>,
+    decoded: Cow<'p, [u8]>,
 }
 
-impl<'path> Path<'path> {
+impl<'p> Path<'p> {
     /// Creates a new [`Path`] instance from a URI path string.
     ///
     /// # Errors
@@ -26,7 +23,7 @@ impl<'path> Path<'path> {
     /// use wayfind::Path;
     ///
     /// let path = Path::new("/hello%20world").unwrap();
-    /// assert_eq!(path.decoded_bytes(), b"/hello world");
+    /// assert_eq!(path.as_bytes(), b"/hello world");
     /// ```
     ///
     /// ## Invalid
@@ -41,19 +38,16 @@ impl<'path> Path<'path> {
     ///     character: [b'%', b'G', b'G'],
     /// }));
     /// ```
-    pub fn new(path: &'path str) -> Result<Self, PathError> {
-        let decoded = percent_decode(path.as_bytes())?;
-
+    pub fn new(path: &'p str) -> Result<Self, PathError> {
         Ok(Self {
-            _raw: path.as_bytes(),
-            decoded,
+            decoded: percent_decode(path.as_bytes())?,
         })
     }
 
     /// Returns a reference to the percent-decoded path bytes.
     /// May contain invalid UTF-8 bytes.
     #[must_use]
-    pub fn decoded_bytes(&'path self) -> &'path [u8] {
+    pub fn as_bytes(&'p self) -> &'p [u8] {
         &self.decoded
     }
 }
