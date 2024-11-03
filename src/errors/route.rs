@@ -1,6 +1,11 @@
+use super::EncodingError;
+
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteError {
+    /// A [`EncodingError`] that occurred during the decoding.
+    EncodingError(EncodingError),
+
     /// The route is empty.
     Empty,
 
@@ -359,6 +364,7 @@ impl std::error::Error for RouteError {}
 impl std::fmt::Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::EncodingError(error) => error.fmt(f),
             Self::Empty => write!(f, "empty route"),
 
             Self::MissingLeadingSlash { route } => {
@@ -529,5 +535,11 @@ tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '('
                 )
             }
         }
+    }
+}
+
+impl From<EncodingError> for RouteError {
+    fn from(error: EncodingError) -> Self {
+        Self::EncodingError(error)
     }
 }

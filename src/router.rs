@@ -2,9 +2,10 @@ use crate::{
     constraints::Constraint,
     decode::percent_decode,
     errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
-    node::{Children, Data, Kind, Node},
+    node::{Children, Data, Node},
     parser::{Parser, Part},
     path::Path,
+    state::RootState,
     Routable,
 };
 use rustc_hash::FxHashMap;
@@ -59,10 +60,10 @@ pub struct StoredConstraint {
 #[derive(Clone)]
 pub struct Router<'r, T> {
     /// The root node of the tree.
-    root: Node<'r, T>,
+    root: Node<'r, T, RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: FxHashMap<Vec<u8>, StoredConstraint>,
+    constraints: FxHashMap<&'r str, StoredConstraint>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -75,11 +76,8 @@ impl<'r, T> Router<'r, T> {
     pub fn new() -> Self {
         let mut router = Self {
             root: Node {
-                kind: Kind::Root,
-
-                prefix: vec![],
+                state: RootState::new(),
                 data: None,
-                constraint: None,
 
                 static_children: Children::default(),
                 dynamic_children: Children::default(),
@@ -139,7 +137,7 @@ impl<'r, T> Router<'r, T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        match self.constraints.entry(C::NAME.as_bytes().to_vec()) {
+        match self.constraints.entry(C::NAME) {
             Entry::Vacant(entry) => {
                 entry.insert(StoredConstraint {
                     type_name: type_name::<C>(),
@@ -206,9 +204,9 @@ impl<'r, T> Router<'r, T> {
                     ..
                 } = part
                 {
-                    if !self.constraints.contains_key(name) {
+                    if !self.constraints.contains_key(name.as_str()) {
                         return Err(InsertError::UnknownConstraint {
-                            constraint: String::from_utf8_lossy(name).to_string(),
+                            constraint: name.to_string(),
                         });
                     }
                 }
@@ -326,21 +324,21 @@ impl<'r, T> Router<'r, T> {
         path: &'p Path<'_>,
     ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
         let mut parameters = smallvec![];
-        let Some(node) = self
-            .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?
+        let Some((data, _)) =
+            self.root
+                .search(path.as_bytes(), &mut parameters, &self.constraints)?
         else {
             return Ok(None);
         };
 
-        let (route, expanded, data) = match &node.data {
-            Some(Data::Inline { route, value }) => (route, None, value),
-            Some(Data::Shared {
+        let (route, expanded, data) = match data {
+            Data::Inline { route, value, .. } => (route, None, value),
+            Data::Shared {
                 route,
                 expanded,
                 value,
-            }) => (route, Some(expanded.as_ref()), value.as_ref()),
-            None => return Ok(None),
+                ..
+            } => (route, Some(expanded.as_ref()), value.as_ref()),
         };
 
         Ok(Some(Match {

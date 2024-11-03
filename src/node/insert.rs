@@ -1,10 +1,12 @@
-use super::{Children, Data, Kind, Node};
+use super::{
+    Children, Data, DynamicState, EndWildcardState, Node, State, StaticState, WildcardState,
+};
 use crate::{
     errors::InsertError,
     parser::{Part, Route},
 };
 
-impl<'r, T> Node<'r, T> {
+impl<'r, T, S: State> Node<'r, T, S> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
@@ -16,17 +18,17 @@ impl<'r, T> Node<'r, T> {
                 Part::Dynamic {
                     name, constraint, ..
                 } => {
-                    self.insert_dynamic(route, data, &name, constraint)?;
+                    self.insert_dynamic(route, data, name, constraint)?;
                 }
                 Part::Wildcard {
                     name, constraint, ..
                 } if route.parts.is_empty() => {
-                    self.insert_end_wildcard(route, data, &name, constraint)?;
+                    self.insert_end_wildcard(route, data, name, constraint)?;
                 }
                 Part::Wildcard {
                     name, constraint, ..
                 } => {
-                    self.insert_wildcard(route, data, &name, constraint)?;
+                    self.insert_wildcard(route, data, name, constraint)?;
                 }
             };
         } else {
@@ -58,15 +60,12 @@ impl<'r, T> Node<'r, T> {
         let Some(child) = self
             .static_children
             .iter_mut()
-            .find(|child| child.prefix[0] == prefix[0])
+            .find(|child| child.state.prefix[0] == prefix[0])
         else {
             self.static_children.push({
-                let mut new_child = Self {
-                    kind: Kind::Static,
-
-                    prefix: prefix.to_vec(),
+                let mut new_child = Node {
+                    state: StaticState::new(prefix.to_vec()),
                     data: None,
-                    constraint: None,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -89,12 +88,12 @@ impl<'r, T> Node<'r, T> {
 
         let common_prefix = prefix
             .iter()
-            .zip(&child.prefix)
+            .zip::<&[u8]>(child.state.prefix.as_ref())
             .take_while(|&(x, y)| x == y)
             .count();
 
         // If the new prefix matches or extends the existing prefix, we can just insert it directly.
-        if common_prefix >= child.prefix.len() {
+        if common_prefix >= child.state.prefix.len() {
             if common_prefix >= prefix.len() {
                 child.insert(route, data)?;
             } else {
@@ -106,12 +105,9 @@ impl<'r, T> Node<'r, T> {
         }
 
         // Not a clean insert, need to split the existing child node.
-        let new_child_a = Self {
-            kind: Kind::Static,
-
-            prefix: child.prefix[common_prefix..].to_vec(),
+        let new_child_a = Node {
+            state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
             data: child.data.take(),
-            constraint: None,
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -124,12 +120,9 @@ impl<'r, T> Node<'r, T> {
             needs_optimization: child.needs_optimization,
         };
 
-        let new_child_b = Self {
-            kind: Kind::Static,
-
-            prefix: prefix[common_prefix..].to_vec(),
+        let new_child_b = Node {
+            state: StaticState::new(prefix[common_prefix..].to_vec()),
             data: None,
-            constraint: None,
 
             static_children: Children::default(),
             dynamic_children: Children::default(),
@@ -142,7 +135,7 @@ impl<'r, T> Node<'r, T> {
             needs_optimization: false,
         };
 
-        child.prefix = child.prefix[..common_prefix].to_vec();
+        child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
         child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
@@ -161,22 +154,19 @@ impl<'r, T> Node<'r, T> {
         &mut self,
         route: &mut Route,
         data: Data<'r, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .dynamic_children
-            .find_mut(|child| child.prefix == name && child.constraint == constraint)
+            .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
             self.dynamic_children.push({
-                let mut new_child = Self {
-                    kind: Kind::Dynamic,
-
-                    prefix: name.to_vec(),
+                let mut new_child = Node {
+                    state: DynamicState::new(name, constraint),
                     data: None,
-                    constraint,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -202,22 +192,19 @@ impl<'r, T> Node<'r, T> {
         &mut self,
         route: &mut Route,
         data: Data<'r, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .wildcard_children
-            .find_mut(|child| child.prefix == name && child.constraint == constraint)
+            .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
         {
             child.insert(route, data)?;
         } else {
             self.wildcard_children.push({
-                let mut new_child = Self {
-                    kind: Kind::Wildcard,
-
-                    prefix: name.to_vec(),
+                let mut new_child = Node {
+                    state: WildcardState::new(name, constraint),
                     data: None,
-                    constraint,
 
                     static_children: Children::default(),
                     dynamic_children: Children::default(),
@@ -243,13 +230,13 @@ impl<'r, T> Node<'r, T> {
         &mut self,
         route: &Route,
         data: Data<'r, T>,
-        name: &[u8],
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     ) -> Result<(), InsertError> {
         if let Some(child) = self
             .end_wildcard_children
             .iter()
-            .find(|child| child.prefix == name && child.constraint == constraint)
+            .find(|child| child.state.name == name && child.state.constraint == constraint)
         {
             let conflict = match &child.data {
                 Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => {
@@ -264,12 +251,9 @@ impl<'r, T> Node<'r, T> {
             });
         }
 
-        self.end_wildcard_children.push(Self {
-            kind: Kind::EndWildcard,
-
-            prefix: name.to_vec(),
+        self.end_wildcard_children.push(Node {
+            state: EndWildcardState::new(name, constraint),
             data: Some(data),
-            constraint,
 
             static_children: Children::default(),
             dynamic_children: Children::default(),

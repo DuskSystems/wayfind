@@ -1,11 +1,11 @@
-use super::Data;
+use super::{Data, State};
 use crate::{
     errors::DeleteError,
     node::Node,
     parser::{Part, Route},
 };
 
-impl<'r, T> Node<'r, T> {
+impl<'r, T, S: State> Node<'r, T, S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -64,8 +64,8 @@ impl<'r, T> Node<'r, T> {
             .static_children
             .iter()
             .position(|child| {
-                prefix.len() >= child.prefix.len()
-                    && child.prefix.iter().zip(prefix).all(|(a, b)| a == b)
+                prefix.len() >= child.state.prefix.len()
+                    && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
@@ -74,8 +74,7 @@ impl<'r, T> Node<'r, T> {
         let child = &mut self.static_children[index];
         child.needs_optimization = true;
 
-        let remaining_prefix = &prefix[child.prefix.len()..];
-
+        let remaining_prefix = &prefix[child.state.prefix.len()..];
         let result = if remaining_prefix.is_empty() {
             child.delete(route, is_expanded)
         } else {
@@ -94,13 +93,13 @@ impl<'r, T> Node<'r, T> {
         &mut self,
         route: &mut Route,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -120,13 +119,13 @@ impl<'r, T> Node<'r, T> {
         &mut self,
         route: &mut Route,
         is_expanded: bool,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -145,13 +144,13 @@ impl<'r, T> Node<'r, T> {
     fn delete_end_wildcard(
         &mut self,
         route: &Route,
-        name: &[u8],
-        constraint: &Option<Vec<u8>>,
+        name: &str,
+        constraint: &Option<String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.prefix == name && child.constraint == *constraint)
+            .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;

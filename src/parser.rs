@@ -1,4 +1,4 @@
-use crate::errors::RouteError;
+use crate::errors::{EncodingError, RouteError};
 use rustc_hash::FxHashMap;
 
 /// Characters that are not allowed in parameter names or constraints.
@@ -17,13 +17,13 @@ pub enum Part {
     },
 
     Dynamic {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     },
 
     Wildcard {
-        name: Vec<u8>,
-        constraint: Option<Vec<u8>>,
+        name: String,
+        constraint: Option<String>,
     },
 }
 
@@ -156,7 +156,7 @@ impl Parser {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: FxHashMap<Vec<u8>, (usize, usize)> = FxHashMap::default();
+        let mut seen_parameters: FxHashMap<String, (usize, usize)> = FxHashMap::default();
 
         while cursor < input.len() {
             match input[cursor] {
@@ -167,7 +167,7 @@ impl Parser {
                         if let Some(&(first, first_length)) = seen_parameters.get(name) {
                             return Err(RouteError::DuplicateParameter {
                                 route: String::from_utf8_lossy(input).to_string(),
-                                name: String::from_utf8_lossy(name).to_string(),
+                                name: name.to_string(),
                                 first,
                                 first_length,
                                 second: cursor,
@@ -317,8 +317,19 @@ impl Parser {
             }
         }
 
-        let name = name.to_vec();
-        let constraint = constraint.map(<[u8]>::to_vec);
+        let name = String::from_utf8(name.to_vec()).map_err(|_| EncodingError::Utf8Error {
+            input: String::from_utf8_lossy(name).to_string(),
+        })?;
+
+        let constraint = if let Some(constraint) = constraint {
+            Some(
+                String::from_utf8(constraint.to_vec()).map_err(|_| EncodingError::Utf8Error {
+                    input: String::from_utf8_lossy(constraint).to_string(),
+                })?,
+            )
+        } else {
+            None
+        };
 
         let part = if is_wildcard {
             Part::Wildcard { name, constraint }
@@ -361,7 +372,7 @@ mod tests {
                     raw: b"/{name}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"name".to_vec(),
+                            name: "name".to_string(),
                             constraint: None
                         },
                         Part::Static {
@@ -383,7 +394,7 @@ mod tests {
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
-                            name: b"route".to_vec(),
+                            name: "route".to_string(),
                             constraint: None
                         },
                         Part::Static {
@@ -405,15 +416,15 @@ mod tests {
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: b"id".to_vec(),
-                            constraint: Some(b"numeric".to_vec())
+                            name: "id".to_string(),
+                            constraint: Some("numeric".to_string())
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
                         },
                         Part::Wildcard {
-                            name: b"name".to_vec(),
-                            constraint: Some(b"alpha".to_vec())
+                            name: "name".to_string(),
+                            constraint: Some("alpha".to_string())
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -435,7 +446,7 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -468,7 +479,7 @@ mod tests {
                                 prefix: b"/profile".to_vec()
                             },
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -480,7 +491,7 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"id".to_vec(),
+                                name: "id".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -529,7 +540,7 @@ mod tests {
                                 prefix: b"/users".to_vec()
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -559,14 +570,14 @@ mod tests {
                         raw: b"/{lang}/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: "page".to_string(),
                                 constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
                             },
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -578,7 +589,7 @@ mod tests {
                         raw: b"/{lang}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"lang".to_vec(),
+                                name: "lang".to_string(),
                                 constraint: None
                             },
                             Part::Static {
@@ -590,7 +601,7 @@ mod tests {
                         raw: b"/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: b"page".to_vec(),
+                                name: "page".to_string(),
                                 constraint: None
                             },
                             Part::Static {
