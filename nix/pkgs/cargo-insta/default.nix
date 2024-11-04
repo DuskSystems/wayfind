@@ -7,14 +7,14 @@ rustPlatform.buildRustPackage rec {
   pname = "cargo-insta";
 
   # NOTE: Keep in sync with `cargo-insta` Rust package.
-  version = "1.40.0";
+  version = "1.41.1";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-rdfFriv3ghjqoPvRD7+TcdHehHE8ZGW4n0UT38+rRXc=";
+    hash = "sha256-BeY3O28+tgFyCONItA8m/Ghf+OaqbbtYgbUeQwP/4NY=";
   };
 
-  cargoHash = "sha256-ogIPR1dronvBMyEfSkXfOsrtXYpeWGZ5a/j9ks6m4sQ=";
+  cargoHash = "sha256-7bz37Ya1DFLgIBWUOb73ni5T5pPxJX4IoLzSqIB0pLY=";
 
   doCheck = false;
 
