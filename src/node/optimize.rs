@@ -1,7 +1,7 @@
 use super::{Data, State};
 use crate::node::Node;
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<T, S: State> Node<'_, T, S> {
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);
     }

@@ -6,7 +6,7 @@ pub struct Routable<'r> {
     pub(crate) route: &'r str,
 }
 
-impl<'r> Routable<'r> {
+impl Routable<'_> {
     #[must_use]
     pub const fn builder<'b>() -> RoutableBuilder<'b> {
         RoutableBuilder::new()
@@ -48,7 +48,7 @@ impl<'r> RoutableBuilder<'r> {
     }
 }
 
-impl<'r> Default for RoutableBuilder<'r> {
+impl Default for RoutableBuilder<'_> {
     fn default() -> Self {
         Self::new()
     }

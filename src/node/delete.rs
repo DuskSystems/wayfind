@@ -5,7 +5,7 @@ use crate::{
     parser::{Part, Route},
 };
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<T, S: State> Node<'_, T, S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -20,13 +20,15 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
                 Part::Dynamic {
                     name, constraint, ..
-                } => self.delete_dynamic(route, is_expanded, &name, &constraint),
+                } => self.delete_dynamic(route, is_expanded, &name, constraint.as_ref()),
                 Part::Wildcard {
                     name, constraint, ..
-                } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
+                } if route.parts.is_empty() => {
+                    self.delete_end_wildcard(route, &name, constraint.as_ref())
+                }
                 Part::Wildcard {
                     name, constraint, ..
-                } => self.delete_wildcard(route, is_expanded, &name, &constraint),
+                } => self.delete_wildcard(route, is_expanded, &name, constraint.as_ref()),
             }
         } else {
             let Some(data) = &self.data else {
@@ -94,12 +96,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &mut Route,
         is_expanded: bool,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -120,12 +124,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &mut Route,
         is_expanded: bool,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;
@@ -145,12 +151,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &mut self,
         route: &Route,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<(), DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| DeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.raw).to_string(),
             })?;

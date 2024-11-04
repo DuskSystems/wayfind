@@ -115,7 +115,7 @@ impl<'r> AppRouter<'r> {
     }
 }
 
-impl<'r> Default for AppRouter<'r> {
+impl Default for AppRouter<'_> {
     fn default() -> Self {
         Self::new()
     }

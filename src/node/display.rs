@@ -1,7 +1,7 @@
 use super::{Node, State};
 use std::fmt::{Display, Write};
 
-impl<'r, T, S: State> Display for Node<'r, T, S> {
+impl<T, S: State> Display for Node<'_, T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<T, S: State>(
             output: &mut String,

@@ -350,13 +350,13 @@ impl<'r, T> Router<'r, T> {
     }
 }
 
-impl<'r, T> Default for Router<'r, T> {
+impl<T> Default for Router<'_, T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'r, T> Display for Router<'r, T> {
+impl<T> Display for Router<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }
