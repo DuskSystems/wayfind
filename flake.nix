@@ -222,24 +222,11 @@
         };
 
         nixosConfigurations = {
-          x86_64 = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
+          benchmarks = nixpkgs.lib.nixosSystem {
+            system = "${pkgs.stdenv.hostPlatform.uname.processor}-linux";
 
             specialArgs = {
               inherit inputs;
-              name = "x86_64";
-              hostPkgs = pkgs;
-            };
-
-            modules = [ ./nix/vm.nix ];
-          };
-
-          aarch64 = nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-
-            specialArgs = {
-              inherit inputs;
-              name = "aarch64";
               hostPkgs = pkgs;
             };
 
@@ -248,16 +235,10 @@
         };
 
         apps = {
-          # nix run .#x86_64
-          x86_64 = {
+          # nix run .#benchmarks
+          benchmarks = {
             type = "app";
-            program = "${self.nixosConfigurations.${system}.x86_64.config.system.build.vm}/bin/run-x86_64-vm";
-          };
-
-          # nix run .#aarch64
-          aarch64 = {
-            type = "app";
-            program = "${self.nixosConfigurations.${system}.aarch64.config.system.build.vm}/bin/run-aarch64-vm";
+            program = "${self.nixosConfigurations.${system}.benchmarks.config.system.build.vm}/bin/run-nixos-vm";
           };
         };
       }

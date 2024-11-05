@@ -1,6 +1,5 @@
 {
   inputs,
-  name,
   hostPkgs,
   pkgs,
   lib,
@@ -29,7 +28,6 @@
   };
 
   system = {
-    inherit name;
     stateVersion = lib.trivial.release;
   };
 
@@ -52,10 +50,6 @@
         target = "/wayfind";
       };
     };
-  };
-
-  networking = {
-    hostName = name;
   };
 
   services = {
