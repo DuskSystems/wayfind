@@ -28,6 +28,9 @@ profile.json
 junit.xml
 report.html
 
+# QEMU
+*.qcow2
+
 # Nix
 result
 result-dev
