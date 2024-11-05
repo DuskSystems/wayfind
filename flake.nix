@@ -22,10 +22,10 @@
   # nix flake show
   outputs =
     {
+      self,
       nixpkgs,
       flake-utils,
       rust-overlay,
-      ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -218,6 +218,57 @@
               sccache
               oci-distribution-spec-conformance
             ];
+          };
+
+          # nix develop .#vm
+          vm = pkgs.mkShell {
+            name = "wayfind-vm-shell";
+
+            RUSTFLAGS = "-C target-cpu=native";
+            CARGO_TARGET_DIR = "/tmp";
+
+            buildInputs = with pkgs; [
+              (rust-bin.stable."1.82.0".minimal)
+              gnuplot
+            ];
+          };
+        };
+
+        nixosConfigurations = {
+          x86_64 = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+
+            specialArgs = {
+              name = "x86_64";
+              hostPkgs = pkgs;
+            };
+
+            modules = [ ./nix/vm.nix ];
+          };
+
+          aarch64 = nixpkgs.lib.nixosSystem {
+            system = "aarch64-linux";
+
+            specialArgs = {
+              name = "aarch64";
+              hostPkgs = pkgs;
+            };
+
+            modules = [ ./nix/vm.nix ];
+          };
+        };
+
+        apps = {
+          # nix run .#x86_64
+          x86_64 = {
+            type = "app";
+            program = "${self.nixosConfigurations.${system}.x86_64.config.system.build.vm}/bin/run-x86_64-vm";
+          };
+
+          # nix run .#aarch64
+          aarch64 = {
+            type = "app";
+            program = "${self.nixosConfigurations.${system}.aarch64.config.system.build.vm}/bin/run-aarch64-vm";
           };
         };
       }
