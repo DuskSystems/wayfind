@@ -1,7 +1,7 @@
 {
   inputs,
+  config,
   hostPkgs,
-  pkgs,
   lib,
   modulesPath,
   ...
@@ -46,35 +46,20 @@
 
     sharedDirectories = {
       wayfind = {
-        source = toString ../.;
+        source = toString ../../.;
         target = "/wayfind";
       };
     };
+  };
+
+  networking = {
+    hostName = config.system.name;
   };
 
   services = {
     getty = {
       autologinUser = "root";
     };
-  };
-
-  environment = {
-    defaultPackages = with pkgs; [
-      gcc
-      (rust-bin.stable."1.82.0".minimal)
-      gnuplot
-    ];
-
-    variables = {
-      RUSTFLAGS = "-C target-cpu=native";
-      CARGO_TARGET_DIR = "/tmp";
-    };
-
-    loginShellInit = ''
-      cd /wayfind
-      cargo bench
-      shutdown -h now
-    '';
   };
 
   documentation = {
