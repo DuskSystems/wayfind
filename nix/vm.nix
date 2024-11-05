@@ -1,4 +1,5 @@
 {
+  inputs,
   name,
   hostPkgs,
   pkgs,
@@ -19,6 +20,12 @@
         "flakes"
       ];
     };
+  };
+
+  nixpkgs = {
+    overlays = [
+      (import inputs.rust-overlay)
+    ];
   };
 
   system = {
@@ -58,10 +65,20 @@
   };
 
   environment = {
-    defaultPackages = with pkgs; [ nix ];
+    defaultPackages = with pkgs; [
+      gcc
+      (rust-bin.stable."1.82.0".minimal)
+      gnuplot
+    ];
+
+    variables = {
+      RUSTFLAGS = "-C target-cpu=native";
+      CARGO_TARGET_DIR = "/tmp";
+    };
+
     loginShellInit = ''
       cd /wayfind
-      nix develop .#vm -c cargo bench
+      cargo bench
       shutdown -h now
     '';
   };

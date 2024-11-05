@@ -21,7 +21,7 @@
 
   # nix flake show
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
       flake-utils,
@@ -219,19 +219,6 @@
               oci-distribution-spec-conformance
             ];
           };
-
-          # nix develop .#vm
-          vm = pkgs.mkShell {
-            name = "wayfind-vm-shell";
-
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_TARGET_DIR = "/tmp";
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.82.0".minimal)
-              gnuplot
-            ];
-          };
         };
 
         nixosConfigurations = {
@@ -239,6 +226,7 @@
             system = "x86_64-linux";
 
             specialArgs = {
+              inherit inputs;
               name = "x86_64";
               hostPkgs = pkgs;
             };
@@ -250,6 +238,7 @@
             system = "aarch64-linux";
 
             specialArgs = {
+              inherit inputs;
               name = "aarch64";
               hostPkgs = pkgs;
             };
