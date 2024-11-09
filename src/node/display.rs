@@ -13,7 +13,11 @@ impl<'r, T, S: State> Display for Node<'r, T, S> {
             let key = node.state.key();
 
             if is_top {
-                writeln!(output, "{key}")?;
+                if node.data.is_some() {
+                    writeln!(output, "{key} [*]")?;
+                } else {
+                    writeln!(output, "{key}")?;
+                }
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
                 if node.data.is_some() {

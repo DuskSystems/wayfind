@@ -38,7 +38,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 };
 
                 return Err(InsertError::DuplicateRoute {
-                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                    route: String::from_utf8_lossy(&route.input).to_string(),
                     conflict,
                 });
             }
@@ -238,15 +238,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .iter()
             .find(|child| child.state.name == name && child.state.constraint == constraint)
         {
-            let conflict = match &child.data {
-                Some(Data::Inline { route, .. } | Data::Shared { route, .. }) => {
-                    (*route).to_string()
-                }
-                None => "Unknown".to_string(),
+            let conflict = match child.data.as_ref().unwrap() {
+                Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_string(),
             };
 
             return Err(InsertError::DuplicateRoute {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.input).to_string(),
                 conflict,
             });
         }

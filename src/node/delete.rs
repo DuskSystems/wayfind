@@ -31,19 +31,19 @@ impl<'r, T, S: State> Node<'r, T, S> {
         } else {
             let Some(data) = &self.data else {
                 return Err(DeleteError::NotFound {
-                    route: String::from_utf8_lossy(&route.raw).to_string(),
+                    route: String::from_utf8_lossy(&route.input).to_string(),
                 });
             };
 
-            let (is_shared, inserted) = match data {
+            let (is_shared, inserted) = match *data {
                 Data::Inline { route, .. } => (false, route),
                 Data::Shared { route, .. } => (true, route),
             };
 
             if is_expanded != is_shared {
                 return Err(DeleteError::RouteMismatch {
-                    route: String::from_utf8_lossy(&route.raw).to_string(),
-                    inserted: (*inserted).to_string(),
+                    route: String::from_utf8_lossy(&route.input).to_string(),
+                    inserted: inserted.to_string(),
                 });
             }
 
@@ -68,7 +68,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                     && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
             .ok_or_else(|| DeleteError::NotFound {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
         let child = &mut self.static_children[index];
@@ -101,7 +101,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
         let child = &mut self.dynamic_children[index];
@@ -127,7 +127,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
         let child = &mut self.wildcard_children[index];
@@ -152,7 +152,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
             .ok_or_else(|| DeleteError::NotFound {
-                route: String::from_utf8_lossy(&route.raw).to_string(),
+                route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
         self.end_wildcard_children.remove(index);

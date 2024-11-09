@@ -1,98 +1,153 @@
+use smallvec::smallvec;
 use std::error::Error;
-use wayfind::Router;
-
-#[path = "./utils.rs"]
-mod utils;
+use wayfind::{
+    errors::{EncodingError, InsertError, PathError, SearchError},
+    Match, Path, Router,
+};
 
 #[test]
-fn percent_encoding() -> Result<(), Box<dyn Error>> {
+fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/hello@world", 1)?;
-    router.insert("/hello-world.com", 2)?;
-    router.insert("/hello world", 3)?;
-    router.insert("/こんにちは", 4)?;
-    router.insert("/50%", 5)?;
-    router.insert("/hello world@example.com", 6)?;
-    router.insert("/path/to/resource with spaces", 7)?;
-    router.insert("/encoded/slash", 8)?;
+    router.insert("/users/{name}", 1)?;
 
-    assert_router_matches!(router, {
-        "/hello%40world" => {
-            route: "/hello@world",
-            data: 1
-        }
-        "/hello@world" => {
-            route: "/hello@world",
-            data: 1
-        }
-        "/hello-world.com" => {
-            route: "/hello-world.com",
-            data: 2
-        }
-        "/hello%20world" => {
-            route: "/hello world",
-            data: 3
-        }
-        "/hello world" => {
-            route: "/hello world",
-            data: 3
-        }
-        "/%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF" => {
-            route: "/こんにちは",
-            data: 4
-        }
-        "/こんにちは" => {
-            route: "/こんにちは",
-            data: 4
-        }
-        "/50%25" => {
-            route: "/50%",
-            data: 5
-        }
-        "/50%" => {
-            route: "/50%",
-            data: 5
-        }
-        "/hello%20world%40example.com" => {
-            route: "/hello world@example.com",
-            data: 6
-        }
-        "/hello world@example.com" => {
-            route: "/hello world@example.com",
-            data: 6
-        }
-        "/path/to/resource%20with%20spaces" => {
-            route: "/path/to/resource with spaces",
-            data: 7
-        }
-        "/path/to/resource with spaces" => {
-            route: "/path/to/resource with spaces",
-            data: 7
-        }
-        "/encoded%2Fslash" => {
-            route: "/encoded/slash",
-            data: 8
-        }
-        "/encoded/slash" => {
-            route: "/encoded/slash",
-            data: 8
-        }
-    });
+    insta::assert_snapshot!(router, @r"
+    /users/
+    ╰─ {name} [*]
+    ");
+
+    let path = Path::new("/users/jos%C3%A9")?; // "José"
+    let search = router.search(&path)?;
+    assert_eq!(
+        search,
+        Some(Match {
+            route: "/users/{name}",
+            expanded: None,
+            data: &1,
+            parameters: smallvec![("name", "josé")],
+        })
+    );
 
     Ok(())
 }
 
 #[test]
-fn percent_encoding_insert() {
+fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/user files/{name}", 1)?;
 
-    let error = router.insert("/hello%20world", 0).unwrap_err();
-    insta::assert_snapshot!(error, @r#"
-    encoded route
+    insta::assert_snapshot!(router, @r"
+    /user files/
+    ╰─ {name} [*]
+    ");
 
-         Input: /hello%20world
-       Decoded: /hello world
+    let path = Path::new("/user%20files/document%20name")?; // "/user files/document name"
+    let search = router.search(&path)?;
+    assert_eq!(
+        search,
+        Some(Match {
+            route: "/user files/{name}",
+            expanded: None,
+            data: &1,
+            parameters: smallvec![("name", "document name")],
+        })
+    );
 
-    The router expects routes to be in their decoded form
-    "#);
+    Ok(())
+}
+
+#[test]
+fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/{name}", 1)?;
+    router.insert("/{*path}", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ├─ {name} [*]
+    ╰─ {*path} [*]
+    ");
+
+    let path = Path::new("/johndoe")?;
+    let search = router.search(&path)?;
+    assert_eq!(
+        search,
+        Some(Match {
+            route: "/{name}",
+            expanded: None,
+            data: &1,
+            parameters: smallvec![("name", "johndoe")],
+        })
+    );
+
+    let path = Path::new("/john%2Fdoe")?; // "john/doe"
+    let search = router.search(&path)?;
+    assert_eq!(
+        search,
+        Some(Match {
+            route: "/{*path}",
+            expanded: None,
+            data: &2,
+            parameters: smallvec![("path", "john/doe")],
+        })
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_encoding_invalid_path() {
+    let path = Path::new("/users/%GG");
+    assert_eq!(
+        path,
+        Err(PathError::EncodingError(EncodingError::InvalidEncoding {
+            input: "/users/%GG".to_string(),
+            position: 7,
+            character: [37, 71, 71]
+        }))
+    );
+}
+
+#[test]
+fn test_encoding_invalid_parameter() {
+    let mut router = Router::new();
+    let insert = router.insert("/users/{%GG}", 1);
+    assert_eq!(
+        insert,
+        Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
+            input: "/users/{%GG}".to_string(),
+            position: 8,
+            character: [37, 71, 71]
+        }))
+    );
+}
+
+#[test]
+fn test_encoding_invalid_constraint() {
+    let mut router = Router::new();
+    let insert = router.insert("/users/{id:%GG}", 1);
+    assert_eq!(
+        insert,
+        Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
+            input: "/users/{id:%GG}".to_string(),
+            position: 11,
+            character: [37, 71, 71]
+        }))
+    );
+}
+
+#[test]
+fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/files/{name}", 1)?;
+
+    let path = Path::new("/files/my%80file")?;
+    let search = router.search(&path);
+    assert_eq!(
+        search,
+        Err(SearchError::EncodingError(EncodingError::Utf8Error {
+            input: "my�file".to_string()
+        }))
+    );
+
+    Ok(())
 }

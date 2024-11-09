@@ -6,6 +6,7 @@ const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Route {
+    pub input: Vec<u8>,
     pub raw: Vec<u8>,
     pub parts: Vec<Part>,
 }
@@ -29,7 +30,7 @@ pub enum Part {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Parser {
-    pub raw: Vec<u8>,
+    pub input: Vec<u8>,
     pub routes: Vec<Route>,
 }
 
@@ -42,11 +43,11 @@ impl Parser {
         let routes = Self::expand_optional_groups(input, 0, input.len())?;
         let routes = routes
             .into_iter()
-            .map(|raw| Self::parse_route(&raw))
+            .map(|raw| Self::parse_route(input, &raw))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
-            raw: input.to_vec(),
+            input: input.to_vec(),
             routes,
         })
     }
@@ -146,10 +147,10 @@ impl Parser {
         Ok(result)
     }
 
-    fn parse_route(input: &[u8]) -> Result<Route, RouteError> {
-        if !input.is_empty() && input[0] != b'/' {
+    fn parse_route(input: &[u8], raw: &[u8]) -> Result<Route, RouteError> {
+        if !raw.is_empty() && raw[0] != b'/' {
             return Err(RouteError::MissingLeadingSlash {
-                route: String::from_utf8_lossy(input).to_string(),
+                route: String::from_utf8_lossy(raw).to_string(),
             });
         }
 
@@ -158,15 +159,15 @@ impl Parser {
 
         let mut seen_parameters: FxHashMap<String, (usize, usize)> = FxHashMap::default();
 
-        while cursor < input.len() {
-            match input[cursor] {
+        while cursor < raw.len() {
+            match raw[cursor] {
                 b'{' => {
-                    let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
+                    let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
 
                     if let Part::Dynamic { name, .. } | Part::Wildcard { name, .. } = &part {
                         if let Some(&(first, first_length)) = seen_parameters.get(name) {
                             return Err(RouteError::DuplicateParameter {
-                                route: String::from_utf8_lossy(input).to_string(),
+                                route: String::from_utf8_lossy(raw).to_string(),
                                 name: name.to_string(),
                                 first,
                                 first_length,
@@ -183,12 +184,12 @@ impl Parser {
                 }
                 b'}' => {
                     return Err(RouteError::UnbalancedBrace {
-                        route: String::from_utf8_lossy(input).to_string(),
+                        route: String::from_utf8_lossy(raw).to_string(),
                         position: cursor,
                     })
                 }
                 _ => {
-                    let (part, next_cursor) = Self::parse_static_part(input, cursor);
+                    let (part, next_cursor) = Self::parse_static_part(raw, cursor);
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -198,7 +199,8 @@ impl Parser {
         parts.reverse();
 
         Ok(Route {
-            raw: input.to_vec(),
+            input: input.to_vec(),
+            raw: raw.to_vec(),
             parts,
         })
     }
@@ -351,8 +353,9 @@ mod tests {
         assert_eq!(
             Parser::new(b"/abcd"),
             Ok(Parser {
-                raw: b"/abcd".to_vec(),
+                input: b"/abcd".to_vec(),
                 routes: vec![Route {
+                    input: b"/abcd".to_vec(),
                     raw: b"/abcd".to_vec(),
                     parts: vec![Part::Static {
                         prefix: b"/abcd".to_vec()
@@ -367,8 +370,9 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{name}"),
             Ok(Parser {
-                raw: b"/{name}".to_vec(),
+                input: b"/{name}".to_vec(),
                 routes: vec![Route {
+                    input: b"/{name}".to_vec(),
                     raw: b"/{name}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
@@ -389,8 +393,9 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{*route}"),
             Ok(Parser {
-                raw: b"/{*route}".to_vec(),
+                input: b"/{*route}".to_vec(),
                 routes: vec![Route {
+                    input: b"/{*route}".to_vec(),
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
@@ -411,8 +416,9 @@ mod tests {
         assert_eq!(
             Parser::new(b"/{*name:alpha}/{id:numeric}"),
             Ok(Parser {
-                raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
+                input: b"/{*name:alpha}/{id:numeric}".to_vec(),
                 routes: vec![Route {
+                    input: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
@@ -440,9 +446,10 @@ mod tests {
         assert_eq!(
             Parser::new(b"/users(/{id})"),
             Ok(Parser {
-                raw: b"/users(/{id})".to_vec(),
+                input: b"/users(/{id})".to_vec(),
                 routes: vec![
                     Route {
+                        input: b"/users(/{id})".to_vec(),
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
@@ -455,6 +462,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"/users(/{id})".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -470,9 +478,10 @@ mod tests {
         assert_eq!(
             Parser::new(b"/users(/{id}(/profile))"),
             Ok(Parser {
-                raw: b"/users(/{id}(/profile))".to_vec(),
+                input: b"/users(/{id}(/profile))".to_vec(),
                 routes: vec![
                     Route {
+                        input: b"/users(/{id}(/profile))".to_vec(),
                         raw: b"/users/{id}/profile".to_vec(),
                         parts: vec![
                             Part::Static {
@@ -488,6 +497,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"/users(/{id}(/profile))".to_vec(),
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
@@ -500,6 +510,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"/users(/{id}(/profile))".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -515,8 +526,9 @@ mod tests {
         assert_eq!(
             Parser::new(b"/path/with\\{braces\\}and\\(parens\\)"),
             Ok(Parser {
-                raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
+                input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                 routes: vec![Route {
+                    input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                     raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                     parts: vec![Part::Static {
                         prefix: b"/path/with{braces}and(parens)".to_vec()
@@ -531,9 +543,10 @@ mod tests {
         assert_eq!(
             Parser::new(b"(/{lang})/users"),
             Ok(Parser {
-                raw: b"(/{lang})/users".to_vec(),
+                input: b"(/{lang})/users".to_vec(),
                 routes: vec![
                     Route {
+                        input: b"(/{lang})/users".to_vec(),
                         raw: b"/{lang}/users".to_vec(),
                         parts: vec![
                             Part::Static {
@@ -549,6 +562,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"(/{lang})/users".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -564,9 +578,10 @@ mod tests {
         assert_eq!(
             Parser::new(b"(/{lang})(/{page})"),
             Ok(Parser {
-                raw: b"(/{lang})(/{page})".to_vec(),
+                input: b"(/{lang})(/{page})".to_vec(),
                 routes: vec![
                     Route {
+                        input: b"(/{lang})(/{page})".to_vec(),
                         raw: b"/{lang}/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
@@ -586,6 +601,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"(/{lang})(/{page})".to_vec(),
                         raw: b"/{lang}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
@@ -598,6 +614,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"(/{lang})(/{page})".to_vec(),
                         raw: b"/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
@@ -610,6 +627,7 @@ mod tests {
                         ],
                     },
                     Route {
+                        input: b"(/{lang})(/{page})".to_vec(),
                         raw: b"/".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/".to_vec()

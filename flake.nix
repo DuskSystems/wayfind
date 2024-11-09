@@ -39,6 +39,7 @@
             (self: super: {
               cargo-codspeed = pkgs.callPackage ./nix/pkgs/cargo-codspeed { };
               cargo-insta = pkgs.callPackage ./nix/pkgs/cargo-insta { };
+              cargo-llvm-cov = pkgs.callPackage ./nix/pkgs/cargo-llvm-cov { };
               oci-distribution-spec-conformance = pkgs.callPackage ./nix/pkgs/oci-distribution-spec-conformance { };
             })
           ];
@@ -58,15 +59,7 @@
 
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myrepo";
-            OCI_CROSSMOUNT_NAMESPACE = "myorg/other";
-            OCI_USERNAME = "myuser";
-            OCI_PASSWORD = "mypass";
             OCI_TEST_PULL = 1;
-            OCI_TEST_PUSH = 0;
-            OCI_TEST_CONTENT_DISCOVERY = 0;
-            OCI_TEST_CONTENT_MANAGEMENT = 0;
-            OCI_DEBUG = 1;
-            OCI_HIDE_SKIPPED_WORKFLOWS = 1;
 
             buildInputs = with pkgs; [
               # Rust
@@ -203,15 +196,7 @@
 
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myrepo";
-            OCI_CROSSMOUNT_NAMESPACE = "myorg/other";
-            OCI_USERNAME = "myuser";
-            OCI_PASSWORD = "mypass";
             OCI_TEST_PULL = 1;
-            OCI_TEST_PUSH = 0;
-            OCI_TEST_CONTENT_DISCOVERY = 0;
-            OCI_TEST_CONTENT_MANAGEMENT = 0;
-            OCI_DEBUG = 1;
-            OCI_HIDE_SKIPPED_WORKFLOWS = 1;
 
             buildInputs = with pkgs; [
               (rust-bin.stable."1.82.0".minimal)
@@ -219,6 +204,17 @@
               oci-distribution-spec-conformance
             ];
           };
+        };
+
+        packages = {
+          # nix build .#cargo-codspeed
+          cargo-codspeed = pkgs.cargo-codspeed;
+          # nix build .#cargo-insta
+          cargo-insta = pkgs.cargo-insta;
+          # nix build .#cargo-llvm-cov
+          cargo-llvm-cov = pkgs.cargo-llvm-cov;
+          # nix build .#oci-distribution-spec-conformance
+          oci-distribution-spec-conformance = pkgs.oci-distribution-spec-conformance;
         };
 
         nixosConfigurations = {

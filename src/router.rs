@@ -35,17 +35,10 @@ pub struct Match<'r, 'p, T> {
 }
 
 /// All the parameter pairs of a given match.
-pub type Parameters<'r, 'p> = SmallVec<[Parameter<'r, 'p>; 4]>;
-
-/// A key-value parameter pair.
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Parameter<'r, 'p> {
-    pub key: &'r str,
-    pub value: &'p str,
-}
+pub type Parameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
 
 /// A constraint with its type name.
 #[derive(Clone)]

@@ -94,23 +94,17 @@ impl<'r> AppRouter<'r> {
             return StatusCode::NOT_FOUND.into_response();
         };
 
-        let handler = &search.data;
-
         let route = search.route.to_string();
-        let route = RouteInner(route);
-
         let parameters: Vec<(String, String)> = search
             .parameters
             .into_iter()
-            .map(|p| (p.key.to_string(), p.value.to_string()))
+            .map(|p| (p.0.to_string(), p.1.to_string()))
             .collect();
 
-        let parameters = Arc::new(parameters);
-        let parameters = PathInner(parameters);
+        req.extensions_mut().insert(RouteInner(route));
+        req.extensions_mut().insert(PathInner(parameters));
 
-        req.extensions_mut().insert(route);
-        req.extensions_mut().insert(parameters);
-
+        let handler = search.data;
         handler(req, state).await
     }
 }

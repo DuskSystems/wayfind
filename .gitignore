@@ -15,6 +15,7 @@ target
 
 # Coverage
 codecov.json
+lcov.info
 
 # Fuzz
 corpus

@@ -40,6 +40,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         self.needs_optimization = false;
     }
 
+    // FIXME: I'd really like to make priority relative,  e.g. 0 being max priority, 1, 2, ...
     fn calculate_priority(&self) -> usize {
         let mut priority = self.state.priority();
         if self.data.is_some() {

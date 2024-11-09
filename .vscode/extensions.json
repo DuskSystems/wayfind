@@ -11,6 +11,7 @@
     "serayuzgur.crates",
     "tamasfe.even-better-toml",
     "mitsuhiko.insta",
+    "ryanluker.vscode-coverage-gutters",
 
     // Nix
     "mkhl.direnv",
