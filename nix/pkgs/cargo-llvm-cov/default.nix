@@ -1,10 +1,10 @@
 {
   lib,
-  rustPlatform,
+  craneLib,
   fetchCrate,
   llvmPackages_19,
 }:
-rustPlatform.buildRustPackage rec {
+craneLib.buildPackage rec {
   pname = "cargo-llvm-cov";
   version = "0.6.14";
 
@@ -28,7 +28,7 @@ rustPlatform.buildRustPackage rec {
       licenses.asl20
       licenses.mit
     ];
-    platforms = platforms.linux;
+    platforms = platforms.all;
     mainProgram = "cargo-llvm-cov";
   };
 }
