@@ -2,7 +2,7 @@ use crate::{decode::percent_decode, errors::PathError};
 use std::borrow::Cow;
 
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Path<'p> {
     /// Percent-decoded path bytes.
     decoded: Cow<'p, [u8]>,

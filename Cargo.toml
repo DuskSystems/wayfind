@@ -101,7 +101,7 @@ codspeed-criterion-compat = "=2.7.2"
 
 # Routers
 actix-router = "=0.5.3"
-matchit = "=0.8.4"
+matchit = "=0.8.5"
 ntex-router = "=0.5.3"
 path-tree = "=0.8.1"
 route-recognizer = "=0.3.1"

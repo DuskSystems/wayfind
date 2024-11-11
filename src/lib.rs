@@ -18,6 +18,6 @@ pub(crate) mod routable;
 pub use routable::{Routable, RoutableBuilder};
 
 pub(crate) mod router;
-pub use router::{Match, Parameter, Parameters, Router};
+pub use router::{Match, Parameters, Router};
 
 pub(crate) mod state;

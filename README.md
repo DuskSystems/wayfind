@@ -51,19 +51,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users/{id}");
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
+    assert_eq!(search.parameters[0], ("id", "123"));
 
     let path = Path::new("/users/123/files/my.document.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}");
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
-    assert_eq!(search.parameters[1].key, "filename");
-    assert_eq!(search.parameters[1].value, "my.document");
-    assert_eq!(search.parameters[2].key, "extension");
-    assert_eq!(search.parameters[2].value, "pdf");
+    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.parameters[1], ("filename", "my.document"));
+    assert_eq!(search.parameters[2], ("extension", "pdf"));
 
     Ok(())
 }
@@ -95,15 +91,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/files/{*slug}/delete");
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/reports/annual.pdf");
+    assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
     let path = Path::new("/any/other/path")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/{*catch_all}");
-    assert_eq!(search.parameters[0].key, "catch_all");
-    assert_eq!(search.parameters[0].value, "any/other/path");
+    assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
 
     Ok(())
 }
@@ -149,30 +143,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users(/{id})");
     assert_eq!(search.expanded, Some("/users/{id}"));
-    assert_eq!(search.parameters[0].key, "id");
-    assert_eq!(search.parameters[0].value, "123");
+    assert_eq!(search.parameters[0], ("id", "123"));
 
     let path = Path::new("/files/documents/folder/report.pdf")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/folder");
-    assert_eq!(search.parameters[1].key, "file");
-    assert_eq!(search.parameters[1].value, "report");
-    assert_eq!(search.parameters[2].key, "extension");
-    assert_eq!(search.parameters[2].value, "pdf");
+    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.parameters[1], ("file", "report"));
+    assert_eq!(search.parameters[2], ("extension", "pdf"));
 
     let path = Path::new("/files/documents/folder/readme")?;
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
-    assert_eq!(search.parameters[0].key, "slug");
-    assert_eq!(search.parameters[0].value, "documents/folder");
-    assert_eq!(search.parameters[1].key, "file");
-    assert_eq!(search.parameters[1].value, "readme");
+    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.parameters[1], ("file", "readme"));
 
     Ok(())
 }
@@ -260,12 +248,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let search = router.search(&path)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
-    assert_eq!(search.parameters[0].key, "name");
-    assert_eq!(search.parameters[0].value, "my-org/my-repo");
-    assert_eq!(search.parameters[1].key, "type");
-    assert_eq!(search.parameters[1].value, "sha256");
-    assert_eq!(search.parameters[2].key, "digest");
-    assert_eq!(search.parameters[2].value, "1234567890");
+    assert_eq!(search.parameters[0], ("name", "my-org/my-repo"));
+    assert_eq!(search.parameters[1], ("type", "sha256"));
+    assert_eq!(search.parameters[2], ("digest", "1234567890"));
 
     let path = Path::new("/v2/invalid repo/blobs/uploads")?;
     assert!(router.search(&path)?.is_none());
@@ -419,14 +404,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 391.25 ns | 4           | 265 B      | 4             | 265 B        |
-| matchit          | 478.77 ns | 4           | 416 B      | 4             | 448 B        |
-| xitca-router     | 574.55 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 584.65 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.6921 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 4.6342 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
-| routefinder      | 6.4431 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 20.879 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| wayfind          | 409.91 ns | 4           | 265 B      | 4             | 265 B        |
+| matchit          | 480.04 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 584.02 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 589.41 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.7015 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 4.7201 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 6.4334 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 21.088 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -434,14 +419,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.6689 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
-| path-tree        | 8.8896 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| matchit          | 9.0724 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| xitca-router     | 10.667 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 29.728 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| route-recognizer | 90.670 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
-| routefinder      | 100.01 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| actix-router     | 178.20 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 5.8528 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| path-tree        | 9.2404 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| matchit          | 9.4732 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| xitca-router     | 10.992 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 30.031 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 92.605 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 100.62 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 177.75 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

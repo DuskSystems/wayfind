@@ -1,7 +1,7 @@
 use super::{Data, Node, State};
 use crate::{
     errors::{EncodingError, SearchError},
-    router::{Parameter, Parameters, StoredConstraint},
+    router::{Parameters, StoredConstraint},
 };
 use rustc_hash::FxHashMap;
 use smallvec::smallvec;
@@ -101,12 +101,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 }
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push(Parameter {
-                    key: &child.state.name,
-                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                current_parameters.push((
+                    &child.state.name,
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
-                });
+                ));
 
                 let Some((data, priority)) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)?
@@ -144,12 +144,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 continue;
             }
 
-            parameters.push(Parameter {
-                key: &child.state.name,
-                value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+            parameters.push((
+                &child.state.name,
+                std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(segment).to_string(),
                 })?,
-            });
+            ));
 
             if let Some(result) = child.search(&path[segment_end..], parameters, constraints)? {
                 return Ok(Some(result));
@@ -196,12 +196,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 }
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push(Parameter {
-                    key: &child.state.name,
-                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                current_parameters.push((
+                    &child.state.name,
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
-                });
+                ));
 
                 let Some((data, priority)) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)?
@@ -264,12 +264,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
                     break;
                 }
 
-                parameters.push(Parameter {
-                    key: &child.state.name,
-                    value: std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                parameters.push((
+                    &child.state.name,
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
-                });
+                ));
 
                 if let Some(result) =
                     child.search(&remaining_path[segment_end..], parameters, constraints)?
@@ -301,12 +301,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 continue;
             }
 
-            parameters.push(Parameter {
-                key: &child.state.name,
-                value: std::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
+            parameters.push((
+                &child.state.name,
+                std::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(path).to_string(),
                 })?,
-            });
+            ));
 
             return Ok(child.data.as_ref().map(|data| (data, child.priority)));
         }
@@ -323,10 +323,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             return true;
         };
 
-        let Some(constraint) = constraints.get(constraint.as_str()) else {
-            unreachable!()
-        };
-
+        let constraint = constraints.get(constraint.as_str()).unwrap();
         let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };

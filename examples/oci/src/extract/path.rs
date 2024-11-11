@@ -6,7 +6,7 @@ use http::Response;
 use http::{request::Parts, StatusCode};
 use http_body_util::Full;
 use serde_json::json;
-use std::{fmt::Display, str::FromStr, sync::Arc};
+use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -56,7 +56,7 @@ mod private {
 }
 
 #[derive(Debug, Clone)]
-pub struct PathInner(pub Arc<Vec<(String, String)>>);
+pub struct PathInner(pub Vec<(String, String)>);
 
 /// Access to the given request path parameters.
 /// Only supports Stringable types, for now.
