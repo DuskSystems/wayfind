@@ -10,6 +10,10 @@
       url = "github:numtide/flake-utils";
     };
 
+    crane = {
+      url = "github:ipetkov/crane";
+    };
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
 
@@ -25,6 +29,7 @@
       self,
       nixpkgs,
       flake-utils,
+      crane,
       rust-overlay,
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -37,13 +42,26 @@
             (import rust-overlay)
 
             (self: super: {
-              cargo-codspeed = pkgs.callPackage ./nix/pkgs/cargo-codspeed { };
-              cargo-insta = pkgs.callPackage ./nix/pkgs/cargo-insta { };
-              cargo-llvm-cov = pkgs.callPackage ./nix/pkgs/cargo-llvm-cov { };
+              cargo-codspeed = pkgs.callPackage ./nix/pkgs/cargo-codspeed { inherit craneLib; };
+              cargo-insta = pkgs.callPackage ./nix/pkgs/cargo-insta { inherit craneLib; };
+              cargo-llvm-cov = pkgs.callPackage ./nix/pkgs/cargo-llvm-cov { inherit craneLib; };
               oci-distribution-spec-conformance = pkgs.callPackage ./nix/pkgs/oci-distribution-spec-conformance { };
             })
           ];
         };
+
+        rustToolchain = pkgs.rust-bin.stable."1.82.0".minimal.override {
+          extensions = [
+            "clippy"
+            "rust-analyzer"
+            "rust-docs"
+            "rust-src"
+            "rustfmt"
+            "llvm-tools"
+          ];
+        };
+
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
       in
       {
         devShells = {
@@ -63,15 +81,7 @@
 
             buildInputs = with pkgs; [
               # Rust
-              (rust-bin.stable."1.82.0".minimal.override {
-                extensions = [
-                  "clippy"
-                  "rust-analyzer"
-                  "rust-docs"
-                  "rust-src"
-                  "rustfmt"
-                ];
-              })
+              rustToolchain
               sccache
               cargo-insta
               cargo-outdated
@@ -81,6 +91,9 @@
               cargo-codspeed
               gnuplot
               samply
+
+              # Coverage
+              cargo-llvm-cov
 
               # Release
               cargo-semver-checks

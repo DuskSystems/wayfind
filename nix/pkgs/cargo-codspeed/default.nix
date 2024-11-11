@@ -1,13 +1,13 @@
 {
   lib,
   stdenv,
-  rustPlatform,
+  craneLib,
   fetchCrate,
   pkg-config,
   openssl,
   darwin,
 }:
-rustPlatform.buildRustPackage rec {
+craneLib.buildPackage rec {
   pname = "cargo-codspeed";
 
   # NOTE: Keep in sync with `codspeed-criterion-compat` Rust package.

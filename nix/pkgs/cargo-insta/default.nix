@@ -1,9 +1,9 @@
 {
   lib,
-  rustPlatform,
+  craneLib,
   fetchCrate,
 }:
-rustPlatform.buildRustPackage rec {
+craneLib.buildPackage rec {
   pname = "cargo-insta";
 
   # NOTE: Keep in sync with `cargo-insta` Rust package.
