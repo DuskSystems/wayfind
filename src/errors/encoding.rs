@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-/// Errors relating to attempting to decode UTF8 and percent-encoded strings.
+/// Errors relating to attempting to decode UTF-8 and percent-encoded strings.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EncodingError {
     /// Invalid UTF-8 sequence encountered.

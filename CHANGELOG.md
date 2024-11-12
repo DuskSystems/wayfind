@@ -13,9 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `Router` now requires an explicit lifetime.
 - All routes now require a leading `/`.
 - Router display no longer shows internal root node. Matchable nodes are now denoted by `[*]`.
 - Route expander now converts empty routes `""` to `"/"`.
+- `Parameters` lists make use of `smallvec` now.
+
+### Removed
+
+- Individual parameters are returned as tuples, rather than `Parameter`.
+
+### Fixed
+
+- Touching parameters are now correctly rejected.
 
 ## [0.6.0] - 2024-10-27
 
