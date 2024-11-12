@@ -1,5 +1,5 @@
 use crate::errors::{EncodingError, RouteError};
-use rustc_hash::FxHashMap;
+use smallvec::{smallvec, SmallVec};
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
@@ -157,26 +157,42 @@ impl Parser {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: FxHashMap<String, (usize, usize)> = FxHashMap::default();
+        // Parameters in order (name, start, length)
+        let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
 
         while cursor < raw.len() {
             match raw[cursor] {
                 b'{' => {
                     let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
 
+                    // Check for touching parameters.
+                    if let Some((_, start, length)) = seen_parameters.last() {
+                        if cursor == start + length {
+                            return Err(RouteError::TouchingParameters {
+                                route: String::from_utf8_lossy(raw).to_string(),
+                                start: *start,
+                                length: next_cursor - start,
+                            });
+                        }
+                    }
+
+                    // Check for duplicate names.
                     if let Part::Dynamic { name, .. } | Part::Wildcard { name, .. } = &part {
-                        if let Some(&(first, first_length)) = seen_parameters.get(name) {
+                        if let Some((_, start, length)) = seen_parameters
+                            .iter()
+                            .find(|(existing, _, _)| existing == name)
+                        {
                             return Err(RouteError::DuplicateParameter {
                                 route: String::from_utf8_lossy(raw).to_string(),
                                 name: name.to_string(),
-                                first,
-                                first_length,
+                                first: *start,
+                                first_length: *length,
                                 second: cursor,
                                 second_length: next_cursor - cursor,
                             });
                         }
 
-                        seen_parameters.insert(name.clone(), (cursor, next_cursor - cursor));
+                        seen_parameters.push((name.clone(), cursor, next_cursor - cursor));
                     }
 
                     parts.push(part);
@@ -916,5 +932,27 @@ mod tests {
 
         tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
         "#);
+    }
+
+    #[test]
+    fn test_parser_error_touching_parameters() {
+        let error = Parser::new(b"/users/{id}{name}").unwrap_err();
+        assert_eq!(
+            error,
+            RouteError::TouchingParameters {
+                route: "/users/{id}{name}".to_string(),
+                start: 7,
+                length: 10,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r"
+        touching parameters
+
+            Route: /users/{id}{name}
+                          ^^^^^^^^^^
+
+        tip: Touching parameters are not supported
+        ");
     }
 }

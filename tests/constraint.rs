@@ -160,35 +160,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// FIXME: This feels like it could work. Might be better off erroring for all touching params.
-#[test]
-fn test_constraint_touching() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.constraint::<NameConstraint>()?;
-    router.insert("/users/{first:name}{second:u32}", 1)?;
-
-    insta::assert_snapshot!(router, @r"
-    /users/
-    ╰─ {first:name}
-       ╰─ {second:u32} [*]
-    ");
-
-    let path = Path::new("/users/abc123")?;
-    let search = router.search(&path)?;
-    assert_eq!(search, None);
-
-    let path = Path::new("/users/abcdef")?;
-    let search = router.search(&path)?;
-    assert_eq!(search, None);
-
-    let path = Path::new("/users/123abc")?;
-    let search = router.search(&path)?;
-    assert_eq!(search, None);
-
-    Ok(())
-}
-
-// FIXME: Not really happy with this either. But no real way we could prevent unreachable routes at the constraint layer.
+// NOTE: Not really happy with this. But no real way we could prevent unreachable routes at the constraint layer.
 #[test]
 fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
