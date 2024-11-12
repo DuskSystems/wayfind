@@ -77,6 +77,11 @@ impl<'r, T, S: State> Children<'r, T, S> {
         self.nodes.remove(index)
     }
 
+    #[inline]
+    fn len(&self) -> usize {
+        self.nodes.len()
+    }
+
     pub(crate) fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }

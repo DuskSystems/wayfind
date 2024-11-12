@@ -20,8 +20,7 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /users/
     ╰─ {id} [*]
-       ╰─ /
-          ╰─ settings [*]
+       ╰─ /settings [*]
     ");
 
     router.delete("/users/{id}/settings")?;
@@ -61,7 +60,6 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// FIXME: This isn't right. we should compress `bc` node after deleting /ab
 #[test]
 fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -79,8 +77,7 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /a [*]
-    ╰─ b
-       ╰─ c [*]
+    ╰─ bc [*]
     ");
 
     Ok(())
