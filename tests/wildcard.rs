@@ -168,25 +168,6 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// FIXME: Should really be an error at insert time.
-#[test]
-fn test_wildcard_touching() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/{*first}{*second}", 1)?;
-
-    insta::assert_snapshot!(router, @r"
-    /
-    ╰─ {*first}
-       ╰─ {*second} [*]
-    ");
-
-    let path = Path::new("/hello")?;
-    let search = router.search(&path)?;
-    assert_eq!(search, None);
-
-    Ok(())
-}
-
 #[test]
 fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();

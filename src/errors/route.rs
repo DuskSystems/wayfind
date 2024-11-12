@@ -357,6 +357,39 @@ pub enum RouteError {
         /// The length of the parameter (including braces).
         length: usize,
     },
+
+    /// Two parameters side by side were found in the route.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::TouchingParameters {
+    ///     route: "/{a}{b}".to_string(),
+    ///     start: 1,
+    ///     length: 6,
+    /// };
+    ///
+    /// let display = "
+    /// touching parameters
+    ///
+    ///     Route: /{a}{b}
+    ///             ^^^^^^
+    ///
+    /// tip: Touching parameters are not supported
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    TouchingParameters {
+        /// The route containing touching parameters.
+        route: String,
+        /// The position of the first opening brace.
+        start: usize,
+        /// The combined length of both parameters (including braces).
+        length: usize,
+    },
 }
 
 impl std::error::Error for RouteError {}
@@ -532,6 +565,23 @@ tip: Parameter names must be unique within a route"#
            {arrow}
 
 tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
+                )
+            }
+
+            Self::TouchingParameters {
+                route,
+                start,
+                length,
+            } => {
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r#"touching parameters
+
+    Route: {route}
+           {arrow}
+
+tip: Touching parameters are not supported"#
                 )
             }
         }
