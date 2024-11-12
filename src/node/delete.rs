@@ -3,6 +3,7 @@ use crate::{
     errors::DeleteError,
     node::Node,
     parser::{Part, Route},
+    state::StaticState,
 };
 
 impl<'r, T, S: State> Node<'r, T, S> {
@@ -82,8 +83,21 @@ impl<'r, T, S: State> Node<'r, T, S> {
         };
 
         if child.is_empty() {
+            // Delete empty nodes.
             self.static_children.remove(index);
             self.needs_optimization = true;
+        } else if child.is_compressible() {
+            // Compress redundant nodes.
+            let merge = child.static_children.remove(0);
+
+            let mut prefix = std::mem::take(&mut child.state.prefix);
+            prefix.extend(&merge.state.prefix);
+
+            *child = Node {
+                state: StaticState::new(prefix),
+                needs_optimization: true,
+                ..merge
+            };
         }
 
         result
@@ -164,6 +178,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
+            && self.dynamic_children.is_empty()
+            && self.wildcard_children.is_empty()
+            && self.end_wildcard_children.is_empty()
+    }
+
+    fn is_compressible(&self) -> bool {
+        self.data.is_none()
+            && self.static_children.len() == 1
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
             && self.end_wildcard_children.is_empty()
