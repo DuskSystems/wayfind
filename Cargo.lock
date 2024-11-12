@@ -1477,7 +1477,7 @@ checksum = "65fc09f10666a9f147042251e0dda9c18f166ff7de300607007e96bdebc1068d"
 
 [[package]]
 name = "wayfind"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "actix-router",
  "codspeed-criterion-compat",
@@ -1506,7 +1506,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-oci-example"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "bytes",
