@@ -10,40 +10,31 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  id-token: write
+
 env:
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: "1"
 
 jobs:
-  ci:
+  checks:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      id-token: write
     defaults:
       run:
-        shell: nix develop .#ci --command bash {0}
+        shell: nix develop .#checks --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v14
-
-      - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
-
-      - name: Configure SCCache
-        uses: actions/github-script@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL);
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
-
-      - name: Initialize Nix shell
-        run: nix develop .#ci
+          shell: checks
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run checks
         run: |
@@ -55,6 +46,159 @@ jobs:
           cargo test --all-targets
           cargo test --doc
 
-      - name: Show SCCache stats
+  benchmarks:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#benchmarks --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: benchmarks
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build benchmarks
+        run: cargo codspeed build
+
+      - name: Upload benchmark results to CodSpeed
+        uses: CathalMullan/action@main
+        with:
+          shell: nix develop .#benchmarks --command bash {0}
+          run: cargo codspeed run
+          token: "${{ secrets.CODSPEED_TOKEN }}"
+
+  coverage:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#coverage --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: coverage
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Generate coverage
+        run: cargo llvm-cov --doctests --codecov --output-path codecov.json
+
+      - name: Upload coverage results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: codecov.json
+          fail_ci_if_error: true
+          token: "${{ secrets.CODECOV_TOKEN }}"
+
+  msrv:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#msrv --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: msrv
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build wayfind
+        run: cargo build
+
+  no-std:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#no-std --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: no-std
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build wayfind
+        run: cargo build
+
+  wasm:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#wasm --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: wasm
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Build wayfind
+        run: cargo build
+
+  oci:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: nix develop .#oci --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: oci
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Run OCI tests
+        run: |
+          set -eufo pipefail
+          cd examples/oci
+          cargo build
+          cargo run &
+          PID="${!}"
+          sleep 3
+          oci-distribution-spec-conformance
+          kill "${PID}"
+
+      - name: Upload test results to Codecov
         if: always() && !cancelled()
-        run: sccache --show-stats
+        uses: codecov/test-results-action@v1
+        with:
+          files: examples/oci/junit.xml
+          fail_ci_if_error: true
+          token: "${{ secrets.CODECOV_TOKEN }}"
+
+      - name: Upload test report to GitHub
+        if: always() && !cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: examples/oci/report.html

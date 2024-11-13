@@ -122,9 +122,9 @@
             ];
           };
 
-          # nix develop .#ci
-          ci = pkgs.mkShell {
-            name = "wayfind-ci-shell";
+          # nix develop .#checks
+          checks = pkgs.mkShell {
+            name = "wayfind-checks-shell";
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
             RUSTFLAGS = "-C target-cpu=native";
