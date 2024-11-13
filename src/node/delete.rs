@@ -5,6 +5,7 @@ use crate::{
     parser::{Part, Route},
     state::StaticState,
 };
+use alloc::string::{String, ToString};
 
 impl<'r, T, S: State> Node<'r, T, S> {
     /// Deletes a route from the node tree.
@@ -90,7 +91,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             // Compress redundant nodes.
             let merge = child.static_children.remove(0);
 
-            let mut prefix = std::mem::take(&mut child.state.prefix);
+            let mut prefix = core::mem::take(&mut child.state.prefix);
             prefix.extend(&merge.state.prefix);
 
             *child = Node {

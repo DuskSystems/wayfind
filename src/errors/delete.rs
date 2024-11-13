@@ -1,5 +1,6 @@
 use super::{route::RouteError, EncodingError};
-use std::{error::Error, fmt::Display};
+use alloc::string::String;
+use core::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -70,7 +71,7 @@ pub enum DeleteError {
 impl Error for DeleteError {}
 
 impl Display for DeleteError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),

@@ -1,6 +1,5 @@
-use std::{error::Error, fmt::Display};
-
 use super::EncodingError;
+use core::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to decode and validate path.
 #[derive(Debug, PartialEq, Eq)]
@@ -12,7 +11,7 @@ pub enum PathError {
 impl Error for PathError {}
 
 impl Display for PathError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
         }
