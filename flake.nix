@@ -194,7 +194,23 @@
             CARGO_INCREMENTAL = "0";
 
             buildInputs = with pkgs; [
-              (rust-bin.stable."1.66.0".minimal)
+              (rust-bin.stable."1.81.0".minimal)
+              sccache
+            ];
+          };
+
+          # nix develop .#no-std
+          no-std = pkgs.mkShell {
+            name = "wayfind-no-std-shell";
+
+            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            CARGO_INCREMENTAL = "0";
+            CARGO_BUILD_TARGET = "${pkgs.stdenv.hostPlatform.uname.processor}-unknown-none";
+
+            buildInputs = with pkgs; [
+              (rust-bin.stable."1.81.0".minimal.override {
+                targets = [ "${pkgs.stdenv.hostPlatform.uname.processor}-unknown-none" ];
+              })
               sccache
             ];
           };

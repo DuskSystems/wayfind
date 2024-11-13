@@ -1,5 +1,9 @@
 use crate::errors::EncodingError;
-use std::borrow::Cow;
+use alloc::{
+    borrow::Cow,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 /// Try and percent-decode input bytes.
 /// Does not do any sort of normalization, simply decodes hex characters.

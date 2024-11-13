@@ -3,7 +3,8 @@ use crate::{
     errors::{EncodingError, SearchError},
     router::{Parameters, StoredConstraint},
 };
-use rustc_hash::FxHashMap;
+use alloc::string::{String, ToString};
+use hashbrown::HashMap;
 use smallvec::smallvec;
 
 impl<'r, T, S: State> Node<'r, T, S> {
@@ -15,7 +16,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         if path.is_empty() {
             return Ok(self.data.as_ref().map(|data| (data, self.priority)));
@@ -44,7 +45,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.static_children.iter() {
             if path.len() >= child.state.prefix.len()
@@ -66,7 +67,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
@@ -80,7 +81,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.dynamic_children.iter() {
             let mut consumed = 0;
@@ -103,7 +104,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((
                     &child.state.name,
-                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -134,7 +135,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -146,7 +147,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
             parameters.push((
                 &child.state.name,
-                std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(segment).to_string(),
                 })?,
             ));
@@ -165,7 +166,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
@@ -179,7 +180,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -198,7 +199,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((
                     &child.state.name,
-                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -229,7 +230,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
@@ -266,7 +267,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
                 parameters.push((
                     &child.state.name,
-                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -294,7 +295,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
         for child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(&child.state.constraint, path, constraints) {
@@ -303,7 +304,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
             parameters.push((
                 &child.state.name,
-                std::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
+                core::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(path).to_string(),
                 })?,
             ));
@@ -317,14 +318,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn check_constraint(
         constraint: &Option<String>,
         segment: &[u8],
-        constraints: &FxHashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> bool {
         let Some(constraint) = constraint else {
             return true;
         };
 
         let constraint = constraints.get(constraint.as_str()).unwrap();
-        let Ok(segment) = std::str::from_utf8(segment) else {
+        let Ok(segment) = core::str::from_utf8(segment) else {
             return false;
         };
 

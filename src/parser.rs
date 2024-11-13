@@ -1,4 +1,9 @@
 use crate::errors::{EncodingError, RouteError};
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use smallvec::{smallvec, SmallVec};
 
 /// Characters that are not allowed in parameter names or constraints.
@@ -58,7 +63,7 @@ impl Parser {
         start: usize,
         end: usize,
     ) -> Result<Vec<Vec<u8>>, RouteError> {
-        let mut result = vec![vec![]];
+        let mut result = Vec::from([vec![]]);
 
         let mut cursor = start;
         let mut group = start;
@@ -362,6 +367,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use similar_asserts::assert_eq;
 
     #[test]

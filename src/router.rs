@@ -8,15 +8,17 @@ use crate::{
     state::RootState,
     Routable,
 };
-use rustc_hash::FxHashMap;
-use smallvec::{smallvec, SmallVec};
-use std::{
-    any::type_name,
-    collections::hash_map::Entry,
+use alloc::{
     fmt::Display,
-    net::{Ipv4Addr, Ipv6Addr},
+    string::{String, ToString},
     sync::Arc,
 };
+use core::{
+    any::type_name,
+    net::{Ipv4Addr, Ipv6Addr},
+};
+use hashbrown::HashMap;
+use smallvec::{smallvec, SmallVec};
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
@@ -56,7 +58,7 @@ pub struct Router<'r, T> {
     root: Node<'r, T, RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: FxHashMap<&'r str, StoredConstraint>,
+    constraints: HashMap<&'r str, StoredConstraint>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -82,7 +84,7 @@ impl<'r, T> Router<'r, T> {
                 priority: 0,
                 needs_optimization: false,
             },
-            constraints: FxHashMap::default(),
+            constraints: HashMap::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -130,21 +132,23 @@ impl<'r, T> Router<'r, T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        match self.constraints.entry(C::NAME) {
-            Entry::Vacant(entry) => {
-                entry.insert(StoredConstraint {
-                    type_name: type_name::<C>(),
-                    check: C::check,
-                });
-
-                Ok(())
-            }
-            Entry::Occupied(entry) => Err(ConstraintError::DuplicateName {
+        if let Some(existing) = self.constraints.get(&C::NAME) {
+            return Err(ConstraintError::DuplicateName {
                 name: C::NAME,
-                existing_type: entry.get().type_name,
+                existing_type: existing.type_name,
                 new_type: type_name::<C>(),
-            }),
+            });
         }
+
+        self.constraints.insert(
+            C::NAME,
+            StoredConstraint {
+                type_name: type_name::<C>(),
+                check: C::check,
+            },
+        );
+
+        Ok(())
     }
 
     /// Inserts a new routable with an associated value into the router.
@@ -350,7 +354,7 @@ impl<'r, T> Default for Router<'r, T> {
 }
 
 impl<'r, T> Display for Router<'r, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.root)
     }
 }

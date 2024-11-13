@@ -1,4 +1,5 @@
 use super::EncodingError;
+use alloc::string::String;
 
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
@@ -392,10 +393,10 @@ pub enum RouteError {
     },
 }
 
-impl std::error::Error for RouteError {}
+impl core::error::Error for RouteError {}
 
-impl std::fmt::Display for RouteError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for RouteError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
             Self::Empty => write!(f, "empty route"),

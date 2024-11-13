@@ -5,6 +5,10 @@ use crate::{
     errors::InsertError,
     parser::{Part, Route},
 };
+use alloc::{
+    string::{String, ToString},
+    vec,
+};
 
 impl<'r, T, S: State> Node<'r, T, S> {
     /// Inserts a new route into the node tree with associated data.
@@ -109,12 +113,12 @@ impl<'r, T, S: State> Node<'r, T, S> {
             state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
             data: child.data.take(),
 
-            static_children: std::mem::take(&mut child.static_children),
-            dynamic_children: std::mem::take(&mut child.dynamic_children),
+            static_children: core::mem::take(&mut child.static_children),
+            dynamic_children: core::mem::take(&mut child.dynamic_children),
             dynamic_children_shortcut: child.dynamic_children_shortcut,
-            wildcard_children: std::mem::take(&mut child.wildcard_children),
+            wildcard_children: core::mem::take(&mut child.wildcard_children),
             wildcard_children_shortcut: child.wildcard_children_shortcut,
-            end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
+            end_wildcard_children: core::mem::take(&mut child.end_wildcard_children),
 
             priority: child.priority,
             needs_optimization: child.needs_optimization,

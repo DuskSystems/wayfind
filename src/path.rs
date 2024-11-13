@@ -1,5 +1,5 @@
 use crate::{decode::percent_decode, errors::PathError};
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 /// [`Path`] stores the URI data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug, Eq, PartialEq)]

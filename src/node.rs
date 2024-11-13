@@ -1,8 +1,8 @@
 use crate::state::{DynamicState, EndWildcardState, State, StaticState, WildcardState};
-use std::{
+use alloc::{sync::Arc, vec, vec::Vec};
+use core::{
     fmt::Debug,
     ops::{Index, IndexMut},
-    sync::Arc,
 };
 
 pub mod delete;

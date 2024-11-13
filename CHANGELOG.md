@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-...
+### Added
+
+- Support for `#[no_std]` builds (with alloc).
+
+### Changed
+
+- The minimum supported Rust version (MSRV) is now 1.81.
 
 ## [0.7.0] - 2024-11-12
 

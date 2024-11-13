@@ -1,4 +1,4 @@
-use std::{error::Error, fmt::Display};
+use core::{error::Error, fmt::Display};
 
 /// Errors that can occur when creating a [`Routable`](`crate::Routable`).
 #[derive(Debug, PartialEq, Eq)]
@@ -26,7 +26,7 @@ pub enum RoutableError {
 impl Error for RoutableError {}
 
 impl Display for RoutableError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::MissingRoute => write!(
                 f,
