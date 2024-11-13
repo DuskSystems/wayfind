@@ -9,6 +9,11 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
 env:
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: "1"
@@ -16,9 +21,6 @@ env:
 jobs:
   docs:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      id-token: write
     defaults:
       run:
         shell: nix develop .#docs --command bash {0}
@@ -28,21 +30,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v14
-
-      - name: Setup Nix cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
-
-      - name: Configure SCCache
-        uses: actions/github-script@v7
+      - name: Setup environment
+        uses: ./.github/actions/setup
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL);
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
-
-      - name: Initialize Nix shell
-        run: nix develop .#docs
+          shell: docs
+          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build docs
         run: |
@@ -57,16 +49,9 @@ jobs:
           path: target/doc
           retention-days: 30
 
-      - name: Show SCCache stats
-        if: always() && !cancelled()
-        run: sccache --show-stats
-
   deploy:
     needs: docs
     runs-on: ubuntu-24.04
-    permissions:
-      id-token: write
-      pages: write
     environment:
       name: github-pages
       url: "${{ steps.deployment.outputs.page_url }}"
