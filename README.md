@@ -1,9 +1,11 @@
+![license: MIT/Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)
 [![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
+
 ![rust: 1.81+](https://img.shields.io/badge/rust-1.81+-orange.svg)
-![unsafe: forbidden](https://img.shields.io/badge/unsafe-forbidden-brightgreen.svg)
+![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
 ![`no_std`: compatible](https://img.shields.io/badge/no__std-compatible-success.svg)
-![license: MIT/Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)
+![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 
 [![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
 [![codecov](https://codecov.io/gh/DuskSystems/wayfind/graph/badge.svg?token=QMSW55438K)](https://codecov.io/gh/DuskSystems/wayfind)
