@@ -215,6 +215,22 @@
             ];
           };
 
+          # nix develop .#wasm
+          wasm = pkgs.mkShell {
+            name = "wayfind-wasm-shell";
+
+            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+            CARGO_INCREMENTAL = "0";
+            CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+
+            buildInputs = with pkgs; [
+              (rust-bin.stable."1.81.0".minimal.override {
+                targets = [ "wasm32-unknown-unknown" ];
+              })
+              sccache
+            ];
+          };
+
           # nix develop .#oci
           oci = pkgs.mkShell {
             name = "wayfind-oci-shell";
