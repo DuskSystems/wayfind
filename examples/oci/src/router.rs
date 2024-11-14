@@ -77,7 +77,7 @@ impl<'r> AppRouter<'r> {
     /// Handles an incoming request by routing it to the appropriate handler.
     pub async fn handle(&self, mut req: AppRequest, state: SharedAppState) -> AppResponse {
         let method = req.method();
-        let path = req.uri().path().to_string();
+        let path = req.uri().path().to_owned();
 
         let Ok(path) = wayfind::Path::new(&path) else {
             return Response::builder()
@@ -94,11 +94,11 @@ impl<'r> AppRouter<'r> {
             return StatusCode::NOT_FOUND.into_response();
         };
 
-        let route = search.route.to_string();
+        let route = search.route.to_owned();
         let parameters: Vec<(String, String)> = search
             .parameters
             .into_iter()
-            .map(|p| (p.0.to_string(), p.1.to_string()))
+            .map(|p| (p.0.to_owned(), p.1.to_owned()))
             .collect();
 
         req.extensions_mut().insert(RouteInner(route));

@@ -1,8 +1,5 @@
 use super::{Node, State};
-use alloc::{
-    format,
-    string::{String, ToString},
-};
+use alloc::{borrow::ToOwned, format, string::String};
 use core::fmt::{Display, Write};
 
 impl<'r, T, S: State> Display for Node<'r, T, S> {
@@ -32,7 +29,7 @@ impl<'r, T, S: State> Display for Node<'r, T, S> {
             }
 
             let new_prefix = if is_top {
-                padding.to_string()
+                padding.to_owned()
             } else if is_last {
                 format!("{padding}   ")
             } else {

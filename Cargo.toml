@@ -42,6 +42,8 @@ suspicious = { level = "deny", priority = -1 }
 module_name_repetitions = "allow"
 cognitive_complexity = "allow"
 too_many_lines = "allow"
+clone_on_ref_ptr = "deny"
+str_to_string = "deny"
 
 [profile.dev.package]
 insta.opt-level = 3

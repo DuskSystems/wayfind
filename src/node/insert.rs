@@ -6,6 +6,7 @@ use crate::{
     parser::{Part, Route},
 };
 use alloc::{
+    borrow::ToOwned,
     string::{String, ToString},
     vec,
 };
@@ -38,7 +39,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         } else {
             if let Some(data) = &self.data {
                 let conflict = match data {
-                    Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_string(),
+                    Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
                 };
 
                 return Err(InsertError::DuplicateRoute {
@@ -243,7 +244,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .find(|child| child.state.name == name && child.state.constraint == constraint)
         {
             let conflict = match child.data.as_ref().unwrap() {
-                Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_string(),
+                Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
             };
 
             return Err(InsertError::DuplicateRoute {

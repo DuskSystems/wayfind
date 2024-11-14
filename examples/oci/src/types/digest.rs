@@ -76,7 +76,7 @@ impl TryFrom<&str> for Digest {
 
         Ok(Self {
             algorithm,
-            hash: hash.to_string(),
+            hash: hash.to_owned(),
         })
     }
 }

@@ -82,7 +82,7 @@ fn test_constraint_unknown() {
     assert_eq!(
         result,
         Err(InsertError::UnknownConstraint {
-            constraint: "unknown".to_string()
+            constraint: "unknown".to_owned()
         })
     );
 }

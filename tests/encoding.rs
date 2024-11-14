@@ -100,7 +100,7 @@ fn test_encoding_invalid_path() {
     assert_eq!(
         path,
         Err(PathError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/%GG".to_string(),
+            input: "/users/%GG".to_owned(),
             position: 7,
             character: [37, 71, 71]
         }))
@@ -114,7 +114,7 @@ fn test_encoding_invalid_parameter() {
     assert_eq!(
         insert,
         Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/{%GG}".to_string(),
+            input: "/users/{%GG}".to_owned(),
             position: 8,
             character: [37, 71, 71]
         }))
@@ -128,7 +128,7 @@ fn test_encoding_invalid_constraint() {
     assert_eq!(
         insert,
         Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/{id:%GG}".to_string(),
+            input: "/users/{id:%GG}".to_owned(),
             position: 11,
             character: [37, 71, 71]
         }))
@@ -145,7 +145,7 @@ fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Err(SearchError::EncodingError(EncodingError::Utf8Error {
-            input: "my�file".to_string()
+            input: "my�file".to_owned()
         }))
     );
 

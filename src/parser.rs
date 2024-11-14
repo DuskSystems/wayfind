@@ -398,7 +398,7 @@ mod tests {
                     raw: b"/{name}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: "name".to_string(),
+                            name: "name".to_owned(),
                             constraint: None
                         },
                         Part::Static {
@@ -421,7 +421,7 @@ mod tests {
                     raw: b"/{*route}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
-                            name: "route".to_string(),
+                            name: "route".to_owned(),
                             constraint: None
                         },
                         Part::Static {
@@ -444,15 +444,15 @@ mod tests {
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
                         Part::Dynamic {
-                            name: "id".to_string(),
-                            constraint: Some("numeric".to_string())
+                            name: "id".to_owned(),
+                            constraint: Some("numeric".to_owned())
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
                         },
                         Part::Wildcard {
-                            name: "name".to_string(),
-                            constraint: Some("alpha".to_string())
+                            name: "name".to_owned(),
+                            constraint: Some("alpha".to_owned())
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -475,7 +475,7 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: "id".to_string(),
+                                name: "id".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -510,7 +510,7 @@ mod tests {
                                 prefix: b"/profile".to_vec()
                             },
                             Part::Dynamic {
-                                name: "id".to_string(),
+                                name: "id".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -523,7 +523,7 @@ mod tests {
                         raw: b"/users/{id}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: "id".to_string(),
+                                name: "id".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -575,7 +575,7 @@ mod tests {
                                 prefix: b"/users".to_vec()
                             },
                             Part::Dynamic {
-                                name: "lang".to_string(),
+                                name: "lang".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -607,14 +607,14 @@ mod tests {
                         raw: b"/{lang}/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: "page".to_string(),
+                                name: "page".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
                             },
                             Part::Dynamic {
-                                name: "lang".to_string(),
+                                name: "lang".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -627,7 +627,7 @@ mod tests {
                         raw: b"/{lang}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: "lang".to_string(),
+                                name: "lang".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -640,7 +640,7 @@ mod tests {
                         raw: b"/{page}".to_vec(),
                         parts: vec![
                             Part::Dynamic {
-                                name: "page".to_string(),
+                                name: "page".to_owned(),
                                 constraint: None
                             },
                             Part::Static {
@@ -674,7 +674,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::EmptyBraces {
-                route: "/users/{}".to_string(),
+                route: "/users/{}".to_owned(),
                 position: 7,
             }
         );
@@ -693,7 +693,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::MissingLeadingSlash {
-                route: "abc".to_string(),
+                route: "abc".to_owned(),
             }
         );
 
@@ -712,7 +712,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::UnbalancedBrace {
-                route: "/users/{id/profile".to_string(),
+                route: "/users/{id/profile".to_owned(),
                 position: 7,
             }
         );
@@ -733,7 +733,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::UnbalancedBrace {
-                route: "/users/id}/profile".to_string(),
+                route: "/users/id}/profile".to_owned(),
                 position: 9,
             }
         );
@@ -754,7 +754,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::EmptyParentheses {
-                route: "/products()/category".to_string(),
+                route: "/products()/category".to_owned(),
                 position: 9,
             }
         );
@@ -773,7 +773,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::UnbalancedParenthesis {
-                route: "/products(/category".to_string(),
+                route: "/products(/category".to_owned(),
                 position: 9,
             }
         );
@@ -794,7 +794,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::UnbalancedParenthesis {
-                route: "/products)/category".to_string(),
+                route: "/products)/category".to_owned(),
                 position: 9,
             }
         );
@@ -815,7 +815,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::EmptyParameter {
-                route: "/users/{:constraint}/profile".to_string(),
+                route: "/users/{:constraint}/profile".to_owned(),
                 start: 7,
                 length: 13,
             }
@@ -835,8 +835,8 @@ mod tests {
         assert_eq!(
             error,
             RouteError::InvalidParameter {
-                route: "/users/{user*name}/profile".to_string(),
-                name: "user*name".to_string(),
+                route: "/users/{user*name}/profile".to_owned(),
+                name: "user*name".to_owned(),
                 start: 7,
                 length: 11,
             }
@@ -858,8 +858,8 @@ mod tests {
         assert_eq!(
             error,
             RouteError::DuplicateParameter {
-                route: "/users/{id}/posts/{id:uuid}".to_string(),
-                name: "id".to_string(),
+                route: "/users/{id}/posts/{id:uuid}".to_owned(),
+                name: "id".to_owned(),
                 first: 7,
                 first_length: 4,
                 second: 18,
@@ -883,7 +883,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::EmptyWildcard {
-                route: "/files/{*}".to_string(),
+                route: "/files/{*}".to_owned(),
                 start: 7,
                 length: 3,
             }
@@ -903,7 +903,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::EmptyConstraint {
-                route: "/users/{id:}/profile".to_string(),
+                route: "/users/{id:}/profile".to_owned(),
                 start: 7,
                 length: 5,
             }
@@ -923,8 +923,8 @@ mod tests {
         assert_eq!(
             error,
             RouteError::InvalidConstraint {
-                route: "/users/{id:*}/profile".to_string(),
-                name: "id".to_string(),
+                route: "/users/{id:*}/profile".to_owned(),
+                name: "id".to_owned(),
                 start: 7,
                 length: 6,
             }
@@ -946,7 +946,7 @@ mod tests {
         assert_eq!(
             error,
             RouteError::TouchingParameters {
-                route: "/users/{id}{name}".to_string(),
+                route: "/users/{id}{name}".to_owned(),
                 start: 7,
                 length: 10,
             }

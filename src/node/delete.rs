@@ -5,7 +5,10 @@ use crate::{
     parser::{Part, Route},
     state::StaticState,
 };
-use alloc::string::{String, ToString};
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
+};
 
 impl<'r, T, S: State> Node<'r, T, S> {
     /// Deletes a route from the node tree.
@@ -45,7 +48,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             if is_expanded != is_shared {
                 return Err(DeleteError::RouteMismatch {
                     route: String::from_utf8_lossy(&route.input).to_string(),
-                    inserted: inserted.to_string(),
+                    inserted: inserted.to_owned(),
                 });
             }
 

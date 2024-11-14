@@ -13,8 +13,8 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
-            route: "/test".to_string(),
-            conflict: "/test".to_string()
+            route: "/test".to_owned(),
+            conflict: "/test".to_owned()
         })
     );
 
@@ -22,8 +22,8 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
-            route: "(/test)".to_string(),
-            conflict: "/test".to_string()
+            route: "(/test)".to_owned(),
+            conflict: "/test".to_owned()
         })
     );
 
@@ -41,8 +41,8 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
-            route: "/test".to_string(),
-            conflict: "(/test)".to_string()
+            route: "/test".to_owned(),
+            conflict: "(/test)".to_owned()
         })
     );
 
@@ -50,8 +50,8 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
-            route: "(/test)".to_string(),
-            conflict: "(/test)".to_string()
+            route: "(/test)".to_owned(),
+            conflict: "(/test)".to_owned()
         })
     );
 
@@ -70,8 +70,8 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
-            route: "/{*catch_all}".to_string(),
-            conflict: "(/{*catch_all})".to_string()
+            route: "/{*catch_all}".to_owned(),
+            conflict: "(/{*catch_all})".to_owned()
         })
     );
 
@@ -91,8 +91,8 @@ fn test_insert_duplicate_parameter() {
     assert_eq!(
         insert,
         Err(InsertError::RouteError(RouteError::DuplicateParameter {
-            route: "/{*id}/users/{id}".to_string(),
-            name: "id".to_string(),
+            route: "/{*id}/users/{id}".to_owned(),
+            name: "id".to_owned(),
             first: 1,
             first_length: 5,
             second: 13,

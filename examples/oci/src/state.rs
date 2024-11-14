@@ -94,13 +94,13 @@ impl AppState {
         let repo = self
             .repositories
             .get(repository)
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))?;
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))?;
 
         repo.blobs
             .get(digest)
             .map(|blob| blob.clone())
             .ok_or_else(|| AppStateError::BlobNotFound {
-                repository: repository.to_string(),
+                repository: repository.to_owned(),
                 digest: digest.clone(),
             })
     }
@@ -190,7 +190,7 @@ impl AppState {
         let repo = self
             .repositories
             .get(repository)
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))?;
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))?;
 
         if let Some(manifest) = repo.manifests.get(reference) {
             return Ok(manifest.content.clone());
@@ -211,8 +211,8 @@ impl AppState {
         }
 
         Err(AppStateError::ManifestNotFound {
-            repository: repository.to_string(),
-            reference: reference.to_string(),
+            repository: repository.to_owned(),
+            reference: reference.to_owned(),
         })
     }
 
@@ -220,13 +220,13 @@ impl AppState {
         self.repositories
             .get(repository)
             .map(|repo| repo.tags.iter().map(|t| t.key().clone()).collect())
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))
     }
 
     pub fn delete_blob(&self, repository: &str, digest: &Digest) -> Result<(), AppStateError> {
         self.repositories
             .get(repository)
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))?
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))?
             .blobs
             .remove(digest);
 
@@ -237,7 +237,7 @@ impl AppState {
         let repo = self
             .repositories
             .get(repository)
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))?;
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))?;
 
         if let Some(digest_str) = repo.tags.remove(reference) {
             repo.manifests.remove(&digest_str.1);
@@ -263,7 +263,7 @@ impl AppState {
                     .map(|r| r.value().clone())
                     .collect()
             })
-            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_string()))
+            .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))
     }
 }
 

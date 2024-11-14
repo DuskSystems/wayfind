@@ -9,6 +9,7 @@ use crate::{
     Routable,
 };
 use alloc::{
+    borrow::ToOwned,
     fmt::Display,
     string::{String, ToString},
     sync::Arc,
@@ -184,7 +185,7 @@ impl<'r, T> Router<'r, T> {
         let decoded_route = percent_decode(routable.route.as_bytes())?;
         if routable.route.as_bytes() != decoded_route.as_ref() {
             return Err(EncodingError::EncodedRoute {
-                input: routable.route.to_string(),
+                input: routable.route.to_owned(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             })?;
         }
@@ -272,7 +273,7 @@ impl<'r, T> Router<'r, T> {
         let decoded_route = percent_decode(routable.route.as_bytes())?;
         if routable.route.as_bytes() != decoded_route.as_ref() {
             return Err(EncodingError::EncodedRoute {
-                input: routable.route.to_string(),
+                input: routable.route.to_owned(),
                 decoded: String::from_utf8_lossy(&decoded_route).to_string(),
             })?;
         }

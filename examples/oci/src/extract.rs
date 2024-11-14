@@ -42,7 +42,7 @@ impl FromRequestParts for SharedAppState {
         _: &mut Parts,
         state: &SharedAppState,
     ) -> Result<Self, Self::Rejection> {
-        Ok(state.clone())
+        Ok(Self::clone(state))
     }
 }
 

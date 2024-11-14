@@ -12,7 +12,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
-            route: "/tests".to_string()
+            route: "/tests".to_owned()
         })
     );
 
@@ -22,7 +22,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
-            route: "(/test)".to_string(),
+            route: "(/test)".to_owned(),
         })
     );
 
@@ -48,8 +48,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::RouteMismatch {
-            route: "/test".to_string(),
-            inserted: "(/test)".to_string()
+            route: "/test".to_owned(),
+            inserted: "(/test)".to_owned()
         })
     );
 
@@ -62,8 +62,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::RouteMismatch {
-            route: "/".to_string(),
-            inserted: "(/test)".to_string()
+            route: "/".to_owned(),
+            inserted: "(/test)".to_owned()
         })
     );
 
@@ -93,7 +93,7 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
-            route: "/{id}".to_string()
+            route: "/{id}".to_owned()
         })
     );
 
