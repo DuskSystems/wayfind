@@ -51,6 +51,10 @@
         };
 
         rustToolchain = pkgs.rust-bin.stable."1.82.0".minimal.override {
+          targets = [
+            "thumbv7m-none-eabi"
+            "wasm32-unknown-unknown"
+          ];
           extensions = [
             "clippy"
             "rust-analyzer"
@@ -205,11 +209,11 @@
 
             RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
             CARGO_INCREMENTAL = "0";
-            CARGO_BUILD_TARGET = "${pkgs.stdenv.hostPlatform.uname.processor}-unknown-none";
+            CARGO_BUILD_TARGET = "thumbv7m-none-eabi";
 
             buildInputs = with pkgs; [
               (rust-bin.stable."1.81.0".minimal.override {
-                targets = [ "${pkgs.stdenv.hostPlatform.uname.processor}-unknown-none" ];
+                targets = [ "thumbv7m-none-eabi" ];
               })
               sccache
             ];
