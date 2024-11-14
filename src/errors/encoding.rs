@@ -42,7 +42,7 @@ pub enum EncodingError {
     /// let error = EncodingError::InvalidEncoding {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
-    ///     character: [b'%', b'G', b'G'],
+    ///     character: *b"%GG"
     /// };
     ///
     /// let display = "

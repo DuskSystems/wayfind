@@ -35,7 +35,7 @@ impl<'p> Path<'p> {
     /// assert_eq!(path, PathError::EncodingError(EncodingError::InvalidEncoding {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
-    ///     character: [b'%', b'G', b'G'],
+    ///     character: *b"%GG"
     /// }));
     /// ```
     pub fn new(path: &'p str) -> Result<Self, PathError> {
