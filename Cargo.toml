@@ -86,6 +86,10 @@ workspace = true
 hashbrown = "0.15"
 smallvec = { version = "1.13", features = ["const_generics", "union"] }
 
+# HTTP
+# NOTE: Internal fork for testing purposes.
+http = { git = "https://github.com/DuskSystems/http" }
+
 [dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.
