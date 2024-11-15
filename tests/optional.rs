@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
 
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
@@ -16,8 +16,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
        ╰─ /users [*]
     ");
 
-    let path = Path::new("/en/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/en/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -28,8 +28,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -55,8 +55,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     ╰─ / [*]
     ");
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -67,8 +67,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -96,8 +96,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
           ╰─ /c [*]
     ");
 
-    let path = Path::new("/a/b/c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/b/c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -108,8 +108,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a/b")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/b").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -120,8 +120,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -132,8 +132,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -159,8 +159,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     ╰─ test [*]
     ");
 
-    let path = Path::new("/test")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/test").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -171,8 +171,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -205,8 +205,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     ╰─ c [*]
     ");
 
-    let path = Path::new("/a/b/c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/b/c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -217,8 +217,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a/b")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/b").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -229,8 +229,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a/c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -241,8 +241,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -253,8 +253,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/b/c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/b/c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -265,8 +265,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/b")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/b").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -277,8 +277,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -289,8 +289,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
