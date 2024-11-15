@@ -3,9 +3,8 @@ use crate::{
     errors::{ConstraintError, DeleteError, InsertError, SearchError},
     node::{Children, Data, Node},
     parser::{Parser, Part},
-    path::Path,
     state::RootState,
-    Routable,
+    Request, Routable,
 };
 use alloc::{
     fmt::Display,
@@ -272,7 +271,7 @@ impl<'r, T> Router<'r, T> {
         Ok(())
     }
 
-    /// Searches for a matching routable in the router.
+    /// Searches for a matching [`Request`] in the [`Router`].
     ///
     /// # Errors
     ///
@@ -281,7 +280,7 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Path, Router, RoutableBuilder};
+    /// use wayfind::{Router, RoutableBuilder, RequestBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
     /// let route = RoutableBuilder::new()
@@ -290,17 +289,20 @@ impl<'r, T> Router<'r, T> {
     ///     .unwrap();
     /// router.insert(&route, 1).unwrap();
     ///
-    /// let path = Path::new("/hello").unwrap();
-    /// let search = router.search(&path).unwrap();
+    /// let request = RequestBuilder::new()
+    ///     .path("/hello")
+    ///     .build()
+    ///     .unwrap();
+    /// let search = router.search(&request).unwrap();
     /// ```
     pub fn search<'p>(
         &'r self,
-        path: &'p Path<'p>,
+        request: &'p Request<'p>,
     ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
         let mut parameters = smallvec![];
         let Some((data, _)) =
             self.root
-                .search(path.as_bytes(), &mut parameters, &self.constraints)?
+                .search(request.path.as_ref(), &mut parameters, &self.constraints)?
         else {
             return Ok(None);
         };

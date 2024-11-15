@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
 
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
@@ -15,8 +15,8 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
        ╰─ /delete [*]
     ");
 
-    let path = Path::new("/docs/delete")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/docs/delete").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -27,8 +27,10 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/nested/docs/folder/delete")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/nested/docs/folder/delete")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -39,8 +41,8 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/delete")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/delete").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -63,8 +65,8 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
              ╰─ /file [*]
     ");
 
-    let path = Path::new("/a/static/b/file")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/static/b/file").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -75,8 +77,10 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a/b/c/static/d/e/f/file")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/a/b/c/static/d/e/f/file")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -103,8 +107,8 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
        ╰─ .html [*]
     ");
 
-    let path = Path::new("/page.html")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/page.html").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -115,8 +119,8 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/nested/page.html")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/nested/page.html").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -127,8 +131,8 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/.html")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/.html").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -150,8 +154,8 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
           ╰─ {*second} [*]
     ");
 
-    let path = Path::new("/a-b-c")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a-b-c").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -162,8 +166,10 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/path/to/some-file/with-multiple-hyphens")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/path/to/some-file/with-multiple-hyphens")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -193,8 +199,8 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
        ╰─ /end [*]
     ");
 
-    let path = Path::new("/start/middle/end")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/start/middle/end").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -205,8 +211,8 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/start//middle///end")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/start//middle///end").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -248,8 +254,8 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
        ╰─ /static [*]
     ");
 
-    let path = Path::new("/static/path")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/static/path").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -260,8 +266,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/static/some/nested/path")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/static/some/nested/path")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -272,8 +280,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/some/nested/path/static")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/some/nested/path/static")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -284,8 +294,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/prefix.some/nested/path")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/prefix.some/nested/path")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -296,8 +308,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/some/nested/path.suffix")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/some/nested/path.suffix")
+        .build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {

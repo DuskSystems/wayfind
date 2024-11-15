@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
 
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
@@ -13,8 +13,8 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     /users/{id} [*]
     ");
 
-    let path = Path::new("/users/{id}")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/{id}").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -24,9 +24,8 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
             parameters: smallvec![],
         })
     );
-
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -43,8 +42,8 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     /(not-optional) [*]
     ");
 
-    let path = Path::new("/(not-optional)")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/(not-optional)").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -55,8 +54,8 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/optional")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/optional").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -76,8 +75,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
        ╰─ /{param} [*]
     ");
 
-    let path = Path::new("/a/{param}")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/{param}").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -88,12 +87,12 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/a/value")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a/value").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/a")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/a").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -104,8 +103,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {

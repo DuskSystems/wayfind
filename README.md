@@ -43,7 +43,7 @@ Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attem
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router, RoutableBuilder};
+use wayfind::{Router, RoutableBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -58,14 +58,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 2)?;
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/users/123")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users/{id}");
     assert_eq!(search.parameters[0], ("id", "123"));
 
-    let path = Path::new("/users/123/files/my.document.pdf")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/users/123/files/my.document.pdf")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}");
     assert_eq!(search.parameters[0], ("id", "123"));
@@ -91,7 +95,7 @@ Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router, RoutableBuilder};
+use wayfind::{Router, RoutableBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -106,14 +110,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 2)?;
 
-    let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/files/documents/reports/annual.pdf/delete")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/files/{*slug}/delete");
     assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
-    let path = Path::new("/any/other/path")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/any/other/path")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/{*catch_all}");
     assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
@@ -144,7 +152,7 @@ There is a small overhead to using optional groups, due to `Arc` usage internall
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router, RoutableBuilder};
+use wayfind::{Router, RoutableBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -159,21 +167,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 2)?;
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/users")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users(/{id})");
     assert_eq!(search.expanded, Some("/users"));
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/users/123")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/users(/{id})");
     assert_eq!(search.expanded, Some("/users/{id}"));
     assert_eq!(search.parameters[0], ("id", "123"));
 
-    let path = Path::new("/files/documents/folder/report.pdf")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/files/documents/folder/report.pdf")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
@@ -181,8 +195,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(search.parameters[1], ("file", "report"));
     assert_eq!(search.parameters[2], ("extension", "pdf"));
 
-    let path = Path::new("/files/documents/folder/readme")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/files/documents/folder/readme")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
@@ -244,7 +260,7 @@ Curently, these can't be disabled.
 
 ```rust
 use std::error::Error;
-use wayfind::{Constraint, Path, Router, RoutableBuilder};
+use wayfind::{Constraint, Router, RoutableBuilder, RequestBuilder};
 
 struct NamespaceConstraint;
 impl Constraint for NamespaceConstraint {
@@ -273,21 +289,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 2)?;
 
-    let path = Path::new("/v2")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/v2")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.route, "/v2");
 
-    let path = Path::new("/v2/my-org/my-repo/blobs/sha256:1234567890")?;
-    let search = router.search(&path)?.unwrap();
+    let request = RequestBuilder::new()
+      .path("/v2/my-org/my-repo/blobs/sha256:1234567890")
+      .build()?;
+    let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
     assert_eq!(search.parameters[0], ("name", "my-org/my-repo"));
     assert_eq!(search.parameters[1], ("type", "sha256"));
     assert_eq!(search.parameters[2], ("digest", "1234567890"));
 
-    let path = Path::new("/v2/invalid repo/blobs/uploads")?;
-    assert!(router.search(&path)?.is_none());
+    let request = RequestBuilder::new()
+      .path("/v2/invalid repo/blobs/uploads")
+      .build()?;
+    assert!(router.search(&request)?.is_none());
 
     Ok(())
 }

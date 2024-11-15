@@ -12,13 +12,13 @@ pub mod errors;
 
 pub(crate) mod node;
 
-pub(crate) mod path;
-pub use path::Path;
-
 pub(crate) mod parser;
 
 pub(crate) mod routable;
 pub use routable::{Routable, RoutableBuilder};
+
+pub(crate) mod request;
+pub use request::{Request, RequestBuilder};
 
 pub(crate) mod router;
 pub use router::{Match, Parameters, Router};

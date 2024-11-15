@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
 
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
@@ -14,8 +14,8 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     ╰─ {id} [*]
     ");
 
-    let path = Path::new("/123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -26,8 +26,8 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -55,8 +55,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 ╰─ {day} [*]
     ");
 
-    let path = Path::new("/2024")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -67,8 +67,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/2024/12")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024/12").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -79,8 +79,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/2024/12/01")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024/12/01").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -116,8 +116,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 ╰─ {day} [*]
     ");
 
-    let path = Path::new("/2024")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -128,8 +128,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/2024-12")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024-12").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -140,8 +140,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/2024-12-01")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/2024-12-01").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -171,12 +171,12 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
           ╰─ {extension} [*]
     ");
 
-    let path = Path::new("/report")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/report").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/report.pdf")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/report.pdf").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -187,8 +187,8 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/report.final.pdf")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/report.final.pdf").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -230,8 +230,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
           ╰─ {extension} [*]
     ");
 
-    let path = Path::new("/robots.txt")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/robots.txt").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -242,8 +242,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/robots.pdf")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/robots.pdf").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -254,8 +254,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/config.txt")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/config.txt").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -266,8 +266,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/config.pdf")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/config.pdf").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {

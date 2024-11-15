@@ -1,6 +1,7 @@
 use super::EncodingError;
 use core::{error::Error, fmt::Display};
 
+// FIXME: Rename to route after moving existing route error to pathroute?
 /// Errors that can occur when creating a [`Routable`](`crate::Routable`).
 #[derive(Debug, PartialEq, Eq)]
 pub enum RoutableError {

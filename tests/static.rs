@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
 
 #[test]
 fn test_static_simple() -> Result<(), Box<dyn Error>> {
@@ -11,8 +11,8 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users [*]");
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -23,8 +23,8 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/user")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/user").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -44,8 +44,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     ╰─ s [*]
     ");
 
-    let path = Path::new("/user")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/user").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -56,8 +56,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -68,12 +68,12 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/use")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/use").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/userss")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/userss").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -94,8 +94,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     ╰─ _1 [*]
     ");
 
-    let path = Path::new("/user_1")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/user_1").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -106,8 +106,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/user/1")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/user/1").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -118,12 +118,12 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/user")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/user").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -160,8 +160,8 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
           ╰─ � [*]
     ");
 
-    let path = Path::new("/👨‍👩‍👧")?; // Family: Man, Woman, Girl
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -172,8 +172,8 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/👨‍👩‍👦")?; // Family: Man, Woman, Boy
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨‍👩‍👦").build()?; // Family: Man, Woman, Boy
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -184,20 +184,20 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/👨")?; // Man
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨").build()?; // Man
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/👨‍👨")?; // Man Woman
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨‍👨").build()?; // Man Woman
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/👨👩👧")?; // Man, Woman, Girl
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨👩👧").build()?; // Man, Woman, Girl
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/👨‍👨‍👧‍👦")?; // Family: Man, Woman, Girl, Boy
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/👨‍👨‍👧‍👦").build()?; // Family: Man, Woman, Girl, Boy
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -218,8 +218,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     ╰─ users [*]
     ");
 
-    let path = Path::new("/users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -230,8 +230,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/Users")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/Users").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -254,8 +254,8 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users /items [*]");
 
-    let path = Path::new("/users /items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users /items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -266,8 +266,8 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -288,8 +288,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     ╰─ items [*]
     ");
 
-    let path = Path::new("/users/items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -300,8 +300,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users//items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users//items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -324,8 +324,8 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users///items [*]");
 
-    let path = Path::new("/users///items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users///items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -336,16 +336,16 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/users//items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users//items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
-    let path = Path::new("/users////items")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users////items").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())

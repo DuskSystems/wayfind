@@ -1,8 +1,8 @@
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
-    errors::{EncodingError, PathError, RoutableError, SearchError},
-    Match, Path, RoutableBuilder, Router,
+    errors::{EncodingError, RequestError, RoutableError, SearchError},
+    Match, RequestBuilder, RoutableBuilder, Router,
 };
 
 #[test]
@@ -17,8 +17,8 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     ╰─ {name} [*]
     ");
 
-    let path = Path::new("/users/jos%C3%A9")?; // "José"
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/jos%C3%A9").build()?; // "José"
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -44,8 +44,10 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     ╰─ {name} [*]
     ");
 
-    let path = Path::new("/user%20files/document%20name")?; // "/user files/document name"
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new()
+        .path("/user%20files/document%20name")
+        .build()?; // "/user files/document name"
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -74,8 +76,8 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     ╰─ {*path} [*]
     ");
 
-    let path = Path::new("/johndoe")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/johndoe").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -86,8 +88,8 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/john%2Fdoe")?; // "john/doe"
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/john%2Fdoe").build()?; // "john/doe"
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -103,14 +105,16 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_encoding_invalid_path() {
-    let path = Path::new("/users/%GG");
+    let request = RequestBuilder::new().path("/users/%GG").build();
     assert_eq!(
-        path,
-        Err(PathError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/%GG".to_owned(),
-            position: 7,
-            character: *b"%GG"
-        }))
+        request,
+        Err(RequestError::EncodingError(
+            EncodingError::InvalidEncoding {
+                input: "/users/%GG".to_owned(),
+                position: 7,
+                character: *b"%GG"
+            }
+        ))
     );
 }
 
@@ -151,8 +155,8 @@ fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
     let route = RoutableBuilder::new().route("/files/{name}").build()?;
     router.insert(&route, 1)?;
 
-    let path = Path::new("/files/my%80file")?;
-    let search = router.search(&path);
+    let request = RequestBuilder::new().path("/files/my%80file").build()?;
+    let search = router.search(&request);
     assert_eq!(
         search,
         Err(SearchError::EncodingError(EncodingError::Utf8Error {

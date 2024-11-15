@@ -2,7 +2,7 @@ use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{ConstraintError, InsertError},
-    Constraint, Match, Path, RoutableBuilder, Router,
+    Constraint, Match, RequestBuilder, RoutableBuilder, Router,
 };
 
 struct NameConstraint;
@@ -27,8 +27,8 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     ╰─ {id:name} [*]
     ");
 
-    let path = Path::new("/users/john123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/john123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -39,8 +39,8 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/john@123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/john@123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -61,8 +61,8 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     ╰─ {*path:name} [*]
     ");
 
-    let path = Path::new("/users/john/doe123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/john/doe123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -73,8 +73,8 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/john@doe/123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/john@doe/123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(search, None);
 
     Ok(())
@@ -147,8 +147,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     ╰─ {id} [*]
     ");
 
-    let path = Path::new("/users/abc")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/abc").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -159,8 +159,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -191,8 +191,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     ╰─ {id:u32} [*]
     ");
 
-    let path = Path::new("/users/123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
@@ -203,8 +203,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let path = Path::new("/users/abc123")?;
-    let search = router.search(&path)?;
+    let request = RequestBuilder::new().path("/users/abc123").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
