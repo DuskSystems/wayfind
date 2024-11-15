@@ -68,6 +68,13 @@ pub struct Children<'r, T, S: State> {
 }
 
 impl<'r, T, S: State> Children<'r, T, S> {
+    const fn new(nodes: Vec<Node<'r, T, S>>) -> Self {
+        Self {
+            nodes,
+            sorted: false,
+        }
+    }
+
     fn push(&mut self, node: Node<'r, T, S>) {
         self.nodes.push(node);
         self.sorted = false;
@@ -122,15 +129,6 @@ impl<'r, T, S: State> Default for Children<'r, T, S> {
     fn default() -> Self {
         Self {
             nodes: vec![],
-            sorted: false,
-        }
-    }
-}
-
-impl<'r, T, S: State> From<Vec<Node<'r, T, S>>> for Children<'r, T, S> {
-    fn from(value: Vec<Node<'r, T, S>>) -> Self {
-        Self {
-            nodes: value,
             sorted: false,
         }
     }

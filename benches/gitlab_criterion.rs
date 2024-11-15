@@ -20,7 +20,11 @@ fn insert_benchmark(criterion: &mut Criterion) {
             || router.clone(),
             |mut router| {
                 for route in black_box(routes()) {
-                    router.insert(black_box(route), true).unwrap();
+                    let route = wayfind::RoutableBuilder::new()
+                        .route(black_box(route))
+                        .build()
+                        .unwrap();
+                    router.insert(black_box(&route), true).unwrap();
                 }
             },
             BatchSize::SmallInput,
@@ -36,14 +40,22 @@ fn delete_benchmark(criterion: &mut Criterion) {
     group.bench_function("gitlab delete benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes() {
-            router.insert(route, true).unwrap();
+            let route = wayfind::RoutableBuilder::new()
+                .route(route)
+                .build()
+                .unwrap();
+            router.insert(&route, true).unwrap();
         }
 
         bencher.iter_batched(
             || router.clone(),
             |mut router| {
                 for route in black_box(routes()) {
-                    router.delete(black_box(route)).unwrap();
+                    let route = wayfind::RoutableBuilder::new()
+                        .route(black_box(route))
+                        .build()
+                        .unwrap();
+                    router.delete(black_box(&route)).unwrap();
                 }
             },
             BatchSize::SmallInput,
@@ -59,7 +71,11 @@ fn display_benchmark(criterion: &mut Criterion) {
     group.bench_function("gitlab display benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes() {
-            router.insert(route, true).unwrap();
+            let route = wayfind::RoutableBuilder::new()
+                .route(route)
+                .build()
+                .unwrap();
+            router.insert(&route, true).unwrap();
         }
 
         bencher.iter_batched(

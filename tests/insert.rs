@@ -1,15 +1,18 @@
 use std::error::Error;
 use wayfind::{
     errors::{ConstraintError, InsertError, RouteError},
-    Constraint, Router,
+    Constraint, RoutableBuilder, Router,
 };
 
 #[test]
 fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/test", 1)?;
 
-    let insert = router.insert("/test", 2);
+    let route = RoutableBuilder::new().route("/test").build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new().route("/test").build()?;
+    let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
@@ -18,7 +21,8 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let insert = router.insert("(/test)", 2);
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
@@ -35,9 +39,12 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/test)", 1)?;
 
-    let insert = router.insert("/test", 2);
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new().route("/test").build()?;
+    let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
@@ -46,7 +53,8 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let insert = router.insert("(/test)", 2);
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
@@ -64,9 +72,12 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/{*catch_all})", 1)?;
 
-    let insert = router.insert("/{*catch_all}", 2);
+    let route = RoutableBuilder::new().route("(/{*catch_all})").build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new().route("/{*catch_all}").build()?;
+    let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
         Err(InsertError::DuplicateRoute {
@@ -87,7 +98,11 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
 fn test_insert_duplicate_parameter() {
     let mut router = Router::new();
 
-    let insert = router.insert("/{*id}/users/{id}", 3);
+    let route = RoutableBuilder::new()
+        .route("/{*id}/users/{id}")
+        .build()
+        .unwrap();
+    let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
         Err(InsertError::RouteError(RouteError::DuplicateParameter {
@@ -124,5 +139,3 @@ fn test_insert_constraint_conflict() {
         })
     );
 }
-
-// FIXME: Should probably add the touching param errors here.

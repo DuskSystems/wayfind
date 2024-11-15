@@ -16,7 +16,11 @@ fn wayfind_insert(bencher: divan::Bencher<'_, '_>) {
     let router = wayfind::Router::new();
     bencher.with_inputs(|| router.clone()).bench_refs(|router| {
         for route in black_box(routes()) {
-            router.insert(black_box(route), true).unwrap();
+            let route = wayfind::RoutableBuilder::new()
+                .route(black_box(route))
+                .build()
+                .unwrap();
+            router.insert(black_box(&route), true).unwrap();
         }
     });
 }
@@ -25,12 +29,20 @@ fn wayfind_insert(bencher: divan::Bencher<'_, '_>) {
 fn wayfind_delete(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     for route in routes() {
-        router.insert(route, true).unwrap();
+        let route = wayfind::RoutableBuilder::new()
+            .route(route)
+            .build()
+            .unwrap();
+        router.insert(&route, true).unwrap();
     }
 
     bencher.with_inputs(|| router.clone()).bench_refs(|router| {
         for route in black_box(routes()) {
-            router.delete(black_box(route)).unwrap();
+            let route = wayfind::RoutableBuilder::new()
+                .route(route)
+                .build()
+                .unwrap();
+            router.delete(black_box(&route)).unwrap();
         }
     });
 }
@@ -39,7 +51,11 @@ fn wayfind_delete(bencher: divan::Bencher<'_, '_>) {
 fn wayfind_display(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     for route in routes() {
-        router.insert(route, true).unwrap();
+        let route = wayfind::RoutableBuilder::new()
+            .route(route)
+            .build()
+            .unwrap();
+        router.insert(&route, true).unwrap();
     }
 
     bencher

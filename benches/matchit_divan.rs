@@ -19,7 +19,11 @@ fn main() {
 fn wayfind(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     for route in routes!(brackets) {
-        router.insert(route, true).unwrap();
+        let route = wayfind::RoutableBuilder::new()
+            .route(route)
+            .build()
+            .unwrap();
+        router.insert(&route, true).unwrap();
     }
 
     bencher.bench(|| {

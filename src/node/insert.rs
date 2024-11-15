@@ -144,10 +144,10 @@ impl<'r, T, S: State> Node<'r, T, S> {
         child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
-            child.static_children = vec![new_child_a].into();
+            child.static_children = Children::new(vec![new_child_a]);
             child.insert(route, data)?;
         } else {
-            child.static_children = vec![new_child_a, new_child_b].into();
+            child.static_children = Children::new(vec![new_child_a, new_child_b]);
             child.static_children[1].insert(route, data)?;
         }
 

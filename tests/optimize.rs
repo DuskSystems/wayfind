@@ -1,12 +1,20 @@
 use std::error::Error;
-use wayfind::Router;
+use wayfind::{RoutableBuilder, Router};
 
 #[test]
 fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id}/profile", 2)?;
-    router.insert("/users/{id}/settings", 3)?;
+
+    let route = RoutableBuilder::new().route("/users/{id}").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/profile")
+        .build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/settings")
+        .build()?;
+    router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
@@ -16,14 +24,22 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
           ╰─ profile [*]
     ");
 
-    router.delete("/users/{id}/profile")?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/profile")
+        .build()?;
+    router.delete(&route)?;
+
     insta::assert_snapshot!(router, @r"
     /users/
     ╰─ {id} [*]
        ╰─ /settings [*]
     ");
 
-    router.delete("/users/{id}/settings")?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/settings")
+        .build()?;
+    router.delete(&route)?;
+
     insta::assert_snapshot!(router, @r"
     /users/
     ╰─ {id} [*]
@@ -35,9 +51,17 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id}/profile", 2)?;
-    router.insert("/users/{id}/settings", 3)?;
+
+    let route = RoutableBuilder::new().route("/users/{id}").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/profile")
+        .build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/settings")
+        .build()?;
+    router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
@@ -47,7 +71,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
           ╰─ profile [*]
     ");
 
-    router.delete("/users/{id}")?;
+    let route = RoutableBuilder::new().route("/users/{id}").build()?;
+    router.delete(&route)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
@@ -63,9 +88,13 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/abc", 1)?;
-    router.insert("/a", 2)?;
-    router.insert("/ab", 3)?;
+
+    let route = RoutableBuilder::new().route("/abc").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/a").build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new().route("/ab").build()?;
+    router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
     /a [*]
@@ -73,7 +102,8 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
        ╰─ c [*]
     ");
 
-    router.delete("/ab")?;
+    let route = RoutableBuilder::new().route("/ab").build()?;
+    router.delete(&route)?;
 
     insta::assert_snapshot!(router, @r"
     /a [*]

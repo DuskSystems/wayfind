@@ -1,18 +1,36 @@
 use std::error::Error;
-use wayfind::Router;
+use wayfind::{RoutableBuilder, Router};
 
 #[test]
 fn test_display_router() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/", 1)?;
-    router.insert("/users", 2)?;
-    router.insert("/users/{id}", 3)?;
-    router.insert("/users/{id}/profile", 4)?;
-    router.insert("/posts/{year}-{month}-{day}", 5)?;
-    router.insert("/files/{*path}/download", 6)?;
-    router.insert("/api/v1(/)", 7)?;
-    router.insert("/images/{name}(.{extension})", 8)?;
-    router.insert("/{*catch_all}", 9)?;
+
+    let route = RoutableBuilder::new().route("/").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/users").build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new().route("/users/{id}").build()?;
+    router.insert(&route, 3)?;
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/profile")
+        .build()?;
+    router.insert(&route, 4)?;
+    let route = RoutableBuilder::new()
+        .route("/posts/{year}-{month}-{day}")
+        .build()?;
+    router.insert(&route, 5)?;
+    let route = RoutableBuilder::new()
+        .route("/files/{*path}/download")
+        .build()?;
+    router.insert(&route, 6)?;
+    let route = RoutableBuilder::new().route("/api/v1(/)").build()?;
+    router.insert(&route, 7)?;
+    let route = RoutableBuilder::new()
+        .route("/images/{name}(.{extension})")
+        .build()?;
+    router.insert(&route, 8)?;
+    let route = RoutableBuilder::new().route("/{*catch_all}").build()?;
+    router.insert(&route, 9)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]

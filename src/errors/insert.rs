@@ -1,13 +1,10 @@
-use super::{route::RouteError, EncodingError};
+use super::route::RouteError;
 use alloc::string::String;
 use core::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
-    /// A [`EncodingError`] that occurred during the decoding.
-    EncodingError(EncodingError),
-
     /// A [`RouteError`] that occurred during the insert operation.
     RouteError(RouteError),
 
@@ -72,7 +69,6 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
             Self::DuplicateRoute { route, conflict } => write!(
                 f,
@@ -90,12 +86,6 @@ impl Display for InsertError {
 The router doesn't recognize this constraint"#
             ),
         }
-    }
-}
-
-impl From<EncodingError> for InsertError {
-    fn from(error: EncodingError) -> Self {
-        Self::EncodingError(error)
     }
 }
 

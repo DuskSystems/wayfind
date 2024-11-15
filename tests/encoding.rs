@@ -1,14 +1,16 @@
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
-    errors::{EncodingError, InsertError, PathError, SearchError},
-    Match, Path, Router,
+    errors::{EncodingError, PathError, RoutableError, SearchError},
+    Match, Path, RoutableBuilder, Router,
 };
 
 #[test]
 fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{name}", 1)?;
+
+    let route = RoutableBuilder::new().route("/users/{name}").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
@@ -33,7 +35,9 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/user files/{name}", 1)?;
+
+    let route = RoutableBuilder::new().route("/user files/{name}").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /user files/
@@ -58,8 +62,11 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{name}", 1)?;
-    router.insert("/{*path}", 2)?;
+
+    let route = RoutableBuilder::new().route("/{name}").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/{*path}").build()?;
+    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -109,36 +116,40 @@ fn test_encoding_invalid_path() {
 
 #[test]
 fn test_encoding_invalid_parameter() {
-    let mut router = Router::new();
-    let insert = router.insert("/users/{%GG}", 1);
+    let route = RoutableBuilder::new().route("/users/{%GG}").build();
     assert_eq!(
-        insert,
-        Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/{%GG}".to_owned(),
-            position: 8,
-            character: *b"%GG"
-        }))
+        route,
+        Err(RoutableError::EncodingError(
+            EncodingError::InvalidEncoding {
+                input: "/users/{%GG}".to_owned(),
+                position: 8,
+                character: *b"%GG"
+            }
+        ))
     );
 }
 
 #[test]
 fn test_encoding_invalid_constraint() {
-    let mut router = Router::new();
-    let insert = router.insert("/users/{id:%GG}", 1);
+    let route = RoutableBuilder::new().route("/users/{id:%GG}").build();
     assert_eq!(
-        insert,
-        Err(InsertError::EncodingError(EncodingError::InvalidEncoding {
-            input: "/users/{id:%GG}".to_owned(),
-            position: 11,
-            character: *b"%GG"
-        }))
+        route,
+        Err(RoutableError::EncodingError(
+            EncodingError::InvalidEncoding {
+                input: "/users/{id:%GG}".to_owned(),
+                position: 11,
+                character: *b"%GG"
+            }
+        ))
     );
 }
 
 #[test]
 fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/files/{name}", 1)?;
+
+    let route = RoutableBuilder::new().route("/files/{name}").build()?;
+    router.insert(&route, 1)?;
 
     let path = Path::new("/files/my%80file")?;
     let search = router.search(&path);

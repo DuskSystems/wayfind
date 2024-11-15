@@ -1,11 +1,13 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, Router};
+use wayfind::{Match, Path, RoutableBuilder, Router};
 
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/{lang})/users", 1)?;
+
+    let route = RoutableBuilder::new().route("(/{lang})/users").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -44,7 +46,9 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users(/)", 1)?;
+
+    let route = RoutableBuilder::new().route("/users(/)").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /users [*]
@@ -81,7 +85,9 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/a(/b(/c)))", 1)?;
+
+    let route = RoutableBuilder::new().route("(/a(/b(/c)))").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]
@@ -144,7 +150,9 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optional_only() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/test)", 1)?;
+
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]
@@ -181,7 +189,9 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/a)(/b)(/c)", 1)?;
+
+    let route = RoutableBuilder::new().route("(/a)(/b)(/c)").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]

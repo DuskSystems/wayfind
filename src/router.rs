@@ -1,7 +1,6 @@
 use crate::{
     constraints::Constraint,
-    decode::percent_decode,
-    errors::{ConstraintError, DeleteError, EncodingError, InsertError, SearchError},
+    errors::{ConstraintError, DeleteError, InsertError, SearchError},
     node::{Children, Data, Node},
     parser::{Parser, Part},
     path::Path,
@@ -9,7 +8,6 @@ use crate::{
     Routable,
 };
 use alloc::{
-    borrow::ToOwned,
     fmt::Display,
     string::{String, ToString},
     sync::Arc,
@@ -133,7 +131,7 @@ impl<'r, T> Router<'r, T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        if let Some(existing) = self.constraints.get(&C::NAME) {
+        if let Some(existing) = self.constraints.get(C::NAME) {
             return Err(ConstraintError::DuplicateName {
                 name: C::NAME,
                 existing_type: existing.type_name,
@@ -163,33 +161,17 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router, Routable};
+    /// use wayfind::{Constraint, Router, RoutableBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
     ///
-    /// let route = Routable::builder()
+    /// let route = RoutableBuilder::new()
     ///     .route("/hello/{world}")
     ///     .build()
     ///     .unwrap();
-    ///
-    /// router.insert(route, 2).unwrap();
+    /// router.insert(&route, 1).unwrap();
     /// ```
-    pub fn insert(
-        &mut self,
-        routable: impl Into<Routable<'r>>,
-        value: T,
-    ) -> Result<(), InsertError> {
-        let routable = routable.into();
-
-        let decoded_route = percent_decode(routable.route.as_bytes())?;
-        if routable.route.as_bytes() != decoded_route.as_ref() {
-            return Err(EncodingError::EncodedRoute {
-                input: routable.route.to_owned(),
-                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
-            })?;
-        }
-
+    pub fn insert(&mut self, routable: &Routable<'r>, value: T) -> Result<(), InsertError> {
         let mut parsed = Parser::new(routable.route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
@@ -226,7 +208,7 @@ impl<'r, T> Router<'r, T> {
                 ) {
                     // Attempt to clean up any prior inserts on failure.
                     // TODO: Consider returning a vec of errors?
-                    drop(self.delete(routable.route));
+                    drop(self.delete(routable));
                     return Err(err);
                 }
             }
@@ -255,29 +237,19 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router, Routable};
+    /// use wayfind::{Constraint, Router, RoutableBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
     ///
-    /// let route = Routable::builder()
+    /// let route = RoutableBuilder::new()
     ///     .route("/hello")
     ///     .build()
     ///     .unwrap();
     ///
-    /// router.insert(route.clone(), 1).unwrap();
-    /// router.delete(route).unwrap();
+    /// router.insert(&route, 1).unwrap();
+    /// router.delete(&route).unwrap();
     /// ```
-    pub fn delete(&mut self, routable: impl Into<Routable<'r>>) -> Result<(), DeleteError> {
-        let routable = routable.into();
-
-        let decoded_route = percent_decode(routable.route.as_bytes())?;
-        if routable.route.as_bytes() != decoded_route.as_ref() {
-            return Err(EncodingError::EncodedRoute {
-                input: routable.route.to_owned(),
-                decoded: String::from_utf8_lossy(&decoded_route).to_string(),
-            })?;
-        }
-
+    pub fn delete(&mut self, routable: &Routable<'r>) -> Result<(), DeleteError> {
         let mut parsed = Parser::new(routable.route.as_bytes())?;
         if parsed.routes.len() > 1 {
             let mut failure: Option<DeleteError> = None;
@@ -309,17 +281,21 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Path, Router};
+    /// use wayfind::{Constraint, Path, Router, RoutableBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
+    /// let route = RoutableBuilder::new()
+    ///     .route("/hello")
+    ///     .build()
+    ///     .unwrap();
+    /// router.insert(&route, 1).unwrap();
     ///
     /// let path = Path::new("/hello").unwrap();
     /// let search = router.search(&path).unwrap();
     /// ```
     pub fn search<'p>(
         &'r self,
-        path: &'p Path<'_>,
+        path: &'p Path<'p>,
     ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
         let mut parameters = smallvec![];
         let Some((data, _)) =

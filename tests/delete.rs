@@ -1,14 +1,17 @@
 use std::error::Error;
-use wayfind::{errors::DeleteError, Router};
+use wayfind::{errors::DeleteError, RoutableBuilder, Router};
 
 #[test]
 fn test_delete() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/test", 1)?;
+
+    let route = RoutableBuilder::new().route("/test").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @"/test [*]");
 
-    let delete = router.delete("/tests");
+    let route = RoutableBuilder::new().route("/tests").build()?;
+    let delete = router.delete(&route);
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
@@ -18,7 +21,8 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/test [*]");
 
-    let delete = router.delete("(/test)");
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let delete = router.delete(&route);
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
@@ -28,7 +32,8 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/test [*]");
 
-    router.delete("/test")?;
+    let route = RoutableBuilder::new().route("/test").build()?;
+    router.delete(&route)?;
     insta::assert_snapshot!(router, @"");
 
     Ok(())
@@ -37,14 +42,17 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/test)", 1)?;
+
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]
     ╰─ test [*]
     ");
 
-    let delete = router.delete("/test");
+    let route = RoutableBuilder::new().route("/test").build()?;
+    let delete = router.delete(&route);
     assert_eq!(
         delete,
         Err(DeleteError::RouteMismatch {
@@ -58,7 +66,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     ╰─ test [*]
     ");
 
-    let delete = router.delete("/");
+    let route = RoutableBuilder::new().route("/").build()?;
+    let delete = router.delete(&route);
     assert_eq!(
         delete,
         Err(DeleteError::RouteMismatch {
@@ -72,7 +81,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     ╰─ test [*]
     ");
 
-    router.delete("(/test)")?;
+    let route = RoutableBuilder::new().route("(/test)").build()?;
+    router.delete(&route)?;
     insta::assert_snapshot!(router, @"");
 
     Ok(())
@@ -81,7 +91,9 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{id}data", 1)?;
+
+    let route = RoutableBuilder::new().route("/{id}data").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -89,7 +101,8 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
        ╰─ data [*]
     ");
 
-    let delete = router.delete("/{id}");
+    let route = RoutableBuilder::new().route("/{id}").build()?;
+    let delete = router.delete(&route);
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {

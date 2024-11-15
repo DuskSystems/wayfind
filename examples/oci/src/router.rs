@@ -8,7 +8,7 @@ use bytes::Bytes;
 use http::{Method, Response, StatusCode};
 use http_body_util::Full;
 use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
-use wayfind::Constraint;
+use wayfind::{Constraint, RoutableBuilder};
 
 /// Type alias for async handlers.
 type ArcHandler = Arc<
@@ -66,10 +66,12 @@ impl<'r> AppRouter<'r> {
         });
 
         if let Some(router) = self.routes.get_mut(&method) {
-            router.insert(path, handler).unwrap();
+            let route = RoutableBuilder::new().route(path).build().unwrap();
+            router.insert(&route, handler).unwrap();
         } else {
             let mut new_router = wayfind::Router::new();
-            new_router.insert(path, handler).unwrap();
+            let route = RoutableBuilder::new().route(path).build().unwrap();
+            new_router.insert(&route, handler).unwrap();
             self.routes.insert(method, new_router);
         }
     }

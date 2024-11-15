@@ -43,12 +43,20 @@ Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attem
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::{Path, Router, RoutableBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
+
+    let route = RoutableBuilder::new()
+        .route("/users/{id}")
+        .build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/users/{id}/files/{filename}.{extension}")
+        .build()?;
+    router.insert(&route, 2)?;
 
     let path = Path::new("/users/123")?;
     let search = router.search(&path)?.unwrap();
@@ -83,12 +91,20 @@ Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::{Path, Router, RoutableBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/files/{*slug}/delete", 1)?;
-    router.insert("/{*catch_all}", 2)?;
+
+    let route = RoutableBuilder::new()
+        .route("/files/{*slug}/delete")
+        .build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/{*catch_all}")
+        .build()?;
+    router.insert(&route, 2)?;
 
     let path = Path::new("/files/documents/reports/annual.pdf/delete")?;
     let search = router.search(&path)?.unwrap();
@@ -128,12 +144,20 @@ There is a small overhead to using optional groups, due to `Arc` usage internall
 
 ```rust
 use std::error::Error;
-use wayfind::{Path, Router};
+use wayfind::{Path, Router, RoutableBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users(/{id})", 1)?;
-    router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
+
+    let route = RoutableBuilder::new()
+        .route("/users(/{id})")
+        .build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/files/{*slug}/{file}(.{extension})")
+        .build()?;
+    router.insert(&route, 2)?;
 
     let path = Path::new("/users")?;
     let search = router.search(&path)?.unwrap();
@@ -220,7 +244,7 @@ Curently, these can't be disabled.
 
 ```rust
 use std::error::Error;
-use wayfind::{Constraint, Path, Router};
+use wayfind::{Constraint, Path, Router, RoutableBuilder};
 
 struct NamespaceConstraint;
 impl Constraint for NamespaceConstraint {
@@ -239,8 +263,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<NamespaceConstraint>()?;
 
-    router.insert("/v2", 1)?;
-    router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
+    let route = RoutableBuilder::new()
+        .route("/v2")
+        .build()?;
+    router.insert(&route, 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/v2/{*name:namespace}/blobs/{type}:{digest}")
+        .build()?;
+    router.insert(&route, 2)?;
 
     let path = Path::new("/v2")?;
     let search = router.search(&path)?.unwrap();
@@ -327,7 +358,7 @@ Currenty, this doesn't handle split multi-byte characters well.
 
 ```rust
 use std::error::Error;
-use wayfind::Router;
+use wayfind::{Router, RoutableBuilder};
 
 const ROUTER_DISPLAY: &str = "
 /
@@ -356,23 +387,75 @@ const ROUTER_DISPLAY: &str = "
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    router.insert("/pet", 1)?;
-    router.insert("/pet/findByStatus", 2)?;
-    router.insert("/pet/findByTags", 3)?;
-    router.insert("/pet/{petId}", 4)?;
-    router.insert("/pet/{petId}/uploadImage", 5)?;
+    let route = RoutableBuilder::new()
+        .route("/pet")
+        .build()?;
+    router.insert(&route, 1)?;
 
-    router.insert("/store/inventory", 6)?;
-    router.insert("/store/order", 7)?;
-    router.insert("/store/order/{orderId}", 8)?;
+    let route = RoutableBuilder::new()
+        .route("/pet/findByStatus")
+        .build()?;
+    router.insert(&route, 2)?;
 
-    router.insert("/user", 9)?;
-    router.insert("/user/createWithList", 10)?;
-    router.insert("/user/login", 11)?;
-    router.insert("/user/logout", 12)?;
-    router.insert("/user/{username}", 13)?;
+    let route = RoutableBuilder::new()
+        .route("/pet/findByTags")
+        .build()?;
+    router.insert(&route, 3)?;
 
-    router.insert("/{*catch_all}", 14)?;
+    let route = RoutableBuilder::new()
+        .route("/pet/{petId}")
+        .build()?;
+    router.insert(&route, 4)?;
+
+    let route = RoutableBuilder::new()
+        .route("/pet/{petId}/uploadImage")
+        .build()?;
+    router.insert(&route, 5)?;
+
+    let route = RoutableBuilder::new()
+        .route("/store/inventory")
+        .build()?;
+    router.insert(&route, 6)?;
+
+    let route = RoutableBuilder::new()
+        .route("/store/order")
+        .build()?;
+    router.insert(&route, 7)?;
+
+    let route = RoutableBuilder::new()
+        .route("/store/order/{orderId}")
+        .build()?;
+    router.insert(&route, 8)?;
+
+    let route = RoutableBuilder::new()
+        .route("/user")
+        .build()?;
+    router.insert(&route, 9)?;
+
+    let route = RoutableBuilder::new()
+        .route("/user/createWithList")
+        .build()?;
+    router.insert(&route, 10)?;
+
+    let route = RoutableBuilder::new()
+        .route("/user/login")
+        .build()?;
+    router.insert(&route, 11)?;
+
+    let route = RoutableBuilder::new()
+        .route("/user/logout")
+        .build()?;
+    router.insert(&route, 12)?;
+
+    let route = RoutableBuilder::new()
+        .route("/user/{username}")
+        .build()?;
+    router.insert(&route, 13)?;
+
+    let route = RoutableBuilder::new()
+        .route("/{*catch_all}")
+        .build()?;
+    router.insert(&route, 14)?;
 
     assert_eq!(router.to_string(), ROUTER_DISPLAY.trim());
     Ok(())

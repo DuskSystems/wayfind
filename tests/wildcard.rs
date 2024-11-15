@@ -1,11 +1,13 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, Router};
+use wayfind::{Match, Path, RoutableBuilder, Router};
 
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}/delete", 1)?;
+
+    let route = RoutableBuilder::new().route("/{*path}/delete").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -47,7 +49,11 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*prefix}/static/{*suffix}/file", 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/{*prefix}/static/{*suffix}/file")
+        .build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -87,7 +93,9 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}.html", 1)?;
+
+    let route = RoutableBuilder::new().route("/{*path}.html").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -129,7 +137,11 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*first}-{*second}", 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/{*first}-{*second}")
+        .build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -171,7 +183,9 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}/end", 1)?;
+
+    let route = RoutableBuilder::new().route("/{*path}/end").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -209,11 +223,17 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/static/path", 1)?;
-    router.insert("/static/{*rest}", 2)?;
-    router.insert("/{*path}/static", 3)?;
-    router.insert("/prefix.{*suffix}", 4)?;
-    router.insert("/{*prefix}.suffix", 5)?;
+
+    let route = RoutableBuilder::new().route("/static/path").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/static/{*rest}").build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new().route("/{*path}/static").build()?;
+    router.insert(&route, 3)?;
+    let route = RoutableBuilder::new().route("/prefix.{*suffix}").build()?;
+    router.insert(&route, 4)?;
+    let route = RoutableBuilder::new().route("/{*prefix}.suffix").build()?;
+    router.insert(&route, 5)?;
 
     insta::assert_snapshot!(router, @r"
     /

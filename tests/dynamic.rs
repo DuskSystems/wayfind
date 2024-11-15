@@ -1,11 +1,13 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, Router};
+use wayfind::{Match, Path, RoutableBuilder, Router};
 
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{id}", 1)?;
+
+    let route = RoutableBuilder::new().route("/{id}").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -34,9 +36,15 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{year}", 1)?;
-    router.insert("/{year}/{month}", 2)?;
-    router.insert("/{year}/{month}/{day}", 3)?;
+
+    let route = RoutableBuilder::new().route("/{year}").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/{year}/{month}").build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new()
+        .route("/{year}/{month}/{day}")
+        .build()?;
+    router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -89,9 +97,15 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{year}", 1)?;
-    router.insert("/{year}-{month}", 2)?;
-    router.insert("/{year}-{month}-{day}", 3)?;
+
+    let route = RoutableBuilder::new().route("/{year}").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/{year}-{month}").build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new()
+        .route("/{year}-{month}-{day}")
+        .build()?;
+    router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -144,7 +158,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{file}.{extension}", 1)?;
+
+    let route = RoutableBuilder::new()
+        .route("/{file}.{extension}")
+        .build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -187,10 +205,19 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/robots.txt", 1)?;
-    router.insert("/robots.{extension}", 2)?;
-    router.insert("/{name}.txt", 3)?;
-    router.insert("/{name}.{extension}", 4)?;
+
+    let route = RoutableBuilder::new().route("/robots.txt").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new()
+        .route("/robots.{extension}")
+        .build()?;
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new().route("/{name}.txt").build()?;
+    router.insert(&route, 3)?;
+    let route = RoutableBuilder::new()
+        .route("/{name}.{extension}")
+        .build()?;
+    router.insert(&route, 4)?;
 
     insta::assert_snapshot!(router, @r"
     /

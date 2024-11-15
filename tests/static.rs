@@ -1,11 +1,13 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, Path, Router};
+use wayfind::{Match, Path, RoutableBuilder, Router};
 
 #[test]
 fn test_static_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users", 1)?;
+
+    let route = RoutableBuilder::new().route("/users").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @"/users [*]");
 
@@ -31,8 +33,11 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/user", 1)?;
-    router.insert("/users", 2)?;
+
+    let route = RoutableBuilder::new().route("/user").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/users").build()?;
+    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
     /user [*]
@@ -77,8 +82,11 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/user_1", 1)?;
-    router.insert("/user/1", 2)?;
+
+    let route = RoutableBuilder::new().route("/user_1").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/user/1").build()?;
+    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
     /user
@@ -124,12 +132,19 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/👨‍👩‍👧", 1)?; // Family: Man, Woman, Girl
-    router.insert("/👨‍👩‍👦", 2)?; // Family: Man, Woman, Boy
-    router.insert("/👩‍👩‍👧", 3)?; // Family: Woman, Woman, Girl
-    router.insert("/👩‍👩‍👦", 4)?; // Family: Woman, Woman, Boy
-    router.insert("/👨‍👨‍👧", 5)?; // Family: Man, Man, Girl
-    router.insert("/👨‍👨‍👦", 6)?; // Family: Man, Man, Boy
+
+    let route = RoutableBuilder::new().route("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/👨‍👩‍👦").build()?; // Family: Man, Woman, Boy
+    router.insert(&route, 2)?;
+    let route = RoutableBuilder::new().route("/👩‍👩‍👧").build()?; // Family: Woman, Woman, Girl
+    router.insert(&route, 3)?;
+    let route = RoutableBuilder::new().route("/👩‍👩‍👦").build()?; // Family: Woman, Woman, Boy
+    router.insert(&route, 4)?;
+    let route = RoutableBuilder::new().route("/👨‍👨‍👧").build()?; // Family: Man, Man, Girl
+    router.insert(&route, 5)?;
+    let route = RoutableBuilder::new().route("/👨‍👨‍👦").build()?; // Family: Man, Man, Boy
+    router.insert(&route, 6)?;
 
     insta::assert_snapshot!(router, @r"
     /�
@@ -191,8 +206,11 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users", 1)?;
-    router.insert("/Users", 2)?;
+
+    let route = RoutableBuilder::new().route("/users").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/Users").build()?;
+    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
     /
@@ -230,7 +248,9 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users /items", 1)?;
+
+    let route = RoutableBuilder::new().route("/users /items").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @"/users /items [*]");
 
@@ -256,8 +276,11 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/items", 1)?;
-    router.insert("/users//items", 2)?;
+
+    let route = RoutableBuilder::new().route("/users/items").build()?;
+    router.insert(&route, 1)?;
+    let route = RoutableBuilder::new().route("/users//items").build()?;
+    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
@@ -295,7 +318,9 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users///items", 1)?;
+
+    let route = RoutableBuilder::new().route("/users///items").build()?;
+    router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @"/users///items [*]");
 

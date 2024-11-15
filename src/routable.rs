@@ -1,26 +1,20 @@
-use crate::errors::RoutableError;
+use crate::{
+    decode::percent_decode,
+    errors::{EncodingError, RoutableError},
+};
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
+};
 
 /// A routable endpoint that can be inserted into a [`Router`](`crate::Router`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Routable<'r> {
     pub(crate) route: &'r str,
 }
 
-impl<'r> Routable<'r> {
-    #[must_use]
-    pub const fn builder<'b>() -> RoutableBuilder<'b> {
-        RoutableBuilder::new()
-    }
-}
-
-impl<'r> From<&'r str> for Routable<'r> {
-    fn from(value: &'r str) -> Self {
-        Self { route: value }
-    }
-}
-
 /// Builder pattern for creating a [`Routable`].
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RoutableBuilder<'r> {
     route: Option<&'r str>,
 }
@@ -44,6 +38,15 @@ impl<'r> RoutableBuilder<'r> {
     /// Return a [`RoutableError`] if a required field was not populated.
     pub fn build(self) -> Result<Routable<'r>, RoutableError> {
         let route = self.route.ok_or(RoutableError::MissingRoute)?;
+
+        let decoded = percent_decode(route.as_bytes())?;
+        if route.as_bytes() != decoded.as_ref() {
+            return Err(EncodingError::EncodedRoute {
+                input: route.to_owned(),
+                decoded: String::from_utf8_lossy(&decoded).to_string(),
+            })?;
+        }
+
         Ok(Routable { route })
     }
 }
