@@ -81,7 +81,7 @@ impl<'r> AppRouter<'r> {
         let method = req.method();
         let path = req.uri().path().to_owned();
 
-        let Ok(path) = wayfind::Path::new(&path) else {
+        let Ok(path) = wayfind::RequestBuilder::new().path(&path).build() else {
             return Response::builder()
                 .status(StatusCode::NOT_FOUND)
                 .body(Full::new(Bytes::from("Not Found")))

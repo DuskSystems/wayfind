@@ -14,8 +14,8 @@ pub use encoding::EncodingError;
 pub(crate) mod insert;
 pub use insert::InsertError;
 
-pub(crate) mod path;
-pub use path::PathError;
+pub(crate) mod request;
+pub use request::RequestError;
 
 pub(crate) mod routable;
 pub use routable::RoutableError;
