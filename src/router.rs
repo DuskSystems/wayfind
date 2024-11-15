@@ -11,6 +11,7 @@ use alloc::{
     fmt::Display,
     string::{String, ToString},
     sync::Arc,
+    vec,
 };
 use core::{
     any::type_name,
@@ -194,7 +195,9 @@ impl<'r, T> Router<'r, T> {
         }
 
         if parsed.routes.len() > 1 {
+            let mut errors = vec![];
             let value = Arc::new(value);
+
             for mut route in parsed.routes {
                 let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
 
@@ -206,11 +209,20 @@ impl<'r, T> Router<'r, T> {
                         value: Arc::clone(&value),
                     },
                 ) {
-                    // Attempt to clean up any prior inserts on failure.
-                    // TODO: Consider returning a vec of errors?
-                    drop(self.delete(routable));
-                    return Err(err);
+                    errors.push(err);
                 }
+            }
+
+            if !errors.is_empty() {
+                drop(self.delete(routable));
+                errors.dedup();
+
+                if errors.len() == 1 {
+                    let error = errors.remove(0);
+                    return Err(error);
+                }
+
+                return Err(InsertError::Multiple(errors));
             }
         } else if let Some(route) = parsed.routes.first_mut() {
             self.root.insert(
@@ -251,18 +263,25 @@ impl<'r, T> Router<'r, T> {
     /// ```
     pub fn delete(&mut self, routable: &Routable<'r>) -> Result<(), DeleteError> {
         let mut parsed = Parser::new(routable.route.as_bytes())?;
+
         if parsed.routes.len() > 1 {
-            let mut failure: Option<DeleteError> = None;
+            let mut errors = vec![];
+
             for mut expanded_route in parsed.routes {
-                // If a delete fails, keep trying the remaining paths, then return the first error.
-                // TODO: Consider returning a vec of errors?
                 if let Err(err) = self.root.delete(&mut expanded_route, true) {
-                    failure = Some(err);
+                    errors.push(err);
                 }
             }
 
-            if let Some(err) = failure {
-                return Err(err);
+            if !errors.is_empty() {
+                errors.dedup();
+
+                if errors.len() == 1 {
+                    let error = errors.remove(0);
+                    return Err(error);
+                }
+
+                return Err(DeleteError::Multiple(errors));
             }
         } else if let Some(route) = parsed.routes.first_mut() {
             self.root.delete(route, false)?;

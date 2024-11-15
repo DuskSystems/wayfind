@@ -1,10 +1,13 @@
 use super::route::RouteError;
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use core::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
+    /// Multiple [`InsertError`] errors occurred during the insert.
+    Multiple(Vec<InsertError>),
+
     /// A [`RouteError`] that occurred during the insert operation.
     RouteError(RouteError),
 
@@ -69,6 +72,16 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            Self::Multiple(errors) => {
+                writeln!(f, "multiple insert errors occurred:\n---\n")?;
+                for (index, error) in errors.iter().enumerate() {
+                    write!(f, "{error}")?;
+                    if index < errors.len() - 1 {
+                        writeln!(f, "\n---\n")?;
+                    }
+                }
+                Ok(())
+            }
             Self::RouteError(error) => error.fmt(f),
             Self::DuplicateRoute { route, conflict } => write!(
                 f,

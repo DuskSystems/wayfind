@@ -1,10 +1,13 @@
 use super::{route::RouteError, EncodingError};
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use core::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
+    /// Multiple [`DeleteError`] errors occurred during the delete.
+    Multiple(Vec<DeleteError>),
+
     /// A [`EncodingError`] that occurred during the decoding.
     EncodingError(EncodingError),
 
@@ -73,6 +76,16 @@ impl Error for DeleteError {}
 impl Display for DeleteError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            Self::Multiple(errors) => {
+                writeln!(f, "multiple delete errors occurred:\n---\n")?;
+                for (index, error) in errors.iter().enumerate() {
+                    write!(f, "{error}")?;
+                    if index < errors.len() - 1 {
+                        writeln!(f, "\n---\n")?;
+                    }
+                }
+                Ok(())
+            }
             Self::EncodingError(error) => error.fmt(f),
             Self::RouteError(error) => error.fmt(f),
             Self::NotFound { route } => write!(

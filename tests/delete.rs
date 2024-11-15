@@ -25,9 +25,15 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::NotFound {
-            route: "(/test)".to_owned(),
-        })
+        Err(DeleteError::Multiple(vec![
+            DeleteError::RouteMismatch {
+                route: "(/test)".to_owned(),
+                inserted: "/test".to_owned()
+            },
+            DeleteError::NotFound {
+                route: "(/test)".to_owned()
+            }
+        ]))
     );
 
     insta::assert_snapshot!(router, @"/test [*]");
