@@ -5,8 +5,12 @@ use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
 use percent_encoding::percent_decode;
 use std::hint::black_box;
+use tikv_jemallocator::Jemalloc;
 
 pub mod path_tree_routes;
+
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 criterion_main!(benches);
 criterion_group! {
