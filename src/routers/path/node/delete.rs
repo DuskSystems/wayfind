@@ -1,9 +1,7 @@
-use super::{Data, State};
+use super::{state::StaticState, Data, Node, State};
 use crate::{
-    errors::DeleteError,
-    node::Node,
-    parser::{Part, Route},
-    state::StaticState,
+    errors::PathDeleteError,
+    routers::path::parser::{ParsedRoute, Part},
 };
 use alloc::{
     borrow::ToOwned,
@@ -19,7 +17,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
     /// If the route is found and deleted, we re-optimize the tree structure.
     ///
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
-    pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
+    pub fn delete(
+        &mut self,
+        route: &mut ParsedRoute,
+        is_expanded: bool,
+    ) -> Result<(), PathDeleteError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
@@ -35,7 +37,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             }
         } else {
             let Some(data) = &self.data else {
-                return Err(DeleteError::NotFound {
+                return Err(PathDeleteError::NotFound {
                     route: String::from_utf8_lossy(&route.input).to_string(),
                 });
             };
@@ -46,7 +48,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
             };
 
             if is_expanded != is_shared {
-                return Err(DeleteError::RouteMismatch {
+                return Err(PathDeleteError::RouteMismatch {
                     route: String::from_utf8_lossy(&route.input).to_string(),
                     inserted: inserted.to_owned(),
                 });
@@ -61,10 +63,10 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn delete_static(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         is_expanded: bool,
         prefix: &[u8],
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), PathDeleteError> {
         let index = self
             .static_children
             .iter()
@@ -72,7 +74,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 prefix.len() >= child.state.prefix.len()
                     && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             })
-            .ok_or_else(|| DeleteError::NotFound {
+            .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
@@ -109,16 +111,16 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn delete_dynamic(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), PathDeleteError> {
         let index = self
             .dynamic_children
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
-            .ok_or_else(|| DeleteError::NotFound {
+            .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
@@ -135,16 +137,16 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), PathDeleteError> {
         let index = self
             .wildcard_children
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
-            .ok_or_else(|| DeleteError::NotFound {
+            .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
@@ -161,15 +163,15 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn delete_end_wildcard(
         &mut self,
-        route: &Route,
+        route: &ParsedRoute,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<(), PathDeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
             .position(|child| child.state.name == name && child.state.constraint == *constraint)
-            .ok_or_else(|| DeleteError::NotFound {
+            .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 

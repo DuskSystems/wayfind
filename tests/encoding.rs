@@ -1,18 +1,18 @@
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
-    errors::{EncodingError, RequestError, RoutableError, SearchError},
-    Match, RequestBuilder, RoutableBuilder, Router,
+    errors::{EncodingError, PathSearchError, RequestError, RouteError, SearchError},
+    Match, RequestBuilder, RouteBuilder, Router,
 };
 
 #[test]
 fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users/{name}").build()?;
+    let route = RouteBuilder::new().route("/users/{name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ╰─ {name} [*]
     ");
@@ -36,10 +36,10 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
 fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/user files/{name}").build()?;
+    let route = RouteBuilder::new().route("/user files/{name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /user files/
     ╰─ {name} [*]
     ");
@@ -65,12 +65,12 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
 fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/{name}").build()?;
+    let route = RouteBuilder::new().route("/{name}").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/{*path}").build()?;
+    let route = RouteBuilder::new().route("/{*path}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ├─ {name} [*]
     ╰─ {*path} [*]
@@ -120,31 +120,27 @@ fn test_encoding_invalid_path() {
 
 #[test]
 fn test_encoding_invalid_parameter() {
-    let route = RoutableBuilder::new().route("/users/{%GG}").build();
+    let route = RouteBuilder::new().route("/users/{%GG}").build();
     assert_eq!(
         route,
-        Err(RoutableError::EncodingError(
-            EncodingError::InvalidEncoding {
-                input: "/users/{%GG}".to_owned(),
-                position: 8,
-                character: *b"%GG"
-            }
-        ))
+        Err(RouteError::EncodingError(EncodingError::InvalidEncoding {
+            input: "/users/{%GG}".to_owned(),
+            position: 8,
+            character: *b"%GG"
+        }))
     );
 }
 
 #[test]
 fn test_encoding_invalid_constraint() {
-    let route = RoutableBuilder::new().route("/users/{id:%GG}").build();
+    let route = RouteBuilder::new().route("/users/{id:%GG}").build();
     assert_eq!(
         route,
-        Err(RoutableError::EncodingError(
-            EncodingError::InvalidEncoding {
-                input: "/users/{id:%GG}".to_owned(),
-                position: 11,
-                character: *b"%GG"
-            }
-        ))
+        Err(RouteError::EncodingError(EncodingError::InvalidEncoding {
+            input: "/users/{id:%GG}".to_owned(),
+            position: 11,
+            character: *b"%GG"
+        }))
     );
 }
 
@@ -152,16 +148,18 @@ fn test_encoding_invalid_constraint() {
 fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/files/{name}").build()?;
+    let route = RouteBuilder::new().route("/files/{name}").build()?;
     router.insert(&route, 1)?;
 
     let request = RequestBuilder::new().path("/files/my%80file").build()?;
     let search = router.search(&request);
     assert_eq!(
         search,
-        Err(SearchError::EncodingError(EncodingError::Utf8Error {
-            input: "my�file".to_owned()
-        }))
+        Err(SearchError::PathSearchError(
+            PathSearchError::EncodingError(EncodingError::Utf8Error {
+                input: "my�file".to_owned()
+            })
+        ))
     );
 
     Ok(())

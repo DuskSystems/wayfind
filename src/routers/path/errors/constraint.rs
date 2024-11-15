@@ -2,15 +2,15 @@ use core::{error::Error, fmt::Display};
 
 /// Errors relating to constraints.
 #[derive(Debug, PartialEq, Eq)]
-pub enum ConstraintError {
+pub enum PathConstraintError {
     /// Constraint name is already in use.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::ConstraintError;
+    /// use wayfind::errors::PathConstraintError;
     ///
-    /// let error = ConstraintError::DuplicateName {
+    /// let error = PathConstraintError::DuplicateName {
     ///     name: "my_constraint",
     ///     existing_type: "my_crate::constraints::A",
     ///     new_type: "my_crate::constraints::B",
@@ -42,9 +42,9 @@ pub enum ConstraintError {
     },
 }
 
-impl Error for ConstraintError {}
+impl Error for PathConstraintError {}
 
-impl Display for ConstraintError {
+impl Display for PathConstraintError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::DuplicateName {

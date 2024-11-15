@@ -36,7 +36,7 @@ pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
 
     // TODO: Enable `wayfind` method routing, when implemented.
     let mut router = AppRouter::new();
-    router.constraint::<NameConstraint>();
+    router.path_constraint::<NameConstraint>();
 
     // end-1
     router.route(Method::GET, "/v2(/)", routes::root::handle_root_get);

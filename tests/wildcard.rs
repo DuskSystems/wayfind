@@ -1,15 +1,15 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/{*path}/delete").build()?;
+    let route = RouteBuilder::new().route("/{*path}/delete").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ╰─ {*path}
        ╰─ /delete [*]
@@ -52,12 +52,12 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/{*prefix}/static/{*suffix}/file")
         .build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ╰─ {*prefix}
        ╰─ /static/
@@ -98,10 +98,10 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/{*path}.html").build()?;
+    let route = RouteBuilder::new().route("/{*path}.html").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ╰─ {*path}
        ╰─ .html [*]
@@ -142,12 +142,10 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
-        .route("/{*first}-{*second}")
-        .build()?;
+    let route = RouteBuilder::new().route("/{*first}-{*second}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ╰─ {*first}
        ╰─ -
@@ -190,10 +188,10 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/{*path}/end").build()?;
+    let route = RouteBuilder::new().route("/{*path}/end").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ╰─ {*path}
        ╰─ /end [*]
@@ -230,18 +228,18 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/static/path").build()?;
+    let route = RouteBuilder::new().route("/static/path").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/static/{*rest}").build()?;
+    let route = RouteBuilder::new().route("/static/{*rest}").build()?;
     router.insert(&route, 2)?;
-    let route = RoutableBuilder::new().route("/{*path}/static").build()?;
+    let route = RouteBuilder::new().route("/{*path}/static").build()?;
     router.insert(&route, 3)?;
-    let route = RoutableBuilder::new().route("/prefix.{*suffix}").build()?;
+    let route = RouteBuilder::new().route("/prefix.{*suffix}").build()?;
     router.insert(&route, 4)?;
-    let route = RoutableBuilder::new().route("/{*prefix}.suffix").build()?;
+    let route = RouteBuilder::new().route("/{*prefix}.suffix").build()?;
     router.insert(&route, 5)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ├─ prefix.
     │  ╰─ {*suffix} [*]

@@ -1,11 +1,4 @@
-use crate::{
-    constraints::Constraint,
-    errors::{ConstraintError, DeleteError, InsertError, SearchError},
-    node::{Children, Data, Node},
-    parser::{Parser, Part},
-    state::RootState,
-    Request, Routable,
-};
+use crate::{Request, Route};
 use alloc::{
     fmt::Display,
     string::{String, ToString},
@@ -15,12 +8,22 @@ use core::{
     any::type_name,
     net::{Ipv4Addr, Ipv6Addr},
 };
+use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
 use hashbrown::HashMap;
+use node::{state::RootState, Children, Data, Node};
+use parser::{Parser, Part};
 use smallvec::{smallvec, SmallVec};
+
+pub mod constraints;
+pub mod errors;
+pub mod node;
+pub mod parser;
+
+pub use constraints::PathConstraint;
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Match<'r, 'p, T> {
+pub struct PathMatch<'r, 'p, T> {
     /// The matching route.
     pub route: &'r str,
 
@@ -31,14 +34,14 @@ pub struct Match<'r, 'p, T> {
     pub data: &'r T,
 
     /// Key-value pairs of parameters, extracted from the route.
-    pub parameters: Parameters<'r, 'p>,
+    pub parameters: PathParameters<'r, 'p>,
 }
 
 /// All the parameter pairs of a given match.
 ///
 /// The key of the parameter is tied to the lifetime of the router, since it is a ref to the prefix of a given node.
 /// Meanwhile, the value is extracted from the path.
-pub type Parameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
+pub type PathParameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
 
 /// A constraint with its type name.
 #[derive(Clone)]
@@ -51,7 +54,7 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct Router<'r, T> {
+pub struct PathRouter<'r, T> {
     /// The root node of the tree.
     root: Node<'r, T, RootState>,
 
@@ -59,7 +62,7 @@ pub struct Router<'r, T> {
     constraints: HashMap<&'r str, StoredConstraint>,
 }
 
-impl<'r, T> Router<'r, T> {
+impl<'r, T> PathRouter<'r, T> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -115,10 +118,10 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::{PathConstraint, Router};
     ///
     /// struct HelloConstraint;
-    /// impl Constraint for HelloConstraint {
+    /// impl PathConstraint for HelloConstraint {
     ///     const NAME: &'static str = "hello";
     ///
     ///     fn check(segment: &str) -> bool {
@@ -127,11 +130,11 @@ impl<'r, T> Router<'r, T> {
     /// }
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// router.constraint::<HelloConstraint>().unwrap();
+    /// router.path.constraint::<HelloConstraint>().unwrap();
     /// ```
-    pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
+    pub fn constraint<C: PathConstraint>(&mut self) -> Result<(), PathConstraintError> {
         if let Some(existing) = self.constraints.get(C::NAME) {
-            return Err(ConstraintError::DuplicateName {
+            return Err(PathConstraintError::DuplicateName {
                 name: C::NAME,
                 existing_type: existing.type_name,
                 new_type: type_name::<C>(),
@@ -149,29 +152,29 @@ impl<'r, T> Router<'r, T> {
         Ok(())
     }
 
-    /// Inserts a new routable with an associated value into the router.
+    /// Inserts a new route with an associated value into the router.
     ///
     /// The route should not contain any percent-encoded characters.
     ///
     /// # Errors
     ///
-    /// Returns an [`InsertError`] if the routable is invalid or uses unknown constraints.
+    /// Returns an [`InsertError`] if the route is invalid or uses unknown constraints.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router, RoutableBuilder};
+    /// use wayfind::{PathConstraint, Router, RouteBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
     ///
-    /// let route = RoutableBuilder::new()
+    /// let route = RouteBuilder::new()
     ///     .route("/hello/{world}")
     ///     .build()
     ///     .unwrap();
     /// router.insert(&route, 1).unwrap();
     /// ```
-    pub fn insert(&mut self, routable: &Routable<'r>, value: T) -> Result<(), InsertError> {
-        let mut parsed = Parser::new(routable.route.as_bytes())?;
+    pub(crate) fn insert(&mut self, route: &Route<'r>, value: T) -> Result<(), PathInsertError> {
+        let mut parsed = Parser::new(route.route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
                 if let Part::Dynamic {
@@ -184,7 +187,7 @@ impl<'r, T> Router<'r, T> {
                 } = part
                 {
                     if !self.constraints.contains_key(name.as_str()) {
-                        return Err(InsertError::UnknownConstraint {
+                        return Err(PathInsertError::UnknownConstraint {
                             constraint: name.to_string(),
                         });
                     }
@@ -194,28 +197,28 @@ impl<'r, T> Router<'r, T> {
 
         if parsed.routes.len() > 1 {
             let value = Arc::new(value);
-            for mut route in parsed.routes {
-                let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
+            for mut parsed_route in parsed.routes {
+                let expanded = Arc::from(String::from_utf8_lossy(&parsed_route.raw));
 
                 if let Err(err) = self.root.insert(
-                    &mut route,
+                    &mut parsed_route,
                     Data::Shared {
-                        route: routable.route,
+                        route: route.route,
                         expanded,
                         value: Arc::clone(&value),
                     },
                 ) {
                     // Attempt to clean up any prior inserts on failure.
                     // TODO: Consider returning a vec of errors?
-                    drop(self.delete(routable));
+                    drop(self.delete(route));
                     return Err(err);
                 }
             }
-        } else if let Some(route) = parsed.routes.first_mut() {
+        } else if let Some(parsed_route) = parsed.routes.first_mut() {
             self.root.insert(
-                route,
+                parsed_route,
                 Data::Inline {
-                    route: routable.route,
+                    route: route.route,
                     value,
                 },
             )?;
@@ -225,22 +228,22 @@ impl<'r, T> Router<'r, T> {
         Ok(())
     }
 
-    /// Deletes a routable from the router.
+    /// Deletes a route from the router.
     ///
-    /// The routable provided must exactly match the routable inserted.
+    /// The route provided must exactly match the route inserted.
     ///
     /// # Errors
     ///
-    /// Returns a [`DeleteError`] if the routable is invalid, cannot be deleted, or cannot be found.
+    /// Returns a [`DeleteError`] if the route is invalid, cannot be deleted, or cannot be found.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router, RoutableBuilder};
+    /// use wayfind::{PathConstraint, Router, RouteBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
     ///
-    /// let route = RoutableBuilder::new()
+    /// let route = RouteBuilder::new()
     ///     .route("/hello")
     ///     .build()
     ///     .unwrap();
@@ -248,10 +251,10 @@ impl<'r, T> Router<'r, T> {
     /// router.insert(&route, 1).unwrap();
     /// router.delete(&route).unwrap();
     /// ```
-    pub fn delete(&mut self, routable: &Routable<'r>) -> Result<(), DeleteError> {
-        let mut parsed = Parser::new(routable.route.as_bytes())?;
+    pub(crate) fn delete(&mut self, route: &Route<'r>) -> Result<(), PathDeleteError> {
+        let mut parsed = Parser::new(route.route.as_bytes())?;
         if parsed.routes.len() > 1 {
-            let mut failure: Option<DeleteError> = None;
+            let mut failure: Option<PathDeleteError> = None;
             for mut expanded_route in parsed.routes {
                 // If a delete fails, keep trying the remaining paths, then return the first error.
                 // TODO: Consider returning a vec of errors?
@@ -280,10 +283,10 @@ impl<'r, T> Router<'r, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Router, RoutableBuilder, RequestBuilder};
+    /// use wayfind::{Router, RouteBuilder, RequestBuilder};
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// let route = RoutableBuilder::new()
+    /// let route = RouteBuilder::new()
     ///     .route("/hello")
     ///     .build()
     ///     .unwrap();
@@ -295,10 +298,10 @@ impl<'r, T> Router<'r, T> {
     ///     .unwrap();
     /// let search = router.search(&request).unwrap();
     /// ```
-    pub fn search<'p>(
+    pub(crate) fn search<'p>(
         &'r self,
         request: &'p Request<'p>,
-    ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
+    ) -> Result<Option<PathMatch<'r, 'p, T>>, PathSearchError> {
         let mut parameters = smallvec![];
         let Some((data, _)) =
             self.root
@@ -317,7 +320,7 @@ impl<'r, T> Router<'r, T> {
             } => (route, Some(expanded.as_ref()), value.as_ref()),
         };
 
-        Ok(Some(Match {
+        Ok(Some(PathMatch {
             route,
             expanded,
             data,
@@ -326,13 +329,13 @@ impl<'r, T> Router<'r, T> {
     }
 }
 
-impl<'r, T> Default for Router<'r, T> {
+impl<'r, T> Default for PathRouter<'r, T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'r, T> Display for Router<'r, T> {
+impl<'r, T> Display for PathRouter<'r, T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.root)
     }

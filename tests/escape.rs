@@ -1,15 +1,15 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route(r"/users/\{id\}").build()?; // "/users/{id}"
+    let route = RouteBuilder::new().route(r"/users/\{id\}").build()?; // "/users/{id}"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/{id} [*]
     ");
 
@@ -35,10 +35,10 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
 fn test_escape_group() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route(r"/\(not-optional\)").build()?; // "/(not-optional)"
+    let route = RouteBuilder::new().route(r"/\(not-optional\)").build()?; // "/(not-optional)"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /(not-optional) [*]
     ");
 
@@ -66,10 +66,10 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
 fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route(r"(/a(/\{param\}))").build()?; // "(/a(/{param}))"
+    let route = RouteBuilder::new().route(r"(/a(/\{param\}))").build()?; // "(/a(/{param}))"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ╰─ a [*]
        ╰─ /{param} [*]
