@@ -1,9 +1,11 @@
 use crate::{
     constraints::Constraint,
     errors::{ConstraintError, DeleteError, InsertError, SearchError},
+    id::RouteId,
     node::{Children, Data, Node},
     parser::{Parser, Part},
     state::RootState,
+    storage::{Storage, StorageKind},
     Request, Routable,
 };
 use alloc::{
@@ -58,6 +60,9 @@ pub struct Router<'r, T> {
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<&'r str, StoredConstraint>,
+
+    /// Stored data.
+    data: HashMap<RouteId, T>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -84,6 +89,7 @@ impl<'r, T> Router<'r, T> {
                 needs_optimization: false,
             },
             constraints: HashMap::default(),
+            data: HashMap::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -193,9 +199,20 @@ impl<'r, T> Router<'r, T> {
             }
         }
 
+        let storage = match routable.storage {
+            StorageKind::Inline => Storage::Inline(value),
+
+            // FIXME: This should be cleaned up on failure. Don't worry about that for now.
+            StorageKind::Router => {
+                let id = RouteId::new();
+                self.data.insert(id, value);
+                Storage::Router(id)
+            }
+        };
+
         if parsed.routes.len() > 1 {
             let mut errors = vec![];
-            let value = Arc::new(value);
+            let storage = Arc::new(storage);
 
             for mut route in parsed.routes {
                 let expanded = Arc::from(String::from_utf8_lossy(&route.raw));
@@ -205,7 +222,7 @@ impl<'r, T> Router<'r, T> {
                     Data::Shared {
                         route: routable.route,
                         expanded,
-                        value: Arc::clone(&value),
+                        storage: Arc::clone(&storage),
                     },
                 ) {
                     errors.push(err);
@@ -228,12 +245,13 @@ impl<'r, T> Router<'r, T> {
                 route,
                 Data::Inline {
                     route: routable.route,
-                    value,
+                    storage,
                 },
             )?;
         };
 
         self.root.optimize();
+
         Ok(())
     }
 
@@ -260,15 +278,21 @@ impl<'r, T> Router<'r, T> {
     /// router.insert(&route, 1).unwrap();
     /// router.delete(&route).unwrap();
     /// ```
-    pub fn delete(&mut self, routable: &Routable<'r>) -> Result<(), DeleteError> {
+    ///
+    /// # Panics
+    ///
+    /// If the parser returns zero routes, which should never happen.
+    pub fn delete(&mut self, routable: &Routable<'r>) -> Result<Data<'r, T>, DeleteError> {
         let mut parsed = Parser::new(routable.route.as_bytes())?;
 
-        if parsed.routes.len() > 1 {
+        let data = if parsed.routes.len() > 1 {
+            let mut data: Option<Data<'r, T>> = None;
             let mut errors = vec![];
 
             for mut expanded_route in parsed.routes {
-                if let Err(err) = self.root.delete(&mut expanded_route, true) {
-                    errors.push(err);
+                match self.root.delete(&mut expanded_route, true) {
+                    Ok(result) => data = Some(result),
+                    Err(err) => errors.push(err),
                 }
             }
 
@@ -282,12 +306,30 @@ impl<'r, T> Router<'r, T> {
 
                 return Err(DeleteError::Multiple(errors));
             }
-        } else if let Some(route) = parsed.routes.first_mut() {
-            self.root.delete(route, false)?;
-        }
+
+            data.unwrap()
+        } else {
+            let route = parsed.routes.first_mut().unwrap();
+            self.root.delete(route, false)?
+        };
+
+        match &data {
+            Data::Inline { storage, .. } => match storage {
+                Storage::Inline(_) => (),
+                Storage::Router(id) => {
+                    self.data.remove(id);
+                }
+            },
+            Data::Shared { storage, .. } => match storage.as_ref() {
+                Storage::Inline(_) => (),
+                Storage::Router(id) => {
+                    self.data.remove(id);
+                }
+            },
+        };
 
         self.root.optimize();
-        Ok(())
+        Ok(data)
     }
 
     /// Searches for a matching [`Request`] in the [`Router`].
@@ -326,14 +368,25 @@ impl<'r, T> Router<'r, T> {
             return Ok(None);
         };
 
-        let (route, expanded, data) = match data {
-            Data::Inline { route, value, .. } => (route, None, value),
+        let (storage, route, expanded) = match data {
+            Data::Inline { storage, route, .. } => (storage, route, None),
             Data::Shared {
+                storage,
                 route,
                 expanded,
-                value,
                 ..
-            } => (route, Some(expanded.as_ref()), value.as_ref()),
+            } => (storage.as_ref(), route, Some(expanded.as_ref())),
+        };
+
+        let data = match storage {
+            Storage::Inline(data) => data,
+            Storage::Router(id) => {
+                let Some(data) = self.data.get(id) else {
+                    return Ok(None);
+                };
+
+                data
+            }
         };
 
         Ok(Some(Match {

@@ -19,7 +19,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
     /// If the route is found and deleted, we re-optimize the tree structure.
     ///
     /// For expanded routes, we ensure that routes cannot be deleted individually, only as a group.
-    pub fn delete(&mut self, route: &mut Route, is_expanded: bool) -> Result<(), DeleteError> {
+    pub fn delete(
+        &mut self,
+        route: &mut Route,
+        is_expanded: bool,
+    ) -> Result<Data<'r, T>, DeleteError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
@@ -52,10 +56,10 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 });
             }
 
-            self.data = None;
+            let data = self.data.take().unwrap();
             self.needs_optimization = true;
 
-            Ok(())
+            Ok(data)
         }
     }
 
@@ -64,7 +68,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &mut Route,
         is_expanded: bool,
         prefix: &[u8],
-    ) -> Result<(), DeleteError> {
+    ) -> Result<Data<'r, T>, DeleteError> {
         let index = self
             .static_children
             .iter()
@@ -113,7 +117,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<Data<'r, T>, DeleteError> {
         let index = self
             .dynamic_children
             .iter()
@@ -139,7 +143,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<Data<'r, T>, DeleteError> {
         let index = self
             .wildcard_children
             .iter()
@@ -164,7 +168,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &Route,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<(), DeleteError> {
+    ) -> Result<Data<'r, T>, DeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
@@ -173,10 +177,18 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
 
-        self.end_wildcard_children.remove(index);
+        // FIXME: Should we check before remove?
+        let mut child = self.end_wildcard_children.remove(index);
+        if child.data.is_none() {
+            return Err(DeleteError::NotFound {
+                route: String::from_utf8_lossy(&route.input).to_string(),
+            });
+        };
+
+        let data = child.data.take().unwrap();
         self.needs_optimization = true;
 
-        Ok(())
+        Ok(data)
     }
 
     fn is_empty(&self) -> bool {

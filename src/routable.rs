@@ -1,6 +1,7 @@
 use crate::{
     decode::percent_decode,
     errors::{EncodingError, RoutableError},
+    storage::StorageKind,
 };
 use alloc::{
     borrow::ToOwned,
@@ -11,6 +12,7 @@ use alloc::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Routable<'r> {
     pub(crate) route: &'r str,
+    pub storage: StorageKind,
 }
 
 /// Builder pattern for creating a [`Routable`].
@@ -47,7 +49,10 @@ impl<'r> RoutableBuilder<'r> {
             })?;
         }
 
-        Ok(Routable { route })
+        Ok(Routable {
+            route,
+            storage: StorageKind::Inline,
+        })
     }
 }
 

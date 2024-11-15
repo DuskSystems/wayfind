@@ -512,14 +512,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 325.41 ns | 4           | 265 B      | 4             | 265 B        |
-| matchit          | 366.66 ns | 4           | 416 B      | 4             | 448 B        |
-| xitca-router     | 409.16 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 430.49 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.7411 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 2.0456 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
-| routefinder      | 4.7301 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 17.656 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| wayfind          | 328.25 ns | 4           | 265 B      | 4             | 265 B        |
+| matchit          | 364.79 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 407.60 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 429.00 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.7253 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 2.0428 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 4.7254 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 17.780 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -527,14 +527,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 4.6853 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
-| matchit          | 6.3997 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| path-tree        | 7.0728 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| xitca-router     | 7.7275 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 31.155 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| route-recognizer | 54.925 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
-| routefinder      | 75.759 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| actix-router     | 148.91 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 4.6957 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| matchit          | 6.7463 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 7.1253 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 7.5683 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 31.163 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 54.888 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 75.574 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 150.25 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 
