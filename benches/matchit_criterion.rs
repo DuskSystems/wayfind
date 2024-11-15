@@ -3,10 +3,14 @@
 
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
+use mimalloc::MiMalloc;
 use percent_encoding::percent_decode;
 use std::hint::black_box;
 
 pub mod matchit_routes;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 criterion_main!(benches);
 criterion_group! {

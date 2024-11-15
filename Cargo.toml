@@ -103,6 +103,9 @@ similar-asserts = "1.6"
 # Encoding
 percent-encoding = "2.3"
 
+# Allocator
+mimalloc = "0.1"
+
 # Benchmarking
 divan = "0.1"
 criterion = { version = "0.5", features = ["html_reports"] }

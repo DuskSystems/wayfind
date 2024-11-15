@@ -1,8 +1,12 @@
 use codspeed_criterion_compat::{criterion_group, criterion_main, BatchSize, Criterion};
 use gitlab_routes::routes;
+use mimalloc::MiMalloc;
 use std::hint::black_box;
 
 pub mod gitlab_routes;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 criterion_main!(benches);
 criterion_group! {
