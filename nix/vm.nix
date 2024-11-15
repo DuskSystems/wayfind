@@ -62,11 +62,14 @@
     defaultPackages = with pkgs; [
       gcc
       (rust-bin.stable."1.82.0".minimal)
+      sccache
       gnuplot
     ];
 
     variables = {
+      RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
       RUSTFLAGS = "-C target-cpu=native";
+      CARGO_INCREMENTAL = "0";
       CARGO_TARGET_DIR = "/tmp";
     };
 
