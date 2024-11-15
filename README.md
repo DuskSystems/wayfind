@@ -43,17 +43,17 @@ Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attem
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RoutableBuilder, RequestBuilder};
+use wayfind::{Router, RouteBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/users/{id}")
         .build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/users/{id}/files/{filename}.{extension}")
         .build()?;
     router.insert(&route, 2)?;
@@ -95,17 +95,17 @@ Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RoutableBuilder, RequestBuilder};
+use wayfind::{Router, RouteBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/files/{*slug}/delete")
         .build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/{*catch_all}")
         .build()?;
     router.insert(&route, 2)?;
@@ -152,17 +152,17 @@ There is a small overhead to using optional groups, due to `Arc` usage internall
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RoutableBuilder, RequestBuilder};
+use wayfind::{Router, RouteBuilder, RequestBuilder};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/users(/{id})")
         .build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/files/{*slug}/{file}(.{extension})")
         .build()?;
     router.insert(&route, 2)?;
@@ -260,10 +260,10 @@ Curently, these can't be disabled.
 
 ```rust
 use std::error::Error;
-use wayfind::{Constraint, Router, RoutableBuilder, RequestBuilder};
+use wayfind::{PathConstraint, Router, RouteBuilder, RequestBuilder};
 
 struct NamespaceConstraint;
-impl Constraint for NamespaceConstraint {
+impl PathConstraint for NamespaceConstraint {
     const NAME: &'static str = "namespace";
 
     fn check(segment: &str) -> bool {
@@ -277,14 +277,14 @@ impl Constraint for NamespaceConstraint {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.constraint::<NamespaceConstraint>()?;
+    router.path.constraint::<NamespaceConstraint>()?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/v2")
         .build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/v2/{*name:namespace}/blobs/{type}:{digest}")
         .build()?;
     router.insert(&route, 2)?;
@@ -323,7 +323,7 @@ Where possible, we try to provide user-friendly error messages.
 
 ```rust
 use std::error::Error;
-use wayfind::{Constraint, Router, errors::ConstraintError};
+use wayfind::{PathConstraint, Router};
 
 const ERROR_DISPLAY: &str = "
 duplicate constraint name
@@ -340,7 +340,7 @@ try:
 ";
 
 struct ConstraintA;
-impl Constraint for ConstraintA {
+impl PathConstraint for ConstraintA {
     const NAME: &'static str = "my_constraint";
 
     fn check(segment: &str) -> bool {
@@ -349,7 +349,7 @@ impl Constraint for ConstraintA {
 }
 
 struct ConstraintB;
-impl Constraint for ConstraintB {
+impl PathConstraint for ConstraintB {
     const NAME: &'static str = "my_constraint";
 
     fn check(segment: &str) -> bool {
@@ -359,9 +359,9 @@ impl Constraint for ConstraintB {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router: Router<usize> = Router::new();
-    router.constraint::<ConstraintA>()?;
+    router.path.constraint::<ConstraintA>()?;
 
-    let error = router.constraint::<ConstraintB>().unwrap_err();
+    let error = router.path.constraint::<ConstraintB>().unwrap_err();
     assert_eq!(error.to_string(), ERROR_DISPLAY.trim());
 
     Ok(())
@@ -380,7 +380,7 @@ Currenty, this doesn't handle split multi-byte characters well.
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RoutableBuilder};
+use wayfind::{Router, RouteBuilder};
 
 const ROUTER_DISPLAY: &str = "
 /
@@ -409,77 +409,77 @@ const ROUTER_DISPLAY: &str = "
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/pet")
         .build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/pet/findByStatus")
         .build()?;
     router.insert(&route, 2)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/pet/findByTags")
         .build()?;
     router.insert(&route, 3)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/pet/{petId}")
         .build()?;
     router.insert(&route, 4)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/pet/{petId}/uploadImage")
         .build()?;
     router.insert(&route, 5)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/store/inventory")
         .build()?;
     router.insert(&route, 6)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/store/order")
         .build()?;
     router.insert(&route, 7)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/store/order/{orderId}")
         .build()?;
     router.insert(&route, 8)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/user")
         .build()?;
     router.insert(&route, 9)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/user/createWithList")
         .build()?;
     router.insert(&route, 10)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/user/login")
         .build()?;
     router.insert(&route, 11)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/user/logout")
         .build()?;
     router.insert(&route, 12)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/user/{username}")
         .build()?;
     router.insert(&route, 13)?;
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/{*catch_all}")
         .build()?;
     router.insert(&route, 14)?;
 
-    assert_eq!(router.to_string(), ROUTER_DISPLAY.trim());
+    assert_eq!(router.path.to_string(), ROUTER_DISPLAY.trim());
     Ok(())
 }
 ```
@@ -512,14 +512,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 328.25 ns | 4           | 265 B      | 4             | 265 B        |
-| matchit          | 364.79 ns | 4           | 416 B      | 4             | 448 B        |
-| xitca-router     | 407.60 ns | 7           | 800 B      | 7             | 832 B        |
-| path-tree        | 429.00 ns | 4           | 416 B      | 4             | 448 B        |
-| ntex-router      | 1.7253 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 2.0428 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
-| routefinder      | 4.7254 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 17.780 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
+| wayfind          | 335.58 ns | 4           | 265 B      | 4             | 265 B        |
+| matchit          | 377.06 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 410.98 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 439.78 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.7437 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 2.0488 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 4.7027 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 17.785 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -527,14 +527,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 4.6957 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
-| matchit          | 6.7463 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| path-tree        | 7.1253 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| xitca-router     | 7.5683 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 31.163 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| route-recognizer | 54.888 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
-| routefinder      | 75.574 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
-| actix-router     | 150.25 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+| wayfind          | 4.7872 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| matchit          | 6.4767 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 7.2644 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 7.5313 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 31.085 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 54.813 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 75.617 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 151.15 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

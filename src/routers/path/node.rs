@@ -1,18 +1,17 @@
-use crate::{
-    state::{DynamicState, EndWildcardState, State, StaticState, WildcardState},
-    storage::Storage,
-};
+use crate::storage::Storage;
 use alloc::{sync::Arc, vec, vec::Vec};
 use core::{
     fmt::Debug,
     ops::{Index, IndexMut},
 };
+use state::{DynamicState, EndWildcardState, State, StaticState, WildcardState};
 
 pub mod delete;
 pub mod display;
 pub mod insert;
 pub mod optimize;
 pub mod search;
+pub mod state;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]

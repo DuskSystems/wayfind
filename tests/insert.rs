@@ -1,37 +1,41 @@
 use std::error::Error;
 use wayfind::{
-    errors::{ConstraintError, InsertError, RouteError},
-    Constraint, RoutableBuilder, Router,
+    errors::{InsertError, PathConstraintError, PathInsertError, PathRouteError},
+    PathConstraint, RouteBuilder, Router,
 };
 
 #[test]
 fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/test").build()?;
+    let route = RouteBuilder::new().route("/test").build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new().route("/test").build()?;
+    let route = RouteBuilder::new().route("/test").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::DuplicateRoute {
-            route: "/test".to_owned(),
-            conflict: "/test".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::DuplicateRoute {
+                route: "/test".to_owned(),
+                conflict: "/test".to_owned()
+            }
+        ))
     );
 
-    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let route = RouteBuilder::new().route("(/test)").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::DuplicateRoute {
-            route: "(/test)".to_owned(),
-            conflict: "/test".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::DuplicateRoute {
+                route: "(/test)".to_owned(),
+                conflict: "/test".to_owned()
+            }
+        ))
     );
 
-    insta::assert_snapshot!(router, @"/test [*]");
+    insta::assert_snapshot!(router.path, @"/test [*]");
 
     Ok(())
 }
@@ -40,30 +44,34 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
 fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let route = RouteBuilder::new().route("(/test)").build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new().route("/test").build()?;
+    let route = RouteBuilder::new().route("/test").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::DuplicateRoute {
-            route: "/test".to_owned(),
-            conflict: "(/test)".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::DuplicateRoute {
+                route: "/test".to_owned(),
+                conflict: "(/test)".to_owned()
+            }
+        ))
     );
 
-    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let route = RouteBuilder::new().route("(/test)").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::DuplicateRoute {
-            route: "(/test)".to_owned(),
-            conflict: "(/test)".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::DuplicateRoute {
+                route: "(/test)".to_owned(),
+                conflict: "(/test)".to_owned()
+            }
+        ))
     );
 
-    insta::assert_snapshot!(router, @"");
+    insta::assert_snapshot!(router.path, @"");
 
     Ok(())
 }
@@ -73,20 +81,22 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
 fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/{*catch_all})").build()?;
+    let route = RouteBuilder::new().route("(/{*catch_all})").build()?;
     router.insert(&route, 1)?;
 
-    let route = RoutableBuilder::new().route("/{*catch_all}").build()?;
+    let route = RouteBuilder::new().route("/{*catch_all}").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::DuplicateRoute {
-            route: "/{*catch_all}".to_owned(),
-            conflict: "(/{*catch_all})".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::DuplicateRoute {
+                route: "/{*catch_all}".to_owned(),
+                conflict: "(/{*catch_all})".to_owned()
+            }
+        ))
     );
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ╰─ {*catch_all} [*]
     ");
@@ -98,30 +108,32 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
 fn test_insert_duplicate_parameter() {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/{*id}/users/{id}")
         .build()
         .unwrap();
     let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
-        Err(InsertError::RouteError(RouteError::DuplicateParameter {
-            route: "/{*id}/users/{id}".to_owned(),
-            name: "id".to_owned(),
-            first: 1,
-            first_length: 5,
-            second: 13,
-            second_length: 4
-        }))
+        Err(InsertError::PathInsertError(
+            PathInsertError::PathRouteError(PathRouteError::DuplicateParameter {
+                route: "/{*id}/users/{id}".to_owned(),
+                name: "id".to_owned(),
+                first: 1,
+                first_length: 5,
+                second: 13,
+                second_length: 4
+            })
+        ))
     );
 
-    insta::assert_snapshot!(router, @"");
+    insta::assert_snapshot!(router.path, @"");
 }
 
 #[test]
 fn test_insert_constraint_conflict() {
     struct MyConstraint;
-    impl Constraint for MyConstraint {
+    impl PathConstraint for MyConstraint {
         const NAME: &'static str = "u32";
         fn check(segment: &str) -> bool {
             segment.parse::<u32>().is_ok()
@@ -129,10 +141,10 @@ fn test_insert_constraint_conflict() {
     }
 
     let mut router: Router<'_, usize> = Router::new();
-    let constraint = router.constraint::<MyConstraint>();
+    let constraint = router.path.constraint::<MyConstraint>();
     assert_eq!(
         constraint,
-        Err(ConstraintError::DuplicateName {
+        Err(PathConstraintError::DuplicateName {
             name: "u32",
             existing_type: "u32",
             new_type: "insert::test_insert_constraint_conflict::MyConstraint"

@@ -1,7 +1,7 @@
 use super::{Data, Node, State};
 use crate::{
-    errors::{EncodingError, SearchError},
-    router::{Parameters, StoredConstraint},
+    errors::{EncodingError, PathSearchError},
+    routers::path::{PathParameters, StoredConstraint},
 };
 use alloc::string::{String, ToString};
 use hashbrown::HashMap;
@@ -15,9 +15,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     pub fn search<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         if path.is_empty() {
             return Ok(self.data.as_ref().map(|data| (data, self.priority)));
         }
@@ -44,9 +44,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_static<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.static_children.iter() {
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -66,9 +66,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_dynamic<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -80,9 +80,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_dynamic_inline<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
@@ -134,9 +134,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_dynamic_segment<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -165,9 +165,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_wildcard<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
         } else {
@@ -179,9 +179,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_wildcard_inline<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
 
@@ -229,9 +229,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_wildcard_segment<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -294,9 +294,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn search_end_wildcard<'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, SearchError> {
+    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
         for child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(&child.state.constraint, path, constraints) {
                 continue;
