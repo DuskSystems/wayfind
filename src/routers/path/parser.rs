@@ -33,6 +33,7 @@ pub enum Part {
 pub struct Parser {
     pub input: Vec<u8>,
     pub routes: Vec<ParsedRoute>,
+    pub expanded: bool,
 }
 
 impl Parser {
@@ -47,9 +48,12 @@ impl Parser {
             .map(|raw| Self::parse_route(input, &raw))
             .collect::<Result<Vec<_>, _>>()?;
 
+        let expanded = routes.len() > 1;
+
         Ok(Self {
             input: input.to_vec(),
             routes,
+            expanded,
         })
     }
 
@@ -378,6 +382,7 @@ mod tests {
                         prefix: b"/abcd".to_vec()
                     }],
                 }],
+                expanded: false,
             }),
         );
     }
@@ -401,6 +406,7 @@ mod tests {
                         },
                     ],
                 }],
+                expanded: false,
             }),
         );
     }
@@ -424,6 +430,7 @@ mod tests {
                         },
                     ],
                 }],
+                expanded: false,
             }),
         );
     }
@@ -454,6 +461,7 @@ mod tests {
                         },
                     ],
                 }],
+                expanded: false,
             }),
         );
     }
@@ -486,6 +494,7 @@ mod tests {
                         }],
                     },
                 ],
+                expanded: true,
             }),
         );
     }
@@ -534,6 +543,7 @@ mod tests {
                         }],
                     },
                 ],
+                expanded: true,
             }),
         );
     }
@@ -551,6 +561,7 @@ mod tests {
                         prefix: b"/path/with{braces}and(parens)".to_vec()
                     }],
                 }],
+                expanded: false,
             }),
         );
     }
@@ -586,6 +597,7 @@ mod tests {
                         }],
                     },
                 ],
+                expanded: true,
             }),
         );
     }
@@ -651,6 +663,7 @@ mod tests {
                         }],
                     },
                 ],
+                expanded: true,
             }),
         );
     }

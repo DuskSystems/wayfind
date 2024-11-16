@@ -1,24 +1,37 @@
 use crate::{decode::percent_decode, errors::RequestError};
 use std::borrow::Cow;
 
-/// [`Request`] stores the request data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Request<'p> {
-    /// Percent-decoded path bytes.
-    /// May contain invalid UTF-8 bytes.
-    pub(crate) path: Cow<'p, [u8]>,
+    path: Cow<'p, [u8]>,
+    method: Option<&'p str>,
 }
 
-/// Builder pattern for creating a [`Request`].
+impl<'p> Request<'p> {
+    #[must_use]
+    pub fn path(&'p self) -> &'p [u8] {
+        self.path.as_ref()
+    }
+
+    #[must_use]
+    pub const fn method(&'p self) -> Option<&'p str> {
+        self.method
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RequestBuilder<'p> {
     path: Option<&'p str>,
+    method: Option<&'p str>,
 }
 
 impl<'p> RequestBuilder<'p> {
     #[must_use]
     pub const fn new() -> Self {
-        Self { path: None }
+        Self {
+            path: None,
+            method: None,
+        }
     }
 
     #[must_use]
@@ -27,15 +40,20 @@ impl<'p> RequestBuilder<'p> {
         self
     }
 
-    /// Builds a new [`Request`] instance from the builder.
-    ///
-    /// # Errors
-    ///
-    /// Return a [`RequestError`] if a required field was not populated.
+    #[must_use]
+    pub const fn method(mut self, method: &'p str) -> Self {
+        self.method = Some(method);
+        self
+    }
+
+    #[allow(clippy::missing_errors_doc)]
     pub fn build(self) -> Result<Request<'p>, RequestError> {
         let path = self.path.ok_or(RequestError::MissingPath)?;
         let path = percent_decode(path.as_bytes())?;
 
-        Ok(Request { path })
+        Ok(Request {
+            path,
+            method: self.method,
+        })
     }
 }
