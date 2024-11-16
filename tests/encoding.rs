@@ -1,8 +1,9 @@
+use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{EncodingError, PathSearchError, RequestError, RouteError, SearchError},
-    Match, PathMatch, RequestBuilder, RouteBuilder, Router,
+    Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
 };
 
 #[test]
@@ -16,8 +17,10 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     === Path
     /users/
     ╰─ {name} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/users/jos%C3%A9").build()?; // "José"
@@ -31,6 +34,7 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("name", "josé")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -48,8 +52,10 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     === Path
     /user files/
     ╰─ {name} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new()
@@ -65,6 +71,7 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("name", "document name")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -85,9 +92,11 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     /
     ├─ {name} [1]
     ╰─ {*path} [2]
+    === Method
+    Empty
     === Chains
-    1
-    2
+    1-*
+    2-*
     ");
 
     let request = RequestBuilder::new().path("/johndoe").build()?;
@@ -101,6 +110,7 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("name", "johndoe")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -115,6 +125,7 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "john/doe")],
             },
+            method: MethodMatch { method: None }
         })
     );
 

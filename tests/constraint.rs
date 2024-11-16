@@ -1,8 +1,9 @@
+use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{InsertError, PathConstraintError, PathInsertError},
-    Match, PathConstraint, PathMatch, RequestBuilder, RouteBuilder, Router,
+    Match, MethodMatch, PathConstraint, PathMatch, RequestBuilder, RouteBuilder, Router,
 };
 
 struct NameConstraint;
@@ -26,8 +27,10 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     === Path
     /users/
     ╰─ {id:name} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/users/john123").build()?;
@@ -41,6 +44,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "john123")],
             },
+            method: MethodMatch { method: None },
         })
     );
 
@@ -63,8 +67,10 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     === Path
     /users/
     ╰─ {*path:name} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/users/john/doe123").build()?;
@@ -78,6 +84,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "john/doe123")],
             },
+            method: MethodMatch { method: None },
         })
     );
 
@@ -154,9 +161,11 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     /users/
     ├─ {id:u32} [2]
     ╰─ {id} [1]
+    === Method
+    Empty
     === Chains
-    1
-    2
+    1-*
+    2-*
     ");
 
     let request = RequestBuilder::new().path("/users/abc").build()?;
@@ -170,6 +179,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "abc")],
             },
+            method: MethodMatch { method: None },
         })
     );
 
@@ -184,6 +194,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
+            method: MethodMatch { method: None },
         })
     );
 
@@ -206,9 +217,11 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     /users/
     ├─ {id:name} [2]
     ╰─ {id:u32} [1]
+    === Method
+    Empty
     === Chains
-    1
-    2
+    1-*
+    2-*
     ");
 
     let request = RequestBuilder::new().path("/users/123").build()?;
@@ -222,6 +235,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
+            method: MethodMatch { method: None },
         })
     );
 
@@ -236,6 +250,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "abc123")],
             },
+            method: MethodMatch { method: None },
         })
     );
 

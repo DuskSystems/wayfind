@@ -4,8 +4,6 @@ use http::request::Parts;
 use std::convert::Infallible;
 
 /// Access to the given request method.
-///
-/// TODO: Replace with `wayfind` native method parsing, once implemented.
 pub struct Method(pub http::Method);
 
 impl FromRequestParts for Method {

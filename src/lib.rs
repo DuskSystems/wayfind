@@ -13,8 +13,9 @@ pub use request::{Request, RequestBuilder};
 pub(crate) mod route;
 pub use route::{Route, RouteBuilder};
 
-pub(crate) mod routers;
-pub use routers::path::{PathConstraint, PathParameters};
-pub use routers::{Match, PathMatch, Router};
+pub(crate) mod router;
+pub use router::method::MethodId;
+pub use router::path::{PathConstraint, PathId, PathParameters};
+pub use router::{Match, MethodMatch, PathMatch, Router};
 
 pub(crate) mod vec;

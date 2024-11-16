@@ -1,24 +1,46 @@
 use crate::{decode::percent_decode, errors::RequestError};
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Debug};
 
-/// [`Request`] stores the request data to be used to search for a matching route in a [`Router`](crate::Router).
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Request<'p> {
-    /// Percent-decoded path bytes.
-    /// May contain invalid UTF-8 bytes.
-    pub(crate) path: Cow<'p, [u8]>,
+#[derive(Clone, Eq, PartialEq)]
+pub struct Request<'r> {
+    path: Cow<'r, [u8]>,
+    method: Option<&'r str>,
 }
 
-/// Builder pattern for creating a [`Request`].
+impl Request<'_> {
+    #[must_use]
+    pub fn path(&self) -> &[u8] {
+        self.path.as_ref()
+    }
+
+    #[must_use]
+    pub const fn method(&self) -> Option<&str> {
+        self.method
+    }
+}
+
+impl Debug for Request<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Request")
+            .field("path", &String::from_utf8_lossy(&self.path))
+            .field("method", &self.method)
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RequestBuilder<'p> {
     path: Option<&'p str>,
+    method: Option<&'p str>,
 }
 
 impl<'p> RequestBuilder<'p> {
     #[must_use]
     pub const fn new() -> Self {
-        Self { path: None }
+        Self {
+            path: None,
+            method: None,
+        }
     }
 
     #[must_use]
@@ -27,15 +49,20 @@ impl<'p> RequestBuilder<'p> {
         self
     }
 
-    /// Builds a new [`Request`] instance from the builder.
-    ///
-    /// # Errors
-    ///
-    /// Return a [`RequestError`] if a required field was not populated.
+    #[must_use]
+    pub const fn method(mut self, method: &'p str) -> Self {
+        self.method = Some(method);
+        self
+    }
+
+    #[allow(clippy::missing_errors_doc)]
     pub fn build(self) -> Result<Request<'p>, RequestError> {
         let path = self.path.ok_or(RequestError::MissingPath)?;
         let path = percent_decode(path.as_bytes())?;
 
-        Ok(Request { path })
+        Ok(Request {
+            path,
+            method: self.method,
+        })
     }
 }
