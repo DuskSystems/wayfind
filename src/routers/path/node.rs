@@ -8,6 +8,7 @@ pub mod insert;
 pub mod optimize;
 pub mod search;
 pub mod state;
+pub mod find;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -1,30 +1,46 @@
-use crate::id::RouteId;
-use std::{
-    collections::HashMap,
-    hash::{BuildHasherDefault, Hasher},
-    marker::PhantomData,
-};
+use crate::routers::{method::id::MethodId, path::id::PathId};
+use std::collections::HashMap;
 
-pub type RouteMap<V> = HashMap<RouteId, V, BuildHasherDefault<NoHashHasher<RouteId>>>;
+#[derive(Debug, Clone)]
+pub struct ChainMap<T>(HashMap<DataChain, T>);
 
-pub struct NoHashHasher<T>(u64, PhantomData<T>);
-
-impl<T> Hasher for NoHashHasher<T> {
-    fn write(&mut self, _: &[u8]) {
-        panic!("Invalid use of NoHashHasher")
+impl<T> ChainMap<T> {
+    pub fn get(&self, key: &DataChain) -> Option<&T> {
+        self.0.get(key)
     }
 
-    fn write_usize(&mut self, n: usize) {
-        self.0 = n as u64;
+    pub fn insert(&mut self, key: DataChain, value: T) -> Option<T> {
+        self.0.insert(key, value)
     }
 
-    fn finish(&self) -> u64 {
-        self.0
+    pub fn contains_key(&self, key: &DataChain) -> bool {
+        self.0.contains_key(key)
+    }
+
+    pub fn remove(&mut self, key: &DataChain) -> Option<T> {
+        self.0.remove(key)
     }
 }
 
-impl<T> Default for NoHashHasher<T> {
+impl<T> Default for ChainMap<T> {
     fn default() -> Self {
-        Self(0, PhantomData)
+        Self(HashMap::default())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DataChain {
+    pub path: PathId,
+    pub method: MethodId,
+    str: String,
+}
+
+impl DataChain {
+    pub fn new(path: PathId, method: MethodId) -> Self {
+        Self {
+            path,
+            method,
+            str: format!("{path}-{method}"),
+        }
     }
 }
