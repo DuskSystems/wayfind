@@ -1,4 +1,4 @@
-use crate::{decode::percent_decode, errors::RouteError, storage::StorageKind};
+use crate::{decode::percent_decode, errors::RouteError};
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
@@ -8,7 +8,6 @@ use alloc::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Route<'r> {
     pub(crate) route: &'r str,
-    pub storage: StorageKind,
 }
 
 /// Builder pattern for creating a [`Route`].
@@ -45,10 +44,7 @@ impl<'r> RouteBuilder<'r> {
             })?;
         }
 
-        Ok(Route {
-            route,
-            storage: StorageKind::Inline,
-        })
+        Ok(Route { route })
     }
 }
 

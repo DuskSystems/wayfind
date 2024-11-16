@@ -1,8 +1,4 @@
-use crate::{
-    id::RouteId,
-    storage::{Storage, StorageKind},
-    Request, Route,
-};
+use crate::{id::RouteId, map::RouteMap, Request, Route};
 use alloc::{
     fmt::Display,
     string::{String, ToString},
@@ -15,7 +11,7 @@ use core::{
 };
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
 use hashbrown::HashMap;
-use node::{state::RootState, Children, Data, Node};
+use node::{state::RootState, Children, Node};
 use parser::{Parser, Part};
 use smallvec::{smallvec, SmallVec};
 
@@ -25,6 +21,19 @@ pub mod node;
 pub mod parser;
 
 pub use constraints::PathConstraint;
+
+/// Holds data associated with a given node.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathData<'r> {
+    /// The original route.
+    pub(crate) route: &'r str,
+
+    /// The expanded route.
+    pub(crate) expanded: Option<Arc<str>>,
+
+    /// The associated data ID.
+    pub(crate) id: RouteId,
+}
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
@@ -59,15 +68,15 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct PathRouter<'r, T> {
+pub struct PathRouter<'r> {
     /// The root node of the tree.
-    root: Node<'r, T, RootState>,
+    root: Node<'r, RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<&'r str, StoredConstraint>,
 }
 
-impl<'r, T> PathRouter<'r, T> {
+impl<'r> PathRouter<'r> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -178,11 +187,7 @@ impl<'r, T> PathRouter<'r, T> {
     ///     .unwrap();
     /// router.insert(&route, 1).unwrap();
     /// ```
-    pub(crate) fn insert(
-        &mut self,
-        route: &Route<'r>,
-        value: Option<T>,
-    ) -> Result<(), PathInsertError> {
+    pub(crate) fn insert(&mut self, route: &Route<'r>, id: RouteId) -> Result<(), PathInsertError> {
         let mut parsed = Parser::new(route.route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
@@ -204,24 +209,18 @@ impl<'r, T> PathRouter<'r, T> {
             }
         }
 
-        let storage = match route.storage {
-            StorageKind::Inline => Storage::Inline(value.unwrap()),
-            StorageKind::Router(id) => Storage::Router(id),
-        };
-
         if parsed.routes.len() > 1 {
             let mut errors = vec![];
-            let storage = Arc::new(storage);
 
             for mut parsed_route in parsed.routes {
                 let expanded = Arc::from(String::from_utf8_lossy(&parsed_route.raw));
 
                 if let Err(err) = self.root.insert(
                     &mut parsed_route,
-                    Data::Shared {
+                    PathData {
+                        id,
                         route: route.route,
-                        expanded,
-                        storage: Arc::clone(&storage),
+                        expanded: Some(expanded),
                     },
                 ) {
                     errors.push(err);
@@ -242,9 +241,10 @@ impl<'r, T> PathRouter<'r, T> {
         } else if let Some(parsed_route) = parsed.routes.first_mut() {
             self.root.insert(
                 parsed_route,
-                Data::Inline {
+                PathData {
+                    id,
                     route: route.route,
-                    storage,
+                    expanded: None,
                 },
             )?;
         };
@@ -277,11 +277,11 @@ impl<'r, T> PathRouter<'r, T> {
     /// router.insert(&route, 1).unwrap();
     /// router.delete(&route).unwrap();
     /// ```
-    pub(crate) fn delete(&mut self, route: &Route<'r>) -> Result<Data<'r, T>, PathDeleteError> {
+    pub(crate) fn delete(&mut self, route: &Route<'r>) -> Result<PathData<'r>, PathDeleteError> {
         let mut parsed = Parser::new(route.route.as_bytes())?;
 
         let data = if parsed.routes.len() > 1 {
-            let mut data: Option<Data<'r, T>> = None;
+            let mut data: Option<PathData<'r>> = None;
             let mut errors = vec![];
 
             for mut expanded_route in parsed.routes {
@@ -336,10 +336,10 @@ impl<'r, T> PathRouter<'r, T> {
     ///     .unwrap();
     /// let search = router.search(&request).unwrap();
     /// ```
-    pub(crate) fn search<'p>(
+    pub(crate) fn search<'p, T>(
         &'r self,
         request: &'p Request<'p>,
-        map: &'r HashMap<RouteId, T>,
+        map: &'r RouteMap<T>,
     ) -> Result<Option<PathMatch<'r, 'p, T>>, PathSearchError> {
         let mut parameters = smallvec![];
         let Some((data, _)) =
@@ -349,43 +349,33 @@ impl<'r, T> PathRouter<'r, T> {
             return Ok(None);
         };
 
-        let (storage, route, expanded) = match data {
-            Data::Inline { storage, route, .. } => (storage, route, None),
-            Data::Shared {
-                storage,
-                route,
-                expanded,
-                ..
-            } => (storage.as_ref(), route, Some(expanded.as_ref())),
-        };
+        let PathData {
+            id,
+            route,
+            expanded,
+            ..
+        } = data;
 
-        let data = match storage {
-            Storage::Inline(data) => data,
-            Storage::Router(id) => {
-                let Some(data) = map.get(id) else {
-                    return Ok(None);
-                };
-
-                data
-            }
+        let Some(data) = map.get(id) else {
+            return Ok(None);
         };
 
         Ok(Some(PathMatch {
             route,
-            expanded,
+            expanded: expanded.as_deref(),
             data,
             parameters,
         }))
     }
 }
 
-impl<'r, T> Default for PathRouter<'r, T> {
+impl<'r> Default for PathRouter<'r> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'r, T> Display for PathRouter<'r, T> {
+impl<'r> Display for PathRouter<'r> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.root)
     }

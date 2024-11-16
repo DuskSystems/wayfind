@@ -1,11 +1,10 @@
 use crate::{
     errors::{DeleteError, InsertError, SearchError},
     id::RouteId,
-    storage::{Storage, StorageKind},
+    map::RouteMap,
     Request, Route,
 };
-use hashbrown::HashMap;
-use path::{node::Data, PathMatch, PathRouter};
+use path::{PathMatch, PathRouter};
 
 pub mod path;
 
@@ -13,10 +12,8 @@ pub type Match<'r, 'p, T> = PathMatch<'r, 'p, T>;
 
 #[derive(Clone)]
 pub struct Router<'r, T> {
-    pub path: PathRouter<'r, T>,
-
-    /// Stored data.
-    data: HashMap<RouteId, T>,
+    pub path: PathRouter<'r>,
+    data: RouteMap<T>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -24,43 +21,26 @@ impl<'r, T> Router<'r, T> {
     pub fn new() -> Self {
         Self {
             path: PathRouter::new(),
-            data: HashMap::new(),
+            data: RouteMap::default(),
         }
     }
 
     #[allow(clippy::missing_errors_doc)]
     pub fn insert(&mut self, route: &Route<'r>, value: T) -> Result<(), InsertError> {
-        let value = match route.storage {
-            StorageKind::Inline => Some(value),
-            StorageKind::Router(id) => {
-                self.data.insert(id, value);
-                None
-            }
-        };
+        let id = RouteId::new();
 
-        self.path.insert(route, value)?;
+        self.path.insert(route, id)?;
+        self.data.insert(id, value);
 
         Ok(())
     }
 
     #[allow(clippy::missing_errors_doc)]
     pub fn delete(&mut self, route: &Route<'r>) -> Result<(), DeleteError> {
-        let data = self.path.delete(route)?;
+        let path_data = self.path.delete(route)?;
 
-        match &data {
-            Data::Inline { storage, .. } => match storage {
-                Storage::Inline(_) => (),
-                Storage::Router(id) => {
-                    self.data.remove(id);
-                }
-            },
-            Data::Shared { storage, .. } => match storage.as_ref() {
-                Storage::Inline(_) => (),
-                Storage::Router(id) => {
-                    self.data.remove(id);
-                }
-            },
-        };
+        let path_id = path_data.id;
+        self.data.remove(&path_id);
 
         Ok(())
     }

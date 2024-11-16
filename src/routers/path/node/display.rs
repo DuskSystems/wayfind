@@ -2,11 +2,11 @@ use super::{Node, State};
 use alloc::{borrow::ToOwned, format, string::String};
 use core::fmt::{Display, Write};
 
-impl<'r, T, S: State> Display for Node<'r, T, S> {
+impl<'r, S: State> Display for Node<'r, S> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        fn debug_node<T, S: State>(
+        fn debug_node<S: State>(
             output: &mut String,
-            node: &Node<'_, T, S>,
+            node: &Node<'_, S>,
             padding: &str,
             is_top: bool,
             is_last: bool,

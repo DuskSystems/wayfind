@@ -1,4 +1,4 @@
-use super::{Data, Node, State};
+use super::{Node, PathData, State};
 use crate::{
     errors::{EncodingError, PathSearchError},
     routers::path::{PathParameters, StoredConstraint},
@@ -7,7 +7,7 @@ use alloc::string::{String, ToString};
 use hashbrown::HashMap;
 use smallvec::smallvec;
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<'r, S: State> Node<'r, S> {
     /// Searches for a matching route in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
@@ -17,7 +17,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         if path.is_empty() {
             return Ok(self.data.as_ref().map(|data| (data, self.priority)));
         }
@@ -46,7 +46,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.static_children.iter() {
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -68,7 +68,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         if self.dynamic_children_shortcut {
             self.search_dynamic_segment(path, parameters, constraints)
         } else {
@@ -82,11 +82,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.dynamic_children.iter() {
             let mut consumed = 0;
 
-            let mut best_match: Option<(&'r Data<'r, T>, usize)> = None;
+            let mut best_match: Option<(&'r PathData<'r>, usize)> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -136,7 +136,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.dynamic_children.iter() {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -167,7 +167,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         if self.wildcard_children_shortcut {
             self.search_wildcard_segment(path, parameters, constraints)
         } else {
@@ -181,11 +181,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
 
-            let mut best_match: Option<(&'r Data<'r, T>, usize)> = None;
+            let mut best_match: Option<(&'r PathData<'r>, usize)> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -231,7 +231,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.wildcard_children.iter() {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -296,7 +296,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         path: &'p [u8],
         parameters: &mut PathParameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Result<Option<(&'r Data<'r, T>, usize)>, PathSearchError> {
+    ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.end_wildcard_children.iter() {
             if !Self::check_constraint(&child.state.constraint, path, constraints) {
                 continue;

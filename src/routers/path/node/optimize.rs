@@ -1,6 +1,6 @@
-use super::{Data, Node, State};
+use super::{Node, PathData, State};
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<'r, S: State> Node<'r, S> {
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);
     }
@@ -45,12 +45,14 @@ impl<'r, T, S: State> Node<'r, T, S> {
         if self.data.is_some() {
             priority += 1_000;
             priority += match &self.data {
-                Some(Data::Inline { route, .. }) => {
-                    route.len() + (route.bytes().filter(|&b| b == b'/').count() * 100)
-                }
-                Some(Data::Shared { expanded, .. }) => {
-                    expanded.len() + (expanded.bytes().filter(|&b| b == b'/').count() * 100)
-                }
+                Some(PathData {
+                    route, expanded, ..
+                }) => expanded.as_ref().map_or_else(
+                    || route.len() + (route.bytes().filter(|&b| b == b'/').count() * 100),
+                    |expanded| {
+                        expanded.len() + (expanded.bytes().filter(|&b| b == b'/').count() * 100)
+                    },
+                ),
                 None => 0,
             };
         }

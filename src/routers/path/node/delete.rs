@@ -1,4 +1,4 @@
-use super::{state::StaticState, Data, Node, State};
+use super::{state::StaticState, Node, PathData, State};
 use crate::{
     errors::PathDeleteError,
     routers::path::parser::{ParsedRoute, Part},
@@ -8,7 +8,7 @@ use alloc::{
     string::{String, ToString},
 };
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<'r, S: State> Node<'r, S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified route.
@@ -21,7 +21,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         &mut self,
         route: &mut ParsedRoute,
         is_expanded: bool,
-    ) -> Result<Data<'r, T>, PathDeleteError> {
+    ) -> Result<PathData<'r>, PathDeleteError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
@@ -42,15 +42,10 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 });
             };
 
-            let (is_shared, inserted) = match *data {
-                Data::Inline { route, .. } => (false, route),
-                Data::Shared { route, .. } => (true, route),
-            };
-
-            if is_expanded != is_shared {
+            if is_expanded != data.expanded.is_some() {
                 return Err(PathDeleteError::RouteMismatch {
                     route: String::from_utf8_lossy(&route.input).to_string(),
-                    inserted: inserted.to_owned(),
+                    inserted: data.route.to_owned(),
                 });
             }
 
@@ -66,7 +61,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &mut ParsedRoute,
         is_expanded: bool,
         prefix: &[u8],
-    ) -> Result<Data<'r, T>, PathDeleteError> {
+    ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .static_children
             .iter()
@@ -115,7 +110,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<Data<'r, T>, PathDeleteError> {
+    ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .dynamic_children
             .iter()
@@ -141,7 +136,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         is_expanded: bool,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<Data<'r, T>, PathDeleteError> {
+    ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .wildcard_children
             .iter()
@@ -166,7 +161,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
         route: &ParsedRoute,
         name: &str,
         constraint: &Option<String>,
-    ) -> Result<Data<'r, T>, PathDeleteError> {
+    ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .end_wildcard_children
             .iter()

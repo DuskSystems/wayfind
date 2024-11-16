@@ -1,5 +1,5 @@
 use super::{
-    Children, Data, DynamicState, EndWildcardState, Node, State, StaticState, WildcardState,
+    Children, DynamicState, EndWildcardState, Node, PathData, State, StaticState, WildcardState,
 };
 use crate::routers::path::{
     errors::PathInsertError,
@@ -11,7 +11,7 @@ use alloc::{
     vec,
 };
 
-impl<'r, T, S: State> Node<'r, T, S> {
+impl<'r, S: State> Node<'r, S> {
     /// Inserts a new route into the node tree with associated data.
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
@@ -19,7 +19,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
     pub fn insert(
         &mut self,
         route: &mut ParsedRoute,
-        data: Data<'r, T>,
+        data: PathData<'r>,
     ) -> Result<(), PathInsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
@@ -42,13 +42,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
             };
         } else {
             if let Some(data) = &self.data {
-                let conflict = match data {
-                    Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
-                };
-
                 return Err(PathInsertError::DuplicateRoute {
                     route: String::from_utf8_lossy(&route.input).to_string(),
-                    conflict,
+                    conflict: data.route.to_owned(),
                 });
             }
 
@@ -62,7 +58,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn insert_static(
         &mut self,
         route: &mut ParsedRoute,
-        data: Data<'r, T>,
+        data: PathData<'r>,
         prefix: &[u8],
     ) -> Result<(), PathInsertError> {
         // Check if the first byte is already a child here.
@@ -162,7 +158,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn insert_dynamic(
         &mut self,
         route: &mut ParsedRoute,
-        data: Data<'r, T>,
+        data: PathData<'r>,
         name: String,
         constraint: Option<String>,
     ) -> Result<(), PathInsertError> {
@@ -200,7 +196,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn insert_wildcard(
         &mut self,
         route: &mut ParsedRoute,
-        data: Data<'r, T>,
+        data: PathData<'r>,
         name: String,
         constraint: Option<String>,
     ) -> Result<(), PathInsertError> {
@@ -238,7 +234,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
     fn insert_end_wildcard(
         &mut self,
         route: &ParsedRoute,
-        data: Data<'r, T>,
+        data: PathData<'r>,
         name: String,
         constraint: Option<String>,
     ) -> Result<(), PathInsertError> {
@@ -247,13 +243,9 @@ impl<'r, T, S: State> Node<'r, T, S> {
             .iter()
             .find(|child| child.state.name == name && child.state.constraint == constraint)
         {
-            let conflict = match child.data.as_ref().unwrap() {
-                Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
-            };
-
             return Err(PathInsertError::DuplicateRoute {
                 route: String::from_utf8_lossy(&route.input).to_string(),
-                conflict,
+                conflict: child.data.as_ref().unwrap().route.to_owned(),
             });
         }
 
