@@ -2,8 +2,7 @@
   "files.eol": "\n",
 
   "files.exclude": {
-    ".direnv": true,
-    ".idea": true
+    ".direnv": true
   },
 
   "files.readonlyInclude": {
@@ -16,7 +15,6 @@
 
   "search.exclude": {
     ".direnv": true,
-    ".idea": true,
     "LICENSE*": true,
     "flake.lock": true,
     "Cargo.lock": true
@@ -64,5 +62,5 @@
 
   "[nix]": {
     "editor.defaultFormatter": "jnoortheen.nix-ide"
-  },
+  }
 }
