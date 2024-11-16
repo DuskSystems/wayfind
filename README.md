@@ -383,26 +383,26 @@ use wayfind::{Router, RouteBuilder};
 
 const ROUTER_DISPLAY: &str = "
 /
-├─ user [*]
+├─ user [8]
 │  ╰─ /
-│     ├─ createWithList [*]
+│     ├─ createWithList [9]
 │     ├─ log
-│     │  ├─ out [*]
-│     │  ╰─ in [*]
-│     ╰─ {username} [*]
-├─ pet [*]
+│     │  ├─ out [11]
+│     │  ╰─ in [10]
+│     ╰─ {username} [12]
+├─ pet [0]
 │  ╰─ /
 │     ├─ findBy
-│     │  ├─ Status [*]
-│     │  ╰─ Tags [*]
-│     ╰─ {petId} [*]
-│        ╰─ /uploadImage [*]
+│     │  ├─ Status [1]
+│     │  ╰─ Tags [2]
+│     ╰─ {petId} [3]
+│        ╰─ /uploadImage [4]
 ├─ store/
-│  ├─ inventory [*]
-│  ╰─ order [*]
+│  ├─ inventory [5]
+│  ╰─ order [6]
 │     ╰─ /
-│        ╰─ {orderId} [*]
-╰─ {*catch_all} [*]
+│        ╰─ {orderId} [7]
+╰─ {*catch_all} [13]
 ";
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -511,14 +511,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 398.23 ns | 5           | 329 B      | 5             | 329 B        |
-| path-tree        | 579.66 ns | 5           | 480 B      | 5             | 512 B        |
-| matchit          | 582.72 ns | 5           | 480 B      | 5             | 512 B        |
-| xitca-router     | 660.95 ns | 8           | 864 B      | 8             | 896 B        |
-| ntex-router      | 2.2411 µs | 19          | 1.312 KB   | 19            | 1.344 KB     |
-| route-recognizer | 3.2239 µs | 161         | 8.569 KB   | 161           | 8.601 KB     |
-| routefinder      | 6.2734 µs | 68          | 5.088 KB   | 68            | 5.12 KB      |
-| actix-router     | 21.459 µs | 215         | 14 KB      | 215           | 14.03 KB     |
+| wayfind          | 341.71 ns | 4           | 265 B      | 4             | 265 B        |
+| matchit          | 376.67 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 415.14 ns | 7           | 800 B      | 7             | 832 B        |
+| path-tree        | 442.06 ns | 4           | 416 B      | 4             | 448 B        |
+| ntex-router      | 1.7614 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 2.0531 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 4.7332 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 17.897 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -526,14 +526,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.3596 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
-| path-tree        | 8.6949 µs | 60          | 8.727 KB   | 60            | 8.75 KB      |
-| matchit          | 10.130 µs | 141         | 19.09 KB   | 141           | 19.11 KB     |
-| xitca-router     | 11.984 µs | 210         | 26.79 KB   | 210           | 26.81 KB     |
-| ntex-router      | 36.829 µs | 202         | 20.82 KB   | 202           | 20.84 KB     |
-| route-recognizer | 70.734 µs | 2873        | 192.9 KB   | 2873          | 206.1 KB     |
-| routefinder      | 87.920 µs | 526         | 49.68 KB   | 526           | 49.71 KB     |
-| actix-router     | 189.66 µs | 2202        | 130.1 KB   | 2202          | 130.1 KB     |
+| wayfind          | 5.1040 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| matchit          | 6.4678 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| path-tree        | 7.0941 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| xitca-router     | 7.5814 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 31.100 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 54.829 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 75.961 µs | 525         | 48.4 KB    | 525           | 48.43 KB     |
+| actix-router     | 152.62 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

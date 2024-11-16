@@ -1,7 +1,7 @@
 use std::error::Error;
 use wayfind::{
     errors::{InsertError, PathConstraintError, PathInsertError, PathRouteError},
-    PathConstraint, RouteBuilder, Router,
+    PathConstraint, PathId, RouteBuilder, Router,
 };
 
 #[test]
@@ -16,6 +16,7 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            id: PathId(0),
             route: "/test".to_owned(),
             conflict: "/test".to_owned()
         }))
@@ -26,6 +27,7 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            id: PathId(0),
             route: "(/test)".to_owned(),
             conflict: "/test".to_owned()
         }))
@@ -33,7 +35,8 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /test [*]
+    /test [0]
+    === Method
     ");
 
     Ok(())
@@ -51,6 +54,7 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            id: PathId(0),
             route: "/test".to_owned(),
             conflict: "(/test)".to_owned()
         }))
@@ -61,12 +65,16 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            id: PathId(0),
             route: "(/test)".to_owned(),
             conflict: "(/test)".to_owned()
         }))
     );
 
-    insta::assert_snapshot!(router, @"=== Path");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    === Method
+    ");
 
     Ok(())
 }
@@ -84,6 +92,7 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         insert,
         Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            id: PathId(0),
             route: "/{*catch_all}".to_owned(),
             conflict: "(/{*catch_all})".to_owned()
         }))
@@ -91,8 +100,9 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ {*catch_all} [*]
+    / [0]
+    ╰─ {*catch_all} [0]
+    === Method
     ");
 
     Ok(())
@@ -121,7 +131,10 @@ fn test_insert_duplicate_parameter() {
         )))
     );
 
-    insta::assert_snapshot!(router, @"=== Path");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    === Method
+    ");
 }
 
 #[test]

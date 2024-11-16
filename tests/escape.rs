@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
@@ -11,7 +11,8 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users/{id} [*]
+    /users/{id} [0]
+    === Method
     ");
 
     let request = RequestBuilder::new().path("/users/{id}").build()?;
@@ -25,6 +26,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
     let request = RequestBuilder::new().path("/users/123").build()?;
@@ -43,7 +45,8 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /(not-optional) [*]
+    /(not-optional) [0]
+    === Method
     ");
 
     let request = RequestBuilder::new().path("/(not-optional)").build()?;
@@ -57,6 +60,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -77,9 +81,10 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ a [*]
-       ╰─ /{param} [*]
+    / [0]
+    ╰─ a [0]
+       ╰─ /{param} [0]
+    === Method
     ");
 
     let request = RequestBuilder::new().path("/a/{param}").build()?;
@@ -93,6 +98,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/\\{param\\}"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -111,6 +117,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -125,6 +132,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 

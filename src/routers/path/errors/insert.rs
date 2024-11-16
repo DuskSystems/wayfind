@@ -1,5 +1,7 @@
-use super::PathRouteError;
 use std::{error::Error, fmt::Display};
+
+use super::PathRouteError;
+use crate::routers::path::PathId;
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -15,9 +17,10 @@ pub enum PathInsertError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathInsertError;
+    /// use wayfind::{PathId, errors::PathInsertError};
     ///
     /// let error = PathInsertError::DuplicateRoute {
+    ///     id: PathId(1),
     ///     route: "/route".to_string(),
     ///     conflict: "/existing(/{route})".to_string(),
     /// };
@@ -32,6 +35,9 @@ pub enum PathInsertError {
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
     DuplicateRoute {
+        /// The pre-exsting path ID.
+        id: PathId,
+
         /// The route that was attempted to be inserted.
         route: String,
 
@@ -82,7 +88,9 @@ impl Display for PathInsertError {
                 Ok(())
             }
             Self::PathRouteError(error) => error.fmt(f),
-            Self::DuplicateRoute { route, conflict } => write!(
+            Self::DuplicateRoute {
+                route, conflict, ..
+            } => write!(
                 f,
                 r"duplicate route
 
