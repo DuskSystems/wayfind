@@ -1,4 +1,7 @@
-use crate::state::{DynamicState, EndWildcardState, State, StaticState, WildcardState};
+use crate::{
+    state::{DynamicState, EndWildcardState, State, StaticState, WildcardState},
+    storage::Storage,
+};
 use alloc::{sync::Arc, vec, vec::Vec};
 use core::{
     fmt::Debug,
@@ -43,7 +46,7 @@ pub enum Data<'r, T> {
         route: &'r str,
 
         /// The associated data.
-        value: T,
+        storage: Storage<T>,
     },
 
     /// Data is shared between 2 or more nodes.
@@ -55,7 +58,7 @@ pub enum Data<'r, T> {
         expanded: Arc<str>,
 
         /// The associated data, shared.
-        value: Arc<T>,
+        storage: Arc<Storage<T>>,
     },
 }
 
