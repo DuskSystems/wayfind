@@ -1,4 +1,4 @@
-use super::{state::State, Node, PathData};
+use super::{node::Node, state::State, PathData};
 
 impl<S: State> Node<'_, S> {
     pub(crate) fn optimize(&mut self) {
@@ -39,7 +39,7 @@ impl<S: State> Node<'_, S> {
         self.needs_optimization = false;
     }
 
-    // FIXME: I'd really like to make priority relative,  e.g. 0 being max priority, 1, 2, ...
+    // TODO: I'd really like to make priority relative.
     fn calculate_priority(&self) -> usize {
         let mut priority = self.state.priority();
         if self.data.is_some() {

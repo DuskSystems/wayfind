@@ -6,7 +6,6 @@
 
 use anyhow::Error;
 use constraints::name::NameConstraint;
-use http::Method;
 use hyper::service::service_fn;
 use hyper_util::{
     rt::{TokioExecutor, TokioIo},
@@ -16,6 +15,7 @@ use router::AppRouter;
 use state::AppState;
 use std::{convert::Infallible, sync::Arc};
 use tokio::{net::TcpListener, task::JoinSet};
+use wayfind::RouteBuilder;
 
 pub mod constraints;
 pub mod extract;
@@ -27,87 +27,81 @@ pub mod state;
 pub mod types;
 
 pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
+    let state = Arc::new(AppState::new());
+
+    let mut router = AppRouter::new();
+    router.constraint::<NameConstraint>();
+
+    // end-1
+    let route = RouteBuilder::new()
+        .route("/v2(/)")
+        .methods(vec!["GET"])
+        .build()?;
+    router.insert(&route, routes::root::handle_root_get);
+
+    // end-2
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/blobs/{digest}(/)")
+        .methods(vec!["GET", "HEAD"])
+        .build()?;
+    router.insert(&route, routes::blob::handle_blob_pull);
+
+    // end-3
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/manifests/{reference}(/)")
+        .methods(vec!["GET", "HEAD"])
+        .build()?;
+    router.insert(&route, routes::manifest::handle_manifest_pull);
+
+    // end-4a / end-4b
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/blobs/uploads(/)")
+        .methods(vec!["POST"])
+        .build()?;
+    router.insert(&route, routes::blob::handle_blob_push_post);
+
+    // end-6
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/blobs/uploads/{reference}(/)")
+        .methods(vec!["PUT"])
+        .build()?;
+    router.insert(&route, routes::blob::handle_blob_push_put);
+
+    // end-7
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/manifests/{reference}(/)")
+        .methods(vec!["PUT"])
+        .build()?;
+    router.insert(&route, routes::manifest::handle_manifest_put);
+
+    // end-8a
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/tags/list(/)")
+        .methods(vec!["GET"])
+        .build()?;
+    router.insert(&route, routes::tags::handle_tags_get);
+
+    // end-9
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/manifests/{reference}(/)")
+        .methods(vec!["DELETE"])
+        .build()?;
+    router.insert(&route, routes::manifest::handle_manifest_delete);
+
+    // end-10
+    let route = RouteBuilder::new()
+        .route("/v2/{*name:name}/blobs/{digest}(/)")
+        .methods(vec!["DELETE"])
+        .build()?;
+    router.insert(&route, routes::blob::handle_blob_delete);
+
+    println!("{}", router.inner);
+    let router = Arc::new(router);
+
     tracing::info!(
         address = %listener.local_addr()?,
         "listening on http"
     );
-
-    let state = Arc::new(AppState::new());
-
-    // TODO: Enable `wayfind` method routing, when implemented.
-    let mut router = AppRouter::new();
-    router.path_constraint::<NameConstraint>();
-
-    // end-1
-    router.route(Method::GET, "/v2(/)", routes::root::handle_root_get);
-
-    // end-2
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/blobs/{digest}(/)",
-        routes::blob::handle_blob_pull,
-    );
-    router.route(
-        Method::HEAD,
-        "/v2/{*name:name}/blobs/{digest}(/)",
-        routes::blob::handle_blob_pull,
-    );
-
-    // end-3
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/manifests/{reference}(/)",
-        routes::manifest::handle_manifest_pull,
-    );
-    router.route(
-        Method::HEAD,
-        "/v2/{*name:name}/manifests/{reference}(/)",
-        routes::manifest::handle_manifest_pull,
-    );
-
-    // end-4a / end-4b
-    router.route(
-        Method::POST,
-        "/v2/{*name:name}/blobs/uploads(/)",
-        routes::blob::handle_blob_push_post,
-    );
-
-    // end-6
-    router.route(
-        Method::PUT,
-        "/v2/{*name:name}/blobs/uploads/{reference}(/)",
-        routes::blob::handle_blob_push_put,
-    );
-
-    // end-7
-    router.route(
-        Method::PUT,
-        "/v2/{*name:name}/manifests/{reference}(/)",
-        routes::manifest::handle_manifest_put,
-    );
-
-    // end-8a
-    router.route(
-        Method::GET,
-        "/v2/{*name:name}/tags/list(/)",
-        routes::tags::handle_tags_get,
-    );
-
-    // end-9
-    router.route(
-        Method::DELETE,
-        "/v2/{*name:name}/manifests/{reference}(/)",
-        routes::manifest::handle_manifest_delete,
-    );
-
-    // end-10
-    router.route(
-        Method::DELETE,
-        "/v2/{*name:name}/blobs/{digest}(/)",
-        routes::blob::handle_blob_delete,
-    );
-
-    let router = Arc::new(router);
 
     let mut join_set = JoinSet::new();
 
