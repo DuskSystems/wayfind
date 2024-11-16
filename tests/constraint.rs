@@ -1,12 +1,12 @@
 use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
-    errors::{ConstraintError, InsertError},
-    Constraint, Match, RequestBuilder, RoutableBuilder, Router,
+    errors::{InsertError, PathConstraintError, PathInsertError},
+    Match, PathConstraint, RequestBuilder, RouteBuilder, Router,
 };
 
 struct NameConstraint;
-impl Constraint for NameConstraint {
+impl PathConstraint for NameConstraint {
     const NAME: &'static str = "name";
 
     fn check(segment: &str) -> bool {
@@ -17,12 +17,12 @@ impl Constraint for NameConstraint {
 #[test]
 fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.constraint::<NameConstraint>()?;
+    router.path.constraint::<NameConstraint>()?;
 
-    let route = RoutableBuilder::new().route("/users/{id:name}").build()?;
+    let route = RouteBuilder::new().route("/users/{id:name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ╰─ {id:name} [*]
     ");
@@ -49,14 +49,12 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.constraint::<NameConstraint>()?;
+    router.path.constraint::<NameConstraint>()?;
 
-    let route = RoutableBuilder::new()
-        .route("/users/{*path:name}")
-        .build()?;
+    let route = RouteBuilder::new().route("/users/{*path:name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ╰─ {*path:name} [*]
     ");
@@ -84,7 +82,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
 fn test_constraint_unknown() {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new()
+    let route = RouteBuilder::new()
         .route("/users/{id:unknown}")
         .build()
         .unwrap();
@@ -92,16 +90,18 @@ fn test_constraint_unknown() {
 
     assert_eq!(
         result,
-        Err(InsertError::UnknownConstraint {
-            constraint: "unknown".to_owned()
-        })
+        Err(InsertError::PathInsertError(
+            PathInsertError::UnknownConstraint {
+                constraint: "unknown".to_owned()
+            }
+        ))
     );
 }
 
 #[test]
 fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
     struct Constraint1;
-    impl Constraint for Constraint1 {
+    impl PathConstraint for Constraint1 {
         const NAME: &'static str = "test";
         fn check(segment: &str) -> bool {
             segment == "1"
@@ -109,7 +109,7 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
     }
 
     struct Constraint2;
-    impl Constraint for Constraint2 {
+    impl PathConstraint for Constraint2 {
         const NAME: &'static str = "test";
         fn check(segment: &str) -> bool {
             segment == "2"
@@ -117,12 +117,12 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
     }
 
     let mut router: Router<'_, usize> = Router::new();
-    router.constraint::<Constraint1>()?;
+    router.path.constraint::<Constraint1>()?;
 
-    let result = router.constraint::<Constraint2>();
+    let result = router.path.constraint::<Constraint2>();
     assert_eq!(
         result,
-        Err(ConstraintError::DuplicateName {
+        Err(PathConstraintError::DuplicateName {
             name: "test",
             existing_type: "constraint::test_constraint_conflict::Constraint1",
             new_type: "constraint::test_constraint_conflict::Constraint2"
@@ -136,12 +136,12 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
 fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users/{id}").build()?;
+    let route = RouteBuilder::new().route("/users/{id}").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/users/{id:u32}").build()?;
+    let route = RouteBuilder::new().route("/users/{id:u32}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ├─ {id:u32} [*]
     ╰─ {id} [*]
@@ -178,14 +178,14 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.constraint::<NameConstraint>()?;
+    router.path.constraint::<NameConstraint>()?;
 
-    let route = RoutableBuilder::new().route("/users/{id:u32}").build()?;
+    let route = RouteBuilder::new().route("/users/{id:u32}").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/users/{id:name}").build()?;
+    let route = RouteBuilder::new().route("/users/{id:name}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ├─ {id:name} [*]
     ╰─ {id:u32} [*]

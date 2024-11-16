@@ -1,15 +1,15 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_static_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users").build()?;
+    let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @"/users [*]");
+    insta::assert_snapshot!(router.path, @"/users [*]");
 
     let request = RequestBuilder::new().path("/users").build()?;
     let search = router.search(&request)?;
@@ -34,12 +34,12 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/user").build()?;
+    let route = RouteBuilder::new().route("/user").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/users").build()?;
+    let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /user [*]
     ╰─ s [*]
     ");
@@ -83,12 +83,12 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
 fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/user_1").build()?;
+    let route = RouteBuilder::new().route("/user_1").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/user/1").build()?;
+    let route = RouteBuilder::new().route("/user/1").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /user
     ├─ /1 [*]
     ╰─ _1 [*]
@@ -133,20 +133,20 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
 fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
+    let route = RouteBuilder::new().route("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/👨‍👩‍👦").build()?; // Family: Man, Woman, Boy
+    let route = RouteBuilder::new().route("/👨‍👩‍👦").build()?; // Family: Man, Woman, Boy
     router.insert(&route, 2)?;
-    let route = RoutableBuilder::new().route("/👩‍👩‍👧").build()?; // Family: Woman, Woman, Girl
+    let route = RouteBuilder::new().route("/👩‍👩‍👧").build()?; // Family: Woman, Woman, Girl
     router.insert(&route, 3)?;
-    let route = RoutableBuilder::new().route("/👩‍👩‍👦").build()?; // Family: Woman, Woman, Boy
+    let route = RouteBuilder::new().route("/👩‍👩‍👦").build()?; // Family: Woman, Woman, Boy
     router.insert(&route, 4)?;
-    let route = RoutableBuilder::new().route("/👨‍👨‍👧").build()?; // Family: Man, Man, Girl
+    let route = RouteBuilder::new().route("/👨‍👨‍👧").build()?; // Family: Man, Man, Girl
     router.insert(&route, 5)?;
-    let route = RoutableBuilder::new().route("/👨‍👨‍👦").build()?; // Family: Man, Man, Boy
+    let route = RouteBuilder::new().route("/👨‍👨‍👦").build()?; // Family: Man, Man, Boy
     router.insert(&route, 6)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /�
     ├─ �‍👩‍�
     │  ├─ � [*]
@@ -207,12 +207,12 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
 fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users").build()?;
+    let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/Users").build()?;
+    let route = RouteBuilder::new().route("/Users").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ├─ Users [*]
     ╰─ users [*]
@@ -249,10 +249,10 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
 fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users /items").build()?;
+    let route = RouteBuilder::new().route("/users /items").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @"/users /items [*]");
+    insta::assert_snapshot!(router.path, @"/users /items [*]");
 
     let request = RequestBuilder::new().path("/users /items").build()?;
     let search = router.search(&request)?;
@@ -277,12 +277,12 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users/items").build()?;
+    let route = RouteBuilder::new().route("/users/items").build()?;
     router.insert(&route, 1)?;
-    let route = RoutableBuilder::new().route("/users//items").build()?;
+    let route = RouteBuilder::new().route("/users//items").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users/
     ├─ /items [*]
     ╰─ items [*]
@@ -319,10 +319,10 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
 fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users///items").build()?;
+    let route = RouteBuilder::new().route("/users///items").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @"/users///items [*]");
+    insta::assert_snapshot!(router.path, @"/users///items [*]");
 
     let request = RequestBuilder::new().path("/users///items").build()?;
     let search = router.search(&request)?;

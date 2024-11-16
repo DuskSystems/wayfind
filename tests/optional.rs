@@ -1,15 +1,15 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RoutableBuilder, Router};
+use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/{lang})/users").build()?;
+    let route = RouteBuilder::new().route("(/{lang})/users").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /
     ├─ users [*]
     ╰─ {lang}
@@ -47,10 +47,10 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
 fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("/users(/)").build()?;
+    let route = RouteBuilder::new().route("/users(/)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     /users [*]
     ╰─ / [*]
     ");
@@ -86,10 +86,10 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
 fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/a(/b(/c)))").build()?;
+    let route = RouteBuilder::new().route("(/a(/b(/c)))").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ╰─ a [*]
        ╰─ /b [*]
@@ -151,10 +151,10 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
 fn test_optional_only() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/test)").build()?;
+    let route = RouteBuilder::new().route("(/test)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ╰─ test [*]
     ");
@@ -190,10 +190,10 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
 fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RoutableBuilder::new().route("(/a)(/b)(/c)").build()?;
+    let route = RouteBuilder::new().route("(/a)(/b)(/c)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ├─ a [*]
     │  ╰─ /

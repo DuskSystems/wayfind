@@ -1,5 +1,5 @@
 use std::error::Error;
-use wayfind::{RoutableBuilder, Router};
+use wayfind::{RouteBuilder, Router};
 
 #[path = "../benches/gitlab_routes.rs"]
 pub mod gitlab_routes;
@@ -8,7 +8,7 @@ pub mod gitlab_routes;
 fn test_gitlab_insert() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for route in gitlab_routes::routes() {
-        let route = RoutableBuilder::new().route(route).build()?;
+        let route = RouteBuilder::new().route(route).build()?;
         router.insert(&route, true)?;
     }
 
@@ -19,16 +19,16 @@ fn test_gitlab_insert() -> Result<(), Box<dyn Error>> {
 fn test_gitlab_delete() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for route in gitlab_routes::routes() {
-        let route = RoutableBuilder::new().route(route).build()?;
+        let route = RouteBuilder::new().route(route).build()?;
         router.insert(&route, true)?;
     }
 
     for route in gitlab_routes::routes() {
-        let route = RoutableBuilder::new().route(route).build()?;
+        let route = RouteBuilder::new().route(route).build()?;
         router.delete(&route)?;
     }
 
-    insta::assert_snapshot!(router, @"");
+    insta::assert_snapshot!(router.path, @"");
 
     Ok(())
 }
@@ -37,11 +37,11 @@ fn test_gitlab_delete() -> Result<(), Box<dyn Error>> {
 fn test_gitlab_display() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for route in gitlab_routes::routes() {
-        let route = RoutableBuilder::new().route(route).build()?;
+        let route = RouteBuilder::new().route(route).build()?;
         router.insert(&route, true)?;
     }
 
-    insta::assert_snapshot!(router, @r"
+    insta::assert_snapshot!(router.path, @r"
     / [*]
     ├─ dashboard [*]
     │  ╰─ / [*]

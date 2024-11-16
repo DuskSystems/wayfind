@@ -1,5 +1,4 @@
-use super::{Data, State};
-use crate::node::Node;
+use super::{Data, Node, State};
 
 impl<'r, T, S: State> Node<'r, T, S> {
     pub(crate) fn optimize(&mut self) {

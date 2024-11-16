@@ -24,7 +24,7 @@ fn insert_benchmark(criterion: &mut Criterion) {
             || router.clone(),
             |mut router| {
                 for route in black_box(routes()) {
-                    let route = wayfind::RoutableBuilder::new()
+                    let route = wayfind::RouteBuilder::new()
                         .route(black_box(route))
                         .build()
                         .unwrap();
@@ -44,10 +44,7 @@ fn delete_benchmark(criterion: &mut Criterion) {
     group.bench_function("gitlab delete benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes() {
-            let route = wayfind::RoutableBuilder::new()
-                .route(route)
-                .build()
-                .unwrap();
+            let route = wayfind::RouteBuilder::new().route(route).build().unwrap();
             router.insert(&route, true).unwrap();
         }
 
@@ -55,7 +52,7 @@ fn delete_benchmark(criterion: &mut Criterion) {
             || router.clone(),
             |mut router| {
                 for route in black_box(routes()) {
-                    let route = wayfind::RoutableBuilder::new()
+                    let route = wayfind::RouteBuilder::new()
                         .route(black_box(route))
                         .build()
                         .unwrap();
@@ -75,16 +72,13 @@ fn display_benchmark(criterion: &mut Criterion) {
     group.bench_function("gitlab display benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes() {
-            let route = wayfind::RoutableBuilder::new()
-                .route(route)
-                .build()
-                .unwrap();
+            let route = wayfind::RouteBuilder::new().route(route).build().unwrap();
             router.insert(&route, true).unwrap();
         }
 
         bencher.iter_batched(
             || router.clone(),
-            |router| router.to_string(),
+            |router| router.path.to_string(),
             BatchSize::SmallInput,
         );
     });

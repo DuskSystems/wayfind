@@ -2,9 +2,6 @@
 //!
 //! All errors contain a user-friendly display method.
 
-pub(crate) mod constraint;
-pub use constraint::ConstraintError;
-
 pub(crate) mod delete;
 pub use delete::DeleteError;
 
@@ -17,11 +14,12 @@ pub use insert::InsertError;
 pub(crate) mod request;
 pub use request::RequestError;
 
-pub(crate) mod routable;
-pub use routable::RoutableError;
-
 pub(crate) mod route;
 pub use route::RouteError;
 
 pub(crate) mod search;
 pub use search::SearchError;
+
+pub use crate::routers::path::errors::{
+    PathConstraintError, PathDeleteError, PathInsertError, PathRouteError, PathSearchError,
+};

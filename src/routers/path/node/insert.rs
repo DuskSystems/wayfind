@@ -1,9 +1,9 @@
 use super::{
     Children, Data, DynamicState, EndWildcardState, Node, State, StaticState, WildcardState,
 };
-use crate::{
-    errors::InsertError,
-    parser::{Part, Route},
+use crate::routers::path::{
+    errors::PathInsertError,
+    parser::{ParsedRoute, Part},
 };
 use alloc::{
     borrow::ToOwned,
@@ -16,7 +16,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
     ///
     /// Recursively traverses the node tree, creating new nodes as necessary.
     /// Will error if there's already data at the end node.
-    pub fn insert(&mut self, route: &mut Route, data: Data<'r, T>) -> Result<(), InsertError> {
+    pub fn insert(
+        &mut self,
+        route: &mut ParsedRoute,
+        data: Data<'r, T>,
+    ) -> Result<(), PathInsertError> {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix)?,
@@ -42,7 +46,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                     Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
                 };
 
-                return Err(InsertError::DuplicateRoute {
+                return Err(PathInsertError::DuplicateRoute {
                     route: String::from_utf8_lossy(&route.input).to_string(),
                     conflict,
                 });
@@ -57,10 +61,10 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn insert_static(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         data: Data<'r, T>,
         prefix: &[u8],
-    ) -> Result<(), InsertError> {
+    ) -> Result<(), PathInsertError> {
         // Check if the first byte is already a child here.
         let Some(child) = self
             .static_children
@@ -157,11 +161,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         data: Data<'r, T>,
         name: String,
         constraint: Option<String>,
-    ) -> Result<(), InsertError> {
+    ) -> Result<(), PathInsertError> {
         if let Some(child) = self
             .dynamic_children
             .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
@@ -195,11 +199,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut Route,
+        route: &mut ParsedRoute,
         data: Data<'r, T>,
         name: String,
         constraint: Option<String>,
-    ) -> Result<(), InsertError> {
+    ) -> Result<(), PathInsertError> {
         if let Some(child) = self
             .wildcard_children
             .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
@@ -233,11 +237,11 @@ impl<'r, T, S: State> Node<'r, T, S> {
 
     fn insert_end_wildcard(
         &mut self,
-        route: &Route,
+        route: &ParsedRoute,
         data: Data<'r, T>,
         name: String,
         constraint: Option<String>,
-    ) -> Result<(), InsertError> {
+    ) -> Result<(), PathInsertError> {
         if let Some(child) = self
             .end_wildcard_children
             .iter()
@@ -247,7 +251,7 @@ impl<'r, T, S: State> Node<'r, T, S> {
                 Data::Inline { route, .. } | Data::Shared { route, .. } => (*route).to_owned(),
             };
 
-            return Err(InsertError::DuplicateRoute {
+            return Err(PathInsertError::DuplicateRoute {
                 route: String::from_utf8_lossy(&route.input).to_string(),
                 conflict,
             });

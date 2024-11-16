@@ -25,10 +25,7 @@ fn matchit_benchmark(criterion: &mut Criterion) {
     group.bench_function("matchit benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes!(brackets) {
-            let route = wayfind::RoutableBuilder::new()
-                .route(route)
-                .build()
-                .unwrap();
+            let route = wayfind::RouteBuilder::new().route(route).build().unwrap();
             router.insert(&route, true).unwrap();
         }
 
