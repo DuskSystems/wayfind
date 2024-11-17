@@ -1,5 +1,5 @@
-use crate::storage::Storage;
-use alloc::{sync::Arc, vec, vec::Vec};
+use super::PathData;
+use alloc::{vec, vec::Vec};
 use core::{
     fmt::Debug,
     ops::{Index, IndexMut},
@@ -15,20 +15,20 @@ pub mod state;
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<'r, T, S: State> {
+pub struct Node<'r, S: State> {
     /// The type of Node, and associated structure data.
     pub state: S,
 
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a route.
-    pub data: Option<Data<'r, T>>,
+    pub data: Option<PathData<'r>>,
 
-    pub static_children: Children<'r, T, StaticState>,
-    pub dynamic_children: Children<'r, T, DynamicState>,
+    pub static_children: Children<'r, StaticState>,
+    pub dynamic_children: Children<'r, DynamicState>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_children: Children<'r, T, WildcardState>,
+    pub wildcard_children: Children<'r, WildcardState>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Children<'r, T, EndWildcardState>,
+    pub end_wildcard_children: Children<'r, EndWildcardState>,
 
     /// Higher values indicate more specific matches.
     pub priority: usize,
@@ -36,53 +36,28 @@ pub struct Node<'r, T, S: State> {
     pub needs_optimization: bool,
 }
 
-/// Holds data associated with a given node.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Data<'r, T> {
-    /// Data is stored inline.
-    Inline {
-        /// The original route.
-        route: &'r str,
-
-        /// The associated data.
-        storage: Storage<T>,
-    },
-
-    /// Data is shared between 2 or more nodes.
-    Shared {
-        /// The original route.
-        route: &'r str,
-
-        /// The expanded route.
-        expanded: Arc<str>,
-
-        /// The associated data, shared.
-        storage: Arc<Storage<T>>,
-    },
-}
-
 /// A list of node children.
 /// Maintains whether it is sorted automatically.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Children<'r, T, S: State> {
-    nodes: Vec<Node<'r, T, S>>,
+pub struct Children<'r, S: State> {
+    nodes: Vec<Node<'r, S>>,
     sorted: bool,
 }
 
-impl<'r, T, S: State> Children<'r, T, S> {
-    const fn new(nodes: Vec<Node<'r, T, S>>) -> Self {
+impl<'r, S: State> Children<'r, S> {
+    const fn new(nodes: Vec<Node<'r, S>>) -> Self {
         Self {
             nodes,
             sorted: false,
         }
     }
 
-    fn push(&mut self, node: Node<'r, T, S>) {
+    fn push(&mut self, node: Node<'r, S>) {
         self.nodes.push(node);
         self.sorted = false;
     }
 
-    fn remove(&mut self, index: usize) -> Node<'r, T, S> {
+    fn remove(&mut self, index: usize) -> Node<'r, S> {
         self.nodes.remove(index)
     }
 
@@ -95,23 +70,23 @@ impl<'r, T, S: State> Children<'r, T, S> {
         self.nodes.is_empty()
     }
 
-    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'r, T, S>>
+    fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'r, S>>
     where
-        F: Fn(&Node<'r, T, S>) -> bool,
+        F: Fn(&Node<'r, S>) -> bool,
     {
         self.nodes.iter_mut().find(|node| predicate(node))
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = &Node<'r, T, S>> {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = &Node<'r, S>> {
         self.nodes.iter()
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'r, T, S>> {
+    fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'r, S>> {
         self.nodes.iter_mut()
     }
 }
 
-impl<'r, T, S: State + Ord> Children<'r, T, S> {
+impl<'r, S: State + Ord> Children<'r, S> {
     fn sort(&mut self) {
         if self.sorted {
             return;
@@ -127,7 +102,7 @@ impl<'r, T, S: State + Ord> Children<'r, T, S> {
     }
 }
 
-impl<'r, T, S: State> Default for Children<'r, T, S> {
+impl<'r, S: State> Default for Children<'r, S> {
     fn default() -> Self {
         Self {
             nodes: vec![],
@@ -136,15 +111,15 @@ impl<'r, T, S: State> Default for Children<'r, T, S> {
     }
 }
 
-impl<'r, T, S: State> Index<usize> for Children<'r, T, S> {
-    type Output = Node<'r, T, S>;
+impl<'r, S: State> Index<usize> for Children<'r, S> {
+    type Output = Node<'r, S>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.nodes[index]
     }
 }
 
-impl<'r, T, S: State> IndexMut<usize> for Children<'r, T, S> {
+impl<'r, S: State> IndexMut<usize> for Children<'r, S> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }
