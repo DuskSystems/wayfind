@@ -15,12 +15,6 @@ impl RouteId {
     }
 }
 
-impl Default for RouteId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Hash for RouteId {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         hasher.write_usize(self.0);

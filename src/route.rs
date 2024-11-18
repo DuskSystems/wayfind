@@ -47,9 +47,3 @@ impl<'r> RouteBuilder<'r> {
         Ok(Route { route })
     }
 }
-
-impl<'r> Default for RouteBuilder<'r> {
-    fn default() -> Self {
-        Self::new()
-    }
-}

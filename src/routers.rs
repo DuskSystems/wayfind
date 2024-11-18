@@ -54,9 +54,3 @@ impl<'r, T> Router<'r, T> {
         Ok(search)
     }
 }
-
-impl<'r, T> Default for Router<'r, T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}

@@ -266,9 +266,3 @@ impl AppState {
             .ok_or_else(|| AppStateError::RepositoryNotFound(repository.to_owned()))
     }
 }
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-}

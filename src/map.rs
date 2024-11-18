@@ -9,12 +9,6 @@ pub type RouteMap<V> = HashMap<RouteId, V, BuildHasherDefault<NoHashHasher<Route
 
 pub struct NoHashHasher<T>(u64, PhantomData<T>);
 
-impl<T> Default for NoHashHasher<T> {
-    fn default() -> Self {
-        Self(0, PhantomData)
-    }
-}
-
 impl<T> Hasher for NoHashHasher<T> {
     fn write(&mut self, _: &[u8]) {
         panic!("Invalid use of NoHashHasher")
@@ -26,5 +20,11 @@ impl<T> Hasher for NoHashHasher<T> {
 
     fn finish(&self) -> u64 {
         self.0
+    }
+}
+
+impl<T> Default for NoHashHasher<T> {
+    fn default() -> Self {
+        Self(0, PhantomData)
     }
 }

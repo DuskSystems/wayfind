@@ -39,9 +39,3 @@ impl<'p> RequestBuilder<'p> {
         Ok(Request { path })
     }
 }
-
-impl<'p> Default for RequestBuilder<'p> {
-    fn default() -> Self {
-        Self::new()
-    }
-}

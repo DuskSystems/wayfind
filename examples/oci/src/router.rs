@@ -110,9 +110,3 @@ impl<'r> AppRouter<'r> {
         handler(req, state).await
     }
 }
-
-impl<'r> Default for AppRouter<'r> {
-    fn default() -> Self {
-        Self::new()
-    }
-}

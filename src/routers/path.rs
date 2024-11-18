@@ -369,12 +369,6 @@ impl<'r> PathRouter<'r> {
     }
 }
 
-impl<'r> Default for PathRouter<'r> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<'r> Display for PathRouter<'r> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.root)
