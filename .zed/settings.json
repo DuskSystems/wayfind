@@ -20,6 +20,10 @@
       "language_servers": ["nixd", "nil"],
       "format_on_save": "on",
       "formatter": "language_server"
+    },
+
+    "TOML": {
+      "language_servers": ["taplo"]
     }
   },
 
@@ -55,6 +59,13 @@
     "nil": {
       "binary": {
         "path": "nil"
+      }
+    },
+
+    "taplo": {
+      "binary": {
+        "path": "taplo",
+        "arguments": ["lsp", "stdio"]
       }
     }
   }

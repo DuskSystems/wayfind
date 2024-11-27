@@ -105,6 +105,9 @@
               # OCI
               oci-distribution-spec-conformance
 
+              # TOML
+              taplo
+
               # Nix
               nixfmt-rfc-style
               nixd
