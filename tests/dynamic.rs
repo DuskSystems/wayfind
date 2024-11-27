@@ -19,9 +19,9 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{id}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("id", "123")],
         })
     );
@@ -58,9 +58,9 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{year}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("year", "2024")],
         })
     );
@@ -70,9 +70,9 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/{year}/{month}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
     );
@@ -82,9 +82,9 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &3,
             route: "/{year}/{month}/{day}",
             expanded: None,
-            data: &3,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
     );
@@ -117,9 +117,9 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{year}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("year", "2024")],
         })
     );
@@ -129,9 +129,9 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/{year}-{month}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
     );
@@ -141,9 +141,9 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &3,
             route: "/{year}-{month}-{day}",
             expanded: None,
-            data: &3,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
     );
@@ -174,9 +174,9 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{file}.{extension}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("file", "report"), ("extension", "pdf")],
         })
     );
@@ -186,9 +186,9 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{file}.{extension}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
         })
     );
@@ -225,9 +225,9 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/robots.txt",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -237,9 +237,9 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/robots.{extension}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("extension", "pdf")],
         })
     );
@@ -249,9 +249,9 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &3,
             route: "/{name}.txt",
             expanded: None,
-            data: &3,
             parameters: smallvec![("name", "config")],
         })
     );
@@ -261,9 +261,9 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &4,
             route: "/{name}.{extension}",
             expanded: None,
-            data: &4,
             parameters: smallvec![("name", "config"), ("extension", "pdf")],
         })
     );

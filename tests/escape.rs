@@ -18,9 +18,9 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: r"/users/\{id\}",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -47,9 +47,9 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: r"/\(not-optional\)",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -80,9 +80,9 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: r"(/a(/\{param\}))",
             expanded: Some("/a/\\{param\\}"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -96,9 +96,9 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: r"(/a(/\{param\}))",
             expanded: Some("/a"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -108,9 +108,9 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: r"(/a(/\{param\}))",
             expanded: Some("/"),
-            data: &1,
             parameters: smallvec![],
         })
     );

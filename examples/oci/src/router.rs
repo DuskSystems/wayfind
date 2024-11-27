@@ -28,7 +28,7 @@ impl<'r> AppRouter<'r> {
     #[must_use]
     pub fn new() -> Self {
         let mut router = Self {
-            routes: HashMap::new(),
+            routes: HashMap::default(),
         };
 
         for method in [

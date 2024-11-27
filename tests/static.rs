@@ -16,9 +16,9 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -49,9 +49,9 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/user",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -61,8 +61,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
-            route: "/users",
             data: &2,
+            route: "/users",
             expanded: None,
             parameters: smallvec![],
         })
@@ -99,9 +99,9 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/user_1",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -111,8 +111,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
-            route: "/user/1",
             data: &2,
+            route: "/user/1",
             expanded: None,
             parameters: smallvec![],
         })
@@ -165,9 +165,9 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/👨‍👩‍👧",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -177,9 +177,9 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/👨‍👩‍👦",
             expanded: None,
-            data: &2,
             parameters: smallvec![],
         })
     );
@@ -223,9 +223,9 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -235,9 +235,9 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/Users",
             expanded: None,
-            data: &2,
             parameters: smallvec![],
         })
     );
@@ -259,9 +259,9 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users /items",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -293,9 +293,9 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users/items",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -305,9 +305,9 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/users//items",
             expanded: None,
-            data: &2,
             parameters: smallvec![],
         })
     );
@@ -329,9 +329,9 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users///items",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );

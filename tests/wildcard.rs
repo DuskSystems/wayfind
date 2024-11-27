@@ -20,9 +20,9 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}/delete",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "docs")],
         })
     );
@@ -34,9 +34,9 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}/delete",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "nested/docs/folder")],
         })
     );
@@ -70,9 +70,9 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*prefix}/static/{*suffix}/file",
             expanded: None,
-            data: &1,
             parameters: smallvec![("prefix", "a"), ("suffix", "b")],
         })
     );
@@ -84,9 +84,9 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*prefix}/static/{*suffix}/file",
             expanded: None,
-            data: &1,
             parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
         })
     );
@@ -112,9 +112,9 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}.html",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "page")],
         })
     );
@@ -124,9 +124,9 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}.html",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "nested/page")],
         })
     );
@@ -157,9 +157,9 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*first}-{*second}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("first", "a-b"), ("second", "c")],
         })
     );
@@ -171,9 +171,9 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*first}-{*second}",
             expanded: None,
-            data: &1,
             parameters: smallvec![
                 ("first", "path/to/some-file/with-multiple"),
                 ("second", "hyphens")
@@ -202,9 +202,9 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}/end",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "start/middle")],
         })
     );
@@ -214,9 +214,9 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{*path}/end",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "start//middle//")],
         })
     );
@@ -257,9 +257,9 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/static/path",
             expanded: None,
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -271,9 +271,9 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/static/{*rest}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("rest", "some/nested/path")],
         })
     );
@@ -285,9 +285,9 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &3,
             route: "/{*path}/static",
             expanded: None,
-            data: &3,
             parameters: smallvec![("path", "some/nested/path")],
         })
     );
@@ -299,9 +299,9 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &4,
             route: "/prefix.{*suffix}",
             expanded: None,
-            data: &4,
             parameters: smallvec![("suffix", "some/nested/path")],
         })
     );
@@ -313,9 +313,9 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &5,
             route: "/{*prefix}.suffix",
             expanded: None,
-            data: &5,
             parameters: smallvec![("prefix", "some/nested/path")],
         })
     );

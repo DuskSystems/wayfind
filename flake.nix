@@ -108,6 +108,7 @@
               # Nix
               nixfmt-rfc-style
               nixd
+              nil
             ];
           };
 

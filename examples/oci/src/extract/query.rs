@@ -60,7 +60,7 @@ impl FromRequestParts for Query {
         parts: &mut Parts,
         _: &SharedAppState,
     ) -> Result<Self, Self::Rejection> {
-        let mut params = HashMap::new();
+        let mut params = HashMap::default();
 
         let Some(query_string) = parts.uri.query() else {
             return Ok(Self(params));

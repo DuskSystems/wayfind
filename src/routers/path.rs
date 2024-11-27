@@ -38,14 +38,14 @@ pub struct PathData<'r> {
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
 pub struct PathMatch<'r, 'p, T> {
+    /// A reference to the matching route data.
+    pub data: &'r T,
+
     /// The matching route.
     pub route: &'r str,
 
     /// The expanded route, if applicable.
     pub expanded: Option<&'r str>,
-
-    /// A reference to the matching route data.
-    pub data: &'r T,
 
     /// Key-value pairs of parameters, extracted from the route.
     pub parameters: PathParameters<'r, 'p>,
@@ -361,9 +361,9 @@ impl<'r> PathRouter<'r> {
         };
 
         Ok(Some(PathMatch {
+            data,
             route,
             expanded: expanded.as_deref(),
-            data,
             parameters,
         }))
     }

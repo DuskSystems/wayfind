@@ -22,9 +22,9 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users/{name}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("name", "josé")],
         })
     );
@@ -51,9 +51,9 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/user files/{name}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("name", "document name")],
         })
     );
@@ -81,9 +81,9 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/{name}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("name", "johndoe")],
         })
     );
@@ -93,9 +93,9 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/{*path}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("path", "john/doe")],
         })
     );

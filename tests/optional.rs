@@ -21,9 +21,9 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/{lang})/users",
             expanded: Some("/{lang}/users"),
-            data: &1,
             parameters: smallvec![("lang", "en")],
         })
     );
@@ -33,9 +33,9 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/{lang})/users",
             expanded: Some("/users"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -60,9 +60,9 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users(/)",
             expanded: Some("/users"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -72,9 +72,9 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users(/)",
             expanded: Some("/users/"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -101,9 +101,9 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a(/b(/c)))",
             expanded: Some("/a/b/c"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -113,9 +113,9 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a(/b(/c)))",
             expanded: Some("/a/b"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -125,9 +125,9 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a(/b(/c)))",
             expanded: Some("/a"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -137,9 +137,9 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a(/b(/c)))",
             expanded: Some("/"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -164,9 +164,9 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/test)",
             expanded: Some("/test"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -176,9 +176,9 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/test)",
             expanded: Some("/"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -210,9 +210,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/a/b/c"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -222,9 +222,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/a/b"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -234,9 +234,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/a/c"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -246,9 +246,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/a"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -258,9 +258,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/b/c"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -270,9 +270,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/b"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -282,9 +282,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/c"),
-            data: &1,
             parameters: smallvec![],
         })
     );
@@ -294,9 +294,9 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "(/a)(/b)(/c)",
             expanded: Some("/"),
-            data: &1,
             parameters: smallvec![],
         })
     );

@@ -32,9 +32,9 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users/{id:name}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("id", "john123")],
         })
     );
@@ -64,9 +64,9 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users/{*path:name}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("path", "john/doe123")],
         })
     );
@@ -152,9 +152,9 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &1,
             route: "/users/{id}",
             expanded: None,
-            data: &1,
             parameters: smallvec![("id", "abc")],
         })
     );
@@ -164,9 +164,9 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/users/{id:u32}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("id", "123")],
         })
     );
@@ -196,9 +196,9 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/users/{id:name}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("id", "123")],
         })
     );
@@ -208,9 +208,9 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
+            data: &2,
             route: "/users/{id:name}",
             expanded: None,
-            data: &2,
             parameters: smallvec![("id", "abc123")],
         })
     );

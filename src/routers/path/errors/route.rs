@@ -1,6 +1,5 @@
-use alloc::string::String;
-
 use crate::errors::EncodingError;
+use alloc::string::String;
 
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
