@@ -97,7 +97,7 @@ impl<'r, S: State> Node<'r, S> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(&child.state.constraint, segment, constraints) {
+                if !Self::check_constraint(child.state.constraint.as_ref(), segment, constraints) {
                     continue;
                 }
 
@@ -141,7 +141,7 @@ impl<'r, S: State> Node<'r, S> {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-            if !Self::check_constraint(&child.state.constraint, segment, constraints) {
+            if !Self::check_constraint(child.state.constraint.as_ref(), segment, constraints) {
                 continue;
             }
 
@@ -192,7 +192,7 @@ impl<'r, S: State> Node<'r, S> {
                 consumed += 1;
 
                 let segment = &path[..consumed];
-                if !Self::check_constraint(&child.state.constraint, segment, constraints) {
+                if !Self::check_constraint(child.state.constraint.as_ref(), segment, constraints) {
                     continue;
                 }
 
@@ -261,7 +261,7 @@ impl<'r, S: State> Node<'r, S> {
                     &path[..consumed]
                 };
 
-                if !Self::check_constraint(&child.state.constraint, segment, constraints) {
+                if !Self::check_constraint(child.state.constraint.as_ref(), segment, constraints) {
                     break;
                 }
 
@@ -298,7 +298,7 @@ impl<'r, S: State> Node<'r, S> {
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Result<Option<(&'r PathData<'r>, usize)>, PathSearchError> {
         for child in self.end_wildcard_children.iter() {
-            if !Self::check_constraint(&child.state.constraint, path, constraints) {
+            if !Self::check_constraint(child.state.constraint.as_ref(), path, constraints) {
                 continue;
             }
 
@@ -316,7 +316,7 @@ impl<'r, S: State> Node<'r, S> {
     }
 
     fn check_constraint(
-        constraint: &Option<String>,
+        constraint: Option<&String>,
         segment: &[u8],
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> bool {

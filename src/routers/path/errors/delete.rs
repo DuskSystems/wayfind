@@ -91,20 +91,20 @@ impl Display for PathDeleteError {
             Self::PathRouteError(error) => error.fmt(f),
             Self::NotFound { route } => write!(
                 f,
-                r#"not found
+                r"not found
 
    Route: {route}
 
-The specified route does not exist in the router"#
+The specified route does not exist in the router"
             ),
             Self::RouteMismatch { route, inserted } => write!(
                 f,
-                r#"delete mismatch
+                r"delete mismatch
 
       Route: {route}
    Inserted: {inserted}
 
-The route must be deleted using the same format as was inserted"#
+The route must be deleted using the same format as was inserted"
             ),
         }
     }

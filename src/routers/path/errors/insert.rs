@@ -85,18 +85,18 @@ impl Display for PathInsertError {
             Self::PathRouteError(error) => error.fmt(f),
             Self::DuplicateRoute { route, conflict } => write!(
                 f,
-                r#"duplicate route
+                r"duplicate route
 
       Route: {route}
-   Conflict: {conflict}"#
+   Conflict: {conflict}"
             ),
             Self::UnknownConstraint { constraint } => write!(
                 f,
-                r#"unknown constraint
+                r"unknown constraint
 
    Constraint: {constraint}
 
-The router doesn't recognize this constraint"#
+The router doesn't recognize this constraint"
             ),
         }
     }

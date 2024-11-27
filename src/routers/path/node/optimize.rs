@@ -1,6 +1,6 @@
 use super::{Node, PathData, State};
 
-impl<'r, S: State> Node<'r, S> {
+impl<S: State> Node<'_, S> {
     pub(crate) fn optimize(&mut self) {
         self.optimize_inner(0);
     }

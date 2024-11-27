@@ -86,7 +86,7 @@ impl<'r, S: State> Children<'r, S> {
     }
 }
 
-impl<'r, S: State + Ord> Children<'r, S> {
+impl<S: State + Ord> Children<'_, S> {
     fn sort(&mut self) {
         if self.sorted {
             return;
@@ -102,7 +102,7 @@ impl<'r, S: State + Ord> Children<'r, S> {
     }
 }
 
-impl<'r, S: State> Default for Children<'r, S> {
+impl<S: State> Default for Children<'_, S> {
     fn default() -> Self {
         Self {
             nodes: vec![],
@@ -119,7 +119,7 @@ impl<'r, S: State> Index<usize> for Children<'r, S> {
     }
 }
 
-impl<'r, S: State> IndexMut<usize> for Children<'r, S> {
+impl<S: State> IndexMut<usize> for Children<'_, S> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.nodes[index]
     }

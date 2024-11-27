@@ -35,9 +35,9 @@ impl Display for RequestError {
             Self::EncodingError(error) => error.fmt(f),
             Self::MissingPath => write!(
                 f,
-                r#"missing path
+                r"missing path
 
-A path must be provided when building a Request"#
+A path must be provided when building a Request"
             ),
         }
     }

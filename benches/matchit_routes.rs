@@ -1,6 +1,6 @@
 #[must_use]
 pub fn paths() -> impl IntoIterator<Item = &'static str> {
-    [
+    vec![
         "/user/repos",
         "/repos/rust-lang/rust/stargazers",
         "/orgs/rust-lang/public_members/nikomatsakis",

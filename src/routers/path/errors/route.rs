@@ -404,11 +404,11 @@ impl core::fmt::Display for PathRouteError {
             Self::MissingLeadingSlash { route } => {
                 write!(
                     f,
-                    r#"missing leading slash
+                    r"missing leading slash
 
     Route: {route}
 
-tip: Routes must begin with '/'"#
+tip: Routes must begin with '/'"
                 )
             }
 
@@ -416,10 +416,10 @@ tip: Routes must begin with '/'"#
                 let arrow = " ".repeat(*position) + "^^";
                 write!(
                     f,
-                    r#"empty braces
+                    r"empty braces
 
     Route: {route}
-           {arrow}"#
+           {arrow}"
                 )
             }
 
@@ -427,12 +427,12 @@ tip: Routes must begin with '/'"#
                 let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
-                    r#"unbalanced brace
+                    r"unbalanced brace
 
     Route: {route}
            {arrow}
 
-tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the route"#
+tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the route"
                 )
             }
 
@@ -440,10 +440,10 @@ tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the ro
                 let arrow = " ".repeat(*position) + "^^";
                 write!(
                     f,
-                    r#"empty parentheses
+                    r"empty parentheses
 
     Route: {route}
-           {arrow}"#
+           {arrow}"
                 )
             }
 
@@ -451,12 +451,12 @@ tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the ro
                 let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
-                    r#"unbalanced parenthesis
+                    r"unbalanced parenthesis
 
     Route: {route}
            {arrow}
 
-tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route"#
+tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route"
                 )
             }
 
@@ -468,10 +468,10 @@ tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route"
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"empty parameter name
+                    r"empty parameter name
 
     Route: {route}
-           {arrow}"#
+           {arrow}"
                 )
             }
 
@@ -484,12 +484,12 @@ tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route"
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"invalid parameter name
+                    r"invalid parameter name
 
     Route: {route}
            {arrow}
 
-tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
+tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
                 )
             }
 
@@ -512,12 +512,12 @@ tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(',
 
                 write!(
                     f,
-                    r#"duplicate parameter name: '{name}'
+                    r"duplicate parameter name: '{name}'
 
     Route: {route}
            {arrow}
 
-tip: Parameter names must be unique within a route"#
+tip: Parameter names must be unique within a route"
                 )
             }
 
@@ -529,10 +529,10 @@ tip: Parameter names must be unique within a route"#
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"empty wildcard name
+                    r"empty wildcard name
 
     Route: {route}
-           {arrow}"#
+           {arrow}"
                 )
             }
 
@@ -544,10 +544,10 @@ tip: Parameter names must be unique within a route"#
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"empty constraint name
+                    r"empty constraint name
 
     Route: {route}
-           {arrow}"#
+           {arrow}"
                 )
             }
 
@@ -560,12 +560,12 @@ tip: Parameter names must be unique within a route"#
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"invalid constraint name
+                    r"invalid constraint name
 
     Route: {route}
            {arrow}
 
-tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"#
+tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
                 )
             }
 
@@ -577,12 +577,12 @@ tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '('
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r#"touching parameters
+                    r"touching parameters
 
     Route: {route}
            {arrow}
 
-tip: Touching parameters are not supported"#
+tip: Touching parameters are not supported"
                 )
             }
         }

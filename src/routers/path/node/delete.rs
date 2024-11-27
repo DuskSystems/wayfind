@@ -27,13 +27,15 @@ impl<'r, S: State> Node<'r, S> {
                 Part::Static { prefix } => self.delete_static(route, is_expanded, &prefix),
                 Part::Dynamic {
                     name, constraint, ..
-                } => self.delete_dynamic(route, is_expanded, &name, &constraint),
+                } => self.delete_dynamic(route, is_expanded, &name, constraint.as_ref()),
                 Part::Wildcard {
                     name, constraint, ..
-                } if route.parts.is_empty() => self.delete_end_wildcard(route, &name, &constraint),
+                } if route.parts.is_empty() => {
+                    self.delete_end_wildcard(route, &name, constraint.as_ref())
+                }
                 Part::Wildcard {
                     name, constraint, ..
-                } => self.delete_wildcard(route, is_expanded, &name, &constraint),
+                } => self.delete_wildcard(route, is_expanded, &name, constraint.as_ref()),
             }
         } else {
             let Some(data) = &self.data else {
@@ -109,12 +111,14 @@ impl<'r, S: State> Node<'r, S> {
         route: &mut ParsedRoute,
         is_expanded: bool,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
@@ -135,12 +139,14 @@ impl<'r, S: State> Node<'r, S> {
         route: &mut ParsedRoute,
         is_expanded: bool,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;
@@ -160,12 +166,14 @@ impl<'r, S: State> Node<'r, S> {
         &mut self,
         route: &ParsedRoute,
         name: &str,
-        constraint: &Option<String>,
+        constraint: Option<&String>,
     ) -> Result<PathData<'r>, PathDeleteError> {
         let index = self
             .end_wildcard_children
             .iter()
-            .position(|child| child.state.name == name && child.state.constraint == *constraint)
+            .position(|child| {
+                child.state.name == name && child.state.constraint.as_ref() == constraint
+            })
             .ok_or_else(|| PathDeleteError::NotFound {
                 route: String::from_utf8_lossy(&route.input).to_string(),
             })?;

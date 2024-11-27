@@ -67,19 +67,19 @@ impl Display for RouteError {
 
             Self::MissingRoute => write!(
                 f,
-                r#"missing route
+                r"missing route
 
-A route must be provided when building a Route"#
+A route must be provided when building a Route"
             ),
 
             Self::EncodedRoute { input, decoded } => write!(
                 f,
-                r#"encoded route
+                r"encoded route
 
      Input: {input}
    Decoded: {decoded}
 
-The router expects routes to be in their decoded form"#
+The router expects routes to be in their decoded form"
             ),
         }
     }

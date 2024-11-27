@@ -1,6 +1,6 @@
 #[must_use]
 pub fn routes() -> impl IntoIterator<Item = &'static str> {
-    [
+    vec![
         // Route 1
         "/favicon.png(/)",
         // Route 2
@@ -4139,9 +4139,7 @@ pub fn routes() -> impl IntoIterator<Item = &'static str> {
         // Route 2065
         // NOTE: See Gitlab::Experiment::Engine
         // "/-/experiment(/)",
-
         // Routes for LetterOpenerWeb::Engine
-
         // Route 1
         "/rails/letter_opener(/)",
         // Route 2
@@ -4152,9 +4150,7 @@ pub fn routes() -> impl IntoIterator<Item = &'static str> {
         "/rails/letter_opener/{id}/delete(/)",
         // Route 5
         "/rails/letter_opener/{id}/attachments/{file}(/)",
-
         // Routes for Lookbook::Engine
-
         // Route 1
         "/rails/lookbook/cable(/)",
         // Route 2
@@ -4175,9 +4171,7 @@ pub fn routes() -> impl IntoIterator<Item = &'static str> {
         "/rails/lookbook/embed/{*path}(/)",
         // Route 10
         "/rails/lookbook/{*path}(/)",
-
         // Routes for Toogle::Engine
-
         // Route 1
         "/rails/features/definitions(/)",
         // Route 2
@@ -4190,17 +4184,12 @@ pub fn routes() -> impl IntoIterator<Item = &'static str> {
         // "/rails/features/{id}(/)",
         // Route 6
         // "/rails/features/{id}(/)",
-
         // Routes for Peek::Railtie
-
         // Route 1
         "/-/peek/results(/)",
-
         // Routes for GraphiQL::Rails::Engine
-
         // Route 1
         "/-/graphql-explorer(/)",
-
         // Routes for Gitlab::Experiment::Engine
 
         // Route 1
