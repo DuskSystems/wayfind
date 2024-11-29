@@ -34,7 +34,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: docs
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build docs
         run: |

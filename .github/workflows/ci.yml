@@ -34,7 +34,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: checks
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run checks
         run: |
@@ -61,7 +60,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: benchmarks
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build benchmarks
         run: cargo codspeed build
@@ -88,7 +86,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: coverage
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Generate coverage
         run: cargo llvm-cov --doctests --codecov --output-path codecov.json
@@ -115,7 +112,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: msrv
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
         run: cargo build
@@ -135,7 +131,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: no-std
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
         run: cargo build
@@ -155,7 +150,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: wasm
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
         run: cargo build
@@ -175,7 +169,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: oci
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run OCI tests
         run: |
