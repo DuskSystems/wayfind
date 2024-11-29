@@ -15,8 +15,11 @@ craneLib.buildPackage rec {
 
   cargoHash = "sha256-boyMQTSQqP43I38MhWv5KHa0ZASeSYdJoK+e7O20/Bw=";
 
-  LLVM_COV = "${llvmPackages_19.llvm}/bin/llvm-cov";
-  LLVM_PROFDATA = "${llvmPackages_19.llvm}/bin/llvm-profdata";
+  env = {
+    CARGO_PROFILE_RELEASE_STRIP = "none";
+    LLVM_COV = "${llvmPackages_19.llvm}/bin/llvm-cov";
+    LLVM_PROFDATA = "${llvmPackages_19.llvm}/bin/llvm-profdata";
+  };
 
   doCheck = false;
 

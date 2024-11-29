@@ -14,7 +14,9 @@ craneLib.buildPackage rec {
     hash = "sha256-BeY3O28+tgFyCONItA8m/Ghf+OaqbbtYgbUeQwP/4NY=";
   };
 
-  cargoHash = "sha256-7bz37Ya1DFLgIBWUOb73ni5T5pPxJX4IoLzSqIB0pLY=";
+  env = {
+    CARGO_PROFILE_RELEASE_STRIP = "none";
+  };
 
   doCheck = false;
 

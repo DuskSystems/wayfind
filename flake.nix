@@ -6,10 +6,6 @@
       url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     };
 
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
-
     crane = {
       url = "github:ipetkov/crane";
     };
@@ -25,271 +21,257 @@
 
   # nix flake show
   outputs =
-    inputs@{
-      self,
+    {
       nixpkgs,
-      flake-utils,
       crane,
       rust-overlay,
+      ...
     }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs {
+
+    let
+      perSystem = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
+
+      systemPkgs = perSystem (
+        system:
+
+        import nixpkgs {
           inherit system;
 
           overlays = [
             (import rust-overlay)
 
-            (self: super: {
-              cargo-codspeed = pkgs.callPackage ./nix/pkgs/cargo-codspeed { inherit craneLib; };
-              cargo-insta = pkgs.callPackage ./nix/pkgs/cargo-insta { inherit craneLib; };
-              cargo-llvm-cov = pkgs.callPackage ./nix/pkgs/cargo-llvm-cov { inherit craneLib; };
-              oci-distribution-spec-conformance = pkgs.callPackage ./nix/pkgs/oci-distribution-spec-conformance { };
-            })
-          ];
-        };
-
-        rustToolchain = pkgs.rust-bin.stable."1.82.0".minimal.override {
-          targets = [
-            "thumbv7m-none-eabi"
-            "wasm32-unknown-unknown"
-          ];
-          extensions = [
-            "clippy"
-            "rust-analyzer"
-            "rust-docs"
-            "rust-src"
-            "rustfmt"
-            "llvm-tools"
-          ];
-        };
-
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-      in
-      {
-        devShells = {
-          # nix develop
-          default = pkgs.mkShell {
-            name = "wayfind-shell";
-
-            NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
-
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myrepo";
-            OCI_TEST_PULL = 1;
-
-            buildInputs = with pkgs; [
-              # Rust
-              rustToolchain
-              sccache
-              cargo-insta
-              cargo-outdated
-              cargo-watch
-
-              # Benchmarking
-              cargo-codspeed
-              gnuplot
-              samply
-
-              # Coverage
-              cargo-llvm-cov
-
-              # Release
-              cargo-semver-checks
-
-              # OCI
-              oci-distribution-spec-conformance
-
-              # TOML
-              taplo
-
-              # Nix
-              nixfmt-rfc-style
-              nixd
-              nil
-            ];
-          };
-
-          # nix develop .#benchmarks
-          benchmarks = pkgs.mkShell {
-            name = "wayfind-benchmarks-shell";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.82.0".minimal)
-              sccache
-              cargo-codspeed
-            ];
-          };
-
-          # nix develop .#checks
-          checks = pkgs.mkShell {
-            name = "wayfind-checks-shell";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.82.0".minimal.override {
+            (final: prev: {
+              rustToolchain = prev.rust-bin.stable."1.83.0".minimal.override {
+                targets = [
+                  "thumbv7m-none-eabi"
+                  "wasm32-unknown-unknown"
+                ];
                 extensions = [
                   "clippy"
+                  "rust-analyzer"
+                  "rust-docs"
+                  "rust-src"
                   "rustfmt"
+                  "llvm-tools"
                 ];
-              })
-              sccache
-            ];
-          };
+              };
+              craneLib = (crane.mkLib prev).overrideToolchain final.rustToolchain;
 
-          # nix develop .#coverage
-          coverage = pkgs.mkShell {
-            name = "wayfind-coverage-shell";
+              cargo-codspeed = prev.callPackage ./nix/pkgs/cargo-codspeed { craneLib = final.craneLib; };
+              cargo-insta = prev.callPackage ./nix/pkgs/cargo-insta { craneLib = final.craneLib; };
+              cargo-llvm-cov = prev.callPackage ./nix/pkgs/cargo-llvm-cov { craneLib = final.craneLib; };
+              oci-distribution-spec-conformance = prev.callPackage ./nix/pkgs/oci-distribution-spec-conformance { };
+            })
+          ];
+        }
+      );
 
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
+      perSystemPkgs = f: perSystem (system: f (systemPkgs.${system}));
+    in
+    {
+      devShells = perSystemPkgs (pkgs: {
+        # nix develop
+        default = pkgs.mkShell {
+          name = "wayfind-shell";
 
-            buildInputs = with pkgs; [
-              (rust-bin.nightly."2024-10-18".minimal.override { extensions = [ "llvm-tools" ]; })
-              sccache
-              cargo-llvm-cov
-            ];
-          };
+          NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
-          # nix develop .#docs
-          docs = pkgs.mkShell {
-            name = "wayfind-docs-shell";
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
 
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
+          OCI_ROOT_URL = "http://127.0.0.1:8000";
+          OCI_NAMESPACE = "myorg/myrepo";
+          OCI_TEST_PULL = 1;
 
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.82.0".minimal)
-              sccache
-            ];
-          };
+          buildInputs = with pkgs; [
+            # Rust
+            rustToolchain
+            sccache
+            cargo-insta
+            cargo-outdated
+            cargo-watch
 
-          # nix develop .#fuzz
-          fuzz = pkgs.mkShell {
-            name = "wayfind-fuzz-shell";
+            # Benchmarking
+            cargo-codspeed
+            gnuplot
+            samply
 
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
+            # Coverage
+            cargo-llvm-cov
 
-            buildInputs = with pkgs; [
-              (rust-bin.nightly."2024-07-25".minimal)
-              sccache
-              cargo-fuzz
-            ];
-          };
+            # Release
+            cargo-semver-checks
 
-          # nix develop .#msrv
-          msrv = pkgs.mkShell {
-            name = "wayfind-msrv-shell";
+            # OCI
+            oci-distribution-spec-conformance
 
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
+            # TOML
+            taplo
 
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal)
-              sccache
-            ];
-          };
-
-          # nix develop .#no-std
-          no-std = pkgs.mkShell {
-            name = "wayfind-no-std-shell";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            CARGO_INCREMENTAL = "0";
-            CARGO_BUILD_TARGET = "thumbv7m-none-eabi";
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal.override {
-                targets = [ "thumbv7m-none-eabi" ];
-              })
-              sccache
-            ];
-          };
-
-          # nix develop .#wasm
-          wasm = pkgs.mkShell {
-            name = "wayfind-wasm-shell";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            CARGO_INCREMENTAL = "0";
-            CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.81.0".minimal.override {
-                targets = [ "wasm32-unknown-unknown" ];
-              })
-              sccache
-            ];
-          };
-
-          # nix develop .#oci
-          oci = pkgs.mkShell {
-            name = "wayfind-oci-shell";
-
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            CARGO_INCREMENTAL = "0";
-
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myrepo";
-            OCI_TEST_PULL = 1;
-
-            buildInputs = with pkgs; [
-              (rust-bin.stable."1.82.0".minimal)
-              sccache
-              oci-distribution-spec-conformance
-            ];
-          };
+            # Nix
+            nixfmt-rfc-style
+            nixd
+            nil
+          ];
         };
 
-        packages = {
-          # nix build .#cargo-codspeed
-          cargo-codspeed = pkgs.cargo-codspeed;
-          # nix build .#cargo-insta
-          cargo-insta = pkgs.cargo-insta;
-          # nix build .#cargo-llvm-cov
-          cargo-llvm-cov = pkgs.cargo-llvm-cov;
-          # nix build .#oci-distribution-spec-conformance
-          oci-distribution-spec-conformance = pkgs.oci-distribution-spec-conformance;
+        # nix develop .#benchmarks
+        benchmarks = pkgs.mkShell {
+          name = "wayfind-benchmarks-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal)
+            sccache
+            cargo-codspeed
+          ];
         };
 
-        nixosConfigurations = {
-          benchmarks = nixpkgs.lib.nixosSystem {
-            system = "${pkgs.stdenv.hostPlatform.uname.processor}-linux";
+        # nix develop .#checks
+        checks = pkgs.mkShell {
+          name = "wayfind-checks-shell";
 
-            specialArgs = {
-              inherit inputs;
-              hostPkgs = pkgs;
-            };
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
 
-            modules = [ ./nix/vm.nix ];
-          };
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal.override {
+              extensions = [
+                "clippy"
+                "rustfmt"
+              ];
+            })
+            sccache
+          ];
         };
 
-        apps = {
-          # nix run .#benchmarks
-          benchmarks = {
-            type = "app";
-            program = "${self.nixosConfigurations.${system}.benchmarks.config.system.build.vm}/bin/run-nixos-vm";
-          };
+        # nix develop .#coverage
+        coverage = pkgs.mkShell {
+          name = "wayfind-coverage-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            (rust-bin.nightly."2024-11-28".minimal.override { extensions = [ "llvm-tools" ]; })
+            sccache
+            cargo-llvm-cov
+          ];
         };
-      }
-    );
+
+        # nix develop .#docs
+        docs = pkgs.mkShell {
+          name = "wayfind-docs-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal)
+            sccache
+          ];
+        };
+
+        # nix develop .#fuzz
+        fuzz = pkgs.mkShell {
+          name = "wayfind-fuzz-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            (rust-bin.nightly."2024-11-28".minimal)
+            sccache
+            cargo-fuzz
+          ];
+        };
+
+        # nix develop .#msrv
+        msrv = pkgs.mkShell {
+          name = "wayfind-msrv-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal)
+            sccache
+          ];
+        };
+
+        # nix develop .#no-std
+        no-std = pkgs.mkShell {
+          name = "wayfind-no-std-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+          CARGO_BUILD_TARGET = "thumbv7m-none-eabi";
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal.override {
+              targets = [ "thumbv7m-none-eabi" ];
+            })
+            sccache
+          ];
+        };
+
+        # nix develop .#wasm
+        wasm = pkgs.mkShell {
+          name = "wayfind-wasm-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          CARGO_INCREMENTAL = "0";
+          CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal.override {
+              targets = [ "wasm32-unknown-unknown" ];
+            })
+            sccache
+          ];
+        };
+
+        # nix develop .#oci
+        oci = pkgs.mkShell {
+          name = "wayfind-oci-shell";
+
+          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+          RUSTFLAGS = "-C target-cpu=native";
+          CARGO_INCREMENTAL = "0";
+
+          OCI_ROOT_URL = "http://127.0.0.1:8000";
+          OCI_NAMESPACE = "myorg/myrepo";
+          OCI_TEST_PULL = 1;
+
+          buildInputs = with pkgs; [
+            (rust-bin.stable."1.83.0".minimal)
+            sccache
+            oci-distribution-spec-conformance
+          ];
+        };
+      });
+
+      packages = perSystemPkgs (pkgs: {
+        # nix build .#cargo-codspeed
+        cargo-codspeed = pkgs.cargo-codspeed;
+
+        # nix build .#cargo-insta
+        cargo-insta = pkgs.cargo-insta;
+
+        # nix build .#cargo-llvm-cov
+        cargo-llvm-cov = pkgs.cargo-llvm-cov;
+
+        # nix build .#oci-distribution-spec-conformance
+        oci-distribution-spec-conformance = pkgs.oci-distribution-spec-conformance;
+      });
+    };
 }

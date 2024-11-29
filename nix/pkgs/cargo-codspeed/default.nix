@@ -18,7 +18,9 @@ craneLib.buildPackage rec {
     hash = "sha256-BtuY3reG5BMMlas1PYtaxPygbK2dptVRnYG/JRRev3c=";
   };
 
-  cargoHash = "sha256-vioMkv0496s0zVdvi9/aQxtIsk6awXWxLyjTUBJSYhg=";
+  env = {
+    CARGO_PROFILE_RELEASE_STRIP = "none";
+  };
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs =
