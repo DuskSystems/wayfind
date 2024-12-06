@@ -680,12 +680,12 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         empty braces
 
             Route: /users/{}
                           ^^
-        "#);
+        ");
     }
 
     #[test]
@@ -698,13 +698,13 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         missing leading slash
 
             Route: abc
 
         tip: Routes must begin with '/'
-        "#);
+        ");
     }
 
     #[test]
@@ -718,14 +718,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         unbalanced brace
 
             Route: /users/{id/profile
                           ^
 
         tip: Use '\{' and '\}' to represent literal '{' and '}' characters in the route
-        "#);
+        ");
     }
 
     #[test]
@@ -739,14 +739,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         unbalanced brace
 
             Route: /users/id}/profile
                             ^
 
         tip: Use '\{' and '\}' to represent literal '{' and '}' characters in the route
-        "#);
+        ");
     }
 
     #[test]
@@ -760,12 +760,12 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         empty parentheses
 
             Route: /products()/category
                             ^^
-        "#);
+        ");
     }
 
     #[test]
@@ -779,14 +779,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         unbalanced parenthesis
 
             Route: /products(/category
                             ^
 
         tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route
-        "#);
+        ");
     }
 
     #[test]
@@ -800,14 +800,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         unbalanced parenthesis
 
             Route: /products)/category
                             ^
 
         tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the route
-        "#);
+        ");
     }
 
     #[test]
@@ -822,12 +822,12 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         empty parameter name
 
             Route: /users/{:constraint}/profile
                           ^^^^^^^^^^^^^
-        "#);
+        ");
     }
 
     #[test]
@@ -843,14 +843,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         invalid parameter name
 
             Route: /users/{user*name}/profile
                           ^^^^^^^^^^^
 
         tip: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
-        "#);
+        ");
     }
 
     #[test]
@@ -868,14 +868,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         duplicate parameter name: 'id'
 
             Route: /users/{id}/posts/{id:uuid}
                           ^^^^       ^^^^^^^^^
 
         tip: Parameter names must be unique within a route
-        "#);
+        ");
     }
 
     #[test]
@@ -890,12 +890,12 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         empty wildcard name
 
             Route: /files/{*}
                           ^^^
-        "#);
+        ");
     }
 
     #[test]
@@ -910,12 +910,12 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         empty constraint name
 
             Route: /users/{id:}/profile
                           ^^^^^
-        "#);
+        ");
     }
 
     #[test]
@@ -931,14 +931,14 @@ mod tests {
             }
         );
 
-        insta::assert_snapshot!(error, @r#"
+        insta::assert_snapshot!(error, @r"
         invalid constraint name
 
             Route: /users/{id:*}/profile
                           ^^^^^^
 
         tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
-        "#);
+        ");
     }
 
     #[test]

@@ -9,9 +9,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route(r"/users/\{id\}").build()?; // "/users/{id}"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
-    /users/{id} [*]
-    ");
+    insta::assert_snapshot!(router.path, @"/users/{id} [*]");
 
     let request = RequestBuilder::new().path("/users/{id}").build()?;
     let search = router.search(&request)?;
@@ -38,9 +36,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route(r"/\(not-optional\)").build()?; // "/(not-optional)"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
-    /(not-optional) [*]
-    ");
+    insta::assert_snapshot!(router.path, @"/(not-optional) [*]");
 
     let request = RequestBuilder::new().path("/(not-optional)").build()?;
     let search = router.search(&request)?;
