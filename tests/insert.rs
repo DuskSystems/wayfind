@@ -15,24 +15,20 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::DuplicateRoute {
-                route: "/test".to_owned(),
-                conflict: "/test".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            route: "/test".to_owned(),
+            conflict: "/test".to_owned()
+        }))
     );
 
     let route = RouteBuilder::new().route("(/test)").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::DuplicateRoute {
-                route: "(/test)".to_owned(),
-                conflict: "/test".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            route: "(/test)".to_owned(),
+            conflict: "/test".to_owned()
+        }))
     );
 
     insta::assert_snapshot!(router.path, @"/test [*]");
@@ -51,24 +47,20 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::DuplicateRoute {
-                route: "/test".to_owned(),
-                conflict: "(/test)".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            route: "/test".to_owned(),
+            conflict: "(/test)".to_owned()
+        }))
     );
 
     let route = RouteBuilder::new().route("(/test)").build()?;
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::DuplicateRoute {
-                route: "(/test)".to_owned(),
-                conflict: "(/test)".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            route: "(/test)".to_owned(),
+            conflict: "(/test)".to_owned()
+        }))
     );
 
     insta::assert_snapshot!(router.path, @"");
@@ -88,12 +80,10 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let insert = router.insert(&route, 2);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::DuplicateRoute {
-                route: "/{*catch_all}".to_owned(),
-                conflict: "(/{*catch_all})".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::DuplicateRoute {
+            route: "/{*catch_all}".to_owned(),
+            conflict: "(/{*catch_all})".to_owned()
+        }))
     );
 
     insta::assert_snapshot!(router.path, @r"
@@ -115,16 +105,16 @@ fn test_insert_duplicate_parameter() {
     let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
-        Err(InsertError::PathInsertError(
-            PathInsertError::PathRouteError(PathRouteError::DuplicateParameter {
+        Err(InsertError::Path(PathInsertError::PathRouteError(
+            PathRouteError::DuplicateParameter {
                 route: "/{*id}/users/{id}".to_owned(),
                 name: "id".to_owned(),
                 first: 1,
                 first_length: 5,
                 second: 13,
                 second_length: 4
-            })
-        ))
+            }
+        )))
     );
 
     insta::assert_snapshot!(router.path, @"");

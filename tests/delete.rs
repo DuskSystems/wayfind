@@ -17,7 +17,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::PathDeleteError(PathDeleteError::NotFound {
+        Err(DeleteError::Path(PathDeleteError::NotFound {
             route: "/tests".to_owned()
         }))
     );
@@ -28,17 +28,15 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::PathDeleteError(PathDeleteError::Multiple(
-            vec![
-                PathDeleteError::RouteMismatch {
-                    route: "(/test)".to_owned(),
-                    inserted: "/test".to_owned()
-                },
-                PathDeleteError::NotFound {
-                    route: "(/test)".to_owned()
-                }
-            ]
-        )))
+        Err(DeleteError::Path(PathDeleteError::Multiple(vec![
+            PathDeleteError::RouteMismatch {
+                route: "(/test)".to_owned(),
+                inserted: "/test".to_owned()
+            },
+            PathDeleteError::NotFound {
+                route: "(/test)".to_owned()
+            }
+        ])))
     );
 
     insta::assert_snapshot!(router.path, @"/test [*]");
@@ -66,12 +64,10 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::PathDeleteError(
-            PathDeleteError::RouteMismatch {
-                route: "/test".to_owned(),
-                inserted: "(/test)".to_owned()
-            }
-        ))
+        Err(DeleteError::Path(PathDeleteError::RouteMismatch {
+            route: "/test".to_owned(),
+            inserted: "(/test)".to_owned()
+        }))
     );
 
     insta::assert_snapshot!(router.path, @r"
@@ -83,12 +79,10 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::PathDeleteError(
-            PathDeleteError::RouteMismatch {
-                route: "/".to_owned(),
-                inserted: "(/test)".to_owned()
-            }
-        ))
+        Err(DeleteError::Path(PathDeleteError::RouteMismatch {
+            route: "/".to_owned(),
+            inserted: "(/test)".to_owned()
+        }))
     );
 
     insta::assert_snapshot!(router.path, @r"
@@ -120,7 +114,7 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     let delete = router.delete(&route);
     assert_eq!(
         delete,
-        Err(DeleteError::PathDeleteError(PathDeleteError::NotFound {
+        Err(DeleteError::Path(PathDeleteError::NotFound {
             route: "/{id}".to_owned()
         }))
     );

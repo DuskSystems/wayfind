@@ -2,15 +2,11 @@
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
-use mimalloc::MiMalloc;
 use path_tree_routes::paths;
 use percent_encoding::percent_decode;
 use std::hint::black_box;
 
 pub mod path_tree_routes;
-
-#[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
 
 criterion_main!(benches);
 criterion_group! {

@@ -108,13 +108,11 @@ fn test_encoding_invalid_path() {
     let request = RequestBuilder::new().path("/users/%GG").build();
     assert_eq!(
         request,
-        Err(RequestError::EncodingError(
-            EncodingError::InvalidEncoding {
-                input: "/users/%GG".to_owned(),
-                position: 7,
-                character: *b"%GG"
-            }
-        ))
+        Err(RequestError::Encoding(EncodingError::InvalidEncoding {
+            input: "/users/%GG".to_owned(),
+            position: 7,
+            character: *b"%GG"
+        }))
     );
 }
 
@@ -123,7 +121,7 @@ fn test_encoding_invalid_parameter() {
     let route = RouteBuilder::new().route("/users/{%GG}").build();
     assert_eq!(
         route,
-        Err(RouteError::EncodingError(EncodingError::InvalidEncoding {
+        Err(RouteError::Encoding(EncodingError::InvalidEncoding {
             input: "/users/{%GG}".to_owned(),
             position: 8,
             character: *b"%GG"
@@ -136,7 +134,7 @@ fn test_encoding_invalid_constraint() {
     let route = RouteBuilder::new().route("/users/{id:%GG}").build();
     assert_eq!(
         route,
-        Err(RouteError::EncodingError(EncodingError::InvalidEncoding {
+        Err(RouteError::Encoding(EncodingError::InvalidEncoding {
             input: "/users/{id:%GG}".to_owned(),
             position: 11,
             character: *b"%GG"
@@ -155,11 +153,11 @@ fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
     let search = router.search(&request);
     assert_eq!(
         search,
-        Err(SearchError::PathSearchError(
-            PathSearchError::EncodingError(EncodingError::Utf8Error {
+        Err(SearchError::Path(PathSearchError::EncodingError(
+            EncodingError::Utf8Error {
                 input: "my�file".to_owned()
-            })
-        ))
+            }
+        )))
     );
 
     Ok(())

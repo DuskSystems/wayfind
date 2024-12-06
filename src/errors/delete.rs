@@ -5,7 +5,7 @@ use core::{error::Error, fmt::Display};
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
     /// A [`PathDeleteError`] occurred.
-    PathDeleteError(PathDeleteError),
+    Path(PathDeleteError),
 }
 
 impl Error for DeleteError {}
@@ -13,13 +13,13 @@ impl Error for DeleteError {}
 impl Display for DeleteError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::PathDeleteError(error) => error.fmt(f),
+            Self::Path(error) => error.fmt(f),
         }
     }
 }
 
 impl From<PathDeleteError> for DeleteError {
     fn from(error: PathDeleteError) -> Self {
-        Self::PathDeleteError(error)
+        Self::Path(error)
     }
 }

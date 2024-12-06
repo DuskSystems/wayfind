@@ -6,7 +6,7 @@ use core::{error::Error, fmt::Display};
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteError {
     /// A [`EncodingError`] that occurred during the creation.
-    EncodingError(EncodingError),
+    Encoding(EncodingError),
 
     /// The route was not provided when building the [`Route`](`crate::Route`).
     ///
@@ -63,7 +63,7 @@ impl Error for RouteError {}
 impl Display for RouteError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::EncodingError(error) => error.fmt(f),
+            Self::Encoding(error) => error.fmt(f),
 
             Self::MissingRoute => write!(
                 f,
@@ -87,6 +87,6 @@ The router expects routes to be in their decoded form"
 
 impl From<EncodingError> for RouteError {
     fn from(error: EncodingError) -> Self {
-        Self::EncodingError(error)
+        Self::Encoding(error)
     }
 }

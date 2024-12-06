@@ -90,11 +90,9 @@ fn test_constraint_unknown() {
 
     assert_eq!(
         result,
-        Err(InsertError::PathInsertError(
-            PathInsertError::UnknownConstraint {
-                constraint: "unknown".to_owned()
-            }
-        ))
+        Err(InsertError::Path(PathInsertError::UnknownConstraint {
+            constraint: "unknown".to_owned()
+        }))
     );
 }
 

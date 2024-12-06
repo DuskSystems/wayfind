@@ -7,7 +7,7 @@ static ID: AtomicUsize = AtomicUsize::new(0);
 
 /// A unique ID for a route within the router.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct RouteId(pub(crate) usize);
+pub struct RouteId(usize);
 
 impl RouteId {
     pub fn new() -> Self {

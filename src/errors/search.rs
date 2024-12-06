@@ -5,7 +5,7 @@ use core::{error::Error, fmt::Display};
 #[derive(Debug, PartialEq, Eq)]
 pub enum SearchError {
     /// A [`PathSearchError`] occurred.
-    PathSearchError(PathSearchError),
+    Path(PathSearchError),
 }
 
 impl Error for SearchError {}
@@ -13,13 +13,13 @@ impl Error for SearchError {}
 impl Display for SearchError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::PathSearchError(error) => error.fmt(f),
+            Self::Path(error) => error.fmt(f),
         }
     }
 }
 
 impl From<PathSearchError> for SearchError {
     fn from(error: PathSearchError) -> Self {
-        Self::PathSearchError(error)
+        Self::Path(error)
     }
 }
