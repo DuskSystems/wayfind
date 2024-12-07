@@ -4,11 +4,23 @@ use crate::{
     map::RouteMap,
     Request, Route,
 };
-use path::{PathMatch, PathRouter};
+use alloc::string::ToString;
+use path::{PathParameters, PathRouter};
 
 pub mod path;
 
-pub type Match<'r, 'p, T> = PathMatch<'r, 'p, T>;
+#[derive(Debug, Eq, PartialEq)]
+pub struct Match<'r, 'p, T> {
+    pub data: &'r T,
+    pub path: PathMatch<'r, 'p>,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct PathMatch<'r, 'p> {
+    pub route: &'r str,
+    pub expanded: Option<&'r str>,
+    pub parameters: PathParameters<'r, 'p>,
+}
 
 #[derive(Clone)]
 pub struct Router<'r, T> {
@@ -49,8 +61,30 @@ impl<'r, T> Router<'r, T> {
     pub fn search<'p>(
         &'r self,
         request: &'p Request<'p>,
-    ) -> Result<Option<PathMatch<'r, 'p, T>>, SearchError> {
-        let search = self.path.search(request, &self.data)?;
-        Ok(search)
+    ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
+        let Some(search) = self.path.search(request, &self.data)? else {
+            return Ok(None);
+        };
+
+        Ok(Some(Match {
+            data: search.data,
+            path: PathMatch {
+                route: search.route,
+                expanded: search.expanded,
+                parameters: search.parameters,
+            },
+        }))
+    }
+}
+
+impl<T> core::fmt::Display for Router<'_, T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "=== Path")?;
+        let path = self.path.to_string();
+        if !path.is_empty() {
+            write!(f, "\n{path}")?;
+        }
+
+        Ok(())
     }
 }

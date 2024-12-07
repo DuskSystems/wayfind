@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
@@ -9,7 +9,10 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route(r"/users/\{id\}").build()?; // "/users/{id}"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/users/{id} [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /users/{id} [*]
+    ");
 
     let request = RequestBuilder::new().path("/users/{id}").build()?;
     let search = router.search(&request)?;
@@ -17,9 +20,11 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: r"/users/\{id\}",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: r"/users/\{id\}",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
     let request = RequestBuilder::new().path("/users/123").build()?;
@@ -36,7 +41,10 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route(r"/\(not-optional\)").build()?; // "/(not-optional)"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/(not-optional) [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /(not-optional) [*]
+    ");
 
     let request = RequestBuilder::new().path("/(not-optional)").build()?;
     let search = router.search(&request)?;
@@ -44,9 +52,11 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: r"/\(not-optional\)",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: r"/\(not-optional\)",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -65,7 +75,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route(r"(/a(/\{param\}))").build()?; // "(/a(/{param}))"
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ a [*]
        ╰─ /{param} [*]
@@ -77,9 +88,11 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: r"(/a(/\{param\}))",
-            expanded: Some("/a/\\{param\\}"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/a/\\{param\\}"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -93,9 +106,11 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: r"(/a(/\{param\}))",
-            expanded: Some("/a"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/a"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -105,9 +120,11 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: r"(/a(/\{param\}))",
-            expanded: Some("/"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/"),
+                parameters: smallvec![],
+            },
         })
     );
 

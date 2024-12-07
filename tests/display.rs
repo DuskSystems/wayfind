@@ -30,7 +30,8 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{*catch_all}").build()?;
     router.insert(&route, 9)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ├─ api/v1 [*]
     │  ╰─ / [*]

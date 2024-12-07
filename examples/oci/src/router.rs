@@ -96,8 +96,9 @@ impl<'r> AppRouter<'r> {
             return StatusCode::NOT_FOUND.into_response();
         };
 
-        let route = search.route.to_owned();
+        let route = search.path.route.to_owned();
         let parameters: Vec<(String, String)> = search
+            .path
             .parameters
             .into_iter()
             .map(|p| (p.0.to_owned(), p.1.to_owned()))

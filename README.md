@@ -63,18 +63,18 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users/{id}");
-    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.path.route, "/users/{id}");
+    assert_eq!(search.path.parameters[0], ("id", "123"));
 
     let request = RequestBuilder::new()
       .path("/users/123/files/my.document.pdf")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/users/{id}/files/{filename}.{extension}");
-    assert_eq!(search.parameters[0], ("id", "123"));
-    assert_eq!(search.parameters[1], ("filename", "my.document"));
-    assert_eq!(search.parameters[2], ("extension", "pdf"));
+    assert_eq!(search.path.route, "/users/{id}/files/{filename}.{extension}");
+    assert_eq!(search.path.parameters[0], ("id", "123"));
+    assert_eq!(search.path.parameters[1], ("filename", "my.document"));
+    assert_eq!(search.path.parameters[2], ("extension", "pdf"));
 
     Ok(())
 }
@@ -115,16 +115,16 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/files/{*slug}/delete");
-    assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
+    assert_eq!(search.path.route, "/files/{*slug}/delete");
+    assert_eq!(search.path.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
     let request = RequestBuilder::new()
       .path("/any/other/path")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/{*catch_all}");
-    assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
+    assert_eq!(search.path.route, "/{*catch_all}");
+    assert_eq!(search.path.parameters[0], ("catch_all", "any/other/path"));
 
     Ok(())
 }
@@ -172,38 +172,38 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users(/{id})");
-    assert_eq!(search.expanded, Some("/users"));
+    assert_eq!(search.path.route, "/users(/{id})");
+    assert_eq!(search.path.expanded, Some("/users"));
 
     let request = RequestBuilder::new()
       .path("/users/123")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/users(/{id})");
-    assert_eq!(search.expanded, Some("/users/{id}"));
-    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.path.route, "/users(/{id})");
+    assert_eq!(search.path.expanded, Some("/users/{id}"));
+    assert_eq!(search.path.parameters[0], ("id", "123"));
 
     let request = RequestBuilder::new()
       .path("/files/documents/folder/report.pdf")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
-    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
-    assert_eq!(search.parameters[1], ("file", "report"));
-    assert_eq!(search.parameters[2], ("extension", "pdf"));
+    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}.{extension}"));
+    assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.path.parameters[1], ("file", "report"));
+    assert_eq!(search.path.parameters[2], ("extension", "pdf"));
 
     let request = RequestBuilder::new()
       .path("/files/documents/folder/readme")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
-    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
-    assert_eq!(search.parameters[1], ("file", "readme"));
+    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}"));
+    assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.path.parameters[1], ("file", "readme"));
 
     Ok(())
 }
@@ -294,17 +294,17 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.route, "/v2");
+    assert_eq!(search.path.route, "/v2");
 
     let request = RequestBuilder::new()
       .path("/v2/my-org/my-repo/blobs/sha256:1234567890")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
-    assert_eq!(search.parameters[0], ("name", "my-org/my-repo"));
-    assert_eq!(search.parameters[1], ("type", "sha256"));
-    assert_eq!(search.parameters[2], ("digest", "1234567890"));
+    assert_eq!(search.path.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
+    assert_eq!(search.path.parameters[0], ("name", "my-org/my-repo"));
+    assert_eq!(search.path.parameters[1], ("type", "sha256"));
+    assert_eq!(search.path.parameters[2], ("digest", "1234567890"));
 
     let request = RequestBuilder::new()
       .path("/v2/invalid repo/blobs/uploads")

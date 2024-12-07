@@ -28,7 +28,7 @@ fn wayfind(bencher: divan::Bencher<'_, '_>) {
             let request = wayfind::RequestBuilder::new().path(route).build().unwrap();
             let output = black_box(router.search(black_box(&request)).unwrap().unwrap());
             let _parameters: Vec<(&str, &str)> =
-                black_box(output.parameters.iter().map(|p| (p.0, p.1)).collect());
+                black_box(output.path.parameters.iter().map(|p| (p.0, p.1)).collect());
         }
     });
 }

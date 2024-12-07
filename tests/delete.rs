@@ -11,7 +11,10 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/test").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/test [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /test [*]
+    ");
 
     let route = RouteBuilder::new().route("/tests").build()?;
     let delete = router.delete(&route);
@@ -22,7 +25,10 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @"/test [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /test [*]
+    ");
 
     let route = RouteBuilder::new().route("(/test)").build()?;
     let delete = router.delete(&route);
@@ -39,11 +45,14 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
         ])))
     );
 
-    insta::assert_snapshot!(router.path, @"/test [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /test [*]
+    ");
 
     let route = RouteBuilder::new().route("/test").build()?;
     router.delete(&route)?;
-    insta::assert_snapshot!(router.path, @"");
+    insta::assert_snapshot!(router, @"=== Path");
 
     Ok(())
 }
@@ -55,7 +64,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("(/test)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ test [*]
     ");
@@ -70,7 +80,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ test [*]
     ");
@@ -85,14 +96,15 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ test [*]
     ");
 
     let route = RouteBuilder::new().route("(/test)").build()?;
     router.delete(&route)?;
-    insta::assert_snapshot!(router.path, @"");
+    insta::assert_snapshot!(router, @"=== Path");
 
     Ok(())
 }
@@ -104,7 +116,8 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{id}data").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {id}
        ╰─ data [*]
@@ -119,7 +132,8 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {id}
        ╰─ data [*]

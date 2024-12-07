@@ -12,7 +12,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
     router.insert(&route, 3)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id} [*]
        ╰─ /
@@ -23,7 +24,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
     router.delete(&route)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id} [*]
        ╰─ /settings [*]
@@ -32,7 +34,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
     router.delete(&route)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id} [*]
     ");
@@ -51,7 +54,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
     router.insert(&route, 3)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id} [*]
        ╰─ /
@@ -62,7 +66,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id}").build()?;
     router.delete(&route)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id}
        ╰─ /
@@ -84,7 +89,8 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/ab").build()?;
     router.insert(&route, 3)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /a [*]
     ╰─ b [*]
        ╰─ c [*]
@@ -93,7 +99,8 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/ab").build()?;
     router.delete(&route)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /a [*]
     ╰─ bc [*]
     ");

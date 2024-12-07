@@ -2,7 +2,7 @@ use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{EncodingError, PathSearchError, RequestError, RouteError, SearchError},
-    Match, RequestBuilder, RouteBuilder, Router,
+    Match, PathMatch, RequestBuilder, RouteBuilder, Router,
 };
 
 #[test]
@@ -12,7 +12,8 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {name} [*]
     ");
@@ -23,9 +24,11 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users/{name}",
-            expanded: None,
-            parameters: smallvec![("name", "josé")],
+            path: PathMatch {
+                route: "/users/{name}",
+                expanded: None,
+                parameters: smallvec![("name", "josé")],
+            },
         })
     );
 
@@ -39,7 +42,8 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/user files/{name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /user files/
     ╰─ {name} [*]
     ");
@@ -52,9 +56,11 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/user files/{name}",
-            expanded: None,
-            parameters: smallvec![("name", "document name")],
+            path: PathMatch {
+                route: "/user files/{name}",
+                expanded: None,
+                parameters: smallvec![("name", "document name")],
+            },
         })
     );
 
@@ -70,7 +76,8 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{*path}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ├─ {name} [*]
     ╰─ {*path} [*]
@@ -82,9 +89,11 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{name}",
-            expanded: None,
-            parameters: smallvec![("name", "johndoe")],
+            path: PathMatch {
+                route: "/{name}",
+                expanded: None,
+                parameters: smallvec![("name", "johndoe")],
+            },
         })
     );
 
@@ -94,9 +103,11 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/{*path}",
-            expanded: None,
-            parameters: smallvec![("path", "john/doe")],
+            path: PathMatch {
+                route: "/{*path}",
+                expanded: None,
+                parameters: smallvec![("path", "john/doe")],
+            },
         })
     );
 

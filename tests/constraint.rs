@@ -2,7 +2,7 @@ use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{InsertError, PathConstraintError, PathInsertError},
-    Match, PathConstraint, RequestBuilder, RouteBuilder, Router,
+    Match, PathConstraint, PathMatch, RequestBuilder, RouteBuilder, Router,
 };
 
 struct NameConstraint;
@@ -22,7 +22,8 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id:name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {id:name} [*]
     ");
@@ -33,9 +34,11 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users/{id:name}",
-            expanded: None,
-            parameters: smallvec![("id", "john123")],
+            path: PathMatch {
+                route: "/users/{id:name}",
+                expanded: None,
+                parameters: smallvec![("id", "john123")],
+            },
         })
     );
 
@@ -54,7 +57,8 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{*path:name}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ╰─ {*path:name} [*]
     ");
@@ -65,9 +69,11 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users/{*path:name}",
-            expanded: None,
-            parameters: smallvec![("path", "john/doe123")],
+            path: PathMatch {
+                route: "/users/{*path:name}",
+                expanded: None,
+                parameters: smallvec![("path", "john/doe123")],
+            },
         })
     );
 
@@ -139,7 +145,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id:u32}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ├─ {id:u32} [*]
     ╰─ {id} [*]
@@ -151,9 +158,11 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users/{id}",
-            expanded: None,
-            parameters: smallvec![("id", "abc")],
+            path: PathMatch {
+                route: "/users/{id}",
+                expanded: None,
+                parameters: smallvec![("id", "abc")],
+            },
         })
     );
 
@@ -163,9 +172,11 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/users/{id:u32}",
-            expanded: None,
-            parameters: smallvec![("id", "123")],
+            path: PathMatch {
+                route: "/users/{id:u32}",
+                expanded: None,
+                parameters: smallvec![("id", "123")],
+            },
         })
     );
 
@@ -183,7 +194,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users/{id:name}").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ├─ {id:name} [*]
     ╰─ {id:u32} [*]
@@ -195,9 +207,11 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/users/{id:name}",
-            expanded: None,
-            parameters: smallvec![("id", "123")],
+            path: PathMatch {
+                route: "/users/{id:name}",
+                expanded: None,
+                parameters: smallvec![("id", "123")],
+            },
         })
     );
 
@@ -207,9 +221,11 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/users/{id:name}",
-            expanded: None,
-            parameters: smallvec![("id", "abc123")],
+            path: PathMatch {
+                route: "/users/{id:name}",
+                expanded: None,
+                parameters: smallvec![("id", "abc123")],
+            },
         })
     );
 

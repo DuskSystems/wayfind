@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_static_simple() -> Result<(), Box<dyn Error>> {
@@ -9,7 +9,10 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/users [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /users [*]
+    ");
 
     let request = RequestBuilder::new().path("/users").build()?;
     let search = router.search(&request)?;
@@ -17,9 +20,11 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -39,7 +44,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /user [*]
     ╰─ s [*]
     ");
@@ -50,9 +56,11 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/user",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/user",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -62,9 +70,11 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/users",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -88,7 +98,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/user/1").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /user
     ├─ /1 [*]
     ╰─ _1 [*]
@@ -100,9 +111,11 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/user_1",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/user_1",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -112,9 +125,11 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/user/1",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/user/1",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -146,7 +161,8 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/👨‍👨‍👦").build()?; // Family: Man, Man, Boy
     router.insert(&route, 6)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /�
     ├─ �‍👩‍�
     │  ├─ � [*]
@@ -166,9 +182,11 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/👨‍👩‍👧",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/👨‍👩‍👧",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -178,9 +196,11 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/👨‍👩‍👦",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/👨‍👩‍👦",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -212,7 +232,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/Users").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ├─ Users [*]
     ╰─ users [*]
@@ -224,9 +245,11 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -236,9 +259,11 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/Users",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/Users",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -252,7 +277,10 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users /items").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/users /items [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /users /items [*]
+    ");
 
     let request = RequestBuilder::new().path("/users /items").build()?;
     let search = router.search(&request)?;
@@ -260,9 +288,11 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users /items",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users /items",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -282,7 +312,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users//items").build()?;
     router.insert(&route, 2)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users/
     ├─ /items [*]
     ╰─ items [*]
@@ -294,9 +325,11 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users/items",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users/items",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -306,9 +339,11 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/users//items",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users//items",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -322,7 +357,10 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users///items").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @"/users///items [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /users///items [*]
+    ");
 
     let request = RequestBuilder::new().path("/users///items").build()?;
     let search = router.search(&request)?;
@@ -330,9 +368,11 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users///items",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users///items",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 

@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
@@ -9,7 +9,8 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{id}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {id} [*]
     ");
@@ -20,9 +21,11 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{id}",
-            expanded: None,
-            parameters: smallvec![("id", "123")],
+            path: PathMatch {
+                route: "/{id}",
+                expanded: None,
+                parameters: smallvec![("id", "123")],
+            },
         })
     );
 
@@ -44,7 +47,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{year}/{month}/{day}").build()?;
     router.insert(&route, 3)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {year} [*]
        ╰─ /
@@ -59,9 +63,11 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{year}",
-            expanded: None,
-            parameters: smallvec![("year", "2024")],
+            path: PathMatch {
+                route: "/{year}",
+                expanded: None,
+                parameters: smallvec![("year", "2024")],
+            },
         })
     );
 
@@ -71,9 +77,11 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/{year}/{month}",
-            expanded: None,
-            parameters: smallvec![("year", "2024"), ("month", "12")],
+            path: PathMatch {
+                route: "/{year}/{month}",
+                expanded: None,
+                parameters: smallvec![("year", "2024"), ("month", "12")],
+            },
         })
     );
 
@@ -83,9 +91,11 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            route: "/{year}/{month}/{day}",
-            expanded: None,
-            parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
+            path: PathMatch {
+                route: "/{year}/{month}/{day}",
+                expanded: None,
+                parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
+            },
         })
     );
 
@@ -103,7 +113,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{year}-{month}-{day}").build()?;
     router.insert(&route, 3)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {year} [*]
        ╰─ -
@@ -118,9 +129,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{year}",
-            expanded: None,
-            parameters: smallvec![("year", "2024")],
+            path: PathMatch {
+                route: "/{year}",
+                expanded: None,
+                parameters: smallvec![("year", "2024")],
+            },
         })
     );
 
@@ -130,9 +143,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/{year}-{month}",
-            expanded: None,
-            parameters: smallvec![("year", "2024"), ("month", "12")],
+            path: PathMatch {
+                route: "/{year}-{month}",
+                expanded: None,
+                parameters: smallvec![("year", "2024"), ("month", "12")],
+            },
         })
     );
 
@@ -142,9 +157,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            route: "/{year}-{month}-{day}",
-            expanded: None,
-            parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
+            path: PathMatch {
+                route: "/{year}-{month}-{day}",
+                expanded: None,
+                parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
+            },
         })
     );
 
@@ -158,7 +175,8 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{file}.{extension}").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ╰─ {file}
        ╰─ .
@@ -175,9 +193,11 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{file}.{extension}",
-            expanded: None,
-            parameters: smallvec![("file", "report"), ("extension", "pdf")],
+            path: PathMatch {
+                route: "/{file}.{extension}",
+                expanded: None,
+                parameters: smallvec![("file", "report"), ("extension", "pdf")],
+            },
         })
     );
 
@@ -187,9 +207,11 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/{file}.{extension}",
-            expanded: None,
-            parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
+            path: PathMatch {
+                route: "/{file}.{extension}",
+                expanded: None,
+                parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
+            },
         })
     );
 
@@ -209,7 +231,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/{name}.{extension}").build()?;
     router.insert(&route, 4)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ├─ robots.
     │  ├─ txt [*]
@@ -226,9 +249,11 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/robots.txt",
-            expanded: None,
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/robots.txt",
+                expanded: None,
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -238,9 +263,11 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            route: "/robots.{extension}",
-            expanded: None,
-            parameters: smallvec![("extension", "pdf")],
+            path: PathMatch {
+                route: "/robots.{extension}",
+                expanded: None,
+                parameters: smallvec![("extension", "pdf")],
+            },
         })
     );
 
@@ -250,9 +277,11 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            route: "/{name}.txt",
-            expanded: None,
-            parameters: smallvec![("name", "config")],
+            path: PathMatch {
+                route: "/{name}.txt",
+                expanded: None,
+                parameters: smallvec![("name", "config")],
+            },
         })
     );
 
@@ -262,9 +291,11 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &4,
-            route: "/{name}.{extension}",
-            expanded: None,
-            parameters: smallvec![("name", "config"), ("extension", "pdf")],
+            path: PathMatch {
+                route: "/{name}.{extension}",
+                expanded: None,
+                parameters: smallvec![("name", "config"), ("extension", "pdf")],
+            },
         })
     );
 

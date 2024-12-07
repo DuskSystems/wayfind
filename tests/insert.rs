@@ -31,7 +31,10 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @"/test [*]");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    /test [*]
+    ");
 
     Ok(())
 }
@@ -63,7 +66,7 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @"");
+    insta::assert_snapshot!(router, @"=== Path");
 
     Ok(())
 }
@@ -86,7 +89,8 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
         }))
     );
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ {*catch_all} [*]
     ");
@@ -117,7 +121,7 @@ fn test_insert_duplicate_parameter() {
         )))
     );
 
-    insta::assert_snapshot!(router.path, @"");
+    insta::assert_snapshot!(router, @"=== Path");
 }
 
 #[test]

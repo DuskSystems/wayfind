@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
@@ -9,7 +9,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("(/{lang})/users").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
     ├─ users [*]
     ╰─ {lang}
@@ -22,9 +23,11 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/{lang})/users",
-            expanded: Some("/{lang}/users"),
-            parameters: smallvec![("lang", "en")],
+            path: PathMatch {
+                route: "(/{lang})/users",
+                expanded: Some("/{lang}/users"),
+                parameters: smallvec![("lang", "en")],
+            },
         })
     );
 
@@ -34,9 +37,11 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/{lang})/users",
-            expanded: Some("/users"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/{lang})/users",
+                expanded: Some("/users"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -50,7 +55,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("/users(/)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /users [*]
     ╰─ / [*]
     ");
@@ -61,9 +67,11 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users(/)",
-            expanded: Some("/users"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users(/)",
+                expanded: Some("/users"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -73,9 +81,11 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "/users(/)",
-            expanded: Some("/users/"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "/users(/)",
+                expanded: Some("/users/"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -89,7 +99,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("(/a(/b(/c)))").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ a [*]
        ╰─ /b [*]
@@ -102,9 +113,11 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a(/b(/c)))",
-            expanded: Some("/a/b/c"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a(/b(/c)))",
+                expanded: Some("/a/b/c"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -114,9 +127,11 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a(/b(/c)))",
-            expanded: Some("/a/b"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a(/b(/c)))",
+                expanded: Some("/a/b"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -126,9 +141,11 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a(/b(/c)))",
-            expanded: Some("/a"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a(/b(/c)))",
+                expanded: Some("/a"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -138,9 +155,11 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a(/b(/c)))",
-            expanded: Some("/"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a(/b(/c)))",
+                expanded: Some("/"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -154,7 +173,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("(/test)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ╰─ test [*]
     ");
@@ -165,9 +185,11 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/test)",
-            expanded: Some("/test"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/test)",
+                expanded: Some("/test"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -177,9 +199,11 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/test)",
-            expanded: Some("/"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/test)",
+                expanded: Some("/"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -193,7 +217,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     let route = RouteBuilder::new().route("(/a)(/b)(/c)").build()?;
     router.insert(&route, 1)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     / [*]
     ├─ a [*]
     │  ╰─ /
@@ -211,9 +236,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/a/b/c"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/a/b/c"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -223,9 +250,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/a/b"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/a/b"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -235,9 +264,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/a/c"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/a/c"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -247,9 +278,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/a"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/a"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -259,9 +292,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/b/c"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/b/c"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -271,9 +306,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/b"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/b"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -283,9 +320,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/c"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/c"),
+                parameters: smallvec![],
+            },
         })
     );
 
@@ -295,9 +334,11 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            route: "(/a)(/b)(/c)",
-            expanded: Some("/"),
-            parameters: smallvec![],
+            path: PathMatch {
+                route: "(/a)(/b)(/c)",
+                expanded: Some("/"),
+                parameters: smallvec![],
+            },
         })
     );
 

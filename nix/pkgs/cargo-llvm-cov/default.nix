@@ -13,8 +13,6 @@ craneLib.buildPackage rec {
     hash = "sha256-7Cno7/AlVnFuMSn94DF1u8g2QK9+v1/5RQ4HieejTek=";
   };
 
-  cargoHash = "sha256-boyMQTSQqP43I38MhWv5KHa0ZASeSYdJoK+e7O20/Bw=";
-
   env = {
     CARGO_PROFILE_RELEASE_STRIP = "none";
     LLVM_COV = "${llvmPackages_19.llvm}/bin/llvm-cov";
