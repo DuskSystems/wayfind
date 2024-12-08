@@ -1,10 +1,5 @@
 use super::errors::PathRouteError;
 use crate::errors::EncodingError;
-use alloc::{
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
 use smallvec::{smallvec, SmallVec};
 
 /// Characters that are not allowed in parameter names or constraints.
@@ -368,7 +363,6 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec;
     use similar_asserts::assert_eq;
 
     #[test]

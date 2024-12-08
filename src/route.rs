@@ -1,8 +1,4 @@
 use crate::{decode::percent_decode, errors::RouteError};
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
 
 /// A route that can be inserted into a [`Router`](`crate::Router`).
 #[derive(Debug, Clone, PartialEq, Eq)]

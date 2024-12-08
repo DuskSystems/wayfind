@@ -1,5 +1,5 @@
 use super::PathSearchError;
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to search for a match in a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -11,7 +11,7 @@ pub enum SearchError {
 impl Error for SearchError {}
 
 impl Display for SearchError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Path(error) => error.fmt(f),
         }

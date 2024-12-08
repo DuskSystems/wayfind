@@ -1,6 +1,5 @@
 use super::EncodingError;
-use alloc::string::String;
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors that can occur when creating a [`Route`](`crate::Route`).
 #[derive(Debug, PartialEq, Eq)]
@@ -61,7 +60,7 @@ pub enum RouteError {
 impl Error for RouteError {}
 
 impl Display for RouteError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
 

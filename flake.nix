@@ -42,10 +42,7 @@
 
             (final: prev: {
               rustToolchain = prev.rust-bin.stable."1.83.0".minimal.override {
-                targets = [
-                  "thumbv7m-none-eabi"
-                  "wasm32-unknown-unknown"
-                ];
+                targets = [ "wasm32-unknown-unknown" ];
                 extensions = [
                   "clippy"
                   "rust-analyzer"
@@ -95,7 +92,6 @@
             # Benchmarking
             cargo-codspeed
             gnuplot
-            samply
 
             # Coverage
             cargo-llvm-cov
@@ -108,6 +104,9 @@
 
             # TOML
             taplo
+
+            # GitHub
+            zizmor
 
             # Nix
             nixfmt-rfc-style
@@ -204,22 +203,6 @@
 
           buildInputs = with pkgs; [
             (rust-bin.stable."1.83.0".minimal)
-            sccache
-          ];
-        };
-
-        # nix develop .#no-std
-        no-std = pkgs.mkShell {
-          name = "wayfind-no-std-shell";
-
-          RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-          CARGO_INCREMENTAL = "0";
-          CARGO_BUILD_TARGET = "thumbv7m-none-eabi";
-
-          buildInputs = with pkgs; [
-            (rust-bin.stable."1.83.0".minimal.override {
-              targets = [ "thumbv7m-none-eabi" ];
-            })
             sccache
           ];
         };

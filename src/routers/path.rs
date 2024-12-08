@@ -1,19 +1,15 @@
 use crate::{id::RouteId, map::RouteMap, Request, Route};
-use alloc::{
-    fmt::Display,
-    string::{String, ToString},
-    sync::Arc,
-    vec,
-};
-use core::{
-    any::type_name,
-    net::{Ipv4Addr, Ipv6Addr},
-};
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
-use hashbrown::HashMap;
 use node::{state::RootState, Children, Node};
 use parser::{Parser, Part};
 use smallvec::{smallvec, SmallVec};
+use std::{
+    any::type_name,
+    collections::HashMap,
+    fmt::Display,
+    net::{Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+};
 
 pub mod constraints;
 pub mod errors;
@@ -370,7 +366,7 @@ impl<'r> PathRouter<'r> {
 }
 
 impl Display for PathRouter<'_> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }
 }

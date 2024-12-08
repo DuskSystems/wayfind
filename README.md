@@ -4,7 +4,6 @@
 
 ![rust: 1.83+](https://img.shields.io/badge/rust-1.83+-orange.svg)
 ![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
-![`no_std`: compatible](https://img.shields.io/badge/no__std-compatible-success.svg)
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 
 [![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)

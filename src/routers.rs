@@ -4,7 +4,6 @@ use crate::{
     map::RouteMap,
     Request, Route,
 };
-use alloc::string::ToString;
 use path::{PathParameters, PathRouter};
 
 pub mod path;
@@ -77,8 +76,8 @@ impl<'r, T> Router<'r, T> {
     }
 }
 
-impl<T> core::fmt::Display for Router<'_, T> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl<T> std::fmt::Display for Router<'_, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "=== Path")?;
         let path = self.path.to_string();
         if !path.is_empty() {

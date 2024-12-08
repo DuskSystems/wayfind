@@ -1,4 +1,4 @@
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to constraints.
 #[derive(Debug, PartialEq, Eq)]
@@ -45,7 +45,7 @@ pub enum PathConstraintError {
 impl Error for PathConstraintError {}
 
 impl Display for PathConstraintError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::DuplicateName {
                 name,

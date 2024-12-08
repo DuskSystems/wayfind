@@ -1,7 +1,6 @@
 use super::PathRouteError;
 use crate::errors::EncodingError;
-use alloc::{string::String, vec::Vec};
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -75,7 +74,7 @@ pub enum PathDeleteError {
 impl Error for PathDeleteError {}
 
 impl Display for PathDeleteError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Multiple(errors) => {
                 writeln!(f, "multiple path delete errors occurred:\n---\n")?;

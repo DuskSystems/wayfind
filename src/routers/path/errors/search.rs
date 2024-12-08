@@ -1,5 +1,5 @@
 use crate::errors::EncodingError;
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to search for a match in a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -11,7 +11,7 @@ pub enum PathSearchError {
 impl Error for PathSearchError {}
 
 impl Display for PathSearchError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
         }

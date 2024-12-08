@@ -1,16 +1,15 @@
 use super::{Node, State};
-use alloc::{borrow::ToOwned, format, string::String};
-use core::fmt::{Display, Write};
+use std::fmt::{Display, Write};
 
 impl<S: State> Display for Node<'_, S> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         fn debug_node<S: State>(
             output: &mut String,
             node: &Node<'_, S>,
             padding: &str,
             is_top: bool,
             is_last: bool,
-        ) -> core::fmt::Result {
+        ) -> std::fmt::Result {
             let key = node.state.key();
 
             if is_top {

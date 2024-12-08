@@ -1,5 +1,4 @@
-use alloc::string::String;
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to decode UTF-8 and percent-encoded strings.
 #[derive(Debug, PartialEq, Eq)]
@@ -70,7 +69,7 @@ pub enum EncodingError {
 impl Error for EncodingError {}
 
 impl Display for EncodingError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Utf8Error { input } => {
                 write!(

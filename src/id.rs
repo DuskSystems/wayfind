@@ -1,4 +1,4 @@
-use core::{
+use std::{
     hash::{Hash, Hasher},
     sync::atomic::{AtomicUsize, Ordering},
 };

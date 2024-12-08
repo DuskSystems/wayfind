@@ -1,9 +1,9 @@
 use crate::id::RouteId;
-use core::{
+use std::{
+    collections::HashMap,
     hash::{BuildHasherDefault, Hasher},
     marker::PhantomData,
 };
-use hashbrown::HashMap;
 
 pub type RouteMap<V> = HashMap<RouteId, V, BuildHasherDefault<NoHashHasher<RouteId>>>;
 

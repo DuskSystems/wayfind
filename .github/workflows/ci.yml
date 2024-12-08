@@ -120,26 +120,6 @@ jobs:
       - name: Build wayfind
         run: cargo build
 
-  no-std:
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        shell: nix develop .#no-std --command bash {0}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          shell: no-std
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-
-      - name: Build wayfind
-        run: cargo build
-
   wasm:
     runs-on: ubuntu-24.04
     defaults:

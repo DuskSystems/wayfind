@@ -54,10 +54,6 @@ similar.opt-level = 3
 lto = "fat"
 codegen-units = 1
 
-[profile.profiling]
-inherits = "release"
-debug = true
-
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = "wayfind"
@@ -88,7 +84,6 @@ workspace = true
 
 [dependencies]
 # Data Structures
-hashbrown = "0.15"
 smallvec = { version = "1.13", features = ["const_generics", "union"] }
 
 [dev-dependencies]

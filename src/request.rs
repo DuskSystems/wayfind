@@ -1,5 +1,5 @@
 use crate::{decode::percent_decode, errors::RequestError};
-use alloc::borrow::Cow;
+use std::borrow::Cow;
 
 /// [`Request`] stores the request data to be used to search for a matching route in a [`Router`](crate::Router).
 #[derive(Debug, Clone, Eq, PartialEq)]

@@ -1,5 +1,5 @@
 use crate::errors::EncodingError;
-use alloc::string::String;
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
@@ -393,10 +393,10 @@ pub enum PathRouteError {
     },
 }
 
-impl core::error::Error for PathRouteError {}
+impl Error for PathRouteError {}
 
-impl core::fmt::Display for PathRouteError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl Display for PathRouteError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
             Self::Empty => write!(f, "empty route"),

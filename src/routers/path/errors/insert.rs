@@ -1,6 +1,5 @@
 use super::PathRouteError;
-use alloc::{string::String, vec::Vec};
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
@@ -70,7 +69,7 @@ pub enum PathInsertError {
 impl Error for PathInsertError {}
 
 impl Display for PathInsertError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Multiple(errors) => {
                 writeln!(f, "multiple path insert errors occurred:\n---\n")?;

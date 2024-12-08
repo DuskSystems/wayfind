@@ -1,10 +1,6 @@
 use super::PathData;
-use alloc::{vec, vec::Vec};
-use core::{
-    fmt::Debug,
-    ops::{Index, IndexMut},
-};
 use state::{DynamicState, EndWildcardState, State, StaticState, WildcardState};
+use std::ops::{Index, IndexMut};
 
 pub mod delete;
 pub mod display;

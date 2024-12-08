@@ -1,5 +1,5 @@
 use super::EncodingError;
-use core::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display};
 
 /// Errors that can occur when creating a [`Request`](`crate::Request`).
 #[derive(Debug, PartialEq, Eq)]
@@ -30,7 +30,7 @@ pub enum RequestError {
 impl Error for RequestError {}
 
 impl Display for RequestError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
             Self::MissingPath => write!(

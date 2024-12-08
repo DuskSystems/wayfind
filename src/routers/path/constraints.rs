@@ -1,4 +1,4 @@
-use core::net::{Ipv4Addr, Ipv6Addr};
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 pub trait PathConstraint: Send + Sync {
     const NAME: &'static str;

@@ -3,9 +3,8 @@ use crate::{
     errors::{EncodingError, PathSearchError},
     routers::path::{PathParameters, StoredConstraint},
 };
-use alloc::string::{String, ToString};
-use hashbrown::HashMap;
 use smallvec::smallvec;
+use std::collections::HashMap;
 
 impl<'r, S: State> Node<'r, S> {
     /// Searches for a matching route in the node tree.
@@ -104,7 +103,7 @@ impl<'r, S: State> Node<'r, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((
                     &child.state.name,
-                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -147,7 +146,7 @@ impl<'r, S: State> Node<'r, S> {
 
             parameters.push((
                 &child.state.name,
-                core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(segment).to_string(),
                 })?,
             ));
@@ -199,7 +198,7 @@ impl<'r, S: State> Node<'r, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((
                     &child.state.name,
-                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -267,7 +266,7 @@ impl<'r, S: State> Node<'r, S> {
 
                 parameters.push((
                     &child.state.name,
-                    core::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
+                    std::str::from_utf8(segment).map_err(|_| EncodingError::Utf8Error {
                         input: String::from_utf8_lossy(segment).to_string(),
                     })?,
                 ));
@@ -304,7 +303,7 @@ impl<'r, S: State> Node<'r, S> {
 
             parameters.push((
                 &child.state.name,
-                core::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
+                std::str::from_utf8(path).map_err(|_| EncodingError::Utf8Error {
                     input: String::from_utf8_lossy(path).to_string(),
                 })?,
             ));
@@ -325,7 +324,7 @@ impl<'r, S: State> Node<'r, S> {
         };
 
         let constraint = constraints.get(constraint.as_str()).unwrap();
-        let Ok(segment) = core::str::from_utf8(segment) else {
+        let Ok(segment) = std::str::from_utf8(segment) else {
             return false;
         };
 
