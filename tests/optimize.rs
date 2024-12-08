@@ -15,10 +15,11 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [0]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [2]
+          ╰─ profile [1]
+    === Method
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
@@ -27,8 +28,9 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
-       ╰─ /settings [*]
+    ╰─ {id} [0]
+       ╰─ /settings [2]
+    === Method
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
@@ -37,7 +39,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [0]
+    === Method
     ");
 
     Ok(())
@@ -57,10 +60,11 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [0]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [2]
+          ╰─ profile [1]
+    === Method
     ");
 
     let route = RouteBuilder::new().route("/users/{id}").build()?;
@@ -71,8 +75,9 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id}
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [2]
+          ╰─ profile [1]
+    === Method
     ");
 
     Ok(())
@@ -91,9 +96,10 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /a [*]
-    ╰─ b [*]
-       ╰─ c [*]
+    /a [1]
+    ╰─ b [2]
+       ╰─ c [0]
+    === Method
     ");
 
     let route = RouteBuilder::new().route("/ab").build()?;
@@ -101,8 +107,9 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /a [*]
-    ╰─ bc [*]
+    /a [1]
+    ╰─ bc [0]
+    === Method
     ");
 
     Ok(())

@@ -13,15 +13,15 @@ impl<S: State> Display for Node<'_, S> {
             let key = node.state.key();
 
             if is_top {
-                if node.data.is_some() {
-                    writeln!(output, "{key} [*]")?;
+                if let Some(data) = node.data.as_ref() {
+                    writeln!(output, "{key} [{}]", data.id)?;
                 } else {
                     writeln!(output, "{key}")?;
                 }
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                if node.data.is_some() {
-                    writeln!(output, "{padding}{branch} {key} [*]")?;
+                if let Some(data) = node.data.as_ref() {
+                    writeln!(output, "{padding}{branch} {key} [{}]", data.id)?;
                 } else {
                     writeln!(output, "{padding}{branch} {key}")?;
                 }

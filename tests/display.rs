@@ -32,27 +32,28 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ├─ api/v1 [*]
-    │  ╰─ / [*]
-    ├─ users [*]
+    / [0]
+    ├─ api/v1 [6]
+    │  ╰─ / [6]
+    ├─ users [1]
     │  ╰─ /
-    │     ╰─ {id} [*]
-    │        ╰─ /profile [*]
+    │     ╰─ {id} [2]
+    │        ╰─ /profile [3]
     ├─ images/
-    │  ╰─ {name} [*]
+    │  ╰─ {name} [7]
     │     ╰─ .
-    │        ╰─ {extension} [*]
+    │        ╰─ {extension} [7]
     ├─ files/
     │  ╰─ {*path}
-    │     ╰─ /download [*]
+    │     ╰─ /download [5]
     ├─ posts/
     │  ╰─ {year}
     │     ╰─ -
     │        ╰─ {month}
     │           ╰─ -
-    │              ╰─ {day} [*]
-    ╰─ {*catch_all} [*]
+    │              ╰─ {day} [4]
+    ╰─ {*catch_all} [8]
+    === Method
     ");
 
     Ok(())
