@@ -1,5 +1,5 @@
-use crate::{id::RouteId, map::RouteMap, Request, Route};
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
+use id::PathIdGenerator;
 use node::{state::RootState, Children, Node};
 use parser::{Parser, Part};
 use smallvec::{smallvec, SmallVec};
@@ -13,37 +13,27 @@ use std::{
 
 pub mod constraints;
 pub mod errors;
+pub mod id;
 pub mod node;
 pub mod parser;
 
 pub use constraints::PathConstraint;
+pub use id::PathId;
 
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PathData<'r> {
-    /// The original route.
-    pub(crate) route: &'r str,
-
-    /// The expanded route.
-    pub(crate) expanded: Option<Arc<str>>,
-
-    /// The associated data ID.
-    pub(crate) id: RouteId,
+    pub id: PathId,
+    pub route: &'r str,
+    pub expanded: Option<Arc<str>>,
 }
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
-pub struct PathMatch<'r, 'p, T> {
-    /// A reference to the matching route data.
-    pub data: &'r T,
-
-    /// The matching route.
+pub struct PathMatch<'r, 'p> {
+    pub id: PathId,
     pub route: &'r str,
-
-    /// The expanded route, if applicable.
     pub expanded: Option<&'r str>,
-
-    /// Key-value pairs of parameters, extracted from the route.
     pub parameters: PathParameters<'r, 'p>,
 }
 
@@ -70,6 +60,8 @@ pub struct PathRouter<'r> {
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<&'r str, StoredConstraint>,
+
+    pub(super) id: PathIdGenerator,
 }
 
 impl<'r> PathRouter<'r> {
@@ -96,6 +88,7 @@ impl<'r> PathRouter<'r> {
                 needs_optimization: false,
             },
             constraints: HashMap::default(),
+            id: PathIdGenerator::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -183,8 +176,8 @@ impl<'r> PathRouter<'r> {
     ///     .unwrap();
     /// router.insert(&route, 1).unwrap();
     /// ```
-    pub(crate) fn insert(&mut self, route: &Route<'r>, id: RouteId) -> Result<(), PathInsertError> {
-        let mut parsed = Parser::new(route.route.as_bytes())?;
+    pub(crate) fn insert(&mut self, route: &'r str) -> Result<PathId, PathInsertError> {
+        let mut parsed = Parser::new(route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
                 if let Part::Dynamic {
@@ -205,6 +198,8 @@ impl<'r> PathRouter<'r> {
             }
         }
 
+        let id = self.id.next();
+
         if parsed.routes.len() > 1 {
             let mut errors = vec![];
 
@@ -215,7 +210,7 @@ impl<'r> PathRouter<'r> {
                     &mut parsed_route,
                     PathData {
                         id,
-                        route: route.route,
+                        route,
                         expanded: Some(expanded),
                     },
                 ) {
@@ -239,7 +234,7 @@ impl<'r> PathRouter<'r> {
                 parsed_route,
                 PathData {
                     id,
-                    route: route.route,
+                    route,
                     expanded: None,
                 },
             )?;
@@ -247,7 +242,7 @@ impl<'r> PathRouter<'r> {
 
         self.root.optimize();
 
-        Ok(())
+        Ok(id)
     }
 
     /// Deletes a route from the router.
@@ -273,8 +268,8 @@ impl<'r> PathRouter<'r> {
     /// router.insert(&route, 1).unwrap();
     /// router.delete(&route).unwrap();
     /// ```
-    pub(crate) fn delete(&mut self, route: &Route<'r>) -> Result<PathData<'r>, PathDeleteError> {
-        let mut parsed = Parser::new(route.route.as_bytes())?;
+    pub(crate) fn delete(&mut self, route: &str) -> Result<PathId, PathDeleteError> {
+        let mut parsed = Parser::new(route.as_bytes())?;
 
         let data = if parsed.routes.len() > 1 {
             let mut data: Option<PathData<'r>> = None;
@@ -305,7 +300,7 @@ impl<'r> PathRouter<'r> {
         };
 
         self.root.optimize();
-        Ok(data)
+        Ok(data.id)
     }
 
     /// Searches for a matching [`Request`] in the [`Router`].
@@ -332,34 +327,19 @@ impl<'r> PathRouter<'r> {
     ///     .unwrap();
     /// let search = router.search(&request).unwrap();
     /// ```
-    pub(crate) fn search<'p, T>(
+    pub(crate) fn search<'p>(
         &'r self,
-        request: &'p Request<'p>,
-        map: &'r RouteMap<T>,
-    ) -> Result<Option<PathMatch<'r, 'p, T>>, PathSearchError> {
+        path: &'p [u8],
+    ) -> Result<Option<PathMatch<'r, 'p>>, PathSearchError> {
         let mut parameters = smallvec![];
-        let Some((data, _)) =
-            self.root
-                .search(request.path.as_ref(), &mut parameters, &self.constraints)?
-        else {
-            return Ok(None);
-        };
-
-        let PathData {
-            id,
-            route,
-            expanded,
-            ..
-        } = data;
-
-        let Some(data) = map.get(id) else {
+        let Some((data, _)) = self.root.search(path, &mut parameters, &self.constraints)? else {
             return Ok(None);
         };
 
         Ok(Some(PathMatch {
-            data,
-            route,
-            expanded: expanded.as_deref(),
+            id: data.id,
+            route: data.route,
+            expanded: data.expanded.as_deref(),
             parameters,
         }))
     }

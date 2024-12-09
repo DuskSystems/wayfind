@@ -23,3 +23,5 @@ pub use search::SearchError;
 pub use crate::routers::path::errors::{
     PathConstraintError, PathDeleteError, PathInsertError, PathRouteError, PathSearchError,
 };
+
+pub use crate::routers::method::errors::{MethodDeleteError, MethodInsertError, MethodSearchError};

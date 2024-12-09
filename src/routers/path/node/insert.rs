@@ -38,6 +38,7 @@ impl<'r, S: State> Node<'r, S> {
         } else {
             if let Some(data) = &self.data {
                 return Err(PathInsertError::DuplicateRoute {
+                    id: data.id,
                     route: String::from_utf8_lossy(&route.input).to_string(),
                     conflict: data.route.to_owned(),
                 });
@@ -238,9 +239,12 @@ impl<'r, S: State> Node<'r, S> {
             .iter()
             .find(|child| child.state.name == name && child.state.constraint == constraint)
         {
+            let data = child.data.as_ref().unwrap();
+
             return Err(PathInsertError::DuplicateRoute {
+                id: data.id,
                 route: String::from_utf8_lossy(&route.input).to_string(),
-                conflict: child.data.as_ref().unwrap().route.to_owned(),
+                conflict: data.route.to_owned(),
             });
         }
 
