@@ -1,10 +1,10 @@
 #![doc = include_str!("../README.md")]
 
+pub(crate) mod chain;
+
 pub(crate) mod decode;
 
 pub mod errors;
-
-pub(crate) mod map;
 
 pub(crate) mod request;
 pub use request::{Request, RequestBuilder};

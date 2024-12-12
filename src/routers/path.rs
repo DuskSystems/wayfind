@@ -1,4 +1,4 @@
-use crate::{map::RouteMap, vec::SortedVec, Request};
+use crate::vec::SortedVec;
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
 use id::{PathId, PathIdGenerator};
 use node::Node;
@@ -30,29 +30,17 @@ pub use constraints::PathConstraint;
 /// Holds data associated with a given node.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PathData<'r> {
-    /// The original route.
-    pub(crate) route: &'r str,
-
-    /// The expanded route.
-    pub(crate) expanded: Option<Arc<str>>,
-
-    /// The associated data ID.
-    pub(crate) id: PathId,
+    pub id: PathId,
+    pub route: &'r str,
+    pub expanded: Option<Arc<str>>,
 }
 
 /// Stores data from a successful router match.
 #[derive(Debug, Eq, PartialEq)]
-pub struct PathMatch<'r, 'p, T> {
-    /// A reference to the matching route data.
-    pub data: &'r T,
-
-    /// The matching route.
+pub struct PathMatch<'r, 'p> {
+    pub id: PathId,
     pub route: &'r str,
-
-    /// The expanded route, if applicable.
     pub expanded: Option<&'r str>,
-
-    /// Key-value pairs of parameters, extracted from the route.
     pub parameters: PathParameters<'r, 'p>,
 }
 
@@ -342,16 +330,12 @@ impl<'r> PathRouter<'r> {
     ///     .unwrap();
     /// let search = router.search(&request).unwrap();
     /// ```
-    pub(crate) fn search<'p, T>(
+    pub(crate) fn search<'p>(
         &'r self,
-        request: &'p Request<'p>,
-        map: &'r RouteMap<T>,
-    ) -> Result<Option<PathMatch<'r, 'p, T>>, PathSearchError> {
+        path: &'p [u8],
+    ) -> Result<Option<PathMatch<'r, 'p>>, PathSearchError> {
         let mut parameters = smallvec![];
-        let Some((data, _)) =
-            self.root
-                .search(request.path.as_ref(), &mut parameters, &self.constraints)?
-        else {
+        let Some((data, _)) = self.root.search(path, &mut parameters, &self.constraints)? else {
             return Ok(None);
         };
 
@@ -362,12 +346,8 @@ impl<'r> PathRouter<'r> {
             ..
         } = data;
 
-        let Some(data) = map.get(id) else {
-            return Ok(None);
-        };
-
         Ok(Some(PathMatch {
-            data,
+            id: *id,
             route,
             expanded: expanded.as_deref(),
             parameters,
