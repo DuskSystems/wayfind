@@ -1,4 +1,4 @@
-use crate::{map::RouteMap, vec::SortedVec, Request};
+use crate::{vec::SortedVec, Request};
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
 use id::{PathId, PathIdGenerator};
 use node::Node;
@@ -345,7 +345,7 @@ impl<'r> PathRouter<'r> {
     pub(crate) fn search<'p, T>(
         &'r self,
         request: &'p Request<'p>,
-        map: &'r RouteMap<T>,
+        map: &'r HashMap<PathId, T>,
     ) -> Result<Option<PathMatch<'r, 'p, T>>, PathSearchError> {
         let mut parameters = smallvec![];
         let Some((data, _)) =

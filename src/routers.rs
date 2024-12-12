@@ -1,9 +1,9 @@
 use crate::{
     errors::{DeleteError, InsertError, SearchError},
-    map::RouteMap,
     Request, Route,
 };
-use path::{PathParameters, PathRouter};
+use path::{id::PathId, PathParameters, PathRouter};
+use std::collections::HashMap;
 
 pub mod path;
 
@@ -23,7 +23,7 @@ pub struct PathMatch<'r, 'p> {
 #[derive(Clone)]
 pub struct Router<'r, T> {
     pub path: PathRouter<'r>,
-    data: RouteMap<T>,
+    data: HashMap<PathId, T>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -31,7 +31,7 @@ impl<'r, T> Router<'r, T> {
     pub fn new() -> Self {
         Self {
             path: PathRouter::new(),
-            data: RouteMap::default(),
+            data: HashMap::default(),
         }
     }
 
