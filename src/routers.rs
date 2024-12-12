@@ -1,8 +1,9 @@
 use crate::{
+    chain::DataChain,
     errors::{DeleteError, InsertError, SearchError},
     Request, Route,
 };
-use path::{id::PathId, PathParameters, PathRouter};
+use path::{PathParameters, PathRouter};
 use std::collections::HashMap;
 
 pub mod path;
@@ -23,7 +24,7 @@ pub struct PathMatch<'r, 'p> {
 #[derive(Clone)]
 pub struct Router<'r, T> {
     pub path: PathRouter<'r>,
-    data: HashMap<PathId, T>,
+    data: HashMap<DataChain, T>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -37,8 +38,10 @@ impl<'r, T> Router<'r, T> {
 
     #[allow(clippy::missing_errors_doc)]
     pub fn insert(&mut self, route: &Route<'r>, value: T) -> Result<(), InsertError> {
-        let id = self.path.insert(route.route)?;
-        self.data.insert(id, value);
+        let path_id = self.path.insert(route.route)?;
+
+        let chain = DataChain { path: path_id };
+        self.data.insert(chain, value);
 
         Ok(())
     }
@@ -47,8 +50,8 @@ impl<'r, T> Router<'r, T> {
     pub fn delete(&mut self, route: &Route<'r>) -> Result<(), DeleteError> {
         let path_data = self.path.delete(route.route)?;
 
-        let path_id = path_data.id;
-        self.data.remove(&path_id);
+        let chain = DataChain { path: path_data.id };
+        self.data.remove(&chain);
 
         Ok(())
     }
@@ -58,12 +61,17 @@ impl<'r, T> Router<'r, T> {
         &'r self,
         request: &'p Request<'p>,
     ) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
-        let Some(search) = self.path.search(request, &self.data)? else {
+        let Some(search) = self.path.search(request.path.as_ref())? else {
+            return Ok(None);
+        };
+
+        let chain = DataChain { path: search.id };
+        let Some(data) = self.data.get(&chain) else {
             return Ok(None);
         };
 
         Ok(Some(Match {
-            data: search.data,
+            data,
             path: PathMatch {
                 route: search.route,
                 expanded: search.expanded,

@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 
+pub(crate) mod chain;
+
 pub(crate) mod decode;
 
 pub mod errors;
