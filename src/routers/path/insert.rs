@@ -1,9 +1,14 @@
 use super::{
-    Children, DynamicState, EndWildcardState, Node, PathData, State, StaticState, WildcardState,
+    node::Node,
+    state::{DynamicState, EndWildcardState, State, StaticState, WildcardState},
+    PathData,
 };
-use crate::routers::path::{
-    errors::PathInsertError,
-    parser::{ParsedRoute, Part},
+use crate::{
+    routers::path::{
+        errors::PathInsertError,
+        parser::{ParsedRoute, Part},
+    },
+    vec::SortedVec,
 };
 
 impl<'r, S: State> Node<'r, S> {
@@ -67,12 +72,12 @@ impl<'r, S: State> Node<'r, S> {
                     state: StaticState::new(prefix.to_vec()),
                     data: None,
 
-                    static_children: Children::default(),
-                    dynamic_children: Children::default(),
+                    static_children: SortedVec::default(),
+                    dynamic_children: SortedVec::default(),
                     dynamic_children_shortcut: false,
-                    wildcard_children: Children::default(),
+                    wildcard_children: SortedVec::default(),
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: Children::default(),
+                    end_wildcard_children: SortedVec::default(),
 
                     priority: 0,
                     needs_optimization: false,
@@ -124,12 +129,12 @@ impl<'r, S: State> Node<'r, S> {
             state: StaticState::new(prefix[common_prefix..].to_vec()),
             data: None,
 
-            static_children: Children::default(),
-            dynamic_children: Children::default(),
+            static_children: SortedVec::default(),
+            dynamic_children: SortedVec::default(),
             dynamic_children_shortcut: false,
-            wildcard_children: Children::default(),
+            wildcard_children: SortedVec::default(),
             wildcard_children_shortcut: false,
-            end_wildcard_children: Children::default(),
+            end_wildcard_children: SortedVec::default(),
 
             priority: 0,
             needs_optimization: false,
@@ -139,10 +144,10 @@ impl<'r, S: State> Node<'r, S> {
         child.needs_optimization = true;
 
         if prefix[common_prefix..].is_empty() {
-            child.static_children = Children::new(vec![new_child_a]);
+            child.static_children = SortedVec::new(vec![new_child_a]);
             child.insert(route, data)?;
         } else {
-            child.static_children = Children::new(vec![new_child_a, new_child_b]);
+            child.static_children = SortedVec::new(vec![new_child_a, new_child_b]);
             child.static_children[1].insert(route, data)?;
         }
 
@@ -168,12 +173,12 @@ impl<'r, S: State> Node<'r, S> {
                     state: DynamicState::new(name, constraint),
                     data: None,
 
-                    static_children: Children::default(),
-                    dynamic_children: Children::default(),
+                    static_children: SortedVec::default(),
+                    dynamic_children: SortedVec::default(),
                     dynamic_children_shortcut: false,
-                    wildcard_children: Children::default(),
+                    wildcard_children: SortedVec::default(),
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: Children::default(),
+                    end_wildcard_children: SortedVec::default(),
 
                     priority: 0,
                     needs_optimization: false,
@@ -206,12 +211,12 @@ impl<'r, S: State> Node<'r, S> {
                     state: WildcardState::new(name, constraint),
                     data: None,
 
-                    static_children: Children::default(),
-                    dynamic_children: Children::default(),
+                    static_children: SortedVec::default(),
+                    dynamic_children: SortedVec::default(),
                     dynamic_children_shortcut: false,
-                    wildcard_children: Children::default(),
+                    wildcard_children: SortedVec::default(),
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: Children::default(),
+                    end_wildcard_children: SortedVec::default(),
 
                     priority: 0,
                     needs_optimization: false,
@@ -248,12 +253,12 @@ impl<'r, S: State> Node<'r, S> {
             state: EndWildcardState::new(name, constraint),
             data: Some(data),
 
-            static_children: Children::default(),
-            dynamic_children: Children::default(),
+            static_children: SortedVec::default(),
+            dynamic_children: SortedVec::default(),
             dynamic_children_shortcut: false,
-            wildcard_children: Children::default(),
+            wildcard_children: SortedVec::default(),
             wildcard_children_shortcut: false,
-            end_wildcard_children: Children::default(),
+            end_wildcard_children: SortedVec::default(),
 
             priority: 0,
             needs_optimization: false,

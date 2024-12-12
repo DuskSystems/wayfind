@@ -1,4 +1,5 @@
-use super::{Node, State};
+use super::Node;
+use crate::routers::path::state::State;
 use std::fmt::{Display, Write};
 
 impl<S: State> Display for Node<'_, S> {
@@ -35,10 +36,10 @@ impl<S: State> Display for Node<'_, S> {
                 format!("{padding}│  ")
             };
 
-            let mut total_children = node.static_children.nodes.len()
-                + node.dynamic_children.nodes.len()
-                + node.wildcard_children.nodes.len()
-                + node.end_wildcard_children.nodes.len();
+            let mut total_children = node.static_children.len()
+                + node.dynamic_children.len()
+                + node.wildcard_children.len()
+                + node.end_wildcard_children.len();
 
             for child in node.static_children.iter() {
                 total_children -= 1;
@@ -68,10 +69,10 @@ impl<S: State> Display for Node<'_, S> {
 
         // Handle root node manually
         if self.state.key().is_empty() {
-            let total_children = self.static_children.nodes.len()
-                + self.dynamic_children.nodes.len()
-                + self.wildcard_children.nodes.len()
-                + self.end_wildcard_children.nodes.len();
+            let total_children = self.static_children.len()
+                + self.dynamic_children.len()
+                + self.wildcard_children.len()
+                + self.end_wildcard_children.len();
 
             let mut remaining = total_children;
 

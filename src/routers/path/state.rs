@@ -1,12 +1,11 @@
 use std::cmp::Ordering;
 
-pub trait State {
+pub trait State: Ord {
     fn priority(&self) -> usize;
     fn padding(&self) -> usize;
     fn key(&self) -> &str;
 }
 
-/// Root node state
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RootState {
     priority: usize,
@@ -38,7 +37,18 @@ impl State for RootState {
     }
 }
 
-/// Static path segment state
+impl Ord for RootState {
+    fn cmp(&self, _: &Self) -> Ordering {
+        unreachable!()
+    }
+}
+
+impl PartialOrd for RootState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StaticState {
     pub prefix: Vec<u8>,
@@ -88,7 +98,6 @@ impl PartialOrd for StaticState {
     }
 }
 
-/// Dynamic parameter state
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DynamicState {
     pub name: String,
@@ -149,7 +158,6 @@ impl PartialOrd for DynamicState {
     }
 }
 
-/// Wildcard state that can match across path segments
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WildcardState {
     pub name: String,
@@ -210,7 +218,6 @@ impl PartialOrd for WildcardState {
     }
 }
 
-/// End wildcard state that matches remaining path
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EndWildcardState {
     pub name: String,

@@ -1,11 +1,11 @@
-use crate::id::RouteId;
+use crate::routers::path::id::PathId;
 use std::{
     collections::HashMap,
     hash::{BuildHasherDefault, Hasher},
     marker::PhantomData,
 };
 
-pub type RouteMap<V> = HashMap<RouteId, V, BuildHasherDefault<NoHashHasher<RouteId>>>;
+pub type RouteMap<V> = HashMap<PathId, V, BuildHasherDefault<NoHashHasher<PathId>>>;
 
 pub struct NoHashHasher<T>(u64, PhantomData<T>);
 

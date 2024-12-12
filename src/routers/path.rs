@@ -1,8 +1,10 @@
-use crate::{id::RouteId, map::RouteMap, Request, Route};
+use crate::{map::RouteMap, vec::SortedVec, Request};
 use errors::{constraint::PathConstraintError, PathDeleteError, PathInsertError, PathSearchError};
-use node::{state::RootState, Children, Node};
+use id::{PathId, PathIdGenerator};
+use node::Node;
 use parser::{Parser, Part};
 use smallvec::{smallvec, SmallVec};
+use state::RootState;
 use std::{
     any::type_name,
     collections::HashMap,
@@ -12,9 +14,16 @@ use std::{
 };
 
 pub mod constraints;
+pub mod delete;
+pub mod display;
 pub mod errors;
+pub mod id;
+pub mod insert;
 pub mod node;
+pub mod optimize;
 pub mod parser;
+pub mod search;
+pub mod state;
 
 pub use constraints::PathConstraint;
 
@@ -28,7 +37,7 @@ pub struct PathData<'r> {
     pub(crate) expanded: Option<Arc<str>>,
 
     /// The associated data ID.
-    pub(crate) id: RouteId,
+    pub(crate) id: PathId,
 }
 
 /// Stores data from a successful router match.
@@ -65,11 +74,9 @@ pub struct StoredConstraint {
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
 pub struct PathRouter<'r> {
-    /// The root node of the tree.
     root: Node<'r, RootState>,
-
-    /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<&'r str, StoredConstraint>,
+    id: PathIdGenerator,
 }
 
 impl<'r> PathRouter<'r> {
@@ -85,17 +92,18 @@ impl<'r> PathRouter<'r> {
                 state: RootState::new(),
                 data: None,
 
-                static_children: Children::default(),
-                dynamic_children: Children::default(),
+                static_children: SortedVec::default(),
+                dynamic_children: SortedVec::default(),
                 dynamic_children_shortcut: false,
-                wildcard_children: Children::default(),
+                wildcard_children: SortedVec::default(),
                 wildcard_children_shortcut: false,
-                end_wildcard_children: Children::default(),
+                end_wildcard_children: SortedVec::default(),
 
                 priority: 0,
                 needs_optimization: false,
             },
             constraints: HashMap::default(),
+            id: PathIdGenerator::default(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -183,8 +191,8 @@ impl<'r> PathRouter<'r> {
     ///     .unwrap();
     /// router.insert(&route, 1).unwrap();
     /// ```
-    pub(crate) fn insert(&mut self, route: &Route<'r>, id: RouteId) -> Result<(), PathInsertError> {
-        let mut parsed = Parser::new(route.route.as_bytes())?;
+    pub(crate) fn insert(&mut self, route: &'r str) -> Result<PathId, PathInsertError> {
+        let mut parsed = Parser::new(route.as_bytes())?;
         for route in &parsed.routes {
             for part in &route.parts {
                 if let Part::Dynamic {
@@ -205,6 +213,8 @@ impl<'r> PathRouter<'r> {
             }
         }
 
+        let id = self.id.next();
+
         if parsed.routes.len() > 1 {
             let mut errors = vec![];
 
@@ -215,7 +225,7 @@ impl<'r> PathRouter<'r> {
                     &mut parsed_route,
                     PathData {
                         id,
-                        route: route.route,
+                        route,
                         expanded: Some(expanded),
                     },
                 ) {
@@ -239,7 +249,7 @@ impl<'r> PathRouter<'r> {
                 parsed_route,
                 PathData {
                     id,
-                    route: route.route,
+                    route,
                     expanded: None,
                 },
             )?;
@@ -247,7 +257,7 @@ impl<'r> PathRouter<'r> {
 
         self.root.optimize();
 
-        Ok(())
+        Ok(id)
     }
 
     /// Deletes a route from the router.
@@ -273,8 +283,8 @@ impl<'r> PathRouter<'r> {
     /// router.insert(&route, 1).unwrap();
     /// router.delete(&route).unwrap();
     /// ```
-    pub(crate) fn delete(&mut self, route: &Route<'r>) -> Result<PathData<'r>, PathDeleteError> {
-        let mut parsed = Parser::new(route.route.as_bytes())?;
+    pub(crate) fn delete(&mut self, route: &str) -> Result<PathData<'r>, PathDeleteError> {
+        let mut parsed = Parser::new(route.as_bytes())?;
 
         let data = if parsed.routes.len() > 1 {
             let mut data: Option<PathData<'r>> = None;

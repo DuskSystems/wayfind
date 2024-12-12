@@ -4,8 +4,6 @@ pub(crate) mod decode;
 
 pub mod errors;
 
-pub(crate) mod id;
-
 pub(crate) mod map;
 
 pub(crate) mod request;
@@ -17,3 +15,5 @@ pub use route::{Route, RouteBuilder};
 pub(crate) mod routers;
 pub use routers::path::{PathConstraint, PathParameters};
 pub use routers::{Match, PathMatch, Router};
+
+pub(crate) mod vec;

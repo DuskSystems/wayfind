@@ -1,4 +1,4 @@
-use super::{Node, PathData, State};
+use super::{state::State, Node, PathData};
 
 impl<S: State> Node<'_, S> {
     pub(crate) fn optimize(&mut self) {

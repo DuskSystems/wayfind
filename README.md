@@ -324,20 +324,6 @@ Where possible, we try to provide user-friendly error messages.
 use std::error::Error;
 use wayfind::{PathConstraint, Router};
 
-const ERROR_DISPLAY: &str = "
-duplicate constraint name
-
-The constraint name 'my_constraint' is already in use:
-    - existing constraint type: 'rust_out::ConstraintA'
-    - new constraint type: 'rust_out::ConstraintB'
-
-help: each constraint must have a unique name
-
-try:
-    - Check if you have accidentally added the same constraint twice
-    - Ensure different constraints have different names
-";
-
 struct ConstraintA;
 impl PathConstraint for ConstraintA {
     const NAME: &'static str = "my_constraint";
@@ -361,7 +347,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.path.constraint::<ConstraintA>()?;
 
     let error = router.path.constraint::<ConstraintB>().unwrap_err();
-    assert_eq!(error.to_string(), ERROR_DISPLAY.trim());
+    insta::assert_snapshot!(error, @r"
+    duplicate constraint name
+
+    The constraint name 'my_constraint' is already in use:
+        - existing constraint type: 'rust_out::ConstraintA'
+        - new constraint type: 'rust_out::ConstraintB'
+
+    help: each constraint must have a unique name
+
+    try:
+        - Check if you have accidentally added the same constraint twice
+        - Ensure different constraints have different names
+    ");
 
     Ok(())
 }
@@ -380,30 +378,6 @@ Currenty, this doesn't handle split multi-byte characters well.
 ```rust
 use std::error::Error;
 use wayfind::{Router, RouteBuilder};
-
-const ROUTER_DISPLAY: &str = "
-/
-├─ user [*]
-│  ╰─ /
-│     ├─ createWithList [*]
-│     ├─ log
-│     │  ├─ out [*]
-│     │  ╰─ in [*]
-│     ╰─ {username} [*]
-├─ pet [*]
-│  ╰─ /
-│     ├─ findBy
-│     │  ├─ Status [*]
-│     │  ╰─ Tags [*]
-│     ╰─ {petId} [*]
-│        ╰─ /uploadImage [*]
-├─ store/
-│  ├─ inventory [*]
-│  ╰─ order [*]
-│     ╰─ /
-│        ╰─ {orderId} [*]
-╰─ {*catch_all} [*]
-";
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -478,7 +452,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 14)?;
 
-    assert_eq!(router.path.to_string(), ROUTER_DISPLAY.trim());
+    insta::assert_snapshot!(router.path, @r"
+    /
+    ├─ user [*]
+    │  ╰─ /
+    │     ├─ createWithList [*]
+    │     ├─ log
+    │     │  ├─ out [*]
+    │     │  ╰─ in [*]
+    │     ╰─ {username} [*]
+    ├─ pet [*]
+    │  ╰─ /
+    │     ├─ findBy
+    │     │  ├─ Status [*]
+    │     │  ╰─ Tags [*]
+    │     ╰─ {petId} [*]
+    │        ╰─ /uploadImage [*]
+    ├─ store/
+    │  ├─ inventory [*]
+    │  ╰─ order [*]
+    │     ╰─ /
+    │        ╰─ {orderId} [*]
+    ╰─ {*catch_all} [*]
+    ");
+
     Ok(())
 }
 ```
@@ -511,14 +508,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 398.23 ns | 5           | 329 B      | 5             | 329 B        |
-| path-tree        | 579.66 ns | 5           | 480 B      | 5             | 512 B        |
-| matchit          | 582.72 ns | 5           | 480 B      | 5             | 512 B        |
-| xitca-router     | 660.95 ns | 8           | 864 B      | 8             | 896 B        |
-| ntex-router      | 2.2411 µs | 19          | 1.312 KB   | 19            | 1.344 KB     |
-| route-recognizer | 3.2239 µs | 161         | 8.569 KB   | 161           | 8.601 KB     |
-| routefinder      | 6.2734 µs | 68          | 5.088 KB   | 68            | 5.12 KB      |
-| actix-router     | 21.459 µs | 215         | 14 KB      | 215           | 14.03 KB     |
+| wayfind          | 365.01 ns | 5           | 329 B      | 5             | 329 B        |
+| matchit          | 571.88 ns | 5           | 480 B      | 5             | 512 B        |
+| path-tree        | 584.19 ns | 5           | 480 B      | 5             | 512 B        |
+| xitca-router     | 652.85 ns | 8           | 864 B      | 8             | 896 B        |
+| ntex-router      | 2.2440 µs | 19          | 1.312 KB   | 19            | 1.344 KB     |
+| route-recognizer | 3.1765 µs | 161         | 8.569 KB   | 161           | 8.601 KB     |
+| routefinder      | 6.3295 µs | 68          | 5.088 KB   | 68            | 5.12 KB      |
+| actix-router     | 22.663 µs | 215         | 14 KB      | 215           | 14.03 KB     |
 
 #### `path-tree` inspired benches
 
@@ -526,14 +523,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.3596 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
-| path-tree        | 8.6949 µs | 60          | 8.727 KB   | 60            | 8.75 KB      |
-| matchit          | 10.130 µs | 141         | 19.09 KB   | 141           | 19.11 KB     |
-| xitca-router     | 11.984 µs | 210         | 26.79 KB   | 210           | 26.81 KB     |
-| ntex-router      | 36.829 µs | 202         | 20.82 KB   | 202           | 20.84 KB     |
-| route-recognizer | 70.734 µs | 2873        | 192.9 KB   | 2873          | 206.1 KB     |
-| routefinder      | 87.920 µs | 526         | 49.68 KB   | 526           | 49.71 KB     |
-| actix-router     | 189.66 µs | 2202        | 130.1 KB   | 2202          | 130.1 KB     |
+| wayfind          | 5.0882 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
+| path-tree        | 8.6580 µs | 60          | 8.727 KB   | 60            | 8.75 KB      |
+| matchit          | 9.9301 µs | 141         | 19.09 KB   | 141           | 19.11 KB     |
+| xitca-router     | 11.894 µs | 210         | 26.79 KB   | 210           | 26.81 KB     |
+| ntex-router      | 36.102 µs | 202         | 20.82 KB   | 202           | 20.84 KB     |
+| route-recognizer | 69.253 µs | 2873        | 192.9 KB   | 2873          | 206.1 KB     |
+| routefinder      | 87.550 µs | 526         | 49.68 KB   | 526           | 49.71 KB     |
+| actix-router     | 187.20 µs | 2202        | 130.1 KB   | 2202          | 130.1 KB     |
 
 ## License
 

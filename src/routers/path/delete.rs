@@ -1,4 +1,7 @@
-use super::{state::StaticState, Node, PathData, State};
+use super::{
+    state::{State, StaticState},
+    Node, PathData,
+};
 use crate::{
     errors::PathDeleteError,
     routers::path::parser::{ParsedRoute, Part},

@@ -1,6 +1,5 @@
 use crate::{
     errors::{DeleteError, InsertError, SearchError},
-    id::RouteId,
     map::RouteMap,
     Request, Route,
 };
@@ -38,9 +37,7 @@ impl<'r, T> Router<'r, T> {
 
     #[allow(clippy::missing_errors_doc)]
     pub fn insert(&mut self, route: &Route<'r>, value: T) -> Result<(), InsertError> {
-        let id = RouteId::new();
-
-        self.path.insert(route, id)?;
+        let id = self.path.insert(route.route)?;
         self.data.insert(id, value);
 
         Ok(())
@@ -48,7 +45,7 @@ impl<'r, T> Router<'r, T> {
 
     #[allow(clippy::missing_errors_doc)]
     pub fn delete(&mut self, route: &Route<'r>) -> Result<(), DeleteError> {
-        let path_data = self.path.delete(route)?;
+        let path_data = self.path.delete(route.route)?;
 
         let path_id = path_data.id;
         self.data.remove(&path_id);

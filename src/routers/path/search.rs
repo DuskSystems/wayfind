@@ -1,4 +1,4 @@
-use super::{Node, PathData, State};
+use super::{state::State, Node, PathData};
 use crate::{
     errors::{EncodingError, PathSearchError},
     routers::path::{PathParameters, StoredConstraint},
@@ -114,7 +114,7 @@ impl<'r, S: State> Node<'r, S> {
                     continue;
                 };
 
-                if best_match.map_or(true, |(_, best_priority)| priority >= best_priority) {
+                if best_match.is_none_or(|(_, best_priority)| priority >= best_priority) {
                     best_match = Some((data, priority));
                     best_match_parameters = current_parameters;
                 }
@@ -209,7 +209,7 @@ impl<'r, S: State> Node<'r, S> {
                     continue;
                 };
 
-                if best_match.map_or(true, |(_, best_priority)| priority >= best_priority) {
+                if best_match.is_none_or(|(_, best_priority)| priority >= best_priority) {
                     best_match = Some((data, priority));
                     best_match_parameters = current_parameters;
                 }
