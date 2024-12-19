@@ -13,7 +13,9 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /test [*]
+    /test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("/tests").build()?;
@@ -27,7 +29,9 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /test [*]
+    /test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("(/test)").build()?;
@@ -47,12 +51,19 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /test [*]
+    /test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("/test").build()?;
     router.delete(&route)?;
-    insta::assert_snapshot!(router, @"=== Path");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    Empty
+    === Chains
+    Empty
+    ");
 
     Ok(())
 }
@@ -66,8 +77,10 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ test [*]
+    / [1]
+    ╰─ test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("/test").build()?;
@@ -82,8 +95,10 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ test [*]
+    / [1]
+    ╰─ test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("/").build()?;
@@ -98,13 +113,20 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ test [*]
+    / [1]
+    ╰─ test [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("(/test)").build()?;
     router.delete(&route)?;
-    insta::assert_snapshot!(router, @"=== Path");
+    insta::assert_snapshot!(router, @r"
+    === Path
+    Empty
+    === Chains
+    Empty
+    ");
 
     Ok(())
 }
@@ -120,7 +142,9 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {id}
-       ╰─ data [*]
+       ╰─ data [1]
+    === Chains
+    1
     ");
 
     let route = RouteBuilder::new().route("/{id}").build()?;
@@ -136,7 +160,9 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {id}
-       ╰─ data [*]
+       ╰─ data [1]
+    === Chains
+    1
     ");
 
     Ok(())

@@ -15,7 +15,9 @@ fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {name} [*]
+    ╰─ {name} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users/jos%C3%A9").build()?; // "José"
@@ -45,7 +47,9 @@ fn test_encoding_space() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /user files/
-    ╰─ {name} [*]
+    ╰─ {name} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new()
@@ -79,8 +83,11 @@ fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ├─ {name} [*]
-    ╰─ {*path} [*]
+    ├─ {name} [1]
+    ╰─ {*path} [2]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/johndoe").build()?;

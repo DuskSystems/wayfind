@@ -15,10 +15,14 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [1]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [3]
+          ╰─ profile [2]
+    === Chains
+    1
+    2
+    3
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
@@ -27,8 +31,11 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
-       ╰─ /settings [*]
+    ╰─ {id} [1]
+       ╰─ /settings [3]
+    === Chains
+    1
+    3
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
@@ -37,7 +44,9 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [1]
+    === Chains
+    1
     ");
 
     Ok(())
@@ -57,10 +66,14 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id} [*]
+    ╰─ {id} [1]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [3]
+          ╰─ profile [2]
+    === Chains
+    1
+    2
+    3
     ");
 
     let route = RouteBuilder::new().route("/users/{id}").build()?;
@@ -71,8 +84,11 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id}
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ settings [3]
+          ╰─ profile [2]
+    === Chains
+    2
+    3
     ");
 
     Ok(())
@@ -91,9 +107,13 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /a [*]
-    ╰─ b [*]
-       ╰─ c [*]
+    /a [2]
+    ╰─ b [3]
+       ╰─ c [1]
+    === Chains
+    1
+    2
+    3
     ");
 
     let route = RouteBuilder::new().route("/ab").build()?;
@@ -101,8 +121,11 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /a [*]
-    ╰─ bc [*]
+    /a [2]
+    ╰─ bc [1]
+    === Chains
+    1
+    2
     ");
 
     Ok(())

@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 pub(crate) mod chain;
+pub use chain::DataChain;
 
 pub(crate) mod decode;
 

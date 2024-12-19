@@ -11,7 +11,9 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users/{id} [*]
+    /users/{id} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users/{id}").build()?;
@@ -43,7 +45,9 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /(not-optional) [*]
+    /(not-optional) [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/(not-optional)").build()?;
@@ -77,9 +81,11 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ a [*]
-       ╰─ /{param} [*]
+    / [1]
+    ╰─ a [1]
+       ╰─ /{param} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/a/{param}").build()?;

@@ -12,9 +12,11 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ├─ users [*]
+    ├─ users [1]
     ╰─ {lang}
-       ╰─ /users [*]
+       ╰─ /users [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/en/users").build()?;
@@ -57,8 +59,10 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users [*]
-    ╰─ / [*]
+    /users [1]
+    ╰─ / [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -101,10 +105,12 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ a [*]
-       ╰─ /b [*]
-          ╰─ /c [*]
+    / [1]
+    ╰─ a [1]
+       ╰─ /b [1]
+          ╰─ /c [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/a/b/c").build()?;
@@ -175,8 +181,10 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ╰─ test [*]
+    / [1]
+    ╰─ test [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/test").build()?;
@@ -219,15 +227,17 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    / [*]
-    ├─ a [*]
+    / [1]
+    ├─ a [1]
     │  ╰─ /
-    │     ├─ b [*]
-    │     │  ╰─ /c [*]
-    │     ╰─ c [*]
-    ├─ b [*]
-    │  ╰─ /c [*]
-    ╰─ c [*]
+    │     ├─ b [1]
+    │     │  ╰─ /c [1]
+    │     ╰─ c [1]
+    ├─ b [1]
+    │  ╰─ /c [1]
+    ╰─ c [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/a/b/c").build()?;

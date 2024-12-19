@@ -12,7 +12,9 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ╰─ {id} [*]
+    ╰─ {id} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/123").build()?;
@@ -50,11 +52,15 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ╰─ {year} [*]
+    ╰─ {year} [1]
        ╰─ /
-          ╰─ {month} [*]
+          ╰─ {month} [2]
              ╰─ /
-                ╰─ {day} [*]
+                ╰─ {day} [3]
+    === Chains
+    1
+    2
+    3
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -116,11 +122,15 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ╰─ {year} [*]
+    ╰─ {year} [1]
        ╰─ -
-          ╰─ {month} [*]
+          ╰─ {month} [2]
              ╰─ -
-                ╰─ {day} [*]
+                ╰─ {day} [3]
+    === Chains
+    1
+    2
+    3
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -180,7 +190,9 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {file}
        ╰─ .
-          ╰─ {extension} [*]
+          ╰─ {extension} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/report").build()?;
@@ -235,12 +247,17 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ├─ robots.
-    │  ├─ txt [*]
-    │  ╰─ {extension} [*]
+    │  ├─ txt [1]
+    │  ╰─ {extension} [2]
     ╰─ {name}
        ╰─ .
-          ├─ txt [*]
-          ╰─ {extension} [*]
+          ├─ txt [3]
+          ╰─ {extension} [4]
+    === Chains
+    1
+    2
+    3
+    4
     ");
 
     let request = RequestBuilder::new().path("/robots.txt").build()?;

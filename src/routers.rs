@@ -4,7 +4,7 @@ use crate::{
     Request, Route,
 };
 use path::{PathParameters, PathRouter};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub mod path;
 
@@ -24,7 +24,7 @@ pub struct PathMatch<'r, 'p> {
 #[derive(Clone)]
 pub struct Router<'r, T> {
     pub path: PathRouter<'r>,
-    data: HashMap<DataChain, T>,
+    data: BTreeMap<DataChain, T>,
 }
 
 impl<'r, T> Router<'r, T> {
@@ -32,7 +32,7 @@ impl<'r, T> Router<'r, T> {
     pub fn new() -> Self {
         Self {
             path: PathRouter::new(),
-            data: HashMap::default(),
+            data: BTreeMap::default(),
         }
     }
 
@@ -85,8 +85,19 @@ impl<T> std::fmt::Display for Router<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "=== Path")?;
         let path = self.path.to_string();
-        if !path.is_empty() {
+        if path.is_empty() {
+            write!(f, "\nEmpty")?;
+        } else {
             write!(f, "\n{path}")?;
+        }
+
+        write!(f, "\n=== Chains")?;
+        if self.data.is_empty() {
+            write!(f, "\nEmpty")?;
+        } else {
+            for chain in self.data.keys() {
+                write!(f, "\n{chain}")?;
+            }
         }
 
         Ok(())

@@ -74,7 +74,7 @@ fn display_benchmark(criterion: &mut Criterion) {
 
         bencher.iter_batched(
             || router.clone(),
-            |router| router.path.to_string(),
+            |router| router.to_string(),
             BatchSize::SmallInput,
         );
     });

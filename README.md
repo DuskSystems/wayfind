@@ -452,28 +452,44 @@ fn main() -> Result<(), Box<dyn Error>> {
         .build()?;
     router.insert(&route, 14)?;
 
-    insta::assert_snapshot!(router.path, @r"
+    insta::assert_snapshot!(router, @r"
+    === Path
     /
-    ├─ user [*]
+    ├─ user [9]
     │  ╰─ /
-    │     ├─ createWithList [*]
+    │     ├─ createWithList [10]
     │     ├─ log
-    │     │  ├─ out [*]
-    │     │  ╰─ in [*]
-    │     ╰─ {username} [*]
-    ├─ pet [*]
+    │     │  ├─ out [12]
+    │     │  ╰─ in [11]
+    │     ╰─ {username} [13]
+    ├─ pet [1]
     │  ╰─ /
     │     ├─ findBy
-    │     │  ├─ Status [*]
-    │     │  ╰─ Tags [*]
-    │     ╰─ {petId} [*]
-    │        ╰─ /uploadImage [*]
+    │     │  ├─ Status [2]
+    │     │  ╰─ Tags [3]
+    │     ╰─ {petId} [4]
+    │        ╰─ /uploadImage [5]
     ├─ store/
-    │  ├─ inventory [*]
-    │  ╰─ order [*]
+    │  ├─ inventory [6]
+    │  ╰─ order [7]
     │     ╰─ /
-    │        ╰─ {orderId} [*]
-    ╰─ {*catch_all} [*]
+    │        ╰─ {orderId} [8]
+    ╰─ {*catch_all} [14]
+    === Chains
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
     ");
 
     Ok(())
@@ -508,7 +524,7 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 401.83 ns | 5           | 329 B      | 5             | 329 B        |
+| wayfind          | 422.40 ns | 5           | 329 B      | 5             | 329 B        |
 | matchit          | 571.88 ns | 5           | 480 B      | 5             | 512 B        |
 | path-tree        | 584.19 ns | 5           | 480 B      | 5             | 512 B        |
 | xitca-router     | 652.85 ns | 8           | 864 B      | 8             | 896 B        |
@@ -523,7 +539,7 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.8701 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
+| wayfind          | 5.7526 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
 | path-tree        | 8.6580 µs | 60          | 8.727 KB   | 60            | 8.75 KB      |
 | matchit          | 9.9301 µs | 141         | 19.09 KB   | 141           | 19.11 KB     |
 | xitca-router     | 11.894 µs | 210         | 26.79 KB   | 210           | 26.81 KB     |

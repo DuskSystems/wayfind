@@ -51,5 +51,5 @@ fn wayfind_display(bencher: divan::Bencher<'_, '_>) {
 
     bencher
         .with_inputs(|| router.clone())
-        .bench_refs(|router| router.path.to_string());
+        .bench_refs(|router| router.to_string());
 }

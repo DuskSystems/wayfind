@@ -13,7 +13,9 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ /delete [*]
+       ╰─ /delete [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/docs/delete").build()?;
@@ -68,7 +70,9 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     ╰─ {*prefix}
        ╰─ /static/
           ╰─ {*suffix}
-             ╰─ /file [*]
+             ╰─ /file [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/a/static/b/file").build()?;
@@ -115,7 +119,9 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ .html [*]
+       ╰─ .html [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/page.html").build()?;
@@ -165,7 +171,9 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {*first}
        ╰─ -
-          ╰─ {*second} [*]
+          ╰─ {*second} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/a-b-c").build()?;
@@ -215,7 +223,9 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ /end [*]
+       ╰─ /end [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/start/middle/end").build()?;
@@ -268,14 +278,20 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ├─ prefix.
-    │  ╰─ {*suffix} [*]
+    │  ╰─ {*suffix} [4]
     ├─ static/
-    │  ├─ path [*]
-    │  ╰─ {*rest} [*]
+    │  ├─ path [1]
+    │  ╰─ {*rest} [2]
     ├─ {*prefix}
-    │  ╰─ .suffix [*]
+    │  ╰─ .suffix [5]
     ╰─ {*path}
-       ╰─ /static [*]
+       ╰─ /static [3]
+    === Chains
+    1
+    2
+    3
+    4
+    5
     ");
 
     let request = RequestBuilder::new().path("/static/path").build()?;

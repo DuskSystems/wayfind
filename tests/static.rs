@@ -11,7 +11,9 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users [*]
+    /users [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -46,8 +48,11 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /user [*]
-    ╰─ s [*]
+    /user [1]
+    ╰─ s [2]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/user").build()?;
@@ -101,8 +106,11 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /user
-    ├─ /1 [*]
-    ╰─ _1 [*]
+    ├─ /1 [2]
+    ╰─ _1 [1]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/user_1").build()?;
@@ -165,15 +173,22 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     === Path
     /�
     ├─ �‍👩‍�
-    │  ├─ � [*]
-    │  ╰─ � [*]
+    │  ├─ � [4]
+    │  ╰─ � [3]
     ╰─ �‍�
        ├─ �‍�
-       │  ├─ � [*]
-       │  ╰─ � [*]
+       │  ├─ � [6]
+       │  ╰─ � [5]
        ╰─ �‍�
-          ├─ � [*]
-          ╰─ � [*]
+          ├─ � [2]
+          ╰─ � [1]
+    === Chains
+    1
+    2
+    3
+    4
+    5
+    6
     ");
 
     let request = RequestBuilder::new().path("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
@@ -235,8 +250,11 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /
-    ├─ Users [*]
-    ╰─ users [*]
+    ├─ Users [2]
+    ╰─ users [1]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -279,7 +297,9 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users /items [*]
+    /users /items [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users /items").build()?;
@@ -315,8 +335,11 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ├─ /items [*]
-    ╰─ items [*]
+    ├─ /items [2]
+    ╰─ items [1]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/users/items").build()?;
@@ -359,7 +382,9 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     === Path
-    /users///items [*]
+    /users///items [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users///items").build()?;

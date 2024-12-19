@@ -25,7 +25,9 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {id:name} [*]
+    ╰─ {id:name} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users/john123").build()?;
@@ -60,7 +62,9 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ╰─ {*path:name} [*]
+    ╰─ {*path:name} [1]
+    === Chains
+    1
     ");
 
     let request = RequestBuilder::new().path("/users/john/doe123").build()?;
@@ -148,8 +152,11 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ├─ {id:u32} [*]
-    ╰─ {id} [*]
+    ├─ {id:u32} [2]
+    ╰─ {id} [1]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/users/abc").build()?;
@@ -197,8 +204,11 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     === Path
     /users/
-    ├─ {id:name} [*]
-    ╰─ {id:u32} [*]
+    ├─ {id:name} [2]
+    ╰─ {id:u32} [1]
+    === Chains
+    1
+    2
     ");
 
     let request = RequestBuilder::new().path("/users/123").build()?;
