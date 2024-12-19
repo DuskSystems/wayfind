@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
@@ -15,8 +15,10 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     ├─ users [1]
     ╰─ {lang}
        ╰─ /users [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/en/users").build()?;
@@ -30,6 +32,7 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/{lang}/users"),
                 parameters: smallvec![("lang", "en")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -44,6 +47,7 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/users"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -61,8 +65,10 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     === Path
     /users [1]
     ╰─ / [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -76,6 +82,7 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/users"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -90,6 +97,7 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/users/"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -109,8 +117,10 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     ╰─ a [1]
        ╰─ /b [1]
           ╰─ /c [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/a/b/c").build()?;
@@ -124,6 +134,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/b/c"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -138,6 +149,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/b"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -152,6 +164,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -166,6 +179,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -183,8 +197,10 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     === Path
     / [1]
     ╰─ test [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/test").build()?;
@@ -198,6 +214,7 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/test"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -212,6 +229,7 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -236,8 +254,10 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     ├─ b [1]
     │  ╰─ /c [1]
     ╰─ c [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/a/b/c").build()?;
@@ -251,6 +271,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/b/c"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -265,6 +286,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/b"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -279,6 +301,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a/c"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -293,6 +316,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/a"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -307,6 +331,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/b/c"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -321,6 +346,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/b"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -335,6 +361,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/c"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -349,6 +376,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 expanded: Some("/"),
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 

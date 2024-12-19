@@ -1,4 +1,4 @@
-use super::{state::State, Node, PathData};
+use super::{node::Node, state::State, PathData};
 use crate::{
     errors::{EncodingError, PathSearchError},
     routers::path::{PathParameters, StoredConstraint},
