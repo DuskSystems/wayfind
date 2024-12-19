@@ -31,6 +31,8 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 9)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     / [1]
     ├─ api/v1 [7]
@@ -53,16 +55,18 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     │           ╰─ -
     │              ╰─ {day} [5]
     ╰─ {*catch_all} [9]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
+    *-5-*
+    *-6-*
+    *-7-*
+    *-8-*
+    *-9-*
     ");
 
     Ok(())

@@ -453,6 +453,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 14)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ user [9]
@@ -475,21 +477,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     │     ╰─ /
     │        ╰─ {orderId} [8]
     ╰─ {*catch_all} [14]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
-    9
-    10
-    11
-    12
-    13
-    14
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
+    *-5-*
+    *-6-*
+    *-7-*
+    *-8-*
+    *-9-*
+    *-10-*
+    *-11-*
+    *-12-*
+    *-13-*
+    *-14-*
     ");
 
     Ok(())
@@ -524,14 +528,14 @@ In a router of 130 routes, benchmark matching 4 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 422.40 ns | 5           | 329 B      | 5             | 329 B        |
-| matchit          | 571.88 ns | 5           | 480 B      | 5             | 512 B        |
-| path-tree        | 584.19 ns | 5           | 480 B      | 5             | 512 B        |
-| xitca-router     | 652.85 ns | 8           | 864 B      | 8             | 896 B        |
-| ntex-router      | 2.2440 µs | 19          | 1.312 KB   | 19            | 1.344 KB     |
-| route-recognizer | 3.1765 µs | 161         | 8.569 KB   | 161           | 8.601 KB     |
-| routefinder      | 6.3295 µs | 68          | 5.088 KB   | 68            | 5.12 KB      |
-| actix-router     | 22.663 µs | 215         | 14 KB      | 215           | 14.03 KB     |
+| wayfind          | 450.39 ns | 4           | 265 B      | 4             | 265 B        |
+| matchit          | 559.16 ns | 4           | 416 B      | 4             | 448 B        |
+| path-tree        | 570.10 ns | 4           | 416 B      | 4             | 448 B        |
+| xitca-router     | 650.12 ns | 7           | 800 B      | 7             | 832 B        |
+| ntex-router      | 2.2439 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
+| route-recognizer | 3.1662 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
+| routefinder      | 6.2237 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
+| actix-router     | 21.072 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
 
 #### `path-tree` inspired benches
 
@@ -539,14 +543,14 @@ In a router of 320 routes, benchmark matching 80 paths.
 
 | Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
 |:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.7526 µs | 60          | 3.847 KB   | 60            | 3.847 KB     |
-| path-tree        | 8.6580 µs | 60          | 8.727 KB   | 60            | 8.75 KB      |
-| matchit          | 9.9301 µs | 141         | 19.09 KB   | 141           | 19.11 KB     |
-| xitca-router     | 11.894 µs | 210         | 26.79 KB   | 210           | 26.81 KB     |
-| ntex-router      | 36.102 µs | 202         | 20.82 KB   | 202           | 20.84 KB     |
-| route-recognizer | 69.253 µs | 2873        | 192.9 KB   | 2873          | 206.1 KB     |
-| routefinder      | 87.550 µs | 526         | 49.68 KB   | 526           | 49.71 KB     |
-| actix-router     | 187.20 µs | 2202        | 130.1 KB   | 2202          | 130.1 KB     |
+| wayfind          | 6.2827 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
+| path-tree        | 8.5983 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
+| matchit          | 9.8800 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
+| xitca-router     | 11.930 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
+| ntex-router      | 35.919 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
+| route-recognizer | 69.604 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
+| routefinder      | 87.659 µs | 525         | 48.40 KB   | 525           | 48.43 KB     |
+| actix-router     | 187.49 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
 
 ## License
 

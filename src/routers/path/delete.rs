@@ -1,6 +1,7 @@
 use super::{
+    node::Node,
     state::{State, StaticState},
-    Node, PathData,
+    PathData,
 };
 use crate::{
     errors::PathDeleteError,

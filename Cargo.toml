@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/workspaces.html
 [workspace]
 resolver = "2"
-members = [".", "examples/*", "fuzz"]
+members = [".", "crates/*", "examples/*", "fuzz"]
 
 [workspace.package]
 version = "0.7.0"
@@ -60,10 +60,12 @@ name = "wayfind"
 description = "A speedy, flexible router."
 include = [
   "/benches",
+  "/crates",
   "/examples",
   "/fuzz",
   "/src",
   "/tests",
+  "/ARCHITECTURE.md",
   "/CHANGELOG.md",
   "/LICENSE-APACHE",
   "/LICENSE-MIT",
@@ -87,6 +89,8 @@ workspace = true
 smallvec = { version = "1.13", features = ["const_generics", "union"] }
 
 [dev-dependencies]
+wayfind-rails-macro = { path = "crates/rails-macro" }
+
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.
 insta = "=1.41.1"
@@ -94,6 +98,13 @@ similar-asserts = "1.6"
 
 # Encoding
 percent-encoding = "2.3"
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Regex
+fancy-regex = "0.14"
 
 # Benchmarking
 divan = "0.1"

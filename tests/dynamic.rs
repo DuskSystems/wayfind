@@ -1,6 +1,6 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
@@ -10,11 +10,15 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {id} [1]
+    === Method
+    Empty
     === Chains
-    1
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/123").build()?;
@@ -28,6 +32,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -50,6 +55,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {year} [1]
@@ -57,10 +64,12 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
           ╰─ {month} [2]
              ╰─ /
                 ╰─ {day} [3]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
+    *-1-*
+    *-2-*
+    *-3-*
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -74,6 +83,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -88,6 +98,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -102,6 +113,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -120,6 +132,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {year} [1]
@@ -127,10 +141,12 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
           ╰─ {month} [2]
              ╰─ -
                 ╰─ {day} [3]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
+    *-1-*
+    *-2-*
+    *-3-*
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -144,6 +160,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -158,6 +175,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -172,6 +190,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -186,13 +205,17 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {file}
        ╰─ .
           ╰─ {extension} [1]
+    === Method
+    Empty
     === Chains
-    1
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/report").build()?;
@@ -210,6 +233,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("file", "report"), ("extension", "pdf")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -224,6 +248,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -244,6 +269,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 4)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ robots.
@@ -253,11 +280,13 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
        ╰─ .
           ├─ txt [3]
           ╰─ {extension} [4]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
-    4
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
     ");
 
     let request = RequestBuilder::new().path("/robots.txt").build()?;
@@ -271,6 +300,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -285,6 +315,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("extension", "pdf")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -299,6 +330,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("name", "config")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -313,6 +345,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("name", "config"), ("extension", "pdf")],
             },
+            method: MethodMatch { method: None }
         })
     );
 

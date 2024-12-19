@@ -1,181 +1,154 @@
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{
-    errors::{EncodingError, PathSearchError, RequestError, RouteError, SearchError},
-    Match, PathMatch, RequestBuilder, RouteBuilder, Router,
-};
+use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
-fn test_encoding_decoding() -> Result<(), Box<dyn Error>> {
+fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RouteBuilder::new().route("/users/{name}").build()?;
+    let route = RouteBuilder::new().route(r"/users/\{id\}").build()?; // "/users/{id}"
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
-    /users/
-    ╰─ {name} [1]
+    /users/{id} [1]
+    === Method
+    Empty
     === Chains
-    1
+    *-1-*
     ");
 
-    let request = RequestBuilder::new().path("/users/jos%C3%A9").build()?; // "José"
+    let request = RequestBuilder::new().path("/users/{id}").build()?;
     let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
             data: &1,
             path: PathMatch {
-                route: "/users/{name}",
+                route: r"/users/\{id\}",
                 expanded: None,
-                parameters: smallvec![("name", "josé")],
+                parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
+    let request = RequestBuilder::new().path("/users/123").build()?;
+    let search = router.search(&request)?;
+    assert_eq!(search, None);
 
     Ok(())
 }
 
 #[test]
-fn test_encoding_space() -> Result<(), Box<dyn Error>> {
+fn test_escape_group() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RouteBuilder::new().route("/user files/{name}").build()?;
+    let route = RouteBuilder::new().route(r"/\(not-optional\)").build()?; // "/(not-optional)"
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
-    /user files/
-    ╰─ {name} [1]
+    /(not-optional) [1]
+    === Method
+    Empty
     === Chains
-    1
+    *-1-*
     ");
 
-    let request = RequestBuilder::new()
-        .path("/user%20files/document%20name")
-        .build()?; // "/user files/document name"
+    let request = RequestBuilder::new().path("/(not-optional)").build()?;
     let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
             data: &1,
             path: PathMatch {
-                route: "/user files/{name}",
+                route: r"/\(not-optional\)",
                 expanded: None,
-                parameters: smallvec![("name", "document name")],
+                parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
+
+    let request = RequestBuilder::new().path("/optional").build()?;
+    let search = router.search(&request)?;
+    assert_eq!(search, None);
 
     Ok(())
 }
 
+// FIXME: We're missing parser tests for this.
 #[test]
-fn test_encoding_slash() -> Result<(), Box<dyn Error>> {
+fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
-    let route = RouteBuilder::new().route("/{name}").build()?;
+    let route = RouteBuilder::new().route(r"(/a(/\{param\}))").build()?; // "(/a(/{param}))"
     router.insert(&route, 1)?;
-    let route = RouteBuilder::new().route("/{*path}").build()?;
-    router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
-    /
-    ├─ {name} [1]
-    ╰─ {*path} [2]
+    / [1]
+    ╰─ a [1]
+       ╰─ /{param} [1]
+    === Method
+    Empty
     === Chains
-    1
-    2
+    *-1-*
     ");
 
-    let request = RequestBuilder::new().path("/johndoe").build()?;
+    let request = RequestBuilder::new().path("/a/{param}").build()?;
     let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
             data: &1,
             path: PathMatch {
-                route: "/{name}",
-                expanded: None,
-                parameters: smallvec![("name", "johndoe")],
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/a/\\{param\\}"),
+                parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
-    let request = RequestBuilder::new().path("/john%2Fdoe").build()?; // "john/doe"
+    let request = RequestBuilder::new().path("/a/value").build()?;
+    let search = router.search(&request)?;
+    assert_eq!(search, None);
+
+    let request = RequestBuilder::new().path("/a").build()?;
     let search = router.search(&request)?;
     assert_eq!(
         search,
         Some(Match {
-            data: &2,
+            data: &1,
             path: PathMatch {
-                route: "/{*path}",
-                expanded: None,
-                parameters: smallvec![("path", "john/doe")],
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/a"),
+                parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
-    Ok(())
-}
-
-#[test]
-fn test_encoding_invalid_path() {
-    let request = RequestBuilder::new().path("/users/%GG").build();
-    assert_eq!(
-        request,
-        Err(RequestError::Encoding(EncodingError::InvalidEncoding {
-            input: "/users/%GG".to_owned(),
-            position: 7,
-            character: *b"%GG"
-        }))
-    );
-}
-
-#[test]
-fn test_encoding_invalid_parameter() {
-    let route = RouteBuilder::new().route("/users/{%GG}").build();
-    assert_eq!(
-        route,
-        Err(RouteError::Encoding(EncodingError::InvalidEncoding {
-            input: "/users/{%GG}".to_owned(),
-            position: 8,
-            character: *b"%GG"
-        }))
-    );
-}
-
-#[test]
-fn test_encoding_invalid_constraint() {
-    let route = RouteBuilder::new().route("/users/{id:%GG}").build();
-    assert_eq!(
-        route,
-        Err(RouteError::Encoding(EncodingError::InvalidEncoding {
-            input: "/users/{id:%GG}".to_owned(),
-            position: 11,
-            character: *b"%GG"
-        }))
-    );
-}
-
-#[test]
-fn test_encoding_invalid_value() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/files/{name}").build()?;
-    router.insert(&route, 1)?;
-
-    let request = RequestBuilder::new().path("/files/my%80file").build()?;
-    let search = router.search(&request);
+    let request = RequestBuilder::new().path("/").build()?;
+    let search = router.search(&request)?;
     assert_eq!(
         search,
-        Err(SearchError::Path(PathSearchError::EncodingError(
-            EncodingError::Utf8Error {
-                input: "my�file".to_owned()
-            }
-        )))
+        Some(Match {
+            data: &1,
+            path: PathMatch {
+                route: r"(/a(/\{param\}))",
+                expanded: Some("/"),
+                parameters: smallvec![],
+            },
+            method: MethodMatch { method: None }
+        })
     );
 
     Ok(())
