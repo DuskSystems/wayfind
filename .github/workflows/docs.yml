@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#docs --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: docs
+          shell: ci
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build docs
