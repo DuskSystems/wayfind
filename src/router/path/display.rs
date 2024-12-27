@@ -1,4 +1,4 @@
-use crate::routers::path::{node::Node, state::State};
+use crate::router::path::{node::Node, state::State};
 use std::fmt::{Display, Write};
 
 impl<S: State> Display for Node<'_, S> {

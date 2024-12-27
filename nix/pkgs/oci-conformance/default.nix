@@ -3,8 +3,9 @@
   buildGoModule,
   fetchFromGitHub,
 }:
+
 buildGoModule rec {
-  pname = "oci-distribution-spec-conformance";
+  pname = "oci-conformance";
   version = "1.1.0";
 
   src = fetchFromGitHub {
@@ -20,9 +21,9 @@ buildGoModule rec {
   CGO_ENABLED = 0;
 
   postInstall = ''
-    go test -c ./... -o oci-distribution-spec-conformance
+    go test -c ./... -o oci-conformance
     mkdir -p $out/bin
-    mv oci-distribution-spec-conformance $out/bin
+    mv oci-conformance $out/bin
   '';
 
   doCheck = false;
@@ -33,6 +34,6 @@ buildGoModule rec {
     changelog = "https://github.com/opencontainers/distribution-spec/releases";
     license = licenses.asl20;
     platforms = platforms.all;
-    mainProgram = "oci-distribution-spec-conformance";
+    mainProgram = "oci-conformance";
   };
 }

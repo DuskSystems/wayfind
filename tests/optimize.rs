@@ -19,10 +19,12 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
        ╰─ /
           ├─ settings [3]
           ╰─ profile [2]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
+    1-*
+    2-*
+    3-*
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
@@ -33,9 +35,11 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id} [1]
        ╰─ /settings [3]
+    === Method
+    Empty
     === Chains
-    1
-    3
+    1-*
+    3-*
     ");
 
     let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
@@ -45,8 +49,10 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     === Path
     /users/
     ╰─ {id} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     Ok(())
@@ -70,10 +76,12 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
        ╰─ /
           ├─ settings [3]
           ╰─ profile [2]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
+    1-*
+    2-*
+    3-*
     ");
 
     let route = RouteBuilder::new().route("/users/{id}").build()?;
@@ -86,9 +94,11 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
        ╰─ /
           ├─ settings [3]
           ╰─ profile [2]
+    === Method
+    Empty
     === Chains
-    2
-    3
+    2-*
+    3-*
     ");
 
     Ok(())
@@ -110,10 +120,12 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     /a [2]
     ╰─ b [3]
        ╰─ c [1]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
+    1-*
+    2-*
+    3-*
     ");
 
     let route = RouteBuilder::new().route("/ab").build()?;
@@ -123,9 +135,11 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     === Path
     /a [2]
     ╰─ bc [1]
+    === Method
+    Empty
     === Chains
-    1
-    2
+    1-*
+    2-*
     ");
 
     Ok(())

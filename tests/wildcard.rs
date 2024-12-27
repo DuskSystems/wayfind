@@ -1,6 +1,7 @@
+use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
 
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
@@ -14,8 +15,10 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {*path}
        ╰─ /delete [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/docs/delete").build()?;
@@ -29,6 +32,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "docs")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -45,6 +49,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "nested/docs/folder")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -71,8 +76,10 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
        ╰─ /static/
           ╰─ {*suffix}
              ╰─ /file [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/a/static/b/file").build()?;
@@ -86,6 +93,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("prefix", "a"), ("suffix", "b")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -102,6 +110,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -120,8 +129,10 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {*path}
        ╰─ .html [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/page.html").build()?;
@@ -135,6 +146,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "page")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -149,6 +161,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "nested/page")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -172,8 +185,10 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     ╰─ {*first}
        ╰─ -
           ╰─ {*second} [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/a-b-c").build()?;
@@ -187,6 +202,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("first", "a-b"), ("second", "c")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -206,6 +222,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
                     ("second", "hyphens")
                 ],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -224,8 +241,10 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {*path}
        ╰─ /end [1]
+    === Method
+    Empty
     === Chains
-    1
+    1-*
     ");
 
     let request = RequestBuilder::new().path("/start/middle/end").build()?;
@@ -239,6 +258,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "start/middle")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -253,6 +273,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "start//middle//")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -286,12 +307,14 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     │  ╰─ .suffix [5]
     ╰─ {*path}
        ╰─ /static [3]
+    === Method
+    Empty
     === Chains
-    1
-    2
-    3
-    4
-    5
+    1-*
+    2-*
+    3-*
+    4-*
+    5-*
     ");
 
     let request = RequestBuilder::new().path("/static/path").build()?;
@@ -305,6 +328,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -321,6 +345,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("rest", "some/nested/path")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -337,6 +362,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("path", "some/nested/path")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -353,6 +379,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("suffix", "some/nested/path")],
             },
+            method: MethodMatch { method: None }
         })
     );
 
@@ -369,6 +396,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 expanded: None,
                 parameters: smallvec![("prefix", "some/nested/path")],
             },
+            method: MethodMatch { method: None }
         })
     );
 

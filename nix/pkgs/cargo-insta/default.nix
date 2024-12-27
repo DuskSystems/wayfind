@@ -1,9 +1,10 @@
 {
   lib,
-  craneLib,
+  rustPlatform,
   fetchCrate,
 }:
-craneLib.buildPackage rec {
+
+rustPlatform.buildRustPackage rec {
   pname = "cargo-insta";
 
   # NOTE: Keep in sync with `cargo-insta` Rust package.
@@ -14,9 +15,7 @@ craneLib.buildPackage rec {
     hash = "sha256-BeY3O28+tgFyCONItA8m/Ghf+OaqbbtYgbUeQwP/4NY=";
   };
 
-  env = {
-    CARGO_PROFILE_RELEASE_STRIP = "none";
-  };
+  cargoHash = "sha256-7bz37Ya1DFLgIBWUOb73ni5T5pPxJX4IoLzSqIB0pLY=";
 
   doCheck = false;
 

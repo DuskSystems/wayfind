@@ -4,23 +4,34 @@ use crate::{decode::percent_decode, errors::RouteError};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Route<'r> {
     pub(crate) route: &'r str,
+    pub(crate) methods: Option<Vec<&'r str>>,
 }
 
 /// Builder pattern for creating a [`Route`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RouteBuilder<'r> {
     route: Option<&'r str>,
+    methods: Option<Vec<&'r str>>,
 }
 
 impl<'r> RouteBuilder<'r> {
     #[must_use]
     pub const fn new() -> Self {
-        Self { route: None }
+        Self {
+            route: None,
+            methods: None,
+        }
     }
 
     #[must_use]
     pub const fn route(mut self, route: &'r str) -> Self {
         self.route = Some(route);
+        self
+    }
+
+    #[must_use]
+    pub fn methods(mut self, methods: Vec<&'r str>) -> Self {
+        self.methods = Some(methods);
         self
     }
 
@@ -40,6 +51,9 @@ impl<'r> RouteBuilder<'r> {
             })?;
         }
 
-        Ok(Route { route })
+        Ok(Route {
+            route,
+            methods: self.methods,
+        })
     }
 }

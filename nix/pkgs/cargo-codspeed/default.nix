@@ -1,13 +1,12 @@
 {
   lib,
-  stdenv,
-  craneLib,
+  rustPlatform,
   fetchCrate,
   pkg-config,
   openssl,
-  darwin,
 }:
-craneLib.buildPackage rec {
+
+rustPlatform.buildRustPackage rec {
   pname = "cargo-codspeed";
 
   # NOTE: Keep in sync with `codspeed-criterion-compat` Rust package.
@@ -18,17 +17,10 @@ craneLib.buildPackage rec {
     hash = "sha256-BtuY3reG5BMMlas1PYtaxPygbK2dptVRnYG/JRRev3c=";
   };
 
-  env = {
-    CARGO_PROFILE_RELEASE_STRIP = "none";
-  };
+  cargoHash = "sha256-vioMkv0496s0zVdvi9/aQxtIsk6awXWxLyjTUBJSYhg=";
 
   nativeBuildInputs = [ pkg-config ];
-  buildInputs =
-    [ openssl ]
-    ++ lib.optionals stdenv.isDarwin [
-      darwin.apple_sdk.frameworks.SystemConfiguration
-      darwin.apple_sdk.frameworks.CoreServices
-    ];
+  buildInputs = [ openssl ];
 
   doCheck = false;
 

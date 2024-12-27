@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#checks --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: checks
+          shell: ci
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run checks
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#benchmarks --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: benchmarks
+          shell: ci
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build benchmarks
@@ -69,7 +69,7 @@ jobs:
       - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
         with:
-          shell: nix develop .#benchmarks --command bash {0}
+          shell: nix develop .#ci --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
 
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#coverage --command bash {0}
+        shell: nix develop .#nightly --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: coverage
+          shell: nightly
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Generate coverage
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#wasm --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -134,17 +134,17 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: wasm
+          shell: ci
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
-        run: cargo build
+        run: cargo build --target wasm32-unknown-unknown
 
   oci:
     runs-on: ubuntu-24.04
     defaults:
       run:
-        shell: nix develop .#oci --command bash {0}
+        shell: nix develop .#ci --command bash {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -154,7 +154,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
         with:
-          shell: oci
+          shell: ci
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run OCI tests
@@ -165,7 +165,7 @@ jobs:
           cargo run &
           PID="${!}"
           sleep 3
-          oci-distribution-spec-conformance
+          oci-conformance
           kill "${PID}"
 
       - name: Upload test results to Codecov

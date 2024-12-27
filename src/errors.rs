@@ -20,6 +20,8 @@ pub use route::RouteError;
 pub(crate) mod search;
 pub use search::SearchError;
 
-pub use crate::routers::path::errors::{
+pub use crate::router::path::errors::{
     PathConstraintError, PathDeleteError, PathInsertError, PathRouteError, PathSearchError,
 };
+
+pub use crate::router::method::errors::{MethodDeleteError, MethodInsertError, MethodSearchError};
