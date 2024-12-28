@@ -26,33 +26,63 @@ pub enum RouteError {
     /// ```
     MissingRoute,
 
-    /// The route provided was percent-encoded.
+    /// The authority provided was percent-encoded.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::RouteError;
     ///
-    /// let error = RouteError::EncodedRoute {
+    /// let error = RouteError::EncodedAuthority {
+    ///     input: "ドメイン名例".to_string(),
+    ///     decoded: "eckwd4c7cu47r2wf".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// encoded authority
+    ///
+    ///      Input: ドメイン名例
+    ///    Decoded: eckwd4c7cu47r2wf
+    ///
+    /// The router expects authorities to be in their decoded form
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    EncodedAuthority {
+        /// The original encoded input authority.
+        input: String,
+        /// The decoded version of the authority.
+        decoded: String,
+    },
+
+    /// The path provided was percent-encoded.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::RouteError;
+    ///
+    /// let error = RouteError::EncodedPath {
     ///     input: "/hello%20world".to_string(),
     ///     decoded: "/hello world".to_string(),
     /// };
     ///
     /// let display = "
-    /// encoded route
+    /// encoded path
     ///
     ///      Input: /hello%20world
     ///    Decoded: /hello world
     ///
-    /// The router expects routes to be in their decoded form
+    /// The router expects paths to be in their decoded form
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    EncodedRoute {
-        /// The original encoded input route.
+    EncodedPath {
+        /// The original encoded input path.
         input: String,
-        /// The decoded version of the route.
+        /// The decoded version of the path.
         decoded: String,
     },
 }
@@ -63,22 +93,29 @@ impl Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
-
             Self::MissingRoute => write!(
                 f,
                 r"missing route
 
 A route must be provided when building a Route"
             ),
-
-            Self::EncodedRoute { input, decoded } => write!(
+            Self::EncodedAuthority { input, decoded } => write!(
                 f,
-                r"encoded route
+                r"encoded authority
 
      Input: {input}
    Decoded: {decoded}
 
-The router expects routes to be in their decoded form"
+The router expects authorities to be in their decoded form"
+            ),
+            Self::EncodedPath { input, decoded } => write!(
+                f,
+                r"encoded path
+
+     Input: {input}
+   Decoded: {decoded}
+
+The router expects paths to be in their decoded form"
             ),
         }
     }

@@ -1,8 +1,8 @@
 use similar_asserts::assert_eq;
 use std::error::Error;
 use wayfind::{
-    errors::{InsertError, PathConstraintError, PathInsertError, PathRouteError},
-    DataChain, MethodId, PathConstraint, PathId, RouteBuilder, Router,
+    errors::{InsertError, PathConstraintError, PathInsertError, PathTemplateError},
+    AuthorityId, DataChain, MethodId, PathConstraint, PathId, RouteBuilder, Router,
 };
 
 #[test]
@@ -18,6 +18,7 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
@@ -30,6 +31,7 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
@@ -37,12 +39,14 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /test [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     Ok(())
@@ -61,6 +65,7 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
@@ -73,19 +78,20 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
         })
     );
 
-    // FIXME: Wrong ID returned here.
     let route = RouteBuilder::new().route("(/best)").build()?;
     let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
@@ -93,13 +99,15 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     / [1]
     ╰─ test [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     Ok(())
@@ -118,21 +126,24 @@ fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
         })
     );
 
-    insta::assert_snapshot!(router, @r###"
+    insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     / [1]
     ╰─ hello [1]
     === Method
     Empty
     === Chains
-    1-*
-    "###);
+    *-1-*
+    ");
 
     Ok(())
 }
@@ -151,6 +162,7 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
         insert,
         Err(InsertError::Conflict {
             chain: DataChain {
+                authority: AuthorityId(None),
                 path: PathId(1),
                 method: MethodId(None),
             }
@@ -158,13 +170,15 @@ fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     / [1]
     ╰─ {*catch_all} [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     Ok(())
@@ -190,6 +204,8 @@ fn test_insert_overlapping() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ x/y [2]
@@ -198,8 +214,8 @@ fn test_insert_overlapping() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     Ok(())
@@ -216,8 +232,8 @@ fn test_insert_duplicate_parameter() {
     let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
-        Err(InsertError::Path(PathInsertError::PathRouteError(
-            PathRouteError::DuplicateParameter {
+        Err(InsertError::Path(PathInsertError::TemplateError(
+            PathTemplateError::DuplicateParameter {
                 route: "/{*id}/users/{id}".to_owned(),
                 name: "id".to_owned(),
                 first: 1,
@@ -229,6 +245,8 @@ fn test_insert_duplicate_parameter() {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     Empty
     === Method

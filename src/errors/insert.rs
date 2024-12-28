@@ -1,12 +1,11 @@
-use crate::{
-    chain::DataChain,
-    router::{method::errors::MethodInsertError, path::errors::PathInsertError},
-};
+use super::{AuthorityInsertError, MethodInsertError, PathInsertError};
+use crate::chain::DataChain;
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
+    Authority(AuthorityInsertError),
     Path(PathInsertError),
     Method(MethodInsertError),
     Conflict { chain: DataChain },
@@ -17,6 +16,7 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Authority(error) => error.fmt(f),
             Self::Path(error) => error.fmt(f),
             Self::Method(error) => error.fmt(f),
             Self::Conflict { chain } => write!(
@@ -26,6 +26,12 @@ impl Display for InsertError {
     Chain: {chain:?}"
             ),
         }
+    }
+}
+
+impl From<AuthorityInsertError> for InsertError {
+    fn from(error: AuthorityInsertError) -> Self {
+        Self::Authority(error)
     }
 }
 

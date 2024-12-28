@@ -7,8 +7,8 @@ pub use delete::PathDeleteError;
 pub mod insert;
 pub use insert::PathInsertError;
 
-pub mod route;
-pub use route::PathRouteError;
-
 pub mod search;
 pub use search::PathSearchError;
+
+pub mod template;
+pub use template::PathTemplateError;

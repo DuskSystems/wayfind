@@ -1,7 +1,9 @@
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{
+    AuthorityMatch, Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
+};
 
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
@@ -11,12 +13,14 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/{id} [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users/{id}").build()?;
@@ -25,6 +29,10 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: r"/users/\{id\}",
                 expanded: None,
@@ -48,12 +56,14 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /(not-optional) [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/(not-optional)").build()?;
@@ -62,6 +72,10 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: r"/\(not-optional\)",
                 expanded: None,
@@ -86,6 +100,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     / [1]
     ╰─ a [1]
@@ -93,7 +109,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/a/{param}").build()?;
@@ -102,6 +118,10 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: r"(/a(/\{param\}))",
                 expanded: Some("/a/\\{param\\}"),
@@ -121,6 +141,10 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: r"(/a(/\{param\}))",
                 expanded: Some("/a"),
@@ -136,6 +160,10 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: r"(/a(/\{param\}))",
                 expanded: Some("/"),

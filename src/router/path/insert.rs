@@ -4,14 +4,14 @@ use super::{
     PathData,
 };
 use crate::{
-    router::path::parser::{ParsedRoute, Part},
+    router::path::parser::{ParsedTemplate, Part},
     vec::SortedVec,
 };
 
 impl<'r, S: State> Node<'r, S> {
     /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    pub fn insert(&mut self, route: &mut ParsedRoute, data: PathData<'r>) {
+    pub fn insert(&mut self, route: &mut ParsedTemplate, data: PathData<'r>) {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(route, data, &prefix),
@@ -37,7 +37,7 @@ impl<'r, S: State> Node<'r, S> {
         }
     }
 
-    fn insert_static(&mut self, route: &mut ParsedRoute, data: PathData<'r>, prefix: &[u8]) {
+    fn insert_static(&mut self, route: &mut ParsedTemplate, data: PathData<'r>, prefix: &[u8]) {
         // Check if the first byte is already a child here.
         let Some(child) = self
             .static_children
@@ -133,7 +133,7 @@ impl<'r, S: State> Node<'r, S> {
 
     fn insert_dynamic(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         data: PathData<'r>,
         name: String,
         constraint: Option<String>,
@@ -170,7 +170,7 @@ impl<'r, S: State> Node<'r, S> {
 
     fn insert_wildcard(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         data: PathData<'r>,
         name: String,
         constraint: Option<String>,

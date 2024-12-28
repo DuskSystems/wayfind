@@ -3,20 +3,38 @@
 use crate::{
     chain::DataChain,
     errors::{DeleteError, InsertError, SearchError},
-    MethodId, Request, Route,
+    AuthorityId, MethodId, Request, Route,
 };
+use authority::{AuthorityParameters, AuthorityRouter};
 use method::MethodRouter;
 use path::{PathParameters, PathRouter};
 use std::collections::BTreeMap;
 
+pub mod authority;
 pub mod method;
 pub mod path;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'r, 'p, T> {
     pub data: &'r T,
+    pub authority: AuthorityMatch<'r, 'p>,
     pub path: PathMatch<'r, 'p>,
     pub method: MethodMatch<'r>,
+}
+
+#[derive(Debug, Eq, PartialEq, Default)]
+pub struct AuthorityMatch<'r, 'p> {
+    pub authority: Option<&'r str>,
+    pub parameters: AuthorityParameters<'r, 'p>,
+}
+
+impl<'r, 'p> From<authority::AuthorityMatch<'r, 'p>> for AuthorityMatch<'r, 'p> {
+    fn from(value: authority::AuthorityMatch<'r, 'p>) -> Self {
+        Self {
+            authority: Some(value.authority),
+            parameters: value.parameters,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -51,6 +69,7 @@ impl<'r> From<method::MethodMatch<'r>> for MethodMatch<'r> {
 
 #[derive(Clone)]
 pub struct Router<'r, T> {
+    pub authority: AuthorityRouter<'r>,
     pub path: PathRouter<'r>,
     pub method: MethodRouter,
     data: BTreeMap<DataChain, T>,
@@ -60,6 +79,7 @@ impl<'r, T> Router<'r, T> {
     #[must_use]
     pub fn new() -> Self {
         Self {
+            authority: AuthorityRouter::new(),
             path: PathRouter::new(),
             method: MethodRouter::new(),
             data: BTreeMap::default(),
@@ -67,6 +87,12 @@ impl<'r, T> Router<'r, T> {
     }
 
     pub fn insert(&mut self, route: &Route<'r>, value: T) -> Result<(), InsertError> {
+        let authority_id = if let Some(authority) = route.authority {
+            self.authority.insert(authority)?
+        } else {
+            AuthorityId(None)
+        };
+
         let path_id = self.path.insert(route.route)?;
 
         let method_id = if let Some(methods) = route.methods.as_ref() {
@@ -76,6 +102,7 @@ impl<'r, T> Router<'r, T> {
         };
 
         let chain = DataChain {
+            authority: authority_id,
             path: path_id,
             method: method_id,
         };
@@ -89,6 +116,14 @@ impl<'r, T> Router<'r, T> {
     }
 
     pub fn delete(&mut self, route: &Route<'r>) -> Result<T, DeleteError> {
+        let authority_id = if let Some(authority) = route.authority {
+            self.authority
+                .find(authority)?
+                .ok_or(DeleteError::NotFound)?
+        } else {
+            AuthorityId(None)
+        };
+
         let Some(path_id) = self.path.find(route.route)? else {
             return Err(DeleteError::NotFound);
         };
@@ -100,6 +135,7 @@ impl<'r, T> Router<'r, T> {
         };
 
         let chain = DataChain {
+            authority: authority_id,
             path: path_id,
             method: method_id,
         };
@@ -107,6 +143,15 @@ impl<'r, T> Router<'r, T> {
         if !self.data.contains_key(&chain) {
             return Err(DeleteError::NotFound);
         }
+
+        let authority_count = if route.authority.is_some() {
+            self.data
+                .keys()
+                .filter(|existing| existing.authority == authority_id)
+                .count()
+        } else {
+            0
+        };
 
         let path_count = self
             .data
@@ -124,6 +169,10 @@ impl<'r, T> Router<'r, T> {
         };
 
         let data = self.data.remove(&chain).ok_or(DeleteError::NotFound)?;
+
+        if route.authority.is_some() && authority_count == 1 {
+            self.authority.delete(route.authority.unwrap());
+        }
 
         if path_count == 1 {
             self.path.delete(route.route);
@@ -143,6 +192,16 @@ impl<'r, T> Router<'r, T> {
     where
         'p: 'r,
     {
+        let authority = request.authority().map_or_else(
+            || Ok(None),
+            |authority| self.authority.search(authority.as_bytes()),
+        );
+
+        let authority_id = authority.as_ref().map_or_else(
+            |_| AuthorityId(None),
+            |authority| authority.as_ref().map_or(AuthorityId(None), |a| a.id),
+        );
+
         let Some(path) = self.path.search(request.path())? else {
             return Ok(None);
         };
@@ -159,11 +218,16 @@ impl<'r, T> Router<'r, T> {
         );
 
         let chain = DataChain {
+            authority: authority_id,
             path: path_id,
             method: method_id,
         };
 
         let Some(data) = self.data.get(&chain) else {
+            if let Err(err) = authority {
+                return Err(SearchError::Authority(err));
+            }
+
             if let Err(err) = method {
                 return Err(SearchError::Method(err));
             }
@@ -171,17 +235,35 @@ impl<'r, T> Router<'r, T> {
             return Ok(None);
         };
 
+        let authority = authority.map_or(AuthorityMatch::default(), |authority| {
+            authority.map_or_else(AuthorityMatch::default, Into::into)
+        });
+
         let path = path.into();
+
         let method = method.map_or(MethodMatch::default(), |method| {
             method.map_or_else(MethodMatch::default, Into::into)
         });
 
-        Ok(Some(Match { data, path, method }))
+        Ok(Some(Match {
+            data,
+            authority,
+            path,
+            method,
+        }))
     }
 }
 
 impl<T> std::fmt::Display for Router<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\n=== Authority")?;
+        let authority = self.authority.to_string();
+        if authority.is_empty() {
+            write!(f, "\nEmpty")?;
+        } else {
+            write!(f, "\n{authority}")?;
+        }
+
         write!(f, "\n=== Path")?;
         let path = self.path.to_string();
         if path.is_empty() {

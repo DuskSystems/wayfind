@@ -6,7 +6,7 @@ use wayfind::{
         DeleteError, InsertError, MethodDeleteError, MethodInsertError, MethodSearchError,
         SearchError,
     },
-    Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
+    AuthorityMatch, Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
 };
 
 #[test]
@@ -20,13 +20,15 @@ fn test_method_simple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -35,6 +37,10 @@ fn test_method_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -60,13 +66,15 @@ fn test_method_not_allowed() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let request = RequestBuilder::new()
@@ -93,6 +101,8 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -100,7 +110,7 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ POST [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -109,6 +119,10 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -129,6 +143,10 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -166,6 +184,8 @@ fn test_method_empty() -> Result<(), Box<dyn Error>> {
     assert_eq!(insert, Err(InsertError::Method(MethodInsertError::Empty)));
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -185,12 +205,14 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -199,6 +221,10 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -217,6 +243,10 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -232,6 +262,10 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -255,13 +289,15 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -271,6 +307,8 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -278,8 +316,8 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ PUT [2]
     === Chains
-    1-1
-    1-2
+    *-1-1
+    *-1-2
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -288,6 +326,10 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -305,6 +347,10 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -330,27 +376,31 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new().route("/users").build()?;
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-*
-    1-1
+    *-1-*
+    *-1-1
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -359,6 +409,10 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -376,6 +430,10 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -396,12 +454,14 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let route = RouteBuilder::new()
@@ -411,14 +471,16 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-*
-    1-1
+    *-1-*
+    *-1-1
     ");
 
     let request = RequestBuilder::new().path("/users").method("GET").build()?;
@@ -427,6 +489,10 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -444,6 +510,10 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -467,13 +537,15 @@ fn test_method_conflict_direct() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -487,13 +559,15 @@ fn test_method_conflict_direct() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     Ok(())
@@ -510,6 +584,8 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -517,7 +593,7 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ PUT [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -531,6 +607,8 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -538,7 +616,7 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ PUT [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     Ok(())
@@ -555,13 +633,15 @@ fn test_method_conflict_list_outer() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -588,13 +668,15 @@ fn test_method_delete() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -604,6 +686,8 @@ fn test_method_delete() -> Result<(), Box<dyn Error>> {
     router.delete(&route)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     Empty
     === Method
@@ -626,6 +710,8 @@ fn test_method_delete_list() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -633,7 +719,7 @@ fn test_method_delete_list() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ POST [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -643,6 +729,8 @@ fn test_method_delete_list() -> Result<(), Box<dyn Error>> {
     router.delete(&route)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     Empty
     === Method
@@ -665,6 +753,8 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -672,7 +762,7 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ PUT [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -686,6 +776,8 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
@@ -693,7 +785,7 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     ├─ GET [1]
     ╰─ PUT [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     Ok(())
@@ -710,13 +802,15 @@ fn test_method_delete_mismatch_list_outer() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     let route = RouteBuilder::new()
@@ -730,13 +824,15 @@ fn test_method_delete_mismatch_list_outer() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     [1]
     ╰─ GET [1]
     === Chains
-    1-1
+    *-1-1
     ");
 
     Ok(())

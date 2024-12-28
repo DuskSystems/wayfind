@@ -1,12 +1,12 @@
 use super::{
     node::Node,
-    parser::{ParsedRoute, Part},
+    parser::{ParsedTemplate, Part},
     state::State,
     PathData,
 };
 
 impl<'r, S: State> Node<'r, S> {
-    pub(crate) fn find(&'r self, route: &mut ParsedRoute) -> Option<&'r PathData<'r>> {
+    pub(crate) fn find(&'r self, route: &mut ParsedTemplate) -> Option<&'r PathData<'r>> {
         if route.parts.is_empty() {
             return self.data.as_ref();
         }
@@ -29,7 +29,11 @@ impl<'r, S: State> Node<'r, S> {
         None
     }
 
-    fn find_static(&'r self, route: &mut ParsedRoute, prefix: &[u8]) -> Option<&'r PathData<'r>> {
+    fn find_static(
+        &'r self,
+        route: &mut ParsedTemplate,
+        prefix: &[u8],
+    ) -> Option<&'r PathData<'r>> {
         for child in self.static_children.iter() {
             if !child.state.prefix.is_empty() && child.state.prefix[0] == prefix[0] {
                 let common_prefix = prefix
@@ -45,7 +49,7 @@ impl<'r, S: State> Node<'r, S> {
 
                     let remaining = prefix[common_prefix..].to_vec();
                     if !remaining.is_empty() {
-                        let mut new_route = ParsedRoute {
+                        let mut new_route = ParsedTemplate {
                             parts: route.parts.clone(),
                             ..route.clone()
                         };
@@ -62,7 +66,7 @@ impl<'r, S: State> Node<'r, S> {
 
     fn find_dynamic(
         &'r self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         name: &str,
         constraint: Option<&str>,
     ) -> Option<&'r PathData<'r>> {
@@ -77,7 +81,7 @@ impl<'r, S: State> Node<'r, S> {
 
     fn find_end_wildcard(
         &'r self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         name: &str,
         constraint: Option<&str>,
     ) -> Option<&'r PathData<'r>> {
@@ -92,7 +96,7 @@ impl<'r, S: State> Node<'r, S> {
 
     fn find_wildcard(
         &'r self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         name: &str,
         constraint: Option<&str>,
     ) -> Option<&'r PathData<'r>> {

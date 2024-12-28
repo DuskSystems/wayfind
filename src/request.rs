@@ -1,13 +1,22 @@
-use crate::{decode::percent_decode, errors::RequestError};
+use crate::{
+    decode::{percent_decode, punycode_decode},
+    errors::RequestError,
+};
 use std::{borrow::Cow, fmt::Debug};
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Request<'r> {
+    authority: Option<Cow<'r, str>>,
     path: Cow<'r, [u8]>,
     method: Option<&'r str>,
 }
 
 impl Request<'_> {
+    #[must_use]
+    pub fn authority(&self) -> Option<&str> {
+        self.authority.as_deref()
+    }
+
     #[must_use]
     pub fn path(&self) -> &[u8] {
         self.path.as_ref()
@@ -22,6 +31,7 @@ impl Request<'_> {
 impl Debug for Request<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Request")
+            .field("authority", &self.authority)
             .field("path", &String::from_utf8_lossy(&self.path))
             .field("method", &self.method)
             .finish()
@@ -30,6 +40,7 @@ impl Debug for Request<'_> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RequestBuilder<'p> {
+    authority: Option<&'p str>,
     path: Option<&'p str>,
     method: Option<&'p str>,
 }
@@ -38,9 +49,16 @@ impl<'p> RequestBuilder<'p> {
     #[must_use]
     pub const fn new() -> Self {
         Self {
+            authority: None,
             path: None,
             method: None,
         }
+    }
+
+    #[must_use]
+    pub const fn authority(mut self, authority: &'p str) -> Self {
+        self.authority = Some(authority);
+        self
     }
 
     #[must_use]
@@ -57,10 +75,17 @@ impl<'p> RequestBuilder<'p> {
 
     #[allow(clippy::missing_errors_doc)]
     pub fn build(self) -> Result<Request<'p>, RequestError> {
+        let authority = if let Some(authority) = self.authority {
+            Some(punycode_decode(authority.as_bytes())?)
+        } else {
+            None
+        };
+
         let path = self.path.ok_or(RequestError::MissingPath)?;
         let path = percent_decode(path.as_bytes())?;
 
         Ok(Request {
+            authority,
             path,
             method: self.method,
         })

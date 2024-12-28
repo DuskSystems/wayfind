@@ -1,7 +1,9 @@
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{
+    AuthorityMatch, Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
+};
 
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
@@ -11,6 +13,8 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {*path}
@@ -18,7 +22,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/docs/delete").build()?;
@@ -27,6 +31,10 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}/delete",
                 expanded: None,
@@ -44,6 +52,10 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}/delete",
                 expanded: None,
@@ -70,6 +82,8 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {*prefix}
@@ -79,7 +93,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/a/static/b/file").build()?;
@@ -88,6 +102,10 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*prefix}/static/{*suffix}/file",
                 expanded: None,
@@ -105,6 +123,10 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*prefix}/static/{*suffix}/file",
                 expanded: None,
@@ -125,6 +147,8 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {*path}
@@ -132,7 +156,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/page.html").build()?;
@@ -141,6 +165,10 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}.html",
                 expanded: None,
@@ -156,6 +184,10 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}.html",
                 expanded: None,
@@ -180,6 +212,8 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {*first}
@@ -188,7 +222,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/a-b-c").build()?;
@@ -197,6 +231,10 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*first}-{*second}",
                 expanded: None,
@@ -214,6 +252,10 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*first}-{*second}",
                 expanded: None,
@@ -237,6 +279,8 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {*path}
@@ -244,7 +288,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/start/middle/end").build()?;
@@ -253,6 +297,10 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}/end",
                 expanded: None,
@@ -268,6 +316,10 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}/end",
                 expanded: None,
@@ -296,6 +348,8 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 5)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ prefix.
@@ -310,11 +364,11 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
-    3-*
-    4-*
-    5-*
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
+    *-5-*
     ");
 
     let request = RequestBuilder::new().path("/static/path").build()?;
@@ -323,6 +377,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/static/path",
                 expanded: None,
@@ -340,6 +398,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/static/{*rest}",
                 expanded: None,
@@ -357,6 +419,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*path}/static",
                 expanded: None,
@@ -374,6 +440,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &4,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/prefix.{*suffix}",
                 expanded: None,
@@ -391,6 +461,10 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &5,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{*prefix}.suffix",
                 expanded: None,
