@@ -1,8 +1,7 @@
-use crate::{
-    decode::{percent_decode, punycode_decode},
-    errors::RequestError,
-};
+use crate::errors::{EncodingError, RequestError};
 use std::{borrow::Cow, fmt::Debug};
+use wayfind_percent::percent_decode;
+use wayfind_punycode::punycode_decode;
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Request<'r> {
@@ -76,13 +75,13 @@ impl<'p> RequestBuilder<'p> {
     #[allow(clippy::missing_errors_doc)]
     pub fn build(self) -> Result<Request<'p>, RequestError> {
         let authority = if let Some(authority) = self.authority {
-            Some(punycode_decode(authority.as_bytes())?)
+            Some(punycode_decode(authority.as_bytes()).map_err(EncodingError::from)?)
         } else {
             None
         };
 
         let path = self.path.ok_or(RequestError::MissingPath)?;
-        let path = percent_decode(path.as_bytes())?;
+        let path = percent_decode(path.as_bytes()).map_err(EncodingError::from)?;
 
         Ok(Request {
             authority,

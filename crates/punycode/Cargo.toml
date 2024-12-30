@@ -1,0 +1,19 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind-punycode"
+description = "Punycode decoder for `wayfind`."
+publish = false
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+insta = { workspace = true }
