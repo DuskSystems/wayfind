@@ -1,9 +1,10 @@
-use super::{MethodDeleteError, PathDeleteError};
+use super::{AuthorityDeleteError, MethodDeleteError, PathDeleteError};
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
+    Authority(AuthorityDeleteError),
     Path(PathDeleteError),
     Method(MethodDeleteError),
     NotFound,
@@ -14,10 +15,17 @@ impl Error for DeleteError {}
 impl Display for DeleteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::Authority(error) => error.fmt(f),
             Self::Path(error) => error.fmt(f),
             Self::Method(error) => error.fmt(f),
             Self::NotFound => write!(f, "not found"),
         }
+    }
+}
+
+impl From<AuthorityDeleteError> for DeleteError {
+    fn from(error: AuthorityDeleteError) -> Self {
+        Self::Authority(error)
     }
 }
 

@@ -13,7 +13,7 @@
 
 A speedy, flexible router for Rust.
 
-NOTE: `wayfind` is still a work in progress. 
+NOTE: `wayfind` is still a work in progress.
 
 ## Why another router?
 
@@ -500,6 +500,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert(&route, "handle_not_found")?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ user [9]
@@ -568,26 +570,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     ├─ GET [17]
     ╰─ PUT [18]
     === Chains
-    1-1
-    1-2
-    2-3
-    3-4
-    4-5
-    4-6
-    4-7
-    5-8
-    6-9
-    7-10
-    8-11
-    8-12
-    9-13
-    10-14
-    11-15
-    12-16
-    13-17
-    13-18
-    13-19
-    14-*
+    *-1-1
+    *-1-2
+    *-2-3
+    *-3-4
+    *-4-5
+    *-4-6
+    *-4-7
+    *-5-8
+    *-6-9
+    *-7-10
+    *-8-11
+    *-8-12
+    *-9-13
+    *-10-14
+    *-11-15
+    *-12-16
+    *-13-17
+    *-13-18
+    *-13-19
+    *-14-*
     ");
 
     Ok(())
@@ -601,50 +603,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 However, as is often the case, your mileage may vary (YMMV).
 Benchmarks, especially micro-benchmarks, should be taken with a grain of salt.
 
-### Benchmarks
-
-All benchmarks ran on a M1 Pro laptop running Asahi Linux.
-
-Check out our [codspeed results](https://codspeed.io/DuskSystems/wayfind/benchmarks) for a more accurate set of timings.
-
-#### Context
-
-For all benchmarks, we percent-decode the path before matching.
-After matching, we convert any extracted parameters to strings.
-
-Some routers perform these operations automatically, while others require them to be done manually.
-
-We do this to try and match behaviour as best as possible. This is as close to an "apples-to-apples" comparison as we can get.
-
-#### `matchit` inspired benches
-
-In a router of 130 routes, benchmark matching 4 paths.
-
-| Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
-|:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 415.67 ns | 4           | 265 B      | 4             | 265 B        |
-| matchit          | 559.16 ns | 4           | 416 B      | 4             | 448 B        |
-| path-tree        | 570.10 ns | 4           | 416 B      | 4             | 448 B        |
-| xitca-router     | 650.12 ns | 7           | 800 B      | 7             | 832 B        |
-| ntex-router      | 2.2439 µs | 18          | 1.248 KB   | 18            | 1.28 KB      |
-| route-recognizer | 3.1662 µs | 160         | 8.505 KB   | 160           | 8.537 KB     |
-| routefinder      | 6.2237 µs | 67          | 5.024 KB   | 67            | 5.056 KB     |
-| actix-router     | 21.072 µs | 214         | 13.93 KB   | 214           | 13.96 KB     |
-
-#### `path-tree` inspired benches
-
-In a router of 320 routes, benchmark matching 80 paths.
-
-| Library          | Time      | Alloc Count | Alloc Size | Dealloc Count | Dealloc Size |
-|:-----------------|----------:|------------:|-----------:|--------------:|-------------:|
-| wayfind          | 5.9508 µs | 59          | 2.567 KB   | 59            | 2.567 KB     |
-| path-tree        | 8.5983 µs | 59          | 7.447 KB   | 59            | 7.47 KB      |
-| matchit          | 9.8800 µs | 140         | 17.81 KB   | 140           | 17.83 KB     |
-| xitca-router     | 11.930 µs | 209         | 25.51 KB   | 209           | 25.53 KB     |
-| ntex-router      | 35.919 µs | 201         | 19.54 KB   | 201           | 19.56 KB     |
-| route-recognizer | 69.604 µs | 2872        | 191.7 KB   | 2872          | 204.8 KB     |
-| routefinder      | 87.659 µs | 525         | 48.40 KB   | 525           | 48.43 KB     |
-| actix-router     | 187.49 µs | 2201        | 128.8 KB   | 2201          | 128.8 KB     |
+See [BENCHMARKING.md](BENCHMARKING.md) for the results.
 
 ## License
 

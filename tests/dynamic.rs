@@ -1,7 +1,9 @@
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{
+    AuthorityMatch, Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
+};
 
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
@@ -11,13 +13,15 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {id} [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/123").build()?;
@@ -26,6 +30,10 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{id}",
                 expanded: None,
@@ -54,6 +62,8 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {year} [1]
@@ -64,9 +74,9 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
-    3-*
+    *-1-*
+    *-2-*
+    *-3-*
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -75,6 +85,10 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}",
                 expanded: None,
@@ -90,6 +104,10 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}/{month}",
                 expanded: None,
@@ -105,6 +123,10 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}/{month}/{day}",
                 expanded: None,
@@ -129,6 +151,8 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 3)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {year} [1]
@@ -139,9 +163,9 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
-    3-*
+    *-1-*
+    *-2-*
+    *-3-*
     ");
 
     let request = RequestBuilder::new().path("/2024").build()?;
@@ -150,6 +174,10 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}",
                 expanded: None,
@@ -165,6 +193,10 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}-{month}",
                 expanded: None,
@@ -180,6 +212,10 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{year}-{month}-{day}",
                 expanded: None,
@@ -200,6 +236,8 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ╰─ {file}
@@ -208,7 +246,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/report").build()?;
@@ -221,6 +259,10 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{file}.{extension}",
                 expanded: None,
@@ -236,6 +278,10 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{file}.{extension}",
                 expanded: None,
@@ -262,6 +308,8 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 4)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ robots.
@@ -274,10 +322,10 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
-    3-*
-    4-*
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
     ");
 
     let request = RequestBuilder::new().path("/robots.txt").build()?;
@@ -286,6 +334,10 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/robots.txt",
                 expanded: None,
@@ -301,6 +353,10 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/robots.{extension}",
                 expanded: None,
@@ -316,6 +372,10 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{name}.txt",
                 expanded: None,
@@ -331,6 +391,10 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &4,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/{name}.{extension}",
                 expanded: None,

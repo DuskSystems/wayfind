@@ -230,7 +230,7 @@ impl<'r> PathRouter<'r> {
 
                 if let Some(existing_id) = id {
                     if existing_id != data.id {
-                        return Err(PathDeleteError::RouteMismatch {
+                        return Err(PathDeleteError::Mismatch {
                             route: route.to_owned(),
                             inserted: data.route.to_owned(),
                         });
@@ -244,7 +244,7 @@ impl<'r> PathRouter<'r> {
         }
 
         if let Some(inserted) = mismatch {
-            return Err(PathDeleteError::RouteMismatch {
+            return Err(PathDeleteError::Mismatch {
                 route: route.to_owned(),
                 inserted,
             });

@@ -1,7 +1,9 @@
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use std::error::Error;
-use wayfind::{Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router};
+use wayfind::{
+    AuthorityMatch, Match, MethodMatch, PathMatch, RequestBuilder, RouteBuilder, Router,
+};
 
 #[test]
 fn test_static_simple() -> Result<(), Box<dyn Error>> {
@@ -11,12 +13,14 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -25,6 +29,10 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -51,14 +59,16 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /user [1]
     ╰─ s [2]
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/user").build()?;
@@ -67,6 +77,10 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/user",
                 expanded: None,
@@ -82,6 +96,10 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -112,6 +130,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /user
     ├─ /1 [2]
@@ -119,8 +139,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/user_1").build()?;
@@ -129,6 +149,10 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/user_1",
                 expanded: None,
@@ -144,6 +168,10 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/user/1",
                 expanded: None,
@@ -182,6 +210,8 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 6)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /�
     ├─ �‍👩‍�
@@ -197,12 +227,12 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
-    3-*
-    4-*
-    5-*
-    6-*
+    *-1-*
+    *-2-*
+    *-3-*
+    *-4-*
+    *-5-*
+    *-6-*
     ");
 
     let request = RequestBuilder::new().path("/👨‍👩‍👧").build()?; // Family: Man, Woman, Girl
@@ -211,6 +241,10 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/👨‍👩‍👧",
                 expanded: None,
@@ -226,6 +260,10 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/👨‍👩‍👦",
                 expanded: None,
@@ -264,6 +302,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /
     ├─ Users [2]
@@ -271,8 +311,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/users").build()?;
@@ -281,6 +321,10 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users",
                 expanded: None,
@@ -296,6 +340,10 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/Users",
                 expanded: None,
@@ -316,12 +364,14 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users /items [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users /items").build()?;
@@ -330,6 +380,10 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users /items",
                 expanded: None,
@@ -356,6 +410,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/
     ├─ /items [2]
@@ -363,8 +419,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/users/items").build()?;
@@ -373,6 +429,10 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/items",
                 expanded: None,
@@ -388,6 +448,10 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users//items",
                 expanded: None,
@@ -408,12 +472,14 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users///items [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users///items").build()?;
@@ -422,6 +488,10 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users///items",
                 expanded: None,

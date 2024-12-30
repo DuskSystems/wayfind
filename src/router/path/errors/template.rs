@@ -3,7 +3,7 @@ use std::{error::Error, fmt::Display};
 
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
-pub enum PathRouteError {
+pub enum PathTemplateError {
     /// A [`EncodingError`] that occurred during the decoding.
     EncodingError(EncodingError),
 
@@ -15,9 +15,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::MissingLeadingSlash {
+    /// let error = PathTemplateError::MissingLeadingSlash {
     ///     route: "abc".to_string(),
     /// };
     ///
@@ -41,9 +41,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::EmptyBraces {
+    /// let error = PathTemplateError::EmptyBraces {
     ///     route: "/{}".to_string(),
     ///     position: 1,
     /// };
@@ -69,9 +69,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::UnbalancedBrace {
+    /// let error = PathTemplateError::UnbalancedBrace {
     ///     route: "/{".to_string(),
     ///     position: 1,
     /// };
@@ -99,9 +99,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::EmptyParentheses {
+    /// let error = PathTemplateError::EmptyParentheses {
     ///     route: "/()".to_string(),
     ///     position: 1,
     /// };
@@ -127,9 +127,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::UnbalancedParenthesis {
+    /// let error = PathTemplateError::UnbalancedParenthesis {
     ///     route: "/(".to_string(),
     ///     position: 1,
     /// };
@@ -157,9 +157,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::EmptyParameter {
+    /// let error = PathTemplateError::EmptyParameter {
     ///     route: "/{:}".to_string(),
     ///     start: 1,
     ///     length: 3,
@@ -188,9 +188,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::InvalidParameter {
+    /// let error = PathTemplateError::InvalidParameter {
     ///     route: "/{a/b}".to_string(),
     ///     name: "a/b".to_string(),
     ///     start: 1,
@@ -224,9 +224,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::DuplicateParameter {
+    /// let error = PathTemplateError::DuplicateParameter {
     ///     route: "/{id}/{id}".to_string(),
     ///     name: "id".to_string(),
     ///     first: 1,
@@ -266,9 +266,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::EmptyWildcard {
+    /// let error = PathTemplateError::EmptyWildcard {
     ///     route: "/{*}".to_string(),
     ///     start: 1,
     ///     length: 3,
@@ -297,9 +297,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::EmptyConstraint {
+    /// let error = PathTemplateError::EmptyConstraint {
     ///     route: "/{a:}".to_string(),
     ///     start: 1,
     ///     length: 4,
@@ -328,9 +328,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::InvalidConstraint {
+    /// let error = PathTemplateError::InvalidConstraint {
     ///     route: "/{a:b/c}".to_string(),
     ///     name: "b/c".to_string(),
     ///     start: 1,
@@ -364,9 +364,9 @@ pub enum PathRouteError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::errors::PathRouteError;
+    /// use wayfind::errors::PathTemplateError;
     ///
-    /// let error = PathRouteError::TouchingParameters {
+    /// let error = PathTemplateError::TouchingParameters {
     ///     route: "/{a}{b}".to_string(),
     ///     start: 1,
     ///     length: 6,
@@ -393,9 +393,9 @@ pub enum PathRouteError {
     },
 }
 
-impl Error for PathRouteError {}
+impl Error for PathTemplateError {}
 
-impl Display for PathRouteError {
+impl Display for PathTemplateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EncodingError(error) => error.fmt(f),
@@ -589,7 +589,7 @@ tip: Touching parameters are not supported"
     }
 }
 
-impl From<EncodingError> for PathRouteError {
+impl From<EncodingError> for PathTemplateError {
     fn from(error: EncodingError) -> Self {
         Self::EncodingError(error)
     }

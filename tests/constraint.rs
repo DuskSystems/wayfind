@@ -3,7 +3,8 @@ use smallvec::smallvec;
 use std::error::Error;
 use wayfind::{
     errors::{InsertError, PathConstraintError, PathInsertError},
-    Match, MethodMatch, PathConstraint, PathMatch, RequestBuilder, RouteBuilder, Router,
+    AuthorityMatch, Match, MethodMatch, PathConstraint, PathMatch, RequestBuilder, RouteBuilder,
+    Router,
 };
 
 struct NameConstraint;
@@ -24,13 +25,15 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/
     ╰─ {id:name} [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users/john123").build()?;
@@ -39,6 +42,10 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{id:name}",
                 expanded: None,
@@ -64,13 +71,15 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 1)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/
     ╰─ {*path:name} [1]
     === Method
     Empty
     === Chains
-    1-*
+    *-1-*
     ");
 
     let request = RequestBuilder::new().path("/users/john/doe123").build()?;
@@ -79,6 +88,10 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{*path:name}",
                 expanded: None,
@@ -157,6 +170,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/
     ├─ {id:u32} [2]
@@ -164,8 +179,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/users/abc").build()?;
@@ -174,6 +189,10 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{id}",
                 expanded: None,
@@ -189,6 +208,10 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{id:u32}",
                 expanded: None,
@@ -213,6 +236,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     router.insert(&route, 2)?;
 
     insta::assert_snapshot!(router, @r"
+    === Authority
+    Empty
     === Path
     /users/
     ├─ {id:name} [2]
@@ -220,8 +245,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     === Method
     Empty
     === Chains
-    1-*
-    2-*
+    *-1-*
+    *-2-*
     ");
 
     let request = RequestBuilder::new().path("/users/123").build()?;
@@ -230,6 +255,10 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{id:name}",
                 expanded: None,
@@ -245,6 +274,10 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
+            authority: AuthorityMatch {
+                authority: None,
+                parameters: smallvec![]
+            },
             path: PathMatch {
                 route: "/users/{id:name}",
                 expanded: None,

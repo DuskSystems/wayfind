@@ -2,7 +2,7 @@ use super::{
     node::Node,
     state::{State, StaticState},
 };
-use crate::router::path::parser::{ParsedRoute, Part};
+use crate::router::path::parser::{ParsedTemplate, Part};
 
 impl<S: State> Node<'_, S> {
     /// Deletes a route from the node tree.
@@ -11,7 +11,7 @@ impl<S: State> Node<'_, S> {
     /// Logic should match that used by the insert method.
     ///
     /// If the route is found and deleted, we re-optimize the tree structure.
-    pub fn delete(&mut self, route: &mut ParsedRoute) {
+    pub fn delete(&mut self, route: &mut ParsedTemplate) {
         if let Some(part) = route.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(route, &prefix),
@@ -32,7 +32,7 @@ impl<S: State> Node<'_, S> {
         }
     }
 
-    fn delete_static(&mut self, route: &mut ParsedRoute, prefix: &[u8]) {
+    fn delete_static(&mut self, route: &mut ParsedTemplate, prefix: &[u8]) {
         let Some(index) = self.static_children.iter().position(|child| {
             prefix.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
@@ -69,7 +69,12 @@ impl<S: State> Node<'_, S> {
         }
     }
 
-    fn delete_dynamic(&mut self, route: &mut ParsedRoute, name: &str, constraint: Option<&String>) {
+    fn delete_dynamic(
+        &mut self,
+        route: &mut ParsedTemplate,
+        name: &str,
+        constraint: Option<&String>,
+    ) {
         let Some(index) = self.dynamic_children.iter().position(|child| {
             child.state.name == name && child.state.constraint.as_ref() == constraint
         }) else {
@@ -87,7 +92,7 @@ impl<S: State> Node<'_, S> {
 
     fn delete_wildcard(
         &mut self,
-        route: &mut ParsedRoute,
+        route: &mut ParsedTemplate,
         name: &str,
         constraint: Option<&String>,
     ) {

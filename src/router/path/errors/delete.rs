@@ -1,18 +1,15 @@
-use super::PathRouteError;
+use super::PathTemplateError;
 use crate::errors::EncodingError;
 use std::{error::Error, fmt::Display};
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum PathDeleteError {
-    /// Multiple [`PathDeleteError`] errors occurred during the delete.
-    Multiple(Vec<PathDeleteError>),
-
     /// A [`EncodingError`] that occurred during the decoding.
     EncodingError(EncodingError),
 
     /// A [`RouteError`] that occurred during the delete.
-    PathRouteError(PathRouteError),
+    TemplateError(PathTemplateError),
 
     /// Route to be deleted was not found in the router.
     ///
@@ -47,7 +44,7 @@ pub enum PathDeleteError {
     /// ```rust
     /// use wayfind::errors::PathDeleteError;
     ///
-    /// let error = PathDeleteError::RouteMismatch {
+    /// let error = PathDeleteError::Mismatch {
     ///     route: "/users/{id}/".to_string(),
     ///     inserted: "/users/{id}(/)".to_string(),
     /// };
@@ -63,7 +60,7 @@ pub enum PathDeleteError {
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    RouteMismatch {
+    Mismatch {
         /// The route that was attempted to be deleted.
         route: String,
         /// The route stored as stored in the router.
@@ -76,18 +73,8 @@ impl Error for PathDeleteError {}
 impl Display for PathDeleteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Multiple(errors) => {
-                writeln!(f, "multiple path delete errors occurred:\n---\n")?;
-                for (index, error) in errors.iter().enumerate() {
-                    write!(f, "{error}")?;
-                    if index < errors.len() - 1 {
-                        writeln!(f, "\n---\n")?;
-                    }
-                }
-                Ok(())
-            }
             Self::EncodingError(error) => error.fmt(f),
-            Self::PathRouteError(error) => error.fmt(f),
+            Self::TemplateError(error) => error.fmt(f),
             Self::NotFound { route } => write!(
                 f,
                 r"not found
@@ -96,7 +83,7 @@ impl Display for PathDeleteError {
 
 The specified route does not exist in the router"
             ),
-            Self::RouteMismatch { route, inserted } => write!(
+            Self::Mismatch { route, inserted } => write!(
                 f,
                 r"delete mismatch
 
@@ -115,8 +102,8 @@ impl From<EncodingError> for PathDeleteError {
     }
 }
 
-impl From<PathRouteError> for PathDeleteError {
-    fn from(error: PathRouteError) -> Self {
-        Self::PathRouteError(error)
+impl From<PathTemplateError> for PathDeleteError {
+    fn from(error: PathTemplateError) -> Self {
+        Self::TemplateError(error)
     }
 }
