@@ -232,7 +232,7 @@ fn test_insert_duplicate_parameter() {
     let insert = router.insert(&route, 3);
     assert_eq!(
         insert,
-        Err(InsertError::Path(PathInsertError::TemplateError(
+        Err(InsertError::Path(PathInsertError::Template(
             PathTemplateError::DuplicateParameter {
                 route: "/{*id}/users/{id}".to_owned(),
                 name: "id".to_owned(),

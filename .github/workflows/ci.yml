@@ -40,11 +40,11 @@ jobs:
         run: |
           set -eufo pipefail
           cargo fmt --all --check
-          cargo clippy
+          cargo clippy --workspace
           cargo check --workspace
           cargo build --workspace
-          cargo test --all-targets
-          cargo test --doc
+          cargo test --workspace
+          cargo test --workspace --doc
 
   benchmarks:
     runs-on: ubuntu-24.04
@@ -64,7 +64,7 @@ jobs:
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build benchmarks
-        run: cargo codspeed build
+        run: cargo codspeed build --workspace
 
       - name: Upload benchmark results to CodSpeed
         uses: CathalMullan/action@main
@@ -91,7 +91,7 @@ jobs:
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Generate coverage
-        run: cargo llvm-cov --doctests --codecov --output-path codecov.json
+        run: cargo llvm-cov --workspace --doctests --codecov --output-path codecov.json
 
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
@@ -118,7 +118,7 @@ jobs:
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
-        run: cargo build
+        run: cargo build --package wayfind
 
   wasm:
     runs-on: ubuntu-24.04
@@ -138,7 +138,7 @@ jobs:
           cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
-        run: cargo build --target wasm32-unknown-unknown
+        run: cargo build --package wayfind --target wasm32-unknown-unknown
 
   oci:
     runs-on: ubuntu-24.04

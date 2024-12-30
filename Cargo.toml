@@ -54,6 +54,15 @@ similar.opt-level = 3
 lto = "fat"
 codegen-units = 1
 
+[workspace.dependencies]
+# Data Structures
+smallvec = { version = "1.13", features = ["const_generics", "union"] }
+
+# Testing
+# NOTE: Keep in sync with `cargo-insta` Nix package.
+insta = "=1.41.1"
+similar-asserts = "1.6"
+
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
 name = "wayfind"
@@ -85,16 +94,24 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
+# Routers
+wayfind-authority = { path = "crates/authority" }
+wayfind-path = { path = "crates/path" }
+wayfind-method = { path = "crates/method" }
+
+# Decoding
+wayfind-percent = { path = "crates/percent" }
+wayfind-punycode = { path = "crates/punycode" }
+
 # Data Structures
-smallvec = { version = "1.13", features = ["const_generics", "union"] }
+smallvec = { workspace = true }
 
 [dev-dependencies]
 wayfind-rails-macro = { path = "crates/rails-macro" }
 
 # Testing
-# NOTE: Keep in sync with `cargo-insta` Nix package.
-insta = "=1.41.1"
-similar-asserts = "1.6"
+insta = { workspace = true }
+similar-asserts = { workspace = true }
 
 # Encoding
 percent-encoding = "2.3"

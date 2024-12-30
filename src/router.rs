@@ -5,14 +5,10 @@ use crate::{
     errors::{DeleteError, InsertError, SearchError},
     AuthorityId, MethodId, Request, Route,
 };
-use authority::{AuthorityParameters, AuthorityRouter};
-use method::MethodRouter;
-use path::{PathParameters, PathRouter};
 use std::collections::BTreeMap;
-
-pub mod authority;
-pub mod method;
-pub mod path;
+use wayfind_authority::{AuthorityParameters, AuthorityRouter};
+use wayfind_method::MethodRouter;
+use wayfind_path::{PathParameters, PathRouter};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Match<'r, 'p, T> {
@@ -28,8 +24,8 @@ pub struct AuthorityMatch<'r, 'p> {
     pub parameters: AuthorityParameters<'r, 'p>,
 }
 
-impl<'r, 'p> From<authority::AuthorityMatch<'r, 'p>> for AuthorityMatch<'r, 'p> {
-    fn from(value: authority::AuthorityMatch<'r, 'p>) -> Self {
+impl<'r, 'p> From<wayfind_authority::AuthorityMatch<'r, 'p>> for AuthorityMatch<'r, 'p> {
+    fn from(value: wayfind_authority::AuthorityMatch<'r, 'p>) -> Self {
         Self {
             authority: Some(value.authority),
             parameters: value.parameters,
@@ -44,8 +40,8 @@ pub struct PathMatch<'r, 'p> {
     pub parameters: PathParameters<'r, 'p>,
 }
 
-impl<'r, 'p> From<path::PathMatch<'r, 'p>> for PathMatch<'r, 'p> {
-    fn from(value: path::PathMatch<'r, 'p>) -> Self {
+impl<'r, 'p> From<wayfind_path::PathMatch<'r, 'p>> for PathMatch<'r, 'p> {
+    fn from(value: wayfind_path::PathMatch<'r, 'p>) -> Self {
         Self {
             route: value.route,
             expanded: value.expanded,
@@ -59,8 +55,8 @@ pub struct MethodMatch<'r> {
     pub method: Option<&'r str>,
 }
 
-impl<'r> From<method::MethodMatch<'r>> for MethodMatch<'r> {
-    fn from(value: method::MethodMatch<'r>) -> Self {
+impl<'r> From<wayfind_method::MethodMatch<'r>> for MethodMatch<'r> {
+    fn from(value: wayfind_method::MethodMatch<'r>) -> Self {
         Self {
             method: value.method,
         }
@@ -96,7 +92,7 @@ impl<'r, T> Router<'r, T> {
         let path_id = self.path.insert(route.route)?;
 
         let method_id = if let Some(methods) = route.methods.as_ref() {
-            self.method.insert(path_id, methods)?
+            self.method.insert(path_id.0, methods)?
         } else {
             MethodId(None)
         };
@@ -129,7 +125,7 @@ impl<'r, T> Router<'r, T> {
         };
 
         let method_id = if let Some(methods) = route.methods.as_ref() {
-            self.method.find(path_id, methods)?
+            self.method.find(path_id.0, methods)?
         } else {
             MethodId(None)
         };
@@ -179,7 +175,7 @@ impl<'r, T> Router<'r, T> {
         }
 
         if route.methods.is_some() && method_count == 1 {
-            self.method.delete(path_id, method_id);
+            self.method.delete(path_id.0, method_id);
         }
 
         Ok(data)
@@ -210,7 +206,7 @@ impl<'r, T> Router<'r, T> {
 
         let method = request
             .method()
-            .map_or(Ok(None), |method| self.method.search(path_id, method));
+            .map_or(Ok(None), |method| self.method.search(path_id.0, method));
 
         let method_id = method.as_ref().map_or_else(
             |_| MethodId(None),

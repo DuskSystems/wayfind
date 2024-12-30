@@ -1,7 +1,7 @@
-use crate::{
-    decode::{percent_decode, punycode_decode},
-    errors::RouteError,
-};
+use wayfind_percent::percent_decode;
+use wayfind_punycode::punycode_decode;
+
+use crate::errors::{EncodingError, RouteError};
 
 /// A route that can be inserted into a [`Router`](`crate::Router`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -54,7 +54,7 @@ impl<'r> RouteBuilder<'r> {
     /// Return a [`RouteError`] if a required field was not populated.
     pub fn build(self) -> Result<Route<'r>, RouteError> {
         if let Some(authority) = self.authority {
-            let decoded = punycode_decode(authority.as_bytes())?;
+            let decoded = punycode_decode(authority.as_bytes()).map_err(EncodingError::from)?;
             if authority != decoded {
                 return Err(RouteError::EncodedAuthority {
                     input: authority.to_owned(),
@@ -66,7 +66,7 @@ impl<'r> RouteBuilder<'r> {
         let route = self.route.ok_or(RouteError::MissingRoute)?;
 
         // Verify path is percent-decoded
-        let decoded = percent_decode(route.as_bytes())?;
+        let decoded = percent_decode(route.as_bytes()).map_err(EncodingError::from)?;
         if route.as_bytes() != decoded.as_ref() {
             return Err(RouteError::EncodedPath {
                 input: route.to_owned(),

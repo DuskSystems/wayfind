@@ -3,8 +3,6 @@
 pub(crate) mod chain;
 pub use chain::DataChain;
 
-pub(crate) mod decode;
-
 pub mod errors;
 
 pub(crate) mod request;
@@ -14,9 +12,7 @@ pub(crate) mod route;
 pub use route::{Route, RouteBuilder};
 
 pub(crate) mod router;
-pub use router::authority::AuthorityId;
-pub use router::method::MethodId;
-pub use router::path::{PathConstraint, PathId, PathParameters};
 pub use router::{AuthorityMatch, Match, MethodMatch, PathMatch, Router};
-
-pub(crate) mod vec;
+pub use wayfind_authority::AuthorityId;
+pub use wayfind_method::MethodId;
+pub use wayfind_path::{PathConstraint, PathId, PathParameters};

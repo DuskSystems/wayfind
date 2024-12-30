@@ -1509,8 +1509,22 @@ dependencies = [
  "serde_json",
  "similar-asserts",
  "smallvec",
+ "wayfind-authority",
+ "wayfind-method",
+ "wayfind-path",
+ "wayfind-percent",
+ "wayfind-punycode",
  "wayfind-rails-macro",
  "xitca-router",
+]
+
+[[package]]
+name = "wayfind-authority"
+version = "0.7.0"
+dependencies = [
+ "insta",
+ "similar-asserts",
+ "smallvec",
 ]
 
 [[package]]
@@ -1519,6 +1533,15 @@ version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "wayfind",
+]
+
+[[package]]
+name = "wayfind-method"
+version = "0.7.0"
+dependencies = [
+ "insta",
+ "similar-asserts",
+ "smallvec",
 ]
 
 [[package]]
@@ -1542,6 +1565,29 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "wayfind",
+]
+
+[[package]]
+name = "wayfind-path"
+version = "0.7.0"
+dependencies = [
+ "insta",
+ "similar-asserts",
+ "smallvec",
+]
+
+[[package]]
+name = "wayfind-percent"
+version = "0.7.0"
+dependencies = [
+ "insta",
+]
+
+[[package]]
+name = "wayfind-punycode"
+version = "0.7.0"
+dependencies = [
+ "insta",
 ]
 
 [[package]]
