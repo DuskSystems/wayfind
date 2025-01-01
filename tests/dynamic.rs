@@ -17,7 +17,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ╰─ {id} [1]
+    ╰─ {id} [*:1]
     === Method
     Empty
     === Chains
@@ -35,7 +35,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{id}",
+                route: "/{id}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
@@ -66,11 +66,11 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ╰─ {year} [1]
+    ╰─ {year} [*:1]
        ╰─ /
-          ╰─ {month} [2]
+          ╰─ {month} [*:2]
              ╰─ /
-                ╰─ {day} [3]
+                ╰─ {day} [*:3]
     === Method
     Empty
     === Chains
@@ -90,7 +90,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}",
+                route: "/{year}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024")],
             },
@@ -109,7 +109,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}/{month}",
+                route: "/{year}/{month}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12")],
             },
@@ -128,7 +128,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}/{month}/{day}",
+                route: "/{year}/{month}/{day}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
             },
@@ -155,11 +155,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ╰─ {year} [1]
+    ╰─ {year} [*:1]
        ╰─ -
-          ╰─ {month} [2]
+          ╰─ {month} [*:2]
              ╰─ -
-                ╰─ {day} [3]
+                ╰─ {day} [*:3]
     === Method
     Empty
     === Chains
@@ -179,7 +179,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}",
+                route: "/{year}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024")],
             },
@@ -198,7 +198,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}-{month}",
+                route: "/{year}-{month}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12")],
             },
@@ -217,7 +217,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{year}-{month}-{day}",
+                route: "/{year}-{month}-{day}".into(),
                 expanded: None,
                 parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
             },
@@ -242,7 +242,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {file}
        ╰─ .
-          ╰─ {extension} [1]
+          ╰─ {extension} [*:1]
     === Method
     Empty
     === Chains
@@ -264,7 +264,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{file}.{extension}",
+                route: "/{file}.{extension}".into(),
                 expanded: None,
                 parameters: smallvec![("file", "report"), ("extension", "pdf")],
             },
@@ -283,7 +283,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{file}.{extension}",
+                route: "/{file}.{extension}".into(),
                 expanded: None,
                 parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
             },
@@ -313,12 +313,12 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ├─ robots.
-    │  ├─ txt [1]
-    │  ╰─ {extension} [2]
+    │  ├─ txt [*:1]
+    │  ╰─ {extension} [*:2]
     ╰─ {name}
        ╰─ .
-          ├─ txt [3]
-          ╰─ {extension} [4]
+          ├─ txt [*:3]
+          ╰─ {extension} [*:4]
     === Method
     Empty
     === Chains
@@ -339,7 +339,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/robots.txt",
+                route: "/robots.txt".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -358,7 +358,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/robots.{extension}",
+                route: "/robots.{extension}".into(),
                 expanded: None,
                 parameters: smallvec![("extension", "pdf")],
             },
@@ -377,7 +377,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{name}.txt",
+                route: "/{name}.txt".into(),
                 expanded: None,
                 parameters: smallvec![("name", "config")],
             },
@@ -396,7 +396,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{name}.{extension}",
+                route: "/{name}.{extension}".into(),
                 expanded: None,
                 parameters: smallvec![("name", "config"), ("extension", "pdf")],
             },

@@ -1,38 +1,12 @@
 use std::{error::Error, fmt::Display};
+use wayfind_percent::errors::PercentDecodingError;
+use wayfind_punycode::errors::PunycodeDecodingError;
 
 /// Errors relating to attempting to decode strings.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EncodingError {
-    Percent(wayfind_percent::errors::DecodingError),
-    Punycode(wayfind_punycode::errors::DecodingError),
-
-    /// Invalid UTF-8 sequence encountered.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::EncodingError;
-    ///
-    /// let error = EncodingError::Utf8Error {
-    ///     input: "hello�world".to_string(),
-    /// };
-    ///
-    /// let display = "
-    /// invalid UTF-8 sequence
-    ///
-    ///    Input: hello�world
-    ///
-    /// Expected: valid UTF-8 characters
-    ///    Found: invalid byte sequence
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    Utf8Error {
-        /// The invalid input.
-        /// This will contain UTF-8 replacement symbols.
-        input: String,
-    },
+    Percent(PercentDecodingError),
+    Punycode(PunycodeDecodingError),
 }
 
 impl Error for EncodingError {}
@@ -42,29 +16,18 @@ impl Display for EncodingError {
         match self {
             Self::Percent(error) => error.fmt(f),
             Self::Punycode(error) => error.fmt(f),
-            Self::Utf8Error { input } => {
-                write!(
-                    f,
-                    "invalid UTF-8 sequence
-
-   Input: {input}
-
-Expected: valid UTF-8 characters
-   Found: invalid byte sequence",
-                )
-            }
         }
     }
 }
 
-impl From<wayfind_percent::errors::DecodingError> for EncodingError {
-    fn from(error: wayfind_percent::errors::DecodingError) -> Self {
+impl From<PercentDecodingError> for EncodingError {
+    fn from(error: PercentDecodingError) -> Self {
         Self::Percent(error)
     }
 }
 
-impl From<wayfind_punycode::errors::DecodingError> for EncodingError {
-    fn from(error: wayfind_punycode::errors::DecodingError) -> Self {
+impl From<PunycodeDecodingError> for EncodingError {
+    fn from(error: PunycodeDecodingError) -> Self {
         Self::Punycode(error)
     }
 }

@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
-name = "wayfind-authority"
-description = "Authority router for `wayfind`."
+name = "wayfind-tree"
+description = "Tree for `wayfind`."
 publish = false
 
 version.workspace = true
@@ -16,10 +16,5 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
-wayfind-tree = { path = "../tree" }
 wayfind-storage = { path = "../storage" }
 smallvec = { workspace = true }
-
-[dev-dependencies]
-insta = { workspace = true }
-similar-asserts = { workspace = true }

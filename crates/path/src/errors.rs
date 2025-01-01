@@ -1,17 +1,11 @@
-pub mod constraint;
-pub use constraint::ConstraintError;
+mod constraint;
+pub use constraint::PathConstraintError;
 
-pub mod delete;
-pub use delete::DeleteError;
+mod delete;
+pub use delete::PathDeleteError;
 
-pub mod encoding;
-pub use encoding::EncodingError;
+mod insert;
+pub use insert::PathInsertError;
 
-pub mod insert;
-pub use insert::InsertError;
-
-pub mod search;
-pub use search::SearchError;
-
-pub mod template;
-pub use template::TemplateError;
+mod template;
+pub use template::PathTemplateError;

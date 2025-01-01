@@ -4,7 +4,7 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::cast_possible_truncation)]
 
-use errors::DecodingError;
+use errors::PunycodeDecodingError;
 use std::borrow::Cow;
 
 pub mod errors;
@@ -18,7 +18,7 @@ const DAMP: u32 = 700;
 const INITIAL_BIAS: u32 = 72;
 const INITIAL_N: u32 = 128;
 
-pub fn punycode_decode(input: &[u8]) -> Result<Cow<'_, str>, DecodingError> {
+pub fn punycode_decode(input: &[u8]) -> Result<Cow<'_, str>, PunycodeDecodingError> {
     if input.is_empty() {
         return Ok(String::from_utf8_lossy(input));
     }
@@ -54,7 +54,7 @@ pub fn punycode_decode(input: &[u8]) -> Result<Cow<'_, str>, DecodingError> {
         } else {
             let string = String::from_utf8_lossy(part);
             if string.contains(|c: char| c.is_ascii_control()) {
-                return Err(DecodingError::InvalidBasicCodePoint {
+                return Err(PunycodeDecodingError::InvalidBasicCodePoint {
                     input: String::from_utf8_lossy(input).to_string(),
                     position: part.iter().position(|&x| x < 32).unwrap_or(0),
                     character: vec![],
@@ -70,9 +70,9 @@ pub fn punycode_decode(input: &[u8]) -> Result<Cow<'_, str>, DecodingError> {
 
 /// TODO: I'd like to understand this better, and maybe enforce certain restirctions to improve performance/remove error cases.
 /// <https://datatracker.ietf.org/doc/html/rfc3492#section-6.2>
-fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
+fn punycode_decode_part(input: &[u8]) -> Result<String, PunycodeDecodingError> {
     if input == b"-" {
-        return Err(DecodingError::UnexpectedEnd {
+        return Err(PunycodeDecodingError::UnexpectedEnd {
             input: String::from_utf8_lossy(input).to_string(),
             position: 0,
         });
@@ -101,7 +101,7 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
 
         loop {
             if position >= input.len() {
-                return Err(DecodingError::UnexpectedEnd {
+                return Err(PunycodeDecodingError::UnexpectedEnd {
                     input: String::from_utf8_lossy(input).to_string(),
                     position: position - 1,
                 });
@@ -109,7 +109,7 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
 
             let byte = input[position];
             if !is_valid_punycode_digit(byte) {
-                return Err(DecodingError::InvalidBasicCodePoint {
+                return Err(PunycodeDecodingError::InvalidBasicCodePoint {
                     input: String::from_utf8_lossy(input).to_string(),
                     position,
                     character: vec![],
@@ -119,22 +119,20 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
             let digit = decode_digit(byte).unwrap();
 
             if k > u32::MAX - BASE {
-                return Err(DecodingError::Overflow {
+                return Err(PunycodeDecodingError::Overflow {
                     input: String::from_utf8_lossy(input).to_string(),
                     position,
                 });
             }
 
             i = i
-                .checked_add(
-                    digit
-                        .checked_mul(w)
-                        .ok_or_else(|| DecodingError::Overflow {
-                            input: String::from_utf8_lossy(input).to_string(),
-                            position,
-                        })?,
-                )
-                .ok_or_else(|| DecodingError::Overflow {
+                .checked_add(digit.checked_mul(w).ok_or_else(|| {
+                    PunycodeDecodingError::Overflow {
+                        input: String::from_utf8_lossy(input).to_string(),
+                        position,
+                    }
+                })?)
+                .ok_or_else(|| PunycodeDecodingError::Overflow {
                     input: String::from_utf8_lossy(input).to_string(),
                     position,
                 })?;
@@ -153,7 +151,7 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
 
             w = w
                 .checked_mul(BASE - t)
-                .ok_or_else(|| DecodingError::Overflow {
+                .ok_or_else(|| PunycodeDecodingError::Overflow {
                     input: String::from_utf8_lossy(input).to_string(),
                     position,
                 })?;
@@ -166,13 +164,13 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
 
         n = n
             .checked_add(i / (output.len() as u32 + 1))
-            .ok_or_else(|| DecodingError::Overflow {
+            .ok_or_else(|| PunycodeDecodingError::Overflow {
                 input: String::from_utf8_lossy(input).to_string(),
                 position,
             })?;
 
         if n > 0x0010_FFFF {
-            return Err(DecodingError::InvalidCodePoint {
+            return Err(PunycodeDecodingError::InvalidCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position,
                 value: n,
@@ -182,18 +180,19 @@ fn punycode_decode_part(input: &[u8]) -> Result<String, DecodingError> {
         i %= output.len() as u32 + 1;
 
         if n < 128 {
-            return Err(DecodingError::InvalidBasicCodePoint {
+            return Err(PunycodeDecodingError::InvalidBasicCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position,
                 character: vec![],
             });
         }
 
-        let code_point = char::from_u32(n).ok_or_else(|| DecodingError::InvalidCodePoint {
-            input: String::from_utf8_lossy(input).to_string(),
-            position,
-            value: n,
-        })?;
+        let code_point =
+            char::from_u32(n).ok_or_else(|| PunycodeDecodingError::InvalidCodePoint {
+                input: String::from_utf8_lossy(input).to_string(),
+                position,
+                value: n,
+            })?;
 
         output.insert(i as usize, code_point);
         i += 1;
@@ -502,7 +501,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::UnexpectedEnd {
+            PunycodeDecodingError::UnexpectedEnd {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0
             }
@@ -527,7 +526,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidBasicCodePoint {
+            PunycodeDecodingError::InvalidBasicCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 3,
                 character: vec![],
@@ -553,7 +552,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidBasicCodePoint {
+            PunycodeDecodingError::InvalidBasicCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 3,
                 character: vec![],
@@ -579,7 +578,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidBasicCodePoint {
+            PunycodeDecodingError::InvalidBasicCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 3,
                 character: vec![],
@@ -605,7 +604,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::UnexpectedEnd {
+            PunycodeDecodingError::UnexpectedEnd {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0
             }
@@ -629,7 +628,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCodePoint {
+            PunycodeDecodingError::InvalidCodePoint {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 5,
                 value: 0x0048_A3C1,
@@ -654,7 +653,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::Overflow {
+            PunycodeDecodingError::Overflow {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 7,
             }

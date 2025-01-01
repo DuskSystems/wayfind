@@ -1,11 +1,10 @@
-use crate::errors::EncodingError;
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, str::Utf8Error};
 
 /// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
-pub enum TemplateError {
-    /// A [`EncodingError`] that occurred during the decoding.
-    Encoding(EncodingError),
+pub enum PathTemplateError {
+    /// A [`Utf8Error`] that occurred during the decoding.
+    Encoding(Utf8Error),
 
     /// The route is empty.
     Empty,
@@ -15,9 +14,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::MissingLeadingSlash {
+    /// let error = PathTemplateError::MissingLeadingSlash {
     ///     route: "abc".to_string(),
     /// };
     ///
@@ -41,9 +40,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::EmptyBraces {
+    /// let error = PathTemplateError::EmptyBraces {
     ///     route: "/{}".to_string(),
     ///     position: 1,
     /// };
@@ -69,9 +68,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::UnbalancedBrace {
+    /// let error = PathTemplateError::UnbalancedBrace {
     ///     route: "/{".to_string(),
     ///     position: 1,
     /// };
@@ -99,9 +98,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::EmptyParentheses {
+    /// let error = PathTemplateError::EmptyParentheses {
     ///     route: "/()".to_string(),
     ///     position: 1,
     /// };
@@ -127,9 +126,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::UnbalancedParenthesis {
+    /// let error = PathTemplateError::UnbalancedParenthesis {
     ///     route: "/(".to_string(),
     ///     position: 1,
     /// };
@@ -157,9 +156,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::EmptyParameter {
+    /// let error = PathTemplateError::EmptyParameter {
     ///     route: "/{:}".to_string(),
     ///     start: 1,
     ///     length: 3,
@@ -188,9 +187,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::InvalidParameter {
+    /// let error = PathTemplateError::InvalidParameter {
     ///     route: "/{a/b}".to_string(),
     ///     name: "a/b".to_string(),
     ///     start: 1,
@@ -224,9 +223,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::DuplicateParameter {
+    /// let error = PathTemplateError::DuplicateParameter {
     ///     route: "/{id}/{id}".to_string(),
     ///     name: "id".to_string(),
     ///     first: 1,
@@ -266,9 +265,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::EmptyWildcard {
+    /// let error = PathTemplateError::EmptyWildcard {
     ///     route: "/{*}".to_string(),
     ///     start: 1,
     ///     length: 3,
@@ -297,9 +296,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::EmptyConstraint {
+    /// let error = PathTemplateError::EmptyConstraint {
     ///     route: "/{a:}".to_string(),
     ///     start: 1,
     ///     length: 4,
@@ -328,9 +327,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::InvalidConstraint {
+    /// let error = PathTemplateError::InvalidConstraint {
     ///     route: "/{a:b/c}".to_string(),
     ///     name: "b/c".to_string(),
     ///     start: 1,
@@ -364,9 +363,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_path::errors::TemplateError;
+    /// use wayfind_path::errors::PathTemplateError;
     ///
-    /// let error = TemplateError::TouchingParameters {
+    /// let error = PathTemplateError::TouchingParameters {
     ///     route: "/{a}{b}".to_string(),
     ///     start: 1,
     ///     length: 6,
@@ -393,9 +392,9 @@ pub enum TemplateError {
     },
 }
 
-impl Error for TemplateError {}
+impl Error for PathTemplateError {}
 
-impl Display for TemplateError {
+impl Display for PathTemplateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
@@ -589,8 +588,8 @@ tip: Touching parameters are not supported"
     }
 }
 
-impl From<EncodingError> for TemplateError {
-    fn from(error: EncodingError) -> Self {
+impl From<Utf8Error> for PathTemplateError {
+    fn from(error: Utf8Error) -> Self {
         Self::Encoding(error)
     }
 }

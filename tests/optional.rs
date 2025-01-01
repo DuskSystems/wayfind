@@ -17,9 +17,9 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ├─ users [1]
+    ├─ users [*:1]
     ╰─ {lang}
-       ╰─ /users [1]
+       ╰─ /users [*:1]
     === Method
     Empty
     === Chains
@@ -37,8 +37,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/{lang})/users",
-                expanded: Some("/{lang}/users"),
+                route: "(/{lang})/users".into(),
+                expanded: Some("/{lang}/users".into()),
                 parameters: smallvec![("lang", "en")],
             },
             method: MethodMatch { method: None }
@@ -56,8 +56,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/{lang})/users",
-                expanded: Some("/users"),
+                route: "(/{lang})/users".into(),
+                expanded: Some("/users".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -78,8 +78,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
-    ╰─ / [1]
+    /users [*:1]
+    ╰─ / [*:1]
     === Method
     Empty
     === Chains
@@ -97,8 +97,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users(/)",
-                expanded: Some("/users"),
+                route: "/users(/)".into(),
+                expanded: Some("/users".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -116,8 +116,8 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users(/)",
-                expanded: Some("/users/"),
+                route: "/users(/)".into(),
+                expanded: Some("/users/".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -138,10 +138,10 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ a [1]
-       ╰─ /b [1]
-          ╰─ /c [1]
+    / [*:1]
+    ╰─ a [*:1]
+       ╰─ /b [*:1]
+          ╰─ /c [*:1]
     === Method
     Empty
     === Chains
@@ -159,8 +159,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a(/b(/c)))",
-                expanded: Some("/a/b/c"),
+                route: "(/a(/b(/c)))".into(),
+                expanded: Some("/a/b/c".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -178,8 +178,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a(/b(/c)))",
-                expanded: Some("/a/b"),
+                route: "(/a(/b(/c)))".into(),
+                expanded: Some("/a/b".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -197,8 +197,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a(/b(/c)))",
-                expanded: Some("/a"),
+                route: "(/a(/b(/c)))".into(),
+                expanded: Some("/a".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -216,8 +216,8 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a(/b(/c)))",
-                expanded: Some("/"),
+                route: "(/a(/b(/c)))".into(),
+                expanded: Some("/".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -238,8 +238,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ test [1]
+    / [*:1]
+    ╰─ test [*:1]
     === Method
     Empty
     === Chains
@@ -257,8 +257,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/test)",
-                expanded: Some("/test"),
+                route: "(/test)".into(),
+                expanded: Some("/test".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -276,8 +276,8 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/test)",
-                expanded: Some("/"),
+                route: "(/test)".into(),
+                expanded: Some("/".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -298,15 +298,15 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ├─ a [1]
+    / [*:1]
+    ├─ a [*:1]
     │  ╰─ /
-    │     ├─ b [1]
-    │     │  ╰─ /c [1]
-    │     ╰─ c [1]
-    ├─ b [1]
-    │  ╰─ /c [1]
-    ╰─ c [1]
+    │     ├─ b [*:1]
+    │     │  ╰─ /c [*:1]
+    │     ╰─ c [*:1]
+    ├─ b [*:1]
+    │  ╰─ /c [*:1]
+    ╰─ c [*:1]
     === Method
     Empty
     === Chains
@@ -324,8 +324,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/a/b/c"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/a/b/c".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -343,8 +343,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/a/b"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/a/b".into(),),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -362,8 +362,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/a/c"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/a/c".into(),),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -381,8 +381,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/a"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/a".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -400,8 +400,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/b/c"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/b/c".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -419,8 +419,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/b"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/b".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -438,8 +438,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/c"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/c".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -457,8 +457,8 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "(/a)(/b)(/c)",
-                expanded: Some("/"),
+                route: "(/a)(/b)(/c)".into(),
+                expanded: Some("/".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }

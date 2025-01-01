@@ -1,43 +1,22 @@
-use super::errors::TemplateError;
-use crate::errors::EncodingError;
+use super::errors::PathTemplateError;
 use smallvec::{smallvec, SmallVec};
+use std::sync::Arc;
+use wayfind_tree::parser::{Part, Template};
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParsedTemplate {
-    pub input: Vec<u8>,
-    pub raw: Vec<u8>,
-    pub parts: Vec<Part>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Part {
-    Static {
-        prefix: Vec<u8>,
-    },
-    Dynamic {
-        name: String,
-        constraint: Option<String>,
-    },
-    Wildcard {
-        name: String,
-        constraint: Option<String>,
-    },
-}
-
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parser {
-    pub input: Vec<u8>,
-    pub routes: Vec<ParsedTemplate>,
+pub struct ParsedPath {
+    pub input: Arc<str>,
+    pub routes: Vec<Template>,
     pub expanded: bool,
 }
 
-impl Parser {
-    pub fn new(input: &[u8]) -> Result<Self, TemplateError> {
+impl ParsedPath {
+    pub fn new(input: &str) -> Result<Self, PathTemplateError> {
         if input.is_empty() {
-            return Err(TemplateError::Empty);
+            return Err(PathTemplateError::Empty);
         }
 
         let routes = Self::expand_optional_groups(input, 0, input.len())?;
@@ -49,7 +28,7 @@ impl Parser {
         let expanded = routes.len() > 1;
 
         Ok(Self {
-            input: input.to_vec(),
+            input: input.into(),
             routes,
             expanded,
         })
@@ -57,10 +36,11 @@ impl Parser {
 
     // Recursively expands optional groups in the route, generating all possible combinations
     fn expand_optional_groups(
-        input: &[u8],
+        input: &str,
         start: usize,
         end: usize,
-    ) -> Result<Vec<Vec<u8>>, TemplateError> {
+    ) -> Result<Vec<Vec<u8>>, PathTemplateError> {
+        let bytes = input.as_bytes();
         let mut result = Vec::from([vec![]]);
 
         let mut cursor = start;
@@ -68,7 +48,7 @@ impl Parser {
         let mut depth = 0;
 
         while cursor < end {
-            match (input[cursor], input.get(cursor + 1)) {
+            match (bytes[cursor], bytes.get(cursor + 1)) {
                 (b'\\', Some(_)) => {
                     // Skip the backslash and the escaped character
                     cursor += 2;
@@ -77,7 +57,7 @@ impl Parser {
                     if depth == 0 {
                         result
                             .iter_mut()
-                            .for_each(|route| route.extend_from_slice(&input[group..cursor]));
+                            .for_each(|route| route.extend_from_slice(&bytes[group..cursor]));
 
                         group = cursor + 1;
                     }
@@ -89,16 +69,16 @@ impl Parser {
                     depth -= 1;
 
                     if depth < 0 {
-                        return Err(TemplateError::UnbalancedParenthesis {
-                            route: String::from_utf8_lossy(input).to_string(),
+                        return Err(PathTemplateError::UnbalancedParenthesis {
+                            route: String::from_utf8_lossy(bytes).to_string(),
                             position: cursor,
                         });
                     }
 
                     if depth == 0 {
                         if cursor == group {
-                            return Err(TemplateError::EmptyParentheses {
-                                route: String::from_utf8_lossy(input).to_string(),
+                            return Err(PathTemplateError::EmptyParentheses {
+                                route: String::from_utf8_lossy(bytes).to_string(),
                                 position: cursor - 1,
                             });
                         }
@@ -129,8 +109,8 @@ impl Parser {
         }
 
         if depth != 0 {
-            return Err(TemplateError::UnbalancedParenthesis {
-                route: String::from_utf8_lossy(input).to_string(),
+            return Err(PathTemplateError::UnbalancedParenthesis {
+                route: String::from_utf8_lossy(bytes).to_string(),
                 position: start + group - 1,
             });
         }
@@ -138,7 +118,7 @@ impl Parser {
         if group < end {
             result
                 .iter_mut()
-                .for_each(|route| route.extend_from_slice(&input[group..end]));
+                .for_each(|route| route.extend_from_slice(&bytes[group..end]));
         }
 
         for route in &mut result {
@@ -150,9 +130,9 @@ impl Parser {
         Ok(result)
     }
 
-    fn parse_route(input: &[u8], raw: &[u8]) -> Result<ParsedTemplate, TemplateError> {
+    fn parse_route(input: &str, raw: &[u8]) -> Result<Template, PathTemplateError> {
         if !raw.is_empty() && raw[0] != b'/' {
-            return Err(TemplateError::MissingLeadingSlash {
+            return Err(PathTemplateError::MissingLeadingSlash {
                 route: String::from_utf8_lossy(raw).to_string(),
             });
         }
@@ -171,7 +151,7 @@ impl Parser {
                     // Check for touching parameters.
                     if let Some((_, start, length)) = seen_parameters.last() {
                         if cursor == start + length {
-                            return Err(TemplateError::TouchingParameters {
+                            return Err(PathTemplateError::TouchingParameters {
                                 route: String::from_utf8_lossy(raw).to_string(),
                                 start: *start,
                                 length: next_cursor - start,
@@ -185,7 +165,7 @@ impl Parser {
                             .iter()
                             .find(|(existing, _, _)| existing == name)
                         {
-                            return Err(TemplateError::DuplicateParameter {
+                            return Err(PathTemplateError::DuplicateParameter {
                                 route: String::from_utf8_lossy(raw).to_string(),
                                 name: name.to_string(),
                                 first: *start,
@@ -202,7 +182,7 @@ impl Parser {
                     cursor = next_cursor;
                 }
                 b'}' => {
-                    return Err(TemplateError::UnbalancedBrace {
+                    return Err(PathTemplateError::UnbalancedBrace {
                         route: String::from_utf8_lossy(raw).to_string(),
                         position: cursor,
                     })
@@ -217,9 +197,12 @@ impl Parser {
 
         parts.reverse();
 
-        Ok(ParsedTemplate {
-            input: input.to_vec(),
-            raw: raw.to_vec(),
+        // FIXME
+        let raw = String::from_utf8_lossy(raw);
+
+        Ok(Template {
+            input: input.into(),
+            raw: raw.into(),
             parts,
         })
     }
@@ -249,7 +232,10 @@ impl Parser {
         (Part::Static { prefix }, end)
     }
 
-    fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), TemplateError> {
+    fn parse_parameter_part(
+        input: &[u8],
+        cursor: usize,
+    ) -> Result<(Part, usize), PathTemplateError> {
         let start = cursor + 1;
         let mut end = start;
 
@@ -270,7 +256,7 @@ impl Parser {
         }
 
         if brace_count != 0 {
-            return Err(TemplateError::UnbalancedBrace {
+            return Err(PathTemplateError::UnbalancedBrace {
                 route: String::from_utf8_lossy(input).to_string(),
                 position: cursor,
             });
@@ -278,7 +264,7 @@ impl Parser {
 
         let content = &input[start..end];
         if content.is_empty() {
-            return Err(TemplateError::EmptyBraces {
+            return Err(PathTemplateError::EmptyBraces {
                 route: String::from_utf8_lossy(input).to_string(),
                 position: cursor,
             });
@@ -292,7 +278,7 @@ impl Parser {
             });
 
         if name.is_empty() {
-            return Err(TemplateError::EmptyParameter {
+            return Err(PathTemplateError::EmptyParameter {
                 route: String::from_utf8_lossy(input).to_string(),
                 start: cursor,
                 length: end - cursor + 1,
@@ -303,7 +289,7 @@ impl Parser {
         let name = if is_wildcard { &name[1..] } else { name };
 
         if is_wildcard && name.is_empty() {
-            return Err(TemplateError::EmptyWildcard {
+            return Err(PathTemplateError::EmptyWildcard {
                 route: String::from_utf8_lossy(input).to_string(),
                 start: cursor,
                 length: end - cursor + 1,
@@ -311,7 +297,7 @@ impl Parser {
         }
 
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-            return Err(TemplateError::InvalidParameter {
+            return Err(PathTemplateError::InvalidParameter {
                 route: String::from_utf8_lossy(input).to_string(),
                 name: String::from_utf8_lossy(name).to_string(),
                 start: cursor,
@@ -321,7 +307,7 @@ impl Parser {
 
         if let Some(constraint) = constraint {
             if constraint.is_empty() {
-                return Err(TemplateError::EmptyConstraint {
+                return Err(PathTemplateError::EmptyConstraint {
                     route: String::from_utf8_lossy(input).to_string(),
                     start: cursor,
                     length: end - cursor + 1,
@@ -329,7 +315,7 @@ impl Parser {
             }
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                return Err(TemplateError::InvalidConstraint {
+                return Err(PathTemplateError::InvalidConstraint {
                     route: String::from_utf8_lossy(input).to_string(),
                     name: String::from_utf8_lossy(name).to_string(),
                     start: cursor,
@@ -338,16 +324,9 @@ impl Parser {
             }
         }
 
-        let name = String::from_utf8(name.to_vec()).map_err(|_| EncodingError::Utf8Error {
-            input: String::from_utf8_lossy(name).to_string(),
-        })?;
-
+        let name = std::str::from_utf8(name)?.to_owned();
         let constraint = if let Some(constraint) = constraint {
-            Some(
-                String::from_utf8(constraint.to_vec()).map_err(|_| EncodingError::Utf8Error {
-                    input: String::from_utf8_lossy(constraint).to_string(),
-                })?,
-            )
+            Some(std::str::from_utf8(constraint)?.to_owned())
         } else {
             None
         };
@@ -370,12 +349,12 @@ mod tests {
     #[test]
     fn test_parser_static_route() {
         assert_eq!(
-            Parser::new(b"/abcd"),
-            Ok(Parser {
-                input: b"/abcd".to_vec(),
-                routes: vec![ParsedTemplate {
-                    input: b"/abcd".to_vec(),
-                    raw: b"/abcd".to_vec(),
+            ParsedPath::new("/abcd"),
+            Ok(ParsedPath {
+                input: "/abcd".into(),
+                routes: vec![Template {
+                    input: "/abcd".into(),
+                    raw: "/abcd".into(),
                     parts: vec![Part::Static {
                         prefix: b"/abcd".to_vec()
                     }],
@@ -388,12 +367,12 @@ mod tests {
     #[test]
     fn test_parser_dynamic_route() {
         assert_eq!(
-            Parser::new(b"/{name}"),
-            Ok(Parser {
-                input: b"/{name}".to_vec(),
-                routes: vec![ParsedTemplate {
-                    input: b"/{name}".to_vec(),
-                    raw: b"/{name}".to_vec(),
+            ParsedPath::new("/{name}"),
+            Ok(ParsedPath {
+                input: "/{name}".into(),
+                routes: vec![Template {
+                    input: "/{name}".into(),
+                    raw: "/{name}".into(),
                     parts: vec![
                         Part::Dynamic {
                             name: "name".to_owned(),
@@ -412,12 +391,12 @@ mod tests {
     #[test]
     fn test_parser_wildcard_route() {
         assert_eq!(
-            Parser::new(b"/{*route}"),
-            Ok(Parser {
-                input: b"/{*route}".to_vec(),
-                routes: vec![ParsedTemplate {
-                    input: b"/{*route}".to_vec(),
-                    raw: b"/{*route}".to_vec(),
+            ParsedPath::new("/{*route}"),
+            Ok(ParsedPath {
+                input: "/{*route}".into(),
+                routes: vec![Template {
+                    input: "/{*route}".into(),
+                    raw: "/{*route}".into(),
                     parts: vec![
                         Part::Wildcard {
                             name: "route".to_owned(),
@@ -436,12 +415,12 @@ mod tests {
     #[test]
     fn test_parser_complex_route() {
         assert_eq!(
-            Parser::new(b"/{*name:alpha}/{id:numeric}"),
-            Ok(Parser {
-                input: b"/{*name:alpha}/{id:numeric}".to_vec(),
-                routes: vec![ParsedTemplate {
-                    input: b"/{*name:alpha}/{id:numeric}".to_vec(),
-                    raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
+            ParsedPath::new("/{*name:alpha}/{id:numeric}"),
+            Ok(ParsedPath {
+                input: "/{*name:alpha}/{id:numeric}".into(),
+                routes: vec![Template {
+                    input: "/{*name:alpha}/{id:numeric}".into(),
+                    raw: "/{*name:alpha}/{id:numeric}".into(),
                     parts: vec![
                         Part::Dynamic {
                             name: "id".to_owned(),
@@ -467,13 +446,13 @@ mod tests {
     #[test]
     fn test_parser_optional_group_simple() {
         assert_eq!(
-            Parser::new(b"/users(/{id})"),
-            Ok(Parser {
-                input: b"/users(/{id})".to_vec(),
+            ParsedPath::new("/users(/{id})"),
+            Ok(ParsedPath {
+                input: "/users(/{id})".into(),
                 routes: vec![
-                    ParsedTemplate {
-                        input: b"/users(/{id})".to_vec(),
-                        raw: b"/users/{id}".to_vec(),
+                    Template {
+                        input: "/users(/{id})".into(),
+                        raw: "/users/{id}".into(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
@@ -484,9 +463,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"/users(/{id})".to_vec(),
-                        raw: b"/users".to_vec(),
+                    Template {
+                        input: "/users(/{id})".into(),
+                        raw: "/users".into(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
                         }],
@@ -500,13 +479,13 @@ mod tests {
     #[test]
     fn test_parser_optional_groups_nested() {
         assert_eq!(
-            Parser::new(b"/users(/{id}(/profile))"),
-            Ok(Parser {
-                input: b"/users(/{id}(/profile))".to_vec(),
+            ParsedPath::new("/users(/{id}(/profile))"),
+            Ok(ParsedPath {
+                input: "/users(/{id}(/profile))".into(),
                 routes: vec![
-                    ParsedTemplate {
-                        input: b"/users(/{id}(/profile))".to_vec(),
-                        raw: b"/users/{id}/profile".to_vec(),
+                    Template {
+                        input: "/users(/{id}(/profile))".into(),
+                        raw: "/users/{id}/profile".into(),
                         parts: vec![
                             Part::Static {
                                 prefix: b"/profile".to_vec()
@@ -520,9 +499,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"/users(/{id}(/profile))".to_vec(),
-                        raw: b"/users/{id}".to_vec(),
+                    Template {
+                        input: "/users(/{id}(/profile))".into(),
+                        raw: "/users/{id}".into(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
@@ -533,9 +512,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"/users(/{id}(/profile))".to_vec(),
-                        raw: b"/users".to_vec(),
+                    Template {
+                        input: "/users(/{id}(/profile))".into(),
+                        raw: "/users".into(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
                         }],
@@ -549,12 +528,12 @@ mod tests {
     #[test]
     fn test_parser_escaped_characters() {
         assert_eq!(
-            Parser::new(b"/path/with\\{braces\\}and\\(parens\\)"),
-            Ok(Parser {
-                input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
-                routes: vec![ParsedTemplate {
-                    input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
-                    raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
+            ParsedPath::new("/path/with\\{braces\\}and\\(parens\\)"),
+            Ok(ParsedPath {
+                input: "/path/with\\{braces\\}and\\(parens\\)".into(),
+                routes: vec![Template {
+                    input: "/path/with\\{braces\\}and\\(parens\\)".into(),
+                    raw: "/path/with\\{braces\\}and\\(parens\\)".into(),
                     parts: vec![Part::Static {
                         prefix: b"/path/with{braces}and(parens)".to_vec()
                     }],
@@ -567,13 +546,13 @@ mod tests {
     #[test]
     fn test_parser_edge_case_starting_optional_group() {
         assert_eq!(
-            Parser::new(b"(/{lang})/users"),
-            Ok(Parser {
-                input: b"(/{lang})/users".to_vec(),
+            ParsedPath::new("(/{lang})/users"),
+            Ok(ParsedPath {
+                input: "(/{lang})/users".into(),
                 routes: vec![
-                    ParsedTemplate {
-                        input: b"(/{lang})/users".to_vec(),
-                        raw: b"/{lang}/users".to_vec(),
+                    Template {
+                        input: "(/{lang})/users".into(),
+                        raw: "/{lang}/users".into(),
                         parts: vec![
                             Part::Static {
                                 prefix: b"/users".to_vec()
@@ -587,9 +566,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"(/{lang})/users".to_vec(),
-                        raw: b"/users".to_vec(),
+                    Template {
+                        input: "(/{lang})/users".into(),
+                        raw: "/users".into(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
                         }],
@@ -603,13 +582,13 @@ mod tests {
     #[test]
     fn test_parser_edge_case_only_optional_groups() {
         assert_eq!(
-            Parser::new(b"(/{lang})(/{page})"),
-            Ok(Parser {
-                input: b"(/{lang})(/{page})".to_vec(),
+            ParsedPath::new("(/{lang})(/{page})"),
+            Ok(ParsedPath {
+                input: "(/{lang})(/{page})".into(),
                 routes: vec![
-                    ParsedTemplate {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{lang}/{page}".to_vec(),
+                    Template {
+                        input: "(/{lang})(/{page})".into(),
+                        raw: "/{lang}/{page}".into(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
@@ -627,9 +606,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{lang}".to_vec(),
+                    Template {
+                        input: "(/{lang})(/{page})".into(),
+                        raw: "/{lang}".into(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "lang".to_owned(),
@@ -640,9 +619,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{page}".to_vec(),
+                    Template {
+                        input: "(/{lang})(/{page})".into(),
+                        raw: "/{page}".into(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
@@ -653,9 +632,9 @@ mod tests {
                             },
                         ],
                     },
-                    ParsedTemplate {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/".to_vec(),
+                    Template {
+                        input: "(/{lang})(/{page})".into(),
+                        raw: "/".into(),
                         parts: vec![Part::Static {
                             prefix: b"/".to_vec()
                         }],
@@ -668,18 +647,18 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty() {
-        let error = Parser::new(b"").unwrap_err();
-        assert_eq!(error, TemplateError::Empty);
+        let error = ParsedPath::new("").unwrap_err();
+        assert_eq!(error, PathTemplateError::Empty);
 
         insta::assert_snapshot!(error, @"empty route");
     }
 
     #[test]
     fn test_parser_error_empty_braces() {
-        let error = Parser::new(b"/users/{}").unwrap_err();
+        let error = ParsedPath::new("/users/{}").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyBraces {
+            PathTemplateError::EmptyBraces {
                 route: "/users/{}".to_owned(),
                 position: 7,
             }
@@ -695,10 +674,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_missing_leading_slash() {
-        let error = Parser::new(b"abc").unwrap_err();
+        let error = ParsedPath::new("abc").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::MissingLeadingSlash {
+            PathTemplateError::MissingLeadingSlash {
                 route: "abc".to_owned(),
             }
         );
@@ -714,10 +693,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_brace_opening() {
-        let error = Parser::new(b"/users/{id/profile").unwrap_err();
+        let error = ParsedPath::new("/users/{id/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedBrace {
+            PathTemplateError::UnbalancedBrace {
                 route: "/users/{id/profile".to_owned(),
                 position: 7,
             }
@@ -735,10 +714,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_brace_closing() {
-        let error = Parser::new(b"/users/id}/profile").unwrap_err();
+        let error = ParsedPath::new("/users/id}/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedBrace {
+            PathTemplateError::UnbalancedBrace {
                 route: "/users/id}/profile".to_owned(),
                 position: 9,
             }
@@ -756,10 +735,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parenthesis() {
-        let error = Parser::new(b"/products()/category").unwrap_err();
+        let error = ParsedPath::new("/products()/category").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyParentheses {
+            PathTemplateError::EmptyParentheses {
                 route: "/products()/category".to_owned(),
                 position: 9,
             }
@@ -775,10 +754,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_parenthesis_opening() {
-        let error = Parser::new(b"/products(/category").unwrap_err();
+        let error = ParsedPath::new("/products(/category").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedParenthesis {
+            PathTemplateError::UnbalancedParenthesis {
                 route: "/products(/category".to_owned(),
                 position: 9,
             }
@@ -796,10 +775,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_parenthesis_closing() {
-        let error = Parser::new(b"/products)/category").unwrap_err();
+        let error = ParsedPath::new("/products)/category").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedParenthesis {
+            PathTemplateError::UnbalancedParenthesis {
                 route: "/products)/category".to_owned(),
                 position: 9,
             }
@@ -817,10 +796,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parameter() {
-        let error = Parser::new(b"/users/{:constraint}/profile").unwrap_err();
+        let error = ParsedPath::new("/users/{:constraint}/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyParameter {
+            PathTemplateError::EmptyParameter {
                 route: "/users/{:constraint}/profile".to_owned(),
                 start: 7,
                 length: 13,
@@ -837,10 +816,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_invalid_parameter() {
-        let error = Parser::new(b"/users/{user*name}/profile").unwrap_err();
+        let error = ParsedPath::new("/users/{user*name}/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::InvalidParameter {
+            PathTemplateError::InvalidParameter {
                 route: "/users/{user*name}/profile".to_owned(),
                 name: "user*name".to_owned(),
                 start: 7,
@@ -860,10 +839,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = Parser::new(b"/users/{id}/posts/{id:uuid}").unwrap_err();
+        let error = ParsedPath::new("/users/{id}/posts/{id:uuid}").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::DuplicateParameter {
+            PathTemplateError::DuplicateParameter {
                 route: "/users/{id}/posts/{id:uuid}".to_owned(),
                 name: "id".to_owned(),
                 first: 7,
@@ -885,10 +864,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_wildcard() {
-        let error = Parser::new(b"/files/{*}").unwrap_err();
+        let error = ParsedPath::new("/files/{*}").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyWildcard {
+            PathTemplateError::EmptyWildcard {
                 route: "/files/{*}".to_owned(),
                 start: 7,
                 length: 3,
@@ -905,10 +884,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_constraint() {
-        let error = Parser::new(b"/users/{id:}/profile").unwrap_err();
+        let error = ParsedPath::new("/users/{id:}/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyConstraint {
+            PathTemplateError::EmptyConstraint {
                 route: "/users/{id:}/profile".to_owned(),
                 start: 7,
                 length: 5,
@@ -925,10 +904,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_invalid_constraint() {
-        let error = Parser::new(b"/users/{id:*}/profile").unwrap_err();
+        let error = ParsedPath::new("/users/{id:*}/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::InvalidConstraint {
+            PathTemplateError::InvalidConstraint {
                 route: "/users/{id:*}/profile".to_owned(),
                 name: "id".to_owned(),
                 start: 7,
@@ -948,10 +927,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_touching_parameters() {
-        let error = Parser::new(b"/users/{id}{name}").unwrap_err();
+        let error = ParsedPath::new("/users/{id}{name}").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::TouchingParameters {
+            PathTemplateError::TouchingParameters {
                 route: "/users/{id}{name}".to_owned(),
                 start: 7,
                 length: 10,

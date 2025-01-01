@@ -34,27 +34,27 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ├─ api/v1 [7]
-    │  ╰─ / [7]
-    ├─ users [2]
+    / [*:1]
+    ├─ api/v1 [*:7]
+    │  ╰─ / [*:7]
+    ├─ users [*:2]
     │  ╰─ /
-    │     ╰─ {id} [3]
-    │        ╰─ /profile [4]
+    │     ╰─ {id} [*:3]
+    │        ╰─ /profile [*:4]
     ├─ images/
-    │  ╰─ {name} [8]
+    │  ╰─ {name} [*:8]
     │     ╰─ .
-    │        ╰─ {extension} [8]
+    │        ╰─ {extension} [*:8]
     ├─ files/
     │  ╰─ {*path}
-    │     ╰─ /download [6]
+    │     ╰─ /download [*:6]
     ├─ posts/
     │  ╰─ {year}
     │     ╰─ -
     │        ╰─ {month}
     │           ╰─ -
-    │              ╰─ {day} [5]
-    ╰─ {*catch_all} [9]
+    │              ╰─ {day} [*:5]
+    ╰─ {*catch_all} [*:9]
     === Method
     Empty
     === Chains

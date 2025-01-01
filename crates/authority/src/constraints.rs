@@ -3,3 +3,5 @@ pub trait AuthorityConstraint: Send + Sync {
 
     fn check(segment: &str) -> bool;
 }
+
+// TODO

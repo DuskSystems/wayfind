@@ -1,11 +1,15 @@
+use wayfind_authority::errors::AuthorityTemplateError;
+use wayfind_path::errors::PathTemplateError;
+
 use super::EncodingError;
 use std::{error::Error, fmt::Display};
 
 /// Errors that can occur when creating a [`Route`](`crate::Route`).
 #[derive(Debug, PartialEq, Eq)]
 pub enum RouteError {
-    /// A [`EncodingError`] that occurred during the creation.
     Encoding(EncodingError),
+    Authority(AuthorityTemplateError),
+    Path(PathTemplateError),
 
     /// The route was not provided when building the [`Route`](`crate::Route`).
     ///
@@ -93,6 +97,8 @@ impl Display for RouteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
+            Self::Authority(error) => error.fmt(f),
+            Self::Path(error) => error.fmt(f),
             Self::MissingRoute => write!(
                 f,
                 r"missing route
@@ -124,5 +130,17 @@ The router expects paths to be in their decoded form"
 impl From<EncodingError> for RouteError {
     fn from(error: EncodingError) -> Self {
         Self::Encoding(error)
+    }
+}
+
+impl From<AuthorityTemplateError> for RouteError {
+    fn from(error: AuthorityTemplateError) -> Self {
+        Self::Authority(error)
+    }
+}
+
+impl From<PathTemplateError> for RouteError {
+    fn from(error: PathTemplateError) -> Self {
+        Self::Path(error)
     }
 }

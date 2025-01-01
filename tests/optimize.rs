@@ -17,10 +17,10 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {id} [1]
+    ╰─ {id} [*:1]
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
+          ├─ settings [*:3]
+          ╰─ profile [*:2]
     === Method
     Empty
     === Chains
@@ -37,8 +37,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {id} [1]
-       ╰─ /settings [3]
+    ╰─ {id} [*:1]
+       ╰─ /settings [*:3]
     === Method
     Empty
     === Chains
@@ -54,7 +54,7 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {id} [1]
+    ╰─ {id} [*:1]
     === Method
     Empty
     === Chains
@@ -80,10 +80,10 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {id} [1]
+    ╰─ {id} [*:1]
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
+          ├─ settings [*:3]
+          ╰─ profile [*:2]
     === Method
     Empty
     === Chains
@@ -102,8 +102,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id}
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
+          ├─ settings [*:3]
+          ╰─ profile [*:2]
     === Method
     Empty
     === Chains
@@ -129,9 +129,9 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /a [2]
-    ╰─ b [3]
-       ╰─ c [1]
+    /a [*:2]
+    ╰─ b [*:3]
+       ╰─ c [*:1]
     === Method
     Empty
     === Chains
@@ -147,8 +147,8 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /a [2]
-    ╰─ bc [1]
+    /a [*:2]
+    ╰─ bc [*:1]
     === Method
     Empty
     === Chains

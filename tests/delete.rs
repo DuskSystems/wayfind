@@ -16,7 +16,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /test [1]
+    /test [*:1]
     === Method
     Empty
     === Chains
@@ -31,7 +31,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /test [1]
+    /test [*:1]
     === Method
     Empty
     === Chains
@@ -43,7 +43,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "(/test)".to_owned(),
+            path: "(/test)".to_owned(),
             inserted: "/test".to_owned(),
         }))
     );
@@ -52,7 +52,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /test [1]
+    /test [*:1]
     === Method
     Empty
     === Chains
@@ -88,8 +88,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ test [1]
+    / [*:1]
+    ╰─ test [*:1]
     === Method
     Empty
     === Chains
@@ -101,7 +101,7 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/test".to_owned(),
+            path: "/test".to_owned(),
             inserted: "(/test)".to_owned()
         }))
     );
@@ -110,8 +110,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ test [1]
+    / [*:1]
+    ╰─ test [*:1]
     === Method
     Empty
     === Chains
@@ -123,7 +123,7 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/".to_owned(),
+            path: "/".to_owned(),
             inserted: "(/test)".to_owned()
         }))
     );
@@ -132,8 +132,8 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ test [1]
+    / [*:1]
+    ╰─ test [*:1]
     === Method
     Empty
     === Chains
@@ -169,8 +169,8 @@ fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /a [1]
-    ╰─ /b [1]
+    /a [*:1]
+    ╰─ /b [*:1]
     === Method
     Empty
     === Chains
@@ -182,7 +182,7 @@ fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/a".to_owned(),
+            path: "/a".to_owned(),
             inserted: "/a(/b)".to_owned(),
         }))
     );
@@ -192,7 +192,7 @@ fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         delete,
         Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/a(/b(/c))".to_owned(),
+            path: "/a(/b(/c))".to_owned(),
             inserted: "/a(/b)".to_owned(),
         }))
     );
@@ -228,7 +228,7 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {id}
-       ╰─ data [1]
+       ╰─ data [*:1]
     === Method
     Empty
     === Chains
@@ -245,7 +245,7 @@ fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {id}
-       ╰─ data [1]
+       ╰─ data [*:1]
     === Method
     Empty
     === Chains

@@ -1,7 +1,8 @@
-use super::{node::Node, state::State, AuthorityData};
+use super::{node::Node, state::State};
+use crate::node::{Config, Data};
 
-impl<S: State> Node<'_, S> {
-    pub(crate) fn optimize(&mut self) {
+impl<C: Config, S: State> Node<C, S> {
+    pub fn optimize(&mut self) {
         self.optimize_inner(0);
     }
 
@@ -39,25 +40,22 @@ impl<S: State> Node<'_, S> {
         self.needs_optimization = false;
     }
 
+    // TODO: I'd really like to make priority relative.
     fn calculate_priority(&self) -> usize {
         let mut priority = self.state.priority();
-        if self.data.is_some() {
+        if !self.data.is_empty() {
             priority += 1_000;
-            priority += match &self.data {
-                Some(AuthorityData { authority, .. }) => {
-                    authority.len() + (authority.bytes().filter(|&b| b == b'.').count() * 100)
-                }
-                None => 0,
-            };
+            priority += self.data.values().next().map_or(0, Data::priority);
         }
 
         priority
     }
 
+    // FIXME: This should be custom per impl?
     fn update_dynamic_children_shortcut(&mut self) {
         self.dynamic_children_shortcut = self.dynamic_children.iter().all(|child| {
             // Leading dot?
-            if child.state.name.as_bytes().first() == Some(&b'.') {
+            if child.state.name.as_bytes().first() == Some(&C::DELIMITER) {
                 return true;
             }
 
@@ -74,7 +72,7 @@ impl<S: State> Node<'_, S> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.state.prefix.first() == Some(&b'.'))
+                .all(|child| child.state.prefix.first() == Some(&C::DELIMITER))
             {
                 return true;
             }
@@ -98,7 +96,7 @@ impl<S: State> Node<'_, S> {
             if child
                 .static_children
                 .iter()
-                .all(|child| child.state.prefix.first() == Some(&b'.'))
+                .all(|child| child.state.prefix.first() == Some(&C::DELIMITER))
             {
                 return true;
             }

@@ -1,30 +1,41 @@
-use crate::{node::Node, state::State};
+use crate::{
+    node::{Config, Data, Node},
+    state::State,
+};
 use std::fmt::{Display, Write};
 
-impl<S: State> Display for Node<'_, S> {
+impl<C: Config, S: State> Display for Node<C, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn debug_node<S: State>(
+        fn debug_node<C: Config, S: State>(
             output: &mut String,
-            node: &Node<'_, S>,
+            node: &Node<C, S>,
             padding: &str,
             is_top: bool,
             is_last: bool,
         ) -> std::fmt::Result {
             let key = node.state.key();
+            let data_str = if node.data.is_empty() {
+                String::new()
+            } else {
+                let entries: Vec<_> = node
+                    .data
+                    .iter()
+                    .map(|(k, v)| {
+                        format!(
+                            "{}:{}",
+                            k.map_or("*".to_owned(), |id| id.to_string()),
+                            v.id().map_or("*".to_owned(), |id| id.to_string())
+                        )
+                    })
+                    .collect();
+                format!(" [{}]", entries.join(", "))
+            };
 
             if is_top {
-                if let Some(data) = node.data.as_ref() {
-                    writeln!(output, "{key} [{}]", data.id)?;
-                } else {
-                    writeln!(output, "{key}")?;
-                }
+                writeln!(output, "{key}{data_str}")?;
             } else {
                 let branch = if is_last { "╰─" } else { "├─" };
-                if let Some(data) = node.data.as_ref() {
-                    writeln!(output, "{padding}{branch} {key} [{}]", data.id)?;
-                } else {
-                    writeln!(output, "{padding}{branch} {key}")?;
-                }
+                writeln!(output, "{padding}{branch} {key}{data_str}")?;
             }
 
             let new_prefix = if is_top {
@@ -66,7 +77,6 @@ impl<S: State> Display for Node<'_, S> {
         let mut output = String::new();
         let padding = " ".repeat(self.state.padding());
 
-        // Handle root node manually
         if self.state.key().is_empty() {
             let total_children = self.static_children.len()
                 + self.dynamic_children.len()

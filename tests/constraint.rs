@@ -29,7 +29,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {id:name} [1]
+    ╰─ {id:name} [*:1]
     === Method
     Empty
     === Chains
@@ -47,7 +47,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{id:name}",
+                route: "/users/{id:name}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "john123")],
             },
@@ -75,7 +75,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ╰─ {*path:name} [1]
+    ╰─ {*path:name} [*:1]
     === Method
     Empty
     === Chains
@@ -93,7 +93,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{*path:name}",
+                route: "/users/{*path:name}".into(),
                 expanded: None,
                 parameters: smallvec![("path", "john/doe123")],
             },
@@ -144,7 +144,7 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let mut router: Router<'_, usize> = Router::new();
+    let mut router: Router<usize> = Router::new();
     router.path.constraint::<Constraint1>()?;
 
     let result = router.path.constraint::<Constraint2>();
@@ -174,8 +174,8 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ├─ {id:u32} [2]
-    ╰─ {id} [1]
+    ├─ {id:u32} [*:2]
+    ╰─ {id} [*:1]
     === Method
     Empty
     === Chains
@@ -194,7 +194,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{id}",
+                route: "/users/{id}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "abc")],
             },
@@ -213,7 +213,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{id:u32}",
+                route: "/users/{id:u32}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
@@ -240,8 +240,8 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ├─ {id:name} [2]
-    ╰─ {id:u32} [1]
+    ├─ {id:name} [*:2]
+    ╰─ {id:u32} [*:1]
     === Method
     Empty
     === Chains
@@ -260,7 +260,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{id:name}",
+                route: "/users/{id:name}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "123")],
             },
@@ -279,7 +279,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/{id:name}",
+                route: "/users/{id:name}".into(),
                 expanded: None,
                 parameters: smallvec![("id", "abc123")],
             },

@@ -23,7 +23,7 @@ fn test_method_simple() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -42,7 +42,7 @@ fn test_method_simple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -69,7 +69,7 @@ fn test_method_not_allowed() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -104,7 +104,7 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -124,7 +124,7 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -148,7 +148,7 @@ fn test_method_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -187,7 +187,7 @@ fn test_method_empty() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     Empty
     === Chains
@@ -208,7 +208,7 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     Empty
     === Chains
@@ -226,7 +226,7 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -248,7 +248,7 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -267,7 +267,7 @@ fn test_method_none() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -292,7 +292,7 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -310,7 +310,7 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -331,7 +331,7 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -352,7 +352,7 @@ fn test_method_same_path() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -379,7 +379,7 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -394,7 +394,7 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -414,7 +414,7 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -435,7 +435,7 @@ fn test_method_same_route_catch() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -457,7 +457,7 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     Empty
     === Chains
@@ -474,7 +474,7 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -494,7 +494,7 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -515,7 +515,7 @@ fn test_method_same_route_catch_backwards() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -540,7 +540,7 @@ fn test_method_conflict_direct() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -562,7 +562,7 @@ fn test_method_conflict_direct() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -587,7 +587,7 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -610,7 +610,7 @@ fn test_method_conflict_list_inner() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -636,7 +636,7 @@ fn test_method_conflict_list_outer() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -671,7 +671,7 @@ fn test_method_delete() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -713,7 +713,7 @@ fn test_method_delete_list() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -756,7 +756,7 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -779,7 +779,7 @@ fn test_method_delete_mismatch_list_inner() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ├─ GET [1]
@@ -805,7 +805,7 @@ fn test_method_delete_mismatch_list_outer() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]
@@ -827,7 +827,7 @@ fn test_method_delete_mismatch_list_outer() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     [1]
     ╰─ GET [1]

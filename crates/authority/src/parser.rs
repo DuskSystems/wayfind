@@ -1,69 +1,48 @@
-use super::errors::TemplateError;
-use crate::errors::EncodingError;
+use crate::errors::AuthorityTemplateError;
 use smallvec::{smallvec, SmallVec};
+use std::sync::Arc;
+use wayfind_tree::parser::{Part, Template};
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 5] = [b':', b'*', b'{', b'}', b'.'];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParsedTemplate {
-    pub input: Vec<u8>,
-    pub raw: Vec<u8>,
-    pub parts: Vec<Part>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Part {
-    Static {
-        prefix: Vec<u8>,
-    },
-    Dynamic {
-        name: String,
-        constraint: Option<String>,
-    },
-    Wildcard {
-        name: String,
-        constraint: Option<String>,
-    },
-}
-
 #[derive(Debug, PartialEq, Eq)]
-pub struct Parser {
-    pub input: Vec<u8>,
-    pub route: ParsedTemplate,
+pub struct ParsedAuthority {
+    pub input: Arc<str>,
+    pub template: Template,
 }
 
-impl Parser {
-    pub fn new(input: &[u8]) -> Result<Self, TemplateError> {
+impl ParsedAuthority {
+    pub fn new(input: &str) -> Result<Self, AuthorityTemplateError> {
         if input.is_empty() {
-            return Err(TemplateError::Empty);
+            return Err(AuthorityTemplateError::Empty);
         }
 
-        let route = Self::parse_route(input)?;
-
         Ok(Self {
-            input: input.to_vec(),
-            route,
+            input: input.into(),
+            template: Self::parse_authority(input)?,
         })
     }
 
-    fn parse_route(input: &[u8]) -> Result<ParsedTemplate, TemplateError> {
+    fn parse_authority(input: &str) -> Result<Template, AuthorityTemplateError> {
+        let bytes = input.as_bytes();
+
         let mut parts = vec![];
         let mut cursor = 0;
 
         // Parameters in order (name, start, length)
         let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
 
-        while cursor < input.len() {
-            match input[cursor] {
+        while cursor < bytes.len() {
+            match bytes[cursor] {
                 b'{' => {
                     let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
                     if let Some((_, start, length)) = seen_parameters.last() {
                         if cursor == start + length {
-                            return Err(TemplateError::TouchingParameters {
-                                authority: String::from_utf8_lossy(input).to_string(),
+                            return Err(AuthorityTemplateError::TouchingParameters {
+                                authority: input.to_owned(),
                                 start: *start,
                                 length: next_cursor - start,
                             });
@@ -76,8 +55,8 @@ impl Parser {
                             .iter()
                             .find(|(existing, _, _)| existing == name)
                         {
-                            return Err(TemplateError::DuplicateParameter {
-                                authority: String::from_utf8_lossy(input).to_string(),
+                            return Err(AuthorityTemplateError::DuplicateParameter {
+                                authority: input.to_owned(),
                                 name: name.to_string(),
                                 first: *start,
                                 first_length: *length,
@@ -93,8 +72,8 @@ impl Parser {
                     cursor = next_cursor;
                 }
                 b'}' => {
-                    return Err(TemplateError::UnbalancedBrace {
-                        authority: String::from_utf8_lossy(input).to_string(),
+                    return Err(AuthorityTemplateError::UnbalancedBrace {
+                        authority: input.to_owned(),
                         position: cursor,
                     })
                 }
@@ -108,19 +87,20 @@ impl Parser {
 
         parts.reverse();
 
-        Ok(ParsedTemplate {
-            input: input.to_vec(),
-            raw: input.to_vec(),
+        Ok(Template {
+            input: input.into(),
+            raw: input.into(),
             parts,
         })
     }
 
-    fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
+    fn parse_static_part(input: &str, cursor: usize) -> (Part, usize) {
+        let bytes = input.as_bytes();
         let mut prefix = vec![];
 
         let mut end = cursor;
-        while end < input.len() {
-            match (input[end], input.get(end + 1)) {
+        while end < bytes.len() {
+            match (bytes[end], bytes.get(end + 1)) {
                 (b'\\', Some(&next_char)) => {
                     prefix.push(next_char);
                     end += 2;
@@ -140,13 +120,18 @@ impl Parser {
         (Part::Static { prefix }, end)
     }
 
-    fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), TemplateError> {
+    fn parse_parameter_part(
+        input: &str,
+        cursor: usize,
+    ) -> Result<(Part, usize), AuthorityTemplateError> {
+        let bytes = input.as_bytes();
+
         let start = cursor + 1;
         let mut end = start;
 
         let mut brace_count = 1;
-        while end < input.len() {
-            match input[end] {
+        while end < bytes.len() {
+            match bytes[end] {
                 b'{' => brace_count += 1,
                 b'}' => {
                     brace_count -= 1;
@@ -161,16 +146,16 @@ impl Parser {
         }
 
         if brace_count != 0 {
-            return Err(TemplateError::UnbalancedBrace {
-                authority: String::from_utf8_lossy(input).to_string(),
+            return Err(AuthorityTemplateError::UnbalancedBrace {
+                authority: input.to_owned(),
                 position: cursor,
             });
         }
 
-        let content = &input[start..end];
+        let content = &bytes[start..end];
         if content.is_empty() {
-            return Err(TemplateError::EmptyBraces {
-                authority: String::from_utf8_lossy(input).to_string(),
+            return Err(AuthorityTemplateError::EmptyBraces {
+                authority: input.to_owned(),
                 position: cursor,
             });
         }
@@ -183,8 +168,8 @@ impl Parser {
             });
 
         if name.is_empty() {
-            return Err(TemplateError::EmptyParameter {
-                authority: String::from_utf8_lossy(input).to_string(),
+            return Err(AuthorityTemplateError::EmptyParameter {
+                authority: input.to_owned(),
                 start: cursor,
                 length: end - cursor + 1,
             });
@@ -194,16 +179,16 @@ impl Parser {
         let name = if is_wildcard { &name[1..] } else { name };
 
         if is_wildcard && name.is_empty() {
-            return Err(TemplateError::EmptyWildcard {
-                authority: String::from_utf8_lossy(input).to_string(),
+            return Err(AuthorityTemplateError::EmptyWildcard {
+                authority: input.to_owned(),
                 start: cursor,
                 length: end - cursor + 1,
             });
         }
 
         if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-            return Err(TemplateError::InvalidParameter {
-                authority: String::from_utf8_lossy(input).to_string(),
+            return Err(AuthorityTemplateError::InvalidParameter {
+                authority: input.to_owned(),
                 name: String::from_utf8_lossy(name).to_string(),
                 start: cursor,
                 length: end - cursor + 1,
@@ -212,16 +197,16 @@ impl Parser {
 
         if let Some(constraint) = constraint {
             if constraint.is_empty() {
-                return Err(TemplateError::EmptyConstraint {
-                    authority: String::from_utf8_lossy(input).to_string(),
+                return Err(AuthorityTemplateError::EmptyConstraint {
+                    authority: input.to_owned(),
                     start: cursor,
                     length: end - cursor + 1,
                 });
             }
 
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                return Err(TemplateError::InvalidConstraint {
-                    authority: String::from_utf8_lossy(input).to_string(),
+                return Err(AuthorityTemplateError::InvalidConstraint {
+                    authority: input.to_owned(),
                     name: String::from_utf8_lossy(name).to_string(),
                     start: cursor,
                     length: end - cursor + 1,
@@ -229,16 +214,9 @@ impl Parser {
             }
         }
 
-        let name = String::from_utf8(name.to_vec()).map_err(|_| EncodingError::Utf8Error {
-            input: String::from_utf8_lossy(name).to_string(),
-        })?;
-
+        let name = std::str::from_utf8(name)?.to_owned();
         let constraint = if let Some(constraint) = constraint {
-            Some(
-                String::from_utf8(constraint.to_vec()).map_err(|_| EncodingError::Utf8Error {
-                    input: String::from_utf8_lossy(constraint).to_string(),
-                })?,
-            )
+            Some(std::str::from_utf8(constraint)?.to_owned())
         } else {
             None
         };
@@ -261,12 +239,12 @@ mod tests {
     #[test]
     fn test_parser_static_authority() {
         assert_eq!(
-            Parser::new(b"example.com"),
-            Ok(Parser {
-                input: b"example.com".to_vec(),
-                route: ParsedTemplate {
-                    input: b"example.com".to_vec(),
-                    raw: b"example.com".to_vec(),
+            ParsedAuthority::new("example.com"),
+            Ok(ParsedAuthority {
+                input: "example.com".into(),
+                template: Template {
+                    input: "example.com".into(),
+                    raw: "example.com".into(),
                     parts: vec![Part::Static {
                         prefix: b"example.com".to_vec()
                     }],
@@ -278,12 +256,12 @@ mod tests {
     #[test]
     fn test_parser_dynamic_authority() {
         assert_eq!(
-            Parser::new(b"{subdomain}.example.com"),
-            Ok(Parser {
-                input: b"{subdomain}.example.com".to_vec(),
-                route: ParsedTemplate {
-                    input: b"{subdomain}.example.com".to_vec(),
-                    raw: b"{subdomain}.example.com".to_vec(),
+            ParsedAuthority::new("{subdomain}.example.com"),
+            Ok(ParsedAuthority {
+                input: "{subdomain}.example.com".into(),
+                template: Template {
+                    input: "{subdomain}.example.com".into(),
+                    raw: "{subdomain}.example.com".into(),
                     parts: vec![
                         Part::Static {
                             prefix: b".example.com".to_vec()
@@ -301,12 +279,12 @@ mod tests {
     #[test]
     fn test_parser_wildcard_authority() {
         assert_eq!(
-            Parser::new(b"{*subdomains}.example.com"),
-            Ok(Parser {
-                input: b"{*subdomains}.example.com".to_vec(),
-                route: ParsedTemplate {
-                    input: b"{*subdomains}.example.com".to_vec(),
-                    raw: b"{*subdomains}.example.com".to_vec(),
+            ParsedAuthority::new("{*subdomains}.example.com"),
+            Ok(ParsedAuthority {
+                input: "{*subdomains}.example.com".into(),
+                template: Template {
+                    input: "{*subdomains}.example.com".into(),
+                    raw: "{*subdomains}.example.com".into(),
                     parts: vec![
                         Part::Static {
                             prefix: b".example.com".to_vec()
@@ -324,12 +302,12 @@ mod tests {
     #[test]
     fn test_parser_complex_authority() {
         assert_eq!(
-            Parser::new(b"{*wildcard}.{param:alpha}.example.com"),
-            Ok(Parser {
-                input: b"{*wildcard}.{param:alpha}.example.com".to_vec(),
-                route: ParsedTemplate {
-                    input: b"{*wildcard}.{param:alpha}.example.com".to_vec(),
-                    raw: b"{*wildcard}.{param:alpha}.example.com".to_vec(),
+            ParsedAuthority::new("{*wildcard}.{param:alpha}.example.com"),
+            Ok(ParsedAuthority {
+                input: "{*wildcard}.{param:alpha}.example.com".into(),
+                template: Template {
+                    input: "{*wildcard}.{param:alpha}.example.com".into(),
+                    raw: "{*wildcard}.{param:alpha}.example.com".into(),
                     parts: vec![
                         Part::Static {
                             prefix: b".example.com".to_vec()
@@ -353,18 +331,18 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty() {
-        let error = Parser::new(b"").unwrap_err();
-        assert_eq!(error, TemplateError::Empty);
+        let error = ParsedAuthority::new("").unwrap_err();
+        assert_eq!(error, AuthorityTemplateError::Empty);
 
         insta::assert_snapshot!(error, @"empty authority");
     }
 
     #[test]
     fn test_parser_error_empty_braces() {
-        let error = Parser::new(b"test.{}.com").unwrap_err();
+        let error = ParsedAuthority::new("test.{}.com").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyBraces {
+            AuthorityTemplateError::EmptyBraces {
                 authority: "test.{}.com".to_owned(),
                 position: 5,
             }
@@ -380,10 +358,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_brace_opening() {
-        let error = Parser::new(b"test.{param.com").unwrap_err();
+        let error = ParsedAuthority::new("test.{param.com").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedBrace {
+            AuthorityTemplateError::UnbalancedBrace {
                 authority: "test.{param.com".to_owned(),
                 position: 5,
             }
@@ -401,10 +379,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parameter() {
-        let error = Parser::new(b"test.{:constraint}.com").unwrap_err();
+        let error = ParsedAuthority::new("test.{:constraint}.com").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyParameter {
+            AuthorityTemplateError::EmptyParameter {
                 authority: "test.{:constraint}.com".to_owned(),
                 start: 5,
                 length: 13,
@@ -421,10 +399,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = Parser::new(b"{param}.test.{param:alpha}.com").unwrap_err();
+        let error = ParsedAuthority::new("{param}.test.{param:alpha}.com").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::DuplicateParameter {
+            AuthorityTemplateError::DuplicateParameter {
                 authority: "{param}.test.{param:alpha}.com".to_owned(),
                 name: "param".to_owned(),
                 first: 0,
@@ -446,10 +424,10 @@ mod tests {
 
     #[test]
     fn test_parser_error_touching_parameters() {
-        let error = Parser::new(b"{param1}{param2}.com").unwrap_err();
+        let error = ParsedAuthority::new("{param1}{param2}.com").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::TouchingParameters {
+            AuthorityTemplateError::TouchingParameters {
                 authority: "{param1}{param2}.com".to_owned(),
                 start: 0,
                 length: 16,

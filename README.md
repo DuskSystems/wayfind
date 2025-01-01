@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users/{id}");
+    assert_eq!(search.path.route, "/users/{id}".into());
     assert_eq!(search.path.parameters[0], ("id", "123"));
 
     let request = RequestBuilder::new()
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/users/{id}/files/{filename}.{extension}");
+    assert_eq!(search.path.route, "/users/{id}/files/{filename}.{extension}".into());
     assert_eq!(search.path.parameters[0], ("id", "123"));
     assert_eq!(search.path.parameters[1], ("filename", "my.document"));
     assert_eq!(search.path.parameters[2], ("extension", "pdf"));
@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/files/{*slug}/delete");
+    assert_eq!(search.path.route, "/files/{*slug}/delete".into());
     assert_eq!(search.path.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
     let request = RequestBuilder::new()
@@ -122,7 +122,7 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/{*catch_all}");
+    assert_eq!(search.path.route, "/{*catch_all}".into());
     assert_eq!(search.path.parameters[0], ("catch_all", "any/other/path"));
 
     Ok(())
@@ -171,16 +171,16 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users(/{id})");
-    assert_eq!(search.path.expanded, Some("/users"));
+    assert_eq!(search.path.route, "/users(/{id})".into());
+    assert_eq!(search.path.expanded, Some("/users".into()));
 
     let request = RequestBuilder::new()
       .path("/users/123")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users(/{id})");
-    assert_eq!(search.path.expanded, Some("/users/{id}"));
+    assert_eq!(search.path.route, "/users(/{id})".into());
+    assert_eq!(search.path.expanded, Some("/users/{id}".into()));
     assert_eq!(search.path.parameters[0], ("id", "123"));
 
     let request = RequestBuilder::new()
@@ -188,8 +188,8 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}.{extension}"));
+    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})".into());
+    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}.{extension}".into()));
     assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
     assert_eq!(search.path.parameters[1], ("file", "report"));
     assert_eq!(search.path.parameters[2], ("extension", "pdf"));
@@ -199,8 +199,8 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}"));
+    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})".into());
+    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}".into()));
     assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
     assert_eq!(search.path.parameters[1], ("file", "readme"));
 
@@ -293,14 +293,14 @@ fn main() -> Result<(), Box<dyn Error>> {
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/v2");
+    assert_eq!(search.path.route, "/v2".into());
 
     let request = RequestBuilder::new()
       .path("/v2/my-org/my-repo/blobs/sha256:1234567890")
       .build()?;
     let search = router.search(&request)?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
+    assert_eq!(search.path.route, "/v2/{*name:namespace}/blobs/{type}:{digest}".into());
     assert_eq!(search.path.parameters[0], ("name", "my-org/my-repo"));
     assert_eq!(search.path.parameters[1], ("type", "sha256"));
     assert_eq!(search.path.parameters[2], ("digest", "1234567890"));
@@ -348,7 +348,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let error = router.path.constraint::<ConstraintB>().unwrap_err();
     insta::assert_snapshot!(error, @r"
-    duplicate constraint name
+    duplicate path constraint name
 
     The constraint name 'my_constraint' is already in use:
         - existing constraint type: 'rust_out::ConstraintA'
@@ -504,26 +504,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ├─ user [9]
+    ├─ user [*:9]
     │  ╰─ /
-    │     ├─ createWithList [10]
+    │     ├─ createWithList [*:10]
     │     ├─ log
-    │     │  ├─ out [12]
-    │     │  ╰─ in [11]
-    │     ╰─ {username} [13]
-    ├─ pet [1]
+    │     │  ├─ out [*:12]
+    │     │  ╰─ in [*:11]
+    │     ╰─ {username} [*:13]
+    ├─ pet [*:1]
     │  ╰─ /
     │     ├─ findBy
-    │     │  ├─ Status [2]
-    │     │  ╰─ Tags [3]
-    │     ╰─ {petId} [4]
-    │        ╰─ /uploadImage [5]
+    │     │  ├─ Status [*:2]
+    │     │  ╰─ Tags [*:3]
+    │     ╰─ {petId} [*:4]
+    │        ╰─ /uploadImage [*:5]
     ├─ store/
-    │  ├─ inventory [6]
-    │  ╰─ order [7]
+    │  ├─ inventory [*:6]
+    │  ╰─ order [*:7]
     │     ╰─ /
-    │        ╰─ {orderId} [8]
-    ╰─ {*catch_all} [14]
+    │        ╰─ {orderId} [*:8]
+    ╰─ {*catch_all} [*:14]
     === Method
     [1]
     ├─ POST [1]
