@@ -1,13 +1,15 @@
+use wayfind_authority::parser::ParsedAuthority;
+use wayfind_path::parser::ParsedPath;
 use wayfind_percent::percent_decode;
 use wayfind_punycode::punycode_decode;
 
 use crate::errors::{EncodingError, RouteError};
 
 /// A route that can be inserted into a [`Router`](`crate::Router`).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Route<'r> {
-    pub(crate) authority: Option<&'r str>,
-    pub(crate) route: &'r str,
+    pub(crate) authority: Option<ParsedAuthority>,
+    pub(crate) route: ParsedPath,
     pub(crate) methods: Option<Vec<&'r str>>,
 }
 
@@ -53,7 +55,8 @@ impl<'r> RouteBuilder<'r> {
     ///
     /// Return a [`RouteError`] if a required field was not populated.
     pub fn build(self) -> Result<Route<'r>, RouteError> {
-        if let Some(authority) = self.authority {
+        // Verify authority is punycode-decoded
+        let authority = if let Some(authority) = self.authority {
             let decoded = punycode_decode(authority.as_bytes()).map_err(EncodingError::from)?;
             if authority != decoded {
                 return Err(RouteError::EncodedAuthority {
@@ -61,7 +64,11 @@ impl<'r> RouteBuilder<'r> {
                     decoded: decoded.to_string(),
                 })?;
             }
-        }
+
+            Some(ParsedAuthority::new(authority)?)
+        } else {
+            None
+        };
 
         let route = self.route.ok_or(RouteError::MissingRoute)?;
 
@@ -74,8 +81,10 @@ impl<'r> RouteBuilder<'r> {
             })?;
         }
 
+        let route = ParsedPath::new(route)?;
+
         Ok(Route {
-            authority: self.authority,
+            authority,
             route,
             methods: self.methods,
         })

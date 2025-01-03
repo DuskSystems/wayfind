@@ -8,15 +8,19 @@ pub struct PathIdGenerator {
 impl PathIdGenerator {
     pub fn generate(&mut self) -> PathId {
         self.id += 1;
-        PathId(self.id)
+        PathId(Some(self.id))
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PathId(pub usize);
+pub struct PathId(pub Option<usize>);
 
 impl Display for PathId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        if let Some(id) = self.0 {
+            write!(f, "{id}")
+        } else {
+            write!(f, "*")
+        }
     }
 }

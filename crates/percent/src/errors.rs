@@ -1,15 +1,15 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum DecodingError {
+pub enum PercentDecodingError {
     /// Invalid percent-encoding character encountered.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_percent::errors::DecodingError;
+    /// use wayfind_percent::errors::PercentDecodingError;
     ///
-    /// let error = DecodingError::InvalidCharacter {
+    /// let error = PercentDecodingError::InvalidCharacter {
     ///     input: "/hello%GGworld".to_string(),
     ///     position: 6,
     ///     character: vec![b'%', b'G', b'G'],
@@ -37,9 +37,9 @@ pub enum DecodingError {
     },
 }
 
-impl Error for DecodingError {}
+impl Error for PercentDecodingError {}
 
-impl Display for DecodingError {
+impl Display for PercentDecodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidCharacter {

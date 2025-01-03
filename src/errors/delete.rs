@@ -1,11 +1,14 @@
 use std::{error::Error, fmt::Display};
+use wayfind_authority::errors::AuthorityDeleteError;
+use wayfind_method::errors::MethodDeleteError;
+use wayfind_path::errors::PathDeleteError;
 
 /// Errors relating to attempting to delete a route from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
-    Authority(wayfind_authority::errors::DeleteError),
-    Path(wayfind_path::errors::DeleteError),
-    Method(wayfind_method::errors::DeleteError),
+    Authority(AuthorityDeleteError),
+    Path(PathDeleteError),
+    Method(MethodDeleteError),
     NotFound,
 }
 
@@ -22,20 +25,20 @@ impl Display for DeleteError {
     }
 }
 
-impl From<wayfind_authority::errors::DeleteError> for DeleteError {
-    fn from(error: wayfind_authority::errors::DeleteError) -> Self {
+impl From<AuthorityDeleteError> for DeleteError {
+    fn from(error: AuthorityDeleteError) -> Self {
         Self::Authority(error)
     }
 }
 
-impl From<wayfind_path::errors::DeleteError> for DeleteError {
-    fn from(error: wayfind_path::errors::DeleteError) -> Self {
+impl From<PathDeleteError> for DeleteError {
+    fn from(error: PathDeleteError) -> Self {
         Self::Path(error)
     }
 }
 
-impl From<wayfind_method::errors::DeleteError> for DeleteError {
-    fn from(error: wayfind_method::errors::DeleteError) -> Self {
+impl From<MethodDeleteError> for DeleteError {
+    fn from(error: MethodDeleteError) -> Self {
         Self::Method(error)
     }
 }

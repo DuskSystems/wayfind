@@ -18,7 +18,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ /delete [1]
+       ╰─ /delete [*:1]
     === Method
     Empty
     === Chains
@@ -36,7 +36,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}/delete",
+                route: "/{*path}/delete".into(),
                 expanded: None,
                 parameters: smallvec![("path", "docs")],
             },
@@ -57,7 +57,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}/delete",
+                route: "/{*path}/delete".into(),
                 expanded: None,
                 parameters: smallvec![("path", "nested/docs/folder")],
             },
@@ -89,7 +89,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     ╰─ {*prefix}
        ╰─ /static/
           ╰─ {*suffix}
-             ╰─ /file [1]
+             ╰─ /file [*:1]
     === Method
     Empty
     === Chains
@@ -107,7 +107,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*prefix}/static/{*suffix}/file",
+                route: "/{*prefix}/static/{*suffix}/file".into(),
                 expanded: None,
                 parameters: smallvec![("prefix", "a"), ("suffix", "b")],
             },
@@ -128,7 +128,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*prefix}/static/{*suffix}/file",
+                route: "/{*prefix}/static/{*suffix}/file".into(),
                 expanded: None,
                 parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
             },
@@ -152,7 +152,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ .html [1]
+       ╰─ .html [*:1]
     === Method
     Empty
     === Chains
@@ -170,7 +170,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}.html",
+                route: "/{*path}.html".into(),
                 expanded: None,
                 parameters: smallvec![("path", "page")],
             },
@@ -189,7 +189,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}.html",
+                route: "/{*path}.html".into(),
                 expanded: None,
                 parameters: smallvec![("path", "nested/page")],
             },
@@ -218,7 +218,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ {*first}
        ╰─ -
-          ╰─ {*second} [1]
+          ╰─ {*second} [*:1]
     === Method
     Empty
     === Chains
@@ -236,7 +236,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*first}-{*second}",
+                route: "/{*first}-{*second}".into(),
                 expanded: None,
                 parameters: smallvec![("first", "a-b"), ("second", "c")],
             },
@@ -257,7 +257,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*first}-{*second}",
+                route: "/{*first}-{*second}".into(),
                 expanded: None,
                 parameters: smallvec![
                     ("first", "path/to/some-file/with-multiple"),
@@ -284,7 +284,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ╰─ {*path}
-       ╰─ /end [1]
+       ╰─ /end [*:1]
     === Method
     Empty
     === Chains
@@ -302,7 +302,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}/end",
+                route: "/{*path}/end".into(),
                 expanded: None,
                 parameters: smallvec![("path", "start/middle")],
             },
@@ -321,7 +321,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}/end",
+                route: "/{*path}/end".into(),
                 expanded: None,
                 parameters: smallvec![("path", "start//middle//")],
             },
@@ -353,14 +353,14 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     === Path
     /
     ├─ prefix.
-    │  ╰─ {*suffix} [4]
+    │  ╰─ {*suffix} [*:4]
     ├─ static/
-    │  ├─ path [1]
-    │  ╰─ {*rest} [2]
+    │  ├─ path [*:1]
+    │  ╰─ {*rest} [*:2]
     ├─ {*prefix}
-    │  ╰─ .suffix [5]
+    │  ╰─ .suffix [*:5]
     ╰─ {*path}
-       ╰─ /static [3]
+       ╰─ /static [*:3]
     === Method
     Empty
     === Chains
@@ -382,7 +382,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/static/path",
+                route: "/static/path".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -403,7 +403,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/static/{*rest}",
+                route: "/static/{*rest}".into(),
                 expanded: None,
                 parameters: smallvec![("rest", "some/nested/path")],
             },
@@ -424,7 +424,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*path}/static",
+                route: "/{*path}/static".into(),
                 expanded: None,
                 parameters: smallvec![("path", "some/nested/path")],
             },
@@ -445,7 +445,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/prefix.{*suffix}",
+                route: "/prefix.{*suffix}".into(),
                 expanded: None,
                 parameters: smallvec![("suffix", "some/nested/path")],
             },
@@ -466,7 +466,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/{*prefix}.suffix",
+                route: "/{*prefix}.suffix".into(),
                 expanded: None,
                 parameters: smallvec![("prefix", "some/nested/path")],
             },

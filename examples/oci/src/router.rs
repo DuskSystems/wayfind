@@ -20,12 +20,12 @@ type ArcHandler = Arc<
         + Sync,
 >;
 
-pub struct AppRouter<'r> {
+pub struct AppRouter {
     /// Maps HTTP methods to their respective `wayfind` Routers.
-    pub inner: Router<'r, ArcHandler>,
+    pub inner: Router<ArcHandler>,
 }
 
-impl<'r> AppRouter<'r> {
+impl AppRouter {
     /// Creates a new `AppRouter` with empty route tables for all HTTP methods.
     #[must_use]
     pub fn new() -> Self {
@@ -40,7 +40,7 @@ impl<'r> AppRouter<'r> {
     }
 
     /// Adds a new route with the specified method, path, and handler.
-    pub fn insert<H, T>(&mut self, route: &Route<'r>, handler: H)
+    pub fn insert<H, T>(&mut self, route: &Route<'_>, handler: H)
     where
         H: Handler<T> + Send + Sync + 'static,
     {
@@ -70,7 +70,7 @@ impl<'r> AppRouter<'r> {
         let result = self.inner.search(&request);
         match result {
             Ok(Some(search)) => {
-                let route = search.path.route.to_owned();
+                let route = search.path.route.to_string();
                 let parameters: Vec<(String, String)> = search
                     .path
                     .parameters

@@ -2,14 +2,14 @@
 
 #![allow(clippy::missing_errors_doc)]
 
-use errors::DecodingError;
+use errors::PercentDecodingError;
 use std::borrow::Cow;
 
 pub mod errors;
 
 /// Try and percent-decode input bytes.
 /// Does not do any sort of normalization, simply decodes hex characters.
-pub fn percent_decode(input: &[u8]) -> Result<Cow<'_, [u8]>, DecodingError> {
+pub fn percent_decode(input: &[u8]) -> Result<Cow<'_, [u8]>, PercentDecodingError> {
     if !input.contains(&b'%') {
         return Ok(Cow::Borrowed(input));
     }
@@ -21,7 +21,7 @@ pub fn percent_decode(input: &[u8]) -> Result<Cow<'_, [u8]>, DecodingError> {
     while i < len {
         match input[i] {
             b'%' if i + 2 >= len => {
-                return Err(DecodingError::InvalidCharacter {
+                return Err(PercentDecodingError::InvalidCharacter {
                     input: String::from_utf8_lossy(input).to_string(),
                     position: i,
                     character: input[i..].to_vec(),
@@ -34,7 +34,7 @@ pub fn percent_decode(input: &[u8]) -> Result<Cow<'_, [u8]>, DecodingError> {
                 if let Some(decoded) = decode_hex(a, b) {
                     output.push(decoded);
                 } else {
-                    return Err(DecodingError::InvalidCharacter {
+                    return Err(PercentDecodingError::InvalidCharacter {
                         input: String::from_utf8_lossy(input).to_string(),
                         position: i,
                         character: vec![b'%', a, b],
@@ -142,7 +142,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCharacter {
+            PercentDecodingError::InvalidCharacter {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0,
                 character: vec![b'%'],
@@ -168,7 +168,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCharacter {
+            PercentDecodingError::InvalidCharacter {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0,
                 character: vec![b'%', b'a'],
@@ -194,7 +194,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCharacter {
+            PercentDecodingError::InvalidCharacter {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0,
                 character: vec![b'%', b'1'],
@@ -220,7 +220,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCharacter {
+            PercentDecodingError::InvalidCharacter {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 6,
                 character: vec![b'%', b'6'],
@@ -246,7 +246,7 @@ mod tests {
 
         assert_eq!(
             result,
-            DecodingError::InvalidCharacter {
+            PercentDecodingError::InvalidCharacter {
                 input: String::from_utf8_lossy(input).to_string(),
                 position: 0,
                 character: vec![b'%', b'z', b'z'],

@@ -1,13 +1,13 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum SearchError {
+pub enum MethodSearchError {
     NotAllowed,
 }
 
-impl Error for SearchError {}
+impl Error for MethodSearchError {}
 
-impl Display for SearchError {
+impl Display for MethodSearchError {
     fn fmt(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
     }

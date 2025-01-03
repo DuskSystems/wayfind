@@ -16,6 +16,8 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
+wayfind-tree = { path = "../tree" }
+wayfind-storage = { path = "../storage" }
 smallvec = { workspace = true }
 
 [dev-dependencies]

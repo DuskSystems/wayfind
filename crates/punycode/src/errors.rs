@@ -1,15 +1,15 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum DecodingError {
+pub enum PunycodeDecodingError {
     /// Invalid basic code point encountered (non-ASCII character).
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_punycode::errors::DecodingError;
+    /// use wayfind_punycode::errors::PunycodeDecodingError;
     ///
-    /// let error = DecodingError::InvalidBasicCodePoint {
+    /// let error = PunycodeDecodingError::InvalidBasicCodePoint {
     ///     input: "hello²world".to_string(),
     ///     position: 5,
     ///     character: vec![0xC2, 0xB2],
@@ -41,9 +41,9 @@ pub enum DecodingError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_punycode::errors::DecodingError;
+    /// use wayfind_punycode::errors::PunycodeDecodingError;
     ///
-    /// let error = DecodingError::InvalidDigit {
+    /// let error = PunycodeDecodingError::InvalidDigit {
     ///     input: "hello-@world".to_string(),
     ///     position: 6,
     ///     character: b'@',
@@ -75,9 +75,9 @@ pub enum DecodingError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_punycode::errors::DecodingError;
+    /// use wayfind_punycode::errors::PunycodeDecodingError;
     ///
-    /// let error = DecodingError::UnexpectedEnd {
+    /// let error = PunycodeDecodingError::UnexpectedEnd {
     ///     input: "hello-a".to_string(),
     ///     position: 7,
     /// };
@@ -106,9 +106,9 @@ pub enum DecodingError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_punycode::errors::DecodingError;
+    /// use wayfind_punycode::errors::PunycodeDecodingError;
     ///
-    /// let error = DecodingError::Overflow {
+    /// let error = PunycodeDecodingError::Overflow {
     ///     input: "hello-9999999999a".to_string(),
     ///     position: 7,
     /// };
@@ -136,9 +136,9 @@ pub enum DecodingError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_punycode::errors::DecodingError;
+    /// use wayfind_punycode::errors::PunycodeDecodingError;
     ///
-    /// let error = DecodingError::InvalidCodePoint {
+    /// let error = PunycodeDecodingError::InvalidCodePoint {
     ///     input: "hello-99999a".to_string(),
     ///     position: 11,
     ///     value: 0x0048A841,
@@ -165,9 +165,9 @@ pub enum DecodingError {
     },
 }
 
-impl Error for DecodingError {}
+impl Error for PunycodeDecodingError {}
 
-impl Display for DecodingError {
+impl Display for PunycodeDecodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidBasicCodePoint {

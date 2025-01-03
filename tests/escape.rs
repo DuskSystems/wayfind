@@ -16,7 +16,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users/{id} [1]
+    /users/{id} [*:1]
     === Method
     Empty
     === Chains
@@ -34,7 +34,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: r"/users/\{id\}",
+                route: r"/users/\{id\}".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -59,7 +59,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /(not-optional) [1]
+    /(not-optional) [*:1]
     === Method
     Empty
     === Chains
@@ -77,7 +77,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: r"/\(not-optional\)",
+                route: r"/\(not-optional\)".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -103,9 +103,9 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    / [1]
-    ╰─ a [1]
-       ╰─ /{param} [1]
+    / [*:1]
+    ╰─ a [*:1]
+       ╰─ /{param} [*:1]
     === Method
     Empty
     === Chains
@@ -123,8 +123,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: r"(/a(/\{param\}))",
-                expanded: Some("/a/\\{param\\}"),
+                route: r"(/a(/\{param\}))".into(),
+                expanded: Some("/a/\\{param\\}".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -146,8 +146,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: r"(/a(/\{param\}))",
-                expanded: Some("/a"),
+                route: r"(/a(/\{param\}))".into(),
+                expanded: Some("/a".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }
@@ -165,8 +165,8 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: r"(/a(/\{param\}))",
-                expanded: Some("/"),
+                route: r"(/a(/\{param\}))".into(),
+                expanded: Some("/".into()),
                 parameters: smallvec![],
             },
             method: MethodMatch { method: None }

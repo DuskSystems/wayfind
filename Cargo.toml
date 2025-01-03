@@ -99,6 +99,9 @@ wayfind-authority = { path = "crates/authority" }
 wayfind-path = { path = "crates/path" }
 wayfind-method = { path = "crates/method" }
 
+# FIXME
+wayfind-tree = { path = "crates/tree" }
+
 # Decoding
 wayfind-percent = { path = "crates/percent" }
 wayfind-punycode = { path = "crates/punycode" }
@@ -131,7 +134,7 @@ codspeed-criterion-compat = "=2.7.2"
 
 # Routers
 actix-router = "=0.5.3"
-matchit = "=0.8.5"
+matchit = "=0.8.6"
 ntex-router = "=0.5.3"
 path-tree = "=0.8.1"
 route-recognizer = "=0.3.1"

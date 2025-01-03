@@ -16,7 +16,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users [1]
+    /users [*:1]
     === Method
     Empty
     === Chains
@@ -34,7 +34,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -62,8 +62,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /user [1]
-    ╰─ s [2]
+    /user [*:1]
+    ╰─ s [*:2]
     === Method
     Empty
     === Chains
@@ -82,7 +82,7 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/user",
+                route: "/user".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -101,7 +101,7 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -134,8 +134,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /user
-    ├─ /1 [2]
-    ╰─ _1 [1]
+    ├─ /1 [*:2]
+    ╰─ _1 [*:1]
     === Method
     Empty
     === Chains
@@ -154,7 +154,7 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/user_1",
+                route: "/user_1".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -173,7 +173,7 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/user/1",
+                route: "/user/1".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -215,15 +215,15 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     === Path
     /�
     ├─ �‍👩‍�
-    │  ├─ � [4]
-    │  ╰─ � [3]
+    │  ├─ � [*:4]
+    │  ╰─ � [*:3]
     ╰─ �‍�
        ├─ �‍�
-       │  ├─ � [6]
-       │  ╰─ � [5]
+       │  ├─ � [*:6]
+       │  ╰─ � [*:5]
        ╰─ �‍�
-          ├─ � [2]
-          ╰─ � [1]
+          ├─ � [*:2]
+          ╰─ � [*:1]
     === Method
     Empty
     === Chains
@@ -246,7 +246,7 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/👨‍👩‍👧",
+                route: "/👨‍👩‍👧".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -265,7 +265,7 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/👨‍👩‍👦",
+                route: "/👨‍👩‍👦".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -306,8 +306,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /
-    ├─ Users [2]
-    ╰─ users [1]
+    ├─ Users [*:2]
+    ╰─ users [*:1]
     === Method
     Empty
     === Chains
@@ -326,7 +326,7 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users",
+                route: "/users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -345,7 +345,7 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/Users",
+                route: "/Users".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -367,7 +367,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users /items [1]
+    /users /items [*:1]
     === Method
     Empty
     === Chains
@@ -385,7 +385,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users /items",
+                route: "/users /items".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -414,8 +414,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     Empty
     === Path
     /users/
-    ├─ /items [2]
-    ╰─ items [1]
+    ├─ /items [*:2]
+    ╰─ items [*:1]
     === Method
     Empty
     === Chains
@@ -434,7 +434,7 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users/items",
+                route: "/users/items".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -453,7 +453,7 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users//items",
+                route: "/users//items".into(),
                 expanded: None,
                 parameters: smallvec![],
             },
@@ -475,7 +475,7 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     === Authority
     Empty
     === Path
-    /users///items [1]
+    /users///items [*:1]
     === Method
     Empty
     === Chains
@@ -493,7 +493,7 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
                 parameters: smallvec![]
             },
             path: PathMatch {
-                route: "/users///items",
+                route: "/users///items".into(),
                 expanded: None,
                 parameters: smallvec![],
             },

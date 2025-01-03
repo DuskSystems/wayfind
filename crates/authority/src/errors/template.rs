@@ -1,11 +1,10 @@
-use crate::errors::EncodingError;
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, str::Utf8Error};
 
 /// Errors relating to malformed authorities.
 #[derive(Debug, PartialEq, Eq)]
-pub enum TemplateError {
-    /// A [`EncodingError`] that occurred during the decoding.
-    Encoding(EncodingError),
+pub enum AuthorityTemplateError {
+    /// A [`Utf8Error`] that occurred during the decoding.
+    Encoding(Utf8Error),
 
     /// The authority is empty.
     Empty,
@@ -15,9 +14,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::EmptyBraces {
+    /// let error = AuthorityTemplateError::EmptyBraces {
     ///     authority: "{}".to_string(),
     ///     position: 0,
     /// };
@@ -43,9 +42,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::UnbalancedBrace {
+    /// let error = AuthorityTemplateError::UnbalancedBrace {
     ///     authority: "{".to_string(),
     ///     position: 0,
     /// };
@@ -73,9 +72,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::EmptyParameter {
+    /// let error = AuthorityTemplateError::EmptyParameter {
     ///     authority: "{:}".to_string(),
     ///     start: 0,
     ///     length: 3,
@@ -104,9 +103,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::InvalidParameter {
+    /// let error = AuthorityTemplateError::InvalidParameter {
     ///     authority: "{a.b}".to_string(),
     ///     name: "a.b".to_string(),
     ///     start: 0,
@@ -140,9 +139,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::DuplicateParameter {
+    /// let error = AuthorityTemplateError::DuplicateParameter {
     ///     authority: "{id}.{id}".to_string(),
     ///     name: "id".to_string(),
     ///     first: 0,
@@ -182,9 +181,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::EmptyWildcard {
+    /// let error = AuthorityTemplateError::EmptyWildcard {
     ///     authority: "{*}".to_string(),
     ///     start: 0,
     ///     length: 3,
@@ -213,9 +212,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::EmptyConstraint {
+    /// let error = AuthorityTemplateError::EmptyConstraint {
     ///     authority: "{a:}".to_string(),
     ///     start: 0,
     ///     length: 4,
@@ -244,9 +243,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::InvalidConstraint {
+    /// let error = AuthorityTemplateError::InvalidConstraint {
     ///     authority: "{a:b/c}".to_string(),
     ///     name: "b/c".to_string(),
     ///     start: 0,
@@ -280,9 +279,9 @@ pub enum TemplateError {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind_authority::errors::TemplateError;
+    /// use wayfind_authority::errors::AuthorityTemplateError;
     ///
-    /// let error = TemplateError::TouchingParameters {
+    /// let error = AuthorityTemplateError::TouchingParameters {
     ///     authority: "{a}{b}".to_string(),
     ///     start: 0,
     ///     length: 6,
@@ -309,9 +308,9 @@ pub enum TemplateError {
     },
 }
 
-impl Error for TemplateError {}
+impl Error for AuthorityTemplateError {}
 
-impl Display for TemplateError {
+impl Display for AuthorityTemplateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Encoding(error) => error.fmt(f),
@@ -389,9 +388,7 @@ tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '.'"
                 second_length,
             } => {
                 let mut arrow = " ".repeat(authority.len());
-
                 arrow.replace_range(*first..(*first + *first_length), &"^".repeat(*first_length));
-
                 arrow.replace_range(
                     *second..(*second + *second_length),
                     &"^".repeat(*second_length),
@@ -476,8 +473,8 @@ tip: Touching parameters are not supported"
     }
 }
 
-impl From<EncodingError> for TemplateError {
-    fn from(error: EncodingError) -> Self {
+impl From<Utf8Error> for AuthorityTemplateError {
+    fn from(error: Utf8Error) -> Self {
         Self::Encoding(error)
     }
 }

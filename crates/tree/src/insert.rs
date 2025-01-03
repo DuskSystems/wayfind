@@ -1,46 +1,73 @@
 use super::{
     node::Node,
-    parser::{ParsedTemplate, Part},
     state::{DynamicState, EndWildcardState, State, StaticState, WildcardState},
-    AuthorityData,
 };
-use crate::vec::SortedVec;
+use crate::{
+    node::Config,
+    parser::{Part, Template},
+    vec::SortedVec,
+};
+use wayfind_storage::Storage;
 
-impl<'r, S: State> Node<'r, S> {
-    /// Inserts a new authority route into the node tree with associated data.
+impl<C: Config, S: State> Node<C, S> {
+    /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    pub fn insert(&mut self, authority: &mut ParsedTemplate, data: AuthorityData<'r>) {
-        if let Some(part) = authority.parts.pop() {
+    pub fn insert(&mut self, key: Option<usize>, route: &Template, data: C::Data) {
+        self.insert_at_position(key, route, route.parts.len(), data);
+    }
+
+    fn insert_at_position(
+        &mut self,
+        key: Option<usize>,
+        route: &Template,
+        position: usize,
+        data: C::Data,
+    ) {
+        if position > 0 {
+            let part = &route.parts[position - 1];
             match part {
-                Part::Static { prefix } => self.insert_static(authority, data, &prefix),
-                Part::Dynamic {
-                    name, constraint, ..
-                } => {
-                    self.insert_dynamic(authority, data, name, constraint);
+                Part::Static { prefix } => {
+                    self.insert_static(key, route, position - 1, data, prefix);
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } if authority.parts.is_empty() => {
-                    self.insert_end_wildcard(data, name, constraint);
+                Part::Dynamic { name, constraint } => {
+                    self.insert_dynamic(
+                        key,
+                        route,
+                        position - 1,
+                        data,
+                        name,
+                        constraint.as_deref(),
+                    );
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } => {
-                    self.insert_wildcard(authority, data, name, constraint);
+                Part::Wildcard { name, constraint } if position == 1 => {
+                    self.insert_end_wildcard(key, data, name, constraint.as_deref());
+                }
+                Part::Wildcard { name, constraint } => {
+                    self.insert_wildcard(
+                        key,
+                        route,
+                        position - 1,
+                        data,
+                        name,
+                        constraint.as_deref(),
+                    );
                 }
             };
         } else {
-            self.data = Some(data);
+            self.data.insert(key, data);
             self.needs_optimization = true;
         }
     }
 
     fn insert_static(
         &mut self,
-        authority: &mut ParsedTemplate,
-        data: AuthorityData<'r>,
+        key: Option<usize>,
+        route: &Template,
+        position: usize,
+        data: C::Data,
         prefix: &[u8],
     ) {
+        // Check if the first byte is already a child here.
         let Some(child) = self
             .static_children
             .iter_mut()
@@ -49,7 +76,7 @@ impl<'r, S: State> Node<'r, S> {
             self.static_children.push({
                 let mut new_child = Node {
                     state: StaticState::new(prefix.to_vec()),
-                    data: None,
+                    data: Storage::default(),
 
                     static_children: SortedVec::default(),
                     dynamic_children: SortedVec::default(),
@@ -62,7 +89,7 @@ impl<'r, S: State> Node<'r, S> {
                     needs_optimization: false,
                 };
 
-                new_child.insert(authority, data);
+                new_child.insert_at_position(key, route, position, data);
                 new_child
             });
 
@@ -78,9 +105,9 @@ impl<'r, S: State> Node<'r, S> {
 
         if common_prefix >= child.state.prefix.len() {
             if common_prefix >= prefix.len() {
-                child.insert(authority, data);
+                child.insert_at_position(key, route, position, data);
             } else {
-                child.insert_static(authority, data, &prefix[common_prefix..]);
+                child.insert_static(key, route, position, data, &prefix[common_prefix..]);
             }
 
             self.needs_optimization = true;
@@ -89,7 +116,7 @@ impl<'r, S: State> Node<'r, S> {
 
         let new_child_a = Node {
             state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
-            data: child.data.take(),
+            data: std::mem::take(&mut child.data),
 
             static_children: std::mem::take(&mut child.static_children),
             dynamic_children: std::mem::take(&mut child.dynamic_children),
@@ -104,7 +131,7 @@ impl<'r, S: State> Node<'r, S> {
 
         let new_child_b = Node {
             state: StaticState::new(prefix[common_prefix..].to_vec()),
-            data: None,
+            data: Storage::default(),
 
             static_children: SortedVec::default(),
             dynamic_children: SortedVec::default(),
@@ -122,10 +149,10 @@ impl<'r, S: State> Node<'r, S> {
 
         if prefix[common_prefix..].is_empty() {
             child.static_children = SortedVec::new(vec![new_child_a]);
-            child.insert(authority, data);
+            child.insert_at_position(key, route, position, data);
         } else {
             child.static_children = SortedVec::new(vec![new_child_a, new_child_b]);
-            child.static_children[1].insert(authority, data);
+            child.static_children[1].insert_at_position(key, route, position, data);
         }
 
         self.needs_optimization = true;
@@ -133,21 +160,22 @@ impl<'r, S: State> Node<'r, S> {
 
     fn insert_dynamic(
         &mut self,
-        authority: &mut ParsedTemplate,
-        data: AuthorityData<'r>,
-        name: String,
-        constraint: Option<String>,
+        key: Option<usize>,
+        route: &Template,
+        position: usize,
+        data: C::Data,
+        name: &str,
+        constraint: Option<&str>,
     ) {
-        if let Some(child) = self
-            .dynamic_children
-            .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
-        {
-            child.insert(authority, data);
+        if let Some(child) = self.dynamic_children.find_mut(|child| {
+            child.state.name == name && child.state.constraint.as_deref() == constraint
+        }) {
+            child.insert_at_position(key, route, position, data);
         } else {
             self.dynamic_children.push({
                 let mut new_child = Node {
                     state: DynamicState::new(name, constraint),
-                    data: None,
+                    data: Storage::default(),
 
                     static_children: SortedVec::default(),
                     dynamic_children: SortedVec::default(),
@@ -160,7 +188,7 @@ impl<'r, S: State> Node<'r, S> {
                     needs_optimization: false,
                 };
 
-                new_child.insert(authority, data);
+                new_child.insert_at_position(key, route, position, data);
                 new_child
             });
         }
@@ -170,21 +198,22 @@ impl<'r, S: State> Node<'r, S> {
 
     fn insert_wildcard(
         &mut self,
-        authority: &mut ParsedTemplate,
-        data: AuthorityData<'r>,
-        name: String,
-        constraint: Option<String>,
+        key: Option<usize>,
+        route: &Template,
+        position: usize,
+        data: C::Data,
+        name: &str,
+        constraint: Option<&str>,
     ) {
-        if let Some(child) = self
-            .wildcard_children
-            .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
-        {
-            child.insert(authority, data);
+        if let Some(child) = self.wildcard_children.find_mut(|child| {
+            child.state.name == name && child.state.constraint.as_deref() == constraint
+        }) {
+            child.insert_at_position(key, route, position, data);
         } else {
             self.wildcard_children.push({
                 let mut new_child = Node {
                     state: WildcardState::new(name, constraint),
-                    data: None,
+                    data: Storage::default(),
 
                     static_children: SortedVec::default(),
                     dynamic_children: SortedVec::default(),
@@ -197,7 +226,7 @@ impl<'r, S: State> Node<'r, S> {
                     needs_optimization: false,
                 };
 
-                new_child.insert(authority, data);
+                new_child.insert_at_position(key, route, position, data);
                 new_child
             });
         }
@@ -207,21 +236,20 @@ impl<'r, S: State> Node<'r, S> {
 
     fn insert_end_wildcard(
         &mut self,
-        data: AuthorityData<'r>,
-        name: String,
-        constraint: Option<String>,
+        key: Option<usize>,
+        data: C::Data,
+        name: &str,
+        constraint: Option<&str>,
     ) {
-        if self
-            .end_wildcard_children
-            .iter()
-            .any(|child| child.state.name == name && child.state.constraint == constraint)
-        {
+        if self.end_wildcard_children.iter().any(|child| {
+            child.state.name == name && child.state.constraint.as_deref() == constraint
+        }) {
             return;
         }
 
         self.end_wildcard_children.push(Node {
             state: EndWildcardState::new(name, constraint),
-            data: Some(data),
+            data: Storage::from((key, data)),
 
             static_children: SortedVec::default(),
             dynamic_children: SortedVec::default(),

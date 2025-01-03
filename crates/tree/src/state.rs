@@ -111,7 +111,7 @@ pub struct DynamicState {
 
 impl DynamicState {
     #[must_use]
-    pub fn new(name: String, constraint: Option<String>) -> Self {
+    pub fn new(name: &str, constraint: Option<&str>) -> Self {
         let mut priority = name.len();
         if constraint.is_some() {
             priority += 10_000;
@@ -124,8 +124,8 @@ impl DynamicState {
         );
 
         Self {
-            name,
-            constraint,
+            name: name.to_owned(),
+            constraint: constraint.map(String::from),
             priority,
             padding,
             key,
@@ -172,7 +172,7 @@ pub struct WildcardState {
 
 impl WildcardState {
     #[must_use]
-    pub fn new(name: String, constraint: Option<String>) -> Self {
+    pub fn new(name: &str, constraint: Option<&str>) -> Self {
         let mut priority = name.len();
         if constraint.is_some() {
             priority += 10_000;
@@ -185,8 +185,8 @@ impl WildcardState {
         );
 
         Self {
-            name,
-            constraint,
+            name: name.to_owned(),
+            constraint: constraint.map(String::from),
             priority,
             padding,
             key,
@@ -233,7 +233,7 @@ pub struct EndWildcardState {
 
 impl EndWildcardState {
     #[must_use]
-    pub fn new(name: String, constraint: Option<String>) -> Self {
+    pub fn new(name: &str, constraint: Option<&str>) -> Self {
         let mut priority = name.len();
         if constraint.is_some() {
             priority += 10_000;
@@ -246,8 +246,8 @@ impl EndWildcardState {
         );
 
         Self {
-            name,
-            constraint,
+            name: name.to_owned(),
+            constraint: constraint.map(String::from),
             priority,
             padding,
             key,

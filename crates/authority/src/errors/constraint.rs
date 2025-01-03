@@ -1,7 +1,7 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum ConstraintError {
+pub enum AuthorityConstraintError {
     DuplicateName {
         name: &'static str,
         existing_type: &'static str,
@@ -9,9 +9,9 @@ pub enum ConstraintError {
     },
 }
 
-impl Error for ConstraintError {}
+impl Error for AuthorityConstraintError {}
 
-impl Display for ConstraintError {
+impl Display for AuthorityConstraintError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::DuplicateName {
@@ -20,7 +20,7 @@ impl Display for ConstraintError {
                 new_type,
             } => write!(
                 f,
-                "duplicate constraint name
+                "duplicate authority constraint name
 
 The constraint name '{name}' is already in use:
     - existing constraint type: '{existing_type}'
