@@ -42,38 +42,24 @@ Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attem
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RouteBuilder, RequestBuilder};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/users/{id}", 1)?;
+    router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
 
-    let route = RouteBuilder::new()
-        .route("/users/{id}")
-        .build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new()
-        .route("/users/{id}/files/{filename}.{extension}")
-        .build()?;
-    router.insert(&route, 2)?;
-
-    let request = RequestBuilder::new()
-      .path("/users/123")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/users/123")?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users/{id}");
-    assert_eq!(search.path.parameters[0], ("id", "123"));
+    assert_eq!(search.template, "/users/{id}");
+    assert_eq!(search.parameters[0], ("id", "123"));
 
-    let request = RequestBuilder::new()
-      .path("/users/123/files/my.document.pdf")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/users/123/files/my.document.pdf")?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/users/{id}/files/{filename}.{extension}");
-    assert_eq!(search.path.parameters[0], ("id", "123"));
-    assert_eq!(search.path.parameters[1], ("filename", "my.document"));
-    assert_eq!(search.path.parameters[2], ("extension", "pdf"));
+    assert_eq!(search.template, "/users/{id}/files/{filename}.{extension}");
+    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.parameters[1], ("filename", "my.document"));
+    assert_eq!(search.parameters[2], ("extension", "pdf"));
 
     Ok(())
 }
@@ -94,36 +80,22 @@ Like dynamic parameters, wildcard parameters are also greedy in nature.
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RouteBuilder, RequestBuilder};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/files/{*slug}/delete", 1)?;
+    router.insert("/{*catch_all}", 2)?;
 
-    let route = RouteBuilder::new()
-        .route("/files/{*slug}/delete")
-        .build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new()
-        .route("/{*catch_all}")
-        .build()?;
-    router.insert(&route, 2)?;
-
-    let request = RequestBuilder::new()
-      .path("/files/documents/reports/annual.pdf/delete")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/files/documents/reports/annual.pdf/delete")?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/files/{*slug}/delete");
-    assert_eq!(search.path.parameters[0], ("slug", "documents/reports/annual.pdf"));
+    assert_eq!(search.template, "/files/{*slug}/delete");
+    assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
-    let request = RequestBuilder::new()
-      .path("/any/other/path")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/any/other/path")?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/{*catch_all}");
-    assert_eq!(search.path.parameters[0], ("catch_all", "any/other/path"));
+    assert_eq!(search.template, "/{*catch_all}");
+    assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
 
     Ok(())
 }
@@ -151,58 +123,38 @@ There is a small overhead to using optional groups, due to `Arc` usage internall
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RouteBuilder, RequestBuilder};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/users(/{id})", 1)?;
+    router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
 
-    let route = RouteBuilder::new()
-        .route("/users(/{id})")
-        .build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new()
-        .route("/files/{*slug}/{file}(.{extension})")
-        .build()?;
-    router.insert(&route, 2)?;
-
-    let request = RequestBuilder::new()
-      .path("/users")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/users")?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users(/{id})");
-    assert_eq!(search.path.expanded, Some("/users"));
+    assert_eq!(search.template, "/users(/{id})");
+    assert_eq!(search.expanded, Some("/users"));
 
-    let request = RequestBuilder::new()
-      .path("/users/123")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/users/123")?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/users(/{id})");
-    assert_eq!(search.path.expanded, Some("/users/{id}"));
-    assert_eq!(search.path.parameters[0], ("id", "123"));
+    assert_eq!(search.template, "/users(/{id})");
+    assert_eq!(search.expanded, Some("/users/{id}"));
+    assert_eq!(search.parameters[0], ("id", "123"));
 
-    let request = RequestBuilder::new()
-      .path("/files/documents/folder/report.pdf")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/files/documents/folder/report.pdf")?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}.{extension}"));
-    assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
-    assert_eq!(search.path.parameters[1], ("file", "report"));
-    assert_eq!(search.path.parameters[2], ("extension", "pdf"));
+    assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
+    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.parameters[1], ("file", "report"));
+    assert_eq!(search.parameters[2], ("extension", "pdf"));
 
-    let request = RequestBuilder::new()
-      .path("/files/documents/folder/readme")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/files/documents/folder/readme")?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/files/{*slug}/{file}(.{extension})");
-    assert_eq!(search.path.expanded, Some("/files/{*slug}/{file}"));
-    assert_eq!(search.path.parameters[0], ("slug", "documents/folder"));
-    assert_eq!(search.path.parameters[1], ("file", "readme"));
+    assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
+    assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
+    assert_eq!(search.parameters[0], ("slug", "documents/folder"));
+    assert_eq!(search.parameters[1], ("file", "readme"));
 
     Ok(())
 }
@@ -259,10 +211,10 @@ Curently, these can't be disabled.
 
 ```rust
 use std::error::Error;
-use wayfind::{PathConstraint, Router, RouteBuilder, RequestBuilder};
+use wayfind::{Router, Constraint};
 
 struct NamespaceConstraint;
-impl PathConstraint for NamespaceConstraint {
+impl Constraint for NamespaceConstraint {
     const NAME: &'static str = "namespace";
 
     fn check(segment: &str) -> bool {
@@ -276,39 +228,23 @@ impl PathConstraint for NamespaceConstraint {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.path.constraint::<NamespaceConstraint>()?;
+    router.constraint::<NamespaceConstraint>()?;
+    router.insert("/v2", 1)?;
+    router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
 
-    let route = RouteBuilder::new()
-        .route("/v2")
-        .build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new()
-        .route("/v2/{*name:namespace}/blobs/{type}:{digest}")
-        .build()?;
-    router.insert(&route, 2)?;
-
-    let request = RequestBuilder::new()
-      .path("/v2")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/v2")?.unwrap();
     assert_eq!(*search.data, 1);
-    assert_eq!(search.path.route, "/v2");
+    assert_eq!(search.template, "/v2");
 
-    let request = RequestBuilder::new()
-      .path("/v2/my-org/my-repo/blobs/sha256:1234567890")
-      .build()?;
-    let search = router.search(&request)?.unwrap();
+    let search = router.search("/v2/my-org/my-repo/blobs/sha256:1234567890")?.unwrap();
     assert_eq!(*search.data, 2);
-    assert_eq!(search.path.route, "/v2/{*name:namespace}/blobs/{type}:{digest}");
-    assert_eq!(search.path.parameters[0], ("name", "my-org/my-repo"));
-    assert_eq!(search.path.parameters[1], ("type", "sha256"));
-    assert_eq!(search.path.parameters[2], ("digest", "1234567890"));
+    assert_eq!(search.template, "/v2/{*name:namespace}/blobs/{type}:{digest}");
+    assert_eq!(search.parameters[0], ("name", "my-org/my-repo"));
+    assert_eq!(search.parameters[1], ("type", "sha256"));
+    assert_eq!(search.parameters[2], ("digest", "1234567890"));
 
-    let request = RequestBuilder::new()
-      .path("/v2/invalid repo/blobs/uploads")
-      .build()?;
-    assert!(router.search(&request)?.is_none());
+    let search = router.search("/v2/invalid repo/blobs/uploads")?;
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -322,10 +258,10 @@ Where possible, we try to provide user-friendly error messages.
 
 ```rust
 use std::error::Error;
-use wayfind::{PathConstraint, Router};
+use wayfind::{Router, Constraint};
 
 struct ConstraintA;
-impl PathConstraint for ConstraintA {
+impl Constraint for ConstraintA {
     const NAME: &'static str = "my_constraint";
 
     fn check(segment: &str) -> bool {
@@ -334,7 +270,7 @@ impl PathConstraint for ConstraintA {
 }
 
 struct ConstraintB;
-impl PathConstraint for ConstraintB {
+impl Constraint for ConstraintB {
     const NAME: &'static str = "my_constraint";
 
     fn check(segment: &str) -> bool {
@@ -344,9 +280,9 @@ impl PathConstraint for ConstraintB {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router: Router<usize> = Router::new();
-    router.path.constraint::<ConstraintA>()?;
+    router.constraint::<ConstraintA>()?;
 
-    let error = router.path.constraint::<ConstraintB>().unwrap_err();
+    let error = router.constraint::<ConstraintB>().unwrap_err();
     insta::assert_snapshot!(error, @r"
     duplicate constraint name
 
@@ -375,221 +311,47 @@ Currenty, this doesn't handle split multi-byte characters well.
 
 ```rust
 use std::error::Error;
-use wayfind::{Router, RouteBuilder};
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new()
-        .route("/pet")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_add_pet")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet")
-        .methods(vec!["PUT"])
-        .build()?;
-    router.insert(&route, "handle_update_pet")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/findByStatus")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_find_pets_by_status")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/findByTags")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_find_pets_by_tags")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/{petId}")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_get_pet")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/{petId}")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_update_pet_form")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/{petId}")
-        .methods(vec!["DELETE"])
-        .build()?;
-    router.insert(&route, "handle_delete_pet")?;
-
-    let route = RouteBuilder::new()
-        .route("/pet/{petId}/uploadImage")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_upload_pet_image")?;
-
-    let route = RouteBuilder::new()
-        .route("/store/inventory")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_get_inventory")?;
-
-    let route = RouteBuilder::new()
-        .route("/store/order")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_place_order")?;
-
-    let route = RouteBuilder::new()
-        .route("/store/order/{orderId}")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_get_order")?;
-
-    let route = RouteBuilder::new()
-        .route("/store/order/{orderId}")
-        .methods(vec!["DELETE"])
-        .build()?;
-    router.insert(&route, "handle_delete_order")?;
-
-    let route = RouteBuilder::new()
-        .route("/user")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_create_user")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/createWithList")
-        .methods(vec!["POST"])
-        .build()?;
-    router.insert(&route, "handle_create_users_list")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/login")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_login")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/logout")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_logout")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/{username}")
-        .methods(vec!["GET"])
-        .build()?;
-    router.insert(&route, "handle_get_user")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/{username}")
-        .methods(vec!["PUT"])
-        .build()?;
-    router.insert(&route, "handle_update_user")?;
-
-    let route = RouteBuilder::new()
-        .route("/user/{username}")
-        .methods(vec!["DELETE"])
-        .build()?;
-    router.insert(&route, "handle_delete_user")?;
-
-    let route = RouteBuilder::new()
-        .route("/{*catch_all}")
-        .build()?;
-    router.insert(&route, "handle_not_found")?;
+    router.insert("/pet", 1)?;
+    router.insert("/pet/findByStatus", 2)?;
+    router.insert("/pet/findByTags", 3)?;
+    router.insert("/pet/{petId}", 4)?;
+    router.insert("/pet/{petId}/uploadImage", 5)?;
+    router.insert("/store/inventory", 6)?;
+    router.insert("/store/order", 7)?;
+    router.insert("/store/order/{orderId}", 8)?;
+    router.insert("/user", 9)?;
+    router.insert("/user/createWithList", 10)?;
+    router.insert("/user/login", 11)?;
+    router.insert("/user/logout", 12)?;
+    router.insert("/user/{username}", 13)?;
+    router.insert("/{*catch_all}", 14)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /
-    ├─ user [9]
+    ├─ user [*]
     │  ╰─ /
-    │     ├─ createWithList [10]
+    │     ├─ createWithList [*]
     │     ├─ log
-    │     │  ├─ out [12]
-    │     │  ╰─ in [11]
-    │     ╰─ {username} [13]
-    ├─ pet [1]
+    │     │  ├─ out [*]
+    │     │  ╰─ in [*]
+    │     ╰─ {username} [*]
+    ├─ pet [*]
     │  ╰─ /
     │     ├─ findBy
-    │     │  ├─ Status [2]
-    │     │  ╰─ Tags [3]
-    │     ╰─ {petId} [4]
-    │        ╰─ /uploadImage [5]
+    │     │  ├─ Status [*]
+    │     │  ╰─ Tags [*]
+    │     ╰─ {petId} [*]
+    │        ╰─ /uploadImage [*]
     ├─ store/
-    │  ├─ inventory [6]
-    │  ╰─ order [7]
+    │  ├─ inventory [*]
+    │  ╰─ order [*]
     │     ╰─ /
-    │        ╰─ {orderId} [8]
-    ╰─ {*catch_all} [14]
-    === Method
-    [1]
-    ├─ POST [1]
-    ╰─ PUT [2]
-
-    [2]
-    ╰─ GET [3]
-
-    [3]
-    ╰─ GET [4]
-
-    [4]
-    ├─ DELETE [7]
-    ├─ GET [5]
-    ╰─ POST [6]
-
-    [5]
-    ╰─ POST [8]
-
-    [6]
-    ╰─ GET [9]
-
-    [7]
-    ╰─ POST [10]
-
-    [8]
-    ├─ DELETE [12]
-    ╰─ GET [11]
-
-    [9]
-    ╰─ POST [13]
-
-    [10]
-    ╰─ POST [14]
-
-    [11]
-    ╰─ GET [15]
-
-    [12]
-    ╰─ GET [16]
-
-    [13]
-    ├─ DELETE [19]
-    ├─ GET [17]
-    ╰─ PUT [18]
-    === Chains
-    *-1-1
-    *-1-2
-    *-2-3
-    *-3-4
-    *-4-5
-    *-4-6
-    *-4-7
-    *-5-8
-    *-6-9
-    *-7-10
-    *-8-11
-    *-8-12
-    *-9-13
-    *-10-14
-    *-11-15
-    *-12-16
-    *-13-17
-    *-13-18
-    *-13-19
-    *-14-*
+    │        ╰─ {orderId} [*]
+    ╰─ {*catch_all} [*]
     ");
 
     Ok(())

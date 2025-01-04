@@ -6,16 +6,20 @@ use crate::state::SharedAppState;
 
 use super::FromRequestParts;
 
-/// Access to the given request method.
-pub struct Method(pub http::Method);
+#[derive(Debug, Clone)]
+pub struct TemplateInner(pub String);
 
-impl FromRequestParts for Method {
+/// Access to the given request template.
+pub struct Template(pub String);
+
+impl FromRequestParts for Template {
     type Rejection = Infallible;
 
     async fn from_request_parts(
         parts: &mut Parts,
         _: &SharedAppState,
     ) -> Result<Self, Self::Rejection> {
-        Ok(Self(parts.method.clone()))
+        let template = parts.extensions.get::<TemplateInner>().unwrap();
+        Ok(Self(template.0.clone()))
     }
 }

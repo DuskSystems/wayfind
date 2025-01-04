@@ -1,7 +1,8 @@
 #![allow(clippy::multiple_crate_versions)]
 
-use anyhow::Error;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+use anyhow::Error;
 use tokio::net::TcpListener;
 use wayfind_oci_example::start_server;
 

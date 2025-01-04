@@ -1,6 +1,7 @@
+use std::fmt::Display;
+
 use http::StatusCode;
 use sha2::{Digest as ShaDigest, Sha256, Sha512};
-use std::fmt::Display;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

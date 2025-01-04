@@ -1,9 +1,11 @@
-use crate::types::digest::Digest;
+use std::sync::Arc;
+
 use dashmap::DashMap;
 use http::StatusCode;
-use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
+
+use crate::types::digest::Digest;
 
 pub type SharedAppState = Arc<AppState>;
 

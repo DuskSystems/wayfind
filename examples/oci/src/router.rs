@@ -1,16 +1,13 @@
+use std::{collections::HashMap, future::Future, pin::Pin, sync::Arc};
+
+use http::{Method, StatusCode};
+use wayfind::Constraint;
+
 use crate::{
-    extract::{path::PathInner, route::RouteInner, AppRequest},
+    extract::{path::PathInner, template::TemplateInner, AppRequest},
     handler::Handler,
     response::{AppResponse, IntoResponse},
     state::SharedAppState,
-};
-use bytes::Bytes;
-use http::{Response, StatusCode};
-use http_body_util::Full;
-use std::{future::Future, pin::Pin, sync::Arc};
-use wayfind::{
-    errors::{MethodSearchError, SearchError},
-    PathConstraint, Route, Router,
 };
 
 /// Type alias for async handlers.
@@ -22,25 +19,44 @@ type ArcHandler = Arc<
 
 pub struct AppRouter<'r> {
     /// Maps HTTP methods to their respective `wayfind` Routers.
-    pub inner: Router<'r, ArcHandler>,
+    /// TODO: Replace with native `wayfind` method routing, when implemented.
+    routes: HashMap<Method, wayfind::Router<'r, ArcHandler>>,
 }
 
 impl<'r> AppRouter<'r> {
     /// Creates a new `AppRouter` with empty route tables for all HTTP methods.
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            inner: Router::new(),
+        let mut router = Self {
+            routes: HashMap::default(),
+        };
+
+        for method in [
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::HEAD,
+            Method::OPTIONS,
+            Method::CONNECT,
+            Method::PATCH,
+            Method::TRACE,
+        ] {
+            router.routes.insert(method, wayfind::Router::new());
         }
+
+        router
     }
 
     /// Registers a constraint to all route tables.
-    pub fn constraint<C: PathConstraint>(&mut self) {
-        self.inner.path.constraint::<C>().unwrap();
+    pub fn path_constraint<C: Constraint>(&mut self) {
+        for router in self.routes.values_mut() {
+            router.constraint::<C>().unwrap();
+        }
     }
 
     /// Adds a new route with the specified method, path, and handler.
-    pub fn insert<H, T>(&mut self, route: &Route<'r>, handler: H)
+    pub fn route<H, T>(&mut self, method: Method, path: &'r str, handler: H)
     where
         H: Handler<T> + Send + Sync + 'static,
     {
@@ -49,45 +65,39 @@ impl<'r> AppRouter<'r> {
             Box::pin(async move { handler.call(req, state).await })
         });
 
-        self.inner.insert(route, handler).unwrap();
+        if let Some(router) = self.routes.get_mut(&method) {
+            router.insert(path, handler).unwrap();
+        } else {
+            let mut new_router = wayfind::Router::new();
+            new_router.insert(path, handler).unwrap();
+            self.routes.insert(method, new_router);
+        }
     }
 
+    /// Handles an incoming request by routing it to the appropriate handler.
     pub async fn handle(&self, mut req: AppRequest, state: SharedAppState) -> AppResponse {
+        let method = req.method();
         let path = req.uri().path().to_owned();
-        let method = req.method().as_str().to_owned();
 
-        let Ok(request) = wayfind::RequestBuilder::new()
-            .path(&path)
-            .method(&method)
-            .build()
-        else {
-            return Response::builder()
-                .status(StatusCode::NOT_FOUND)
-                .body(Full::new(Bytes::from("Not Found")))
-                .unwrap();
+        let Some(router) = self.routes.get(method) else {
+            return StatusCode::METHOD_NOT_ALLOWED.into_response();
         };
 
-        let result = self.inner.search(&request);
-        match result {
-            Ok(Some(search)) => {
-                let route = search.path.route.to_owned();
-                let parameters: Vec<(String, String)> = search
-                    .path
-                    .parameters
-                    .into_iter()
-                    .map(|p| (p.0.to_owned(), p.1.to_owned()))
-                    .collect();
+        let Ok(Some(search)) = router.search(&path) else {
+            return StatusCode::NOT_FOUND.into_response();
+        };
 
-                req.extensions_mut().insert(RouteInner(route));
-                req.extensions_mut().insert(PathInner(parameters));
+        let template = search.template.to_owned();
+        let parameters: Vec<(String, String)> = search
+            .parameters
+            .into_iter()
+            .map(|p| (p.0.to_owned(), p.1.to_owned()))
+            .collect();
 
-                let handler = search.data;
-                handler(req, state).await
-            }
-            Err(SearchError::Method(MethodSearchError::NotAllowed)) => {
-                StatusCode::METHOD_NOT_ALLOWED.into_response()
-            }
-            Ok(None) | Err(_) => StatusCode::NOT_FOUND.into_response(),
-        }
+        req.extensions_mut().insert(TemplateInner(template));
+        req.extensions_mut().insert(PathInner(parameters));
+
+        let handler = search.data;
+        handler(req, state).await
     }
 }

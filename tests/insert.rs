@@ -1,53 +1,23 @@
-use similar_asserts::assert_eq;
 use std::error::Error;
+
+use similar_asserts::assert_eq;
 use wayfind::{
-    errors::{InsertError, PathConstraintError, PathInsertError, PathTemplateError},
-    AuthorityId, DataChain, MethodId, PathConstraint, PathId, RouteBuilder, Router,
+    errors::{ConstraintError, InsertError, TemplateError},
+    Constraint, Router,
 };
 
 #[test]
 fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/test", 1)?;
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    router.insert(&route, 1)?;
+    let insert = router.insert("/test", 2);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    let insert = router.insert(&route, 2);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
+    let insert = router.insert("(/test)", 3);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    let insert = router.insert(&route, 3);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
-
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    ");
+    insta::assert_snapshot!(router, @"/test [*]");
 
     Ok(())
 }
@@ -55,59 +25,20 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("(/test)", 1)?;
 
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    router.insert(&route, 1)?;
+    let insert = router.insert("/test", 2);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    let insert = router.insert(&route, 2);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
+    let insert = router.insert("(/test)", 2);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    let insert = router.insert(&route, 2);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
-
-    let route = RouteBuilder::new().route("(/best)").build()?;
-    let insert = router.insert(&route, 3);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
+    let insert = router.insert("(/best)", 3);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ test [*]
     ");
 
     Ok(())
@@ -116,33 +47,14 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("(/hello)", 1)?;
 
-    let route = RouteBuilder::new().route("(/hello)").build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new().route("(/world)").build()?;
-    let insert = router.insert(&route, 2);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
+    let insert = router.insert("(/world)", 2);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ hello [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ hello [*]
     ");
 
     Ok(())
@@ -152,70 +64,33 @@ fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("(/{*catch_all})", 1)?;
 
-    let route = RouteBuilder::new().route("(/{*catch_all})").build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new().route("/{*catch_all}").build()?;
-    let insert = router.insert(&route, 2);
-    assert_eq!(
-        insert,
-        Err(InsertError::Conflict {
-            chain: DataChain {
-                authority: AuthorityId(None),
-                path: PathId(1),
-                method: MethodId(None),
-            }
-        })
-    );
+    let insert = router.insert("/{*catch_all}", 2);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ {*catch_all} [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ {*catch_all} [*]
     ");
 
     Ok(())
 }
 
 #[test]
-fn test_insert_overlapping() -> Result<(), Box<dyn Error>> {
+fn test_insert_conflict_overlapping() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/a(/b)", 1)?;
+    router.insert("/x/y", 2)?;
 
-    let route = RouteBuilder::new().route("/a(/b)").build()?;
-    router.insert(&route, 1)?;
-
-    let route = RouteBuilder::new().route("/x/y").build()?;
-    router.insert(&route, 2)?;
-
-    let route = RouteBuilder::new().route("(/a(/b))(/x/y)").build()?;
-    let insert = router.insert(&route, 3);
-    assert_eq!(
-        insert,
-        Err(InsertError::Path(PathInsertError::OverlappingRoutes {
-            ids: vec![PathId(1), PathId(2)]
-        }))
-    );
+    let insert = router.insert("(/a(/b))(/x/y)", 3);
+    assert_eq!(insert, Err(InsertError::Conflict));
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /
-    ├─ x/y [2]
-    ╰─ a [1]
-       ╰─ /b [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-2-*
+    ├─ x/y [*]
+    ╰─ a [*]
+       ╰─ /b [*]
     ");
 
     Ok(())
@@ -225,41 +100,26 @@ fn test_insert_overlapping() -> Result<(), Box<dyn Error>> {
 fn test_insert_duplicate_parameter() {
     let mut router = Router::new();
 
-    let route = RouteBuilder::new()
-        .route("/{*id}/users/{id}")
-        .build()
-        .unwrap();
-    let insert = router.insert(&route, 3);
+    let insert = router.insert("/{*id}/users/{id}", 3);
     assert_eq!(
         insert,
-        Err(InsertError::Path(PathInsertError::Template(
-            PathTemplateError::DuplicateParameter {
-                route: "/{*id}/users/{id}".to_owned(),
-                name: "id".to_owned(),
-                first: 1,
-                first_length: 5,
-                second: 13,
-                second_length: 4
-            }
-        )))
+        Err(InsertError::Template(TemplateError::DuplicateParameter {
+            template: "/{*id}/users/{id}".to_owned(),
+            name: "id".to_owned(),
+            first: 1,
+            first_length: 5,
+            second: 13,
+            second_length: 4
+        }))
     );
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    Empty
-    === Method
-    Empty
-    === Chains
-    Empty
-    ");
+    insta::assert_snapshot!(router, @"");
 }
 
 #[test]
 fn test_insert_constraint_conflict() {
     struct MyConstraint;
-    impl PathConstraint for MyConstraint {
+    impl Constraint for MyConstraint {
         const NAME: &'static str = "u32";
         fn check(segment: &str) -> bool {
             segment.parse::<u32>().is_ok()
@@ -267,10 +127,10 @@ fn test_insert_constraint_conflict() {
     }
 
     let mut router: Router<'_, usize> = Router::new();
-    let constraint = router.path.constraint::<MyConstraint>();
+    let constraint = router.constraint::<MyConstraint>();
     assert_eq!(
         constraint,
-        Err(PathConstraintError::DuplicateName {
+        Err(ConstraintError::DuplicateName {
             name: "u32",
             existing_type: "u32",
             new_type: "insert::test_insert_constraint_conflict::MyConstraint"

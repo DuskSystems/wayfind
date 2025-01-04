@@ -1,9 +1,3 @@
-use crate::{
-    extract::{body::Body, method::Method, path::Path, query::Query, route::Route},
-    response::{AppResponse, IntoResponse},
-    state::{AppStateError, SharedAppState},
-    types::digest::{Digest, DigestError},
-};
 use bytes::Bytes;
 use http::{
     header::{CONTENT_LENGTH, CONTENT_TYPE},
@@ -13,6 +7,13 @@ use http_body_util::Full;
 use serde_json::json;
 use thiserror::Error;
 use uuid::Uuid;
+
+use crate::{
+    extract::{body::Body, method::Method, path::Path, query::Query, template::Template},
+    response::{AppResponse, IntoResponse},
+    state::{AppStateError, SharedAppState},
+    types::digest::{Digest, DigestError},
+};
 
 #[derive(Debug, Error)]
 pub enum BlobError {
@@ -65,13 +66,13 @@ impl IntoResponse for BlobError {
 
 pub async fn handle_blob_pull(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, digest)): Path<(String, String)>,
 ) -> Result<impl IntoResponse, BlobError> {
     tracing::info!(
         oci = "end-2",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         digest = ?digest,
@@ -100,7 +101,7 @@ pub async fn handle_blob_pull(
 
 pub async fn handle_blob_push_post(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path(name): Path<String>,
     Query(query): Query,
@@ -109,7 +110,7 @@ pub async fn handle_blob_push_post(
     if let Some(digest) = query.get("digest") {
         tracing::info!(
             oci = "end-4b",
-            route = ?route,
+            template = ?template,
             method = ?method,
             name = ?name,
             digest = ?digest,
@@ -135,7 +136,7 @@ pub async fn handle_blob_push_post(
     } else {
         tracing::info!(
             oci = "end-4a",
-            route = ?route,
+            template = ?template,
             method = ?method,
             name = ?name,
             "Handling request"
@@ -153,7 +154,7 @@ pub async fn handle_blob_push_post(
 
 pub async fn handle_blob_push_put(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, reference)): Path<(String, String)>,
     Query(query): Query,
@@ -161,7 +162,7 @@ pub async fn handle_blob_push_put(
 ) -> Result<impl IntoResponse, BlobError> {
     tracing::info!(
         oci = "end-6",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         reference = ?reference,
@@ -187,13 +188,13 @@ pub async fn handle_blob_push_put(
 
 pub async fn handle_blob_delete(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, digest)): Path<(String, String)>,
 ) -> Result<impl IntoResponse, BlobError> {
     tracing::info!(
         oci = "end-10",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         digest = ?digest,

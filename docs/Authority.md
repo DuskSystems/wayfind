@@ -1,3 +1,0 @@
-# Authority Router
-
-TODO

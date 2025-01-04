@@ -1,64 +1,35 @@
 use std::error::Error;
-use wayfind::{RouteBuilder, Router};
+
+use wayfind::Router;
 
 #[test]
 fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/users/{id}").build()?;
-    router.insert(&route, 1)?;
-    let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
-    router.insert(&route, 2)?;
-    let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
-    router.insert(&route, 3)?;
+    router.insert("/users/{id}", 1)?;
+    router.insert("/users/{id}/profile", 2)?;
+    router.insert("/users/{id}/settings", 3)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /users/
-    ╰─ {id} [1]
+    ╰─ {id} [*]
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-2-*
-    *-3-*
+          ├─ settings [*]
+          ╰─ profile [*]
     ");
 
-    let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
-    router.delete(&route)?;
+    router.delete("/users/{id}/profile")?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /users/
-    ╰─ {id} [1]
-       ╰─ /settings [3]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-3-*
+    ╰─ {id} [*]
+       ╰─ /settings [*]
     ");
 
-    let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
-    router.delete(&route)?;
+    router.delete("/users/{id}/settings")?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /users/
-    ╰─ {id} [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    ╰─ {id} [*]
     ");
 
     Ok(())
@@ -67,48 +38,26 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/users/{id}").build()?;
-    router.insert(&route, 1)?;
-    let route = RouteBuilder::new().route("/users/{id}/profile").build()?;
-    router.insert(&route, 2)?;
-    let route = RouteBuilder::new().route("/users/{id}/settings").build()?;
-    router.insert(&route, 3)?;
+    router.insert("/users/{id}", 1)?;
+    router.insert("/users/{id}/profile", 2)?;
+    router.insert("/users/{id}/settings", 3)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /users/
-    ╰─ {id} [1]
+    ╰─ {id} [*]
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-2-*
-    *-3-*
+          ├─ settings [*]
+          ╰─ profile [*]
     ");
 
-    let route = RouteBuilder::new().route("/users/{id}").build()?;
-    router.delete(&route)?;
+    router.delete("/users/{id}")?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /users/
     ╰─ {id}
        ╰─ /
-          ├─ settings [3]
-          ╰─ profile [2]
-    === Method
-    Empty
-    === Chains
-    *-2-*
-    *-3-*
+          ├─ settings [*]
+          ╰─ profile [*]
     ");
 
     Ok(())
@@ -117,43 +66,21 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/abc").build()?;
-    router.insert(&route, 1)?;
-    let route = RouteBuilder::new().route("/a").build()?;
-    router.insert(&route, 2)?;
-    let route = RouteBuilder::new().route("/ab").build()?;
-    router.insert(&route, 3)?;
+    router.insert("/abc", 1)?;
+    router.insert("/a", 2)?;
+    router.insert("/ab", 3)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /a [2]
-    ╰─ b [3]
-       ╰─ c [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-2-*
-    *-3-*
+    /a [*]
+    ╰─ b [*]
+       ╰─ c [*]
     ");
 
-    let route = RouteBuilder::new().route("/ab").build()?;
-    router.delete(&route)?;
+    router.delete("/ab")?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /a [2]
-    ╰─ bc [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    *-2-*
+    /a [*]
+    ╰─ bc [*]
     ");
 
     Ok(())

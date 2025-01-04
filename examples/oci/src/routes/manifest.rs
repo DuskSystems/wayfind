@@ -1,9 +1,3 @@
-use crate::{
-    extract::{body::Body, method::Method, path::Path, route::Route},
-    response::{AppResponse, IntoResponse},
-    state::{AppStateError, SharedAppState},
-    types::digest::Digest,
-};
 use bytes::Bytes;
 use http::{
     header::{CONTENT_LENGTH, CONTENT_TYPE},
@@ -12,6 +6,13 @@ use http::{
 use http_body_util::Full;
 use serde_json::json;
 use thiserror::Error;
+
+use crate::{
+    extract::{body::Body, method::Method, path::Path, template::Template},
+    response::{AppResponse, IntoResponse},
+    state::{AppStateError, SharedAppState},
+    types::digest::Digest,
+};
 
 #[derive(Debug, Error)]
 pub enum ManifestError {
@@ -48,13 +49,13 @@ impl IntoResponse for ManifestError {
 
 pub async fn handle_manifest_pull(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, reference)): Path<(String, String)>,
 ) -> Result<impl IntoResponse, ManifestError> {
     tracing::info!(
         oci = "end-3",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         reference = ?reference,
@@ -82,14 +83,14 @@ pub async fn handle_manifest_pull(
 
 pub async fn handle_manifest_put(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, reference)): Path<(String, String)>,
     Body(body): Body,
 ) -> Result<impl IntoResponse, ManifestError> {
     tracing::info!(
         oci = "end-7",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         reference = ?reference,
@@ -109,13 +110,13 @@ pub async fn handle_manifest_put(
 
 pub async fn handle_manifest_delete(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path((name, reference)): Path<(String, String)>,
 ) -> Result<impl IntoResponse, ManifestError> {
     tracing::info!(
         oci = "end-7",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         reference = ?reference,

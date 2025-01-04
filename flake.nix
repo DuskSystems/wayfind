@@ -52,15 +52,17 @@
         default = pkgs.mkShell {
           name = "wayfind-shell";
 
-          NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
+          env = {
+            NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
-          RUSTC_WRAPPER = "sccache";
-          RUSTFLAGS = "-C target-cpu=native";
-          CARGO_INCREMENTAL = "0";
+            RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = "-C target-cpu=native";
+            CARGO_INCREMENTAL = "0";
 
-          OCI_ROOT_URL = "http://127.0.0.1:8000";
-          OCI_NAMESPACE = "myorg/myrepo";
-          OCI_TEST_PULL = 1;
+            OCI_ROOT_URL = "http://127.0.0.1:8000";
+            OCI_NAMESPACE = "myorg/myenv/myrepo";
+            OCI_TEST_PULL = 1;
+          };
 
           buildInputs = with pkgs; [
             # Rust
@@ -110,9 +112,11 @@
         nightly = pkgs.mkShell {
           name = "wayfind-nightly-shell";
 
-          RUSTC_WRAPPER = "sccache";
-          RUSTFLAGS = "-C target-cpu=native";
-          CARGO_INCREMENTAL = "0";
+          env = {
+            RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = "-C target-cpu=native";
+            CARGO_INCREMENTAL = "0";
+          };
 
           buildInputs = with pkgs; [
             # Rust
@@ -131,9 +135,11 @@
         msrv = pkgs.mkShell {
           name = "wayfind-msrv-shell";
 
-          RUSTC_WRAPPER = "sccache";
-          RUSTFLAGS = "-C target-cpu=native";
-          CARGO_INCREMENTAL = "0";
+          env = {
+            RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = "-C target-cpu=native";
+            CARGO_INCREMENTAL = "0";
+          };
 
           buildInputs = with pkgs; [
             # Rust
@@ -146,13 +152,15 @@
         ci = pkgs.mkShell {
           name = "wayfind-ci-shell";
 
-          RUSTC_WRAPPER = "sccache";
-          RUSTFLAGS = "-C target-cpu=native";
-          CARGO_INCREMENTAL = "0";
+          env = {
+            RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = "-C target-cpu=native";
+            CARGO_INCREMENTAL = "0";
 
-          OCI_ROOT_URL = "http://127.0.0.1:8000";
-          OCI_NAMESPACE = "myorg/myrepo";
-          OCI_TEST_PULL = 1;
+            OCI_ROOT_URL = "http://127.0.0.1:8000";
+            OCI_NAMESPACE = "myorg/myenv/myrepo";
+            OCI_TEST_PULL = 1;
+          };
 
           buildInputs = with pkgs; [
             # Rust

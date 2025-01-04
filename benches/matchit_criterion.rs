@@ -1,10 +1,10 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.5/benches/bench.rs>
 
+use std::hint::black_box;
+
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
-use percent_encoding::percent_decode;
-use std::hint::black_box;
 
 pub mod matchit_routes;
 
@@ -21,16 +21,14 @@ fn matchit_benchmark(criterion: &mut Criterion) {
     group.bench_function("matchit benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for route in routes!(brackets) {
-            let route = wayfind::RouteBuilder::new().route(route).build().unwrap();
-            router.insert(&route, true).unwrap();
+            router.insert(route, true).unwrap();
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let request = wayfind::RequestBuilder::new().path(route).build().unwrap();
-                let output = black_box(router.search(black_box(&request)).unwrap().unwrap());
+            for path in black_box(paths()) {
+                let output = black_box(router.search(black_box(path)).unwrap().unwrap());
                 let _parameters: Vec<(&str, &str)> =
-                    black_box(output.path.parameters.iter().map(|p| (p.0, p.1)).collect());
+                    black_box(output.parameters.iter().map(|p| (p.0, p.1)).collect());
             }
         });
     });
@@ -43,9 +41,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         let router = router.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let mut path = actix_router::Path::new(path.as_ref());
+            for path in black_box(paths()) {
+                let mut path = actix_router::Path::new(path);
                 black_box(router.recognize(black_box(&mut path)).unwrap());
                 let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
@@ -60,9 +57,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = black_box(router.at(black_box(&path)).unwrap());
+            for path in black_box(paths()) {
+                let output = black_box(router.at(black_box(path)).unwrap());
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }
@@ -77,9 +73,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         let router = router.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let mut path = ntex_router::Path::new(path.as_ref());
+            for path in black_box(paths()) {
+                let mut path = ntex_router::Path::new(path);
                 router.recognize(&mut path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
@@ -94,9 +89,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.find(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.find(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.1.params_iter().map(|p| (p.0, p.1)).collect());
             }
@@ -110,9 +104,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.recognize(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.recognize(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params().iter().map(|p| (p.0, p.1)).collect());
             }
@@ -126,9 +119,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.best_match(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.best_match(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.captures().iter().map(|p| (p.0, p.1)).collect());
             }
@@ -142,9 +134,8 @@ fn matchit_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.at(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.at(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }

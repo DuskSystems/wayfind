@@ -1,14 +1,15 @@
-use crate::{response::IntoResponse, state::SharedAppState};
+use std::{convert::Infallible, future::Future};
+
 use http::{request::Parts, Request};
 use hyper::body::Incoming;
-use std::convert::Infallible;
-use std::future::Future;
+
+use crate::{response::IntoResponse, state::SharedAppState};
 
 pub mod body;
 pub mod method;
 pub mod path;
 pub mod query;
-pub mod route;
+pub mod template;
 
 /// Type alias for the expected HTTP request.
 pub type AppRequest = Request<Incoming>;

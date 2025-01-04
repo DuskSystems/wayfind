@@ -1,7 +1,8 @@
+use std::convert::Infallible;
+
 use bytes::Bytes;
 use http::{Response, StatusCode};
 use http_body_util::Full;
-use std::convert::Infallible;
 
 /// Represents a HTTP response with a full body of bytes.
 pub type AppResponse = Response<Full<Bytes>>;

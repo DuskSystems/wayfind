@@ -35,7 +35,7 @@ serde_json = "1.0"
 
 # Errors
 anyhow = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 
 # UUID
 uuid = { version = "1.10", features = ["v4"] }
