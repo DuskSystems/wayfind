@@ -1,13 +1,41 @@
-use crate::chain::DataChain;
 use std::{error::Error, fmt::Display};
 
-/// Errors relating to attempting to insert a route into a [`Router`](crate::Router).
+use super::TemplateError;
+
+/// Errors relating to attempting to insert a template into a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {
-    Authority(wayfind_authority::errors::InsertError),
-    Path(wayfind_path::errors::InsertError),
-    Method(wayfind_method::errors::InsertError),
-    Conflict { chain: DataChain },
+    /// A [`TemplateError`] that occurred during the insert operation.
+    Template(TemplateError),
+
+    /// FIXME
+    Conflict,
+
+    /// The constraint specified in the template is not recognized by the router.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::InsertError;
+    ///
+    /// let error = InsertError::UnknownConstraint {
+    ///     constraint: "unknown_constraint".to_string(),
+    /// };
+    ///
+    /// let display = "
+    /// unknown constraint
+    ///
+    ///    Constraint: unknown_constraint
+    ///
+    /// The router doesn't recognize this constraint
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    UnknownConstraint {
+        /// The name of the unrecognized constraint.
+        constraint: String,
+    },
 }
 
 impl Error for InsertError {}
@@ -15,33 +43,22 @@ impl Error for InsertError {}
 impl Display for InsertError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Authority(error) => error.fmt(f),
-            Self::Path(error) => error.fmt(f),
-            Self::Method(error) => error.fmt(f),
-            Self::Conflict { chain } => write!(
+            Self::Template(error) => error.fmt(f),
+            Self::Conflict => write!(f, "CONFLICT"),
+            Self::UnknownConstraint { constraint } => write!(
                 f,
-                r"chain conflict
+                r"unknown constraint
 
-    Chain: {chain:?}"
+   Constraint: {constraint}
+
+The router doesn't recognize this constraint"
             ),
         }
     }
 }
 
-impl From<wayfind_authority::errors::InsertError> for InsertError {
-    fn from(error: wayfind_authority::errors::InsertError) -> Self {
-        Self::Authority(error)
-    }
-}
-
-impl From<wayfind_path::errors::InsertError> for InsertError {
-    fn from(error: wayfind_path::errors::InsertError) -> Self {
-        Self::Path(error)
-    }
-}
-
-impl From<wayfind_method::errors::InsertError> for InsertError {
-    fn from(error: wayfind_method::errors::InsertError) -> Self {
-        Self::Method(error)
+impl From<TemplateError> for InsertError {
+    fn from(error: TemplateError) -> Self {
+        Self::Template(error)
     }
 }

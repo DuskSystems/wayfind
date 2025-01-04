@@ -1,13 +1,17 @@
-use super::FromRequestParts;
-use crate::response::{AppResponse, IntoResponse};
-use crate::state::SharedAppState;
+use std::{fmt::Display, str::FromStr};
+
 use bytes::Bytes;
-use http::Response;
-use http::{request::Parts, StatusCode};
+use http::{request::Parts, Response, StatusCode};
 use http_body_util::Full;
 use serde_json::json;
-use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
+
+use crate::{
+    response::{AppResponse, IntoResponse},
+    state::SharedAppState,
+};
+
+use super::FromRequestParts;
 
 #[derive(Debug, Error)]
 pub enum PathError {

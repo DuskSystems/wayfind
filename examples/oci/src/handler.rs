@@ -1,9 +1,10 @@
+use std::{future::Future, pin::Pin};
+
 use crate::{
     extract::{AppRequest, FromRequest, FromRequestParts},
     response::{AppResponse, IntoResponse},
     state::SharedAppState,
 };
-use std::{future::Future, pin::Pin};
 
 /// Trait for request handlers in the application.
 ///

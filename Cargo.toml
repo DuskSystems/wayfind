@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/workspaces.html
 [workspace]
 resolver = "2"
-members = [".", "crates/*", "examples/*", "fuzz"]
+members = [".", "examples/*", "fuzz"]
 
 [workspace.package]
 version = "0.7.0"
@@ -94,34 +94,13 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
-# Routers
-wayfind-authority = { path = "crates/authority" }
-wayfind-path = { path = "crates/path" }
-wayfind-method = { path = "crates/method" }
-
-# Decoding
-wayfind-percent = { path = "crates/percent" }
-wayfind-punycode = { path = "crates/punycode" }
-
 # Data Structures
 smallvec = { workspace = true }
 
 [dev-dependencies]
-wayfind-rails-macro = { path = "crates/rails-macro" }
-
 # Testing
 insta = { workspace = true }
 similar-asserts = { workspace = true }
-
-# Encoding
-percent-encoding = "2.3"
-
-# Serde
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-# Regex
-fancy-regex = "0.14"
 
 # Benchmarking
 divan = "0.1"
@@ -131,20 +110,12 @@ codspeed-criterion-compat = "=2.7.2"
 
 # Routers
 actix-router = "=0.5.3"
-matchit = "=0.8.5"
+matchit = "=0.8.6"
 ntex-router = "=0.5.3"
 path-tree = "=0.8.1"
 route-recognizer = "=0.3.1"
 routefinder = "=0.5.4"
 xitca-router = "=0.3.0"
-
-[[bench]]
-name = "gitlab_criterion"
-harness = false
-
-[[bench]]
-name = "gitlab_divan"
-harness = false
 
 [[bench]]
 name = "matchit_criterion"

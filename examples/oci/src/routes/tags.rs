@@ -1,13 +1,14 @@
-use crate::{
-    extract::{method::Method, path::Path, route::Route},
-    response::{AppResponse, IntoResponse},
-    state::{AppStateError, SharedAppState},
-};
 use bytes::Bytes;
 use http::{header::CONTENT_TYPE, Response, StatusCode};
 use http_body_util::Full;
 use serde_json::json;
 use thiserror::Error;
+
+use crate::{
+    extract::{method::Method, path::Path, template::Template},
+    response::{AppResponse, IntoResponse},
+    state::{AppStateError, SharedAppState},
+};
 
 #[derive(Debug, Error)]
 pub enum RegistryError {
@@ -44,13 +45,13 @@ impl IntoResponse for RegistryError {
 
 pub async fn handle_tags_get(
     state: SharedAppState,
-    Route(route): Route,
+    Template(template): Template,
     Method(method): Method,
     Path(name): Path<String>,
 ) -> Result<impl IntoResponse, RegistryError> {
     tracing::info!(
         oci = "end-8a",
-        route = ?route,
+        template = ?template,
         method = ?method,
         name = ?name,
         "Handling request"

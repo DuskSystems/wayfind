@@ -1,10 +1,10 @@
 //! Benches sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
+use std::hint::black_box;
+
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
-use percent_encoding::percent_decode;
-use std::hint::black_box;
 
 pub mod path_tree_routes;
 
@@ -21,31 +21,28 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
     group.bench_function("path-tree benchmarks/wayfind", |bencher| {
         let mut router = wayfind::Router::new();
         for (index, route) in routes!(brackets).iter().enumerate() {
-            let route = wayfind::RouteBuilder::new().route(route).build().unwrap();
-            router.insert(&route, index).unwrap();
+            router.insert(route, index).unwrap();
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let request = wayfind::RequestBuilder::new().path(route).build().unwrap();
-                let output = black_box(router.search(black_box(&request)).unwrap().unwrap());
+            for path in black_box(paths()) {
+                let output = black_box(router.search(black_box(path)).unwrap().unwrap());
                 let _parameters: Vec<(&str, &str)> =
-                    black_box(output.path.parameters.iter().map(|p| (p.0, p.1)).collect());
+                    black_box(output.parameters.iter().map(|p| (p.0, p.1)).collect());
             }
         });
     });
 
     group.bench_function("path-tree benchmarks/actix-router", |bencher| {
-        let mut router = actix_router::Router::<usize>::build();
-        for (index, route) in routes!(brackets).iter().enumerate() {
-            router.path(*route, index);
+        let mut router = actix_router::Router::<bool>::build();
+        for route in routes!(brackets) {
+            router.path(route, true);
         }
         let router = router.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let mut path = actix_router::Path::new(path.as_ref());
+            for path in black_box(paths()) {
+                let mut path = actix_router::Path::new(path);
                 black_box(router.recognize(black_box(&mut path)).unwrap());
                 let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
@@ -60,9 +57,8 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = black_box(router.at(black_box(&path)).unwrap());
+            for path in black_box(paths()) {
+                let output = black_box(router.at(black_box(path)).unwrap());
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }
@@ -70,16 +66,15 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
     });
 
     group.bench_function("path-tree benchmarks/ntex-router", |bencher| {
-        let mut router = ntex_router::Router::<usize>::build();
-        for (index, route) in routes!(brackets).iter().enumerate() {
-            router.path(*route, index);
+        let mut router = ntex_router::Router::<bool>::build();
+        for route in routes!(brackets) {
+            router.path(route, true);
         }
         let router = router.finish();
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let mut path = ntex_router::Path::new(path.as_ref());
+            for path in black_box(paths()) {
+                let mut path = ntex_router::Path::new(path);
                 router.recognize(&mut path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
@@ -94,9 +89,8 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.find(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.find(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.1.params_iter().map(|p| (p.0, p.1)).collect());
             }
@@ -110,9 +104,8 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.recognize(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.recognize(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params().iter().map(|p| (p.0, p.1)).collect());
             }
@@ -126,9 +119,8 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.best_match(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.best_match(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.captures().iter().map(|p| (p.0, p.1)).collect());
             }
@@ -142,9 +134,8 @@ fn path_tree_benchmark(criterion: &mut Criterion) {
         }
 
         bencher.iter(|| {
-            for route in black_box(paths()) {
-                let path = percent_decode(route.as_bytes()).decode_utf8().unwrap();
-                let output = router.at(&path).unwrap();
+            for path in black_box(paths()) {
+                let output = router.at(path).unwrap();
                 let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }

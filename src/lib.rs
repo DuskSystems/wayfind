@@ -1,18 +1,30 @@
 #![doc = include_str!("../README.md")]
+#![allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]
 
-pub(crate) mod chain;
-pub use chain::DataChain;
+mod constraints;
+pub use constraints::Constraint;
+
+mod delete;
+
+mod display;
 
 pub mod errors;
 
-pub(crate) mod request;
-pub use request::{Request, RequestBuilder};
+mod find;
 
-pub(crate) mod route;
-pub use route::{Route, RouteBuilder};
+mod insert;
 
-pub(crate) mod router;
-pub use router::{AuthorityMatch, Match, MethodMatch, PathMatch, Router};
-pub use wayfind_authority::AuthorityId;
-pub use wayfind_method::MethodId;
-pub use wayfind_path::{PathConstraint, PathId, PathParameters};
+mod node;
+
+mod optimize;
+
+mod parser;
+
+mod router;
+pub use router::{Match, Parameters, Router};
+
+mod search;
+
+mod state;
+
+mod vec;

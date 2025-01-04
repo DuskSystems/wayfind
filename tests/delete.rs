@@ -1,78 +1,40 @@
-use similar_asserts::assert_eq;
 use std::error::Error;
-use wayfind::{
-    errors::{DeleteError, PathDeleteError},
-    RouteBuilder, Router,
-};
+
+use similar_asserts::assert_eq;
+use wayfind::{errors::DeleteError, Router};
 
 #[test]
 fn test_delete() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.insert("/test", 1)?;
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    router.insert(&route, 1)?;
+    insta::assert_snapshot!(router, @"/test [*]");
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    ");
-
-    let route = RouteBuilder::new().route("/tests").build()?;
-    let delete = router.delete(&route);
-    assert_eq!(delete, Err(DeleteError::NotFound));
-
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    ");
-
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    let delete = router.delete(&route);
+    let delete = router.delete("/tests");
     assert_eq!(
         delete,
-        Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "(/test)".to_owned(),
-            inserted: "/test".to_owned(),
-        }))
+        Err(DeleteError::NotFound {
+            template: "/tests".to_owned()
+        })
     );
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
-    ");
+    insta::assert_snapshot!(router, @"/test [*]");
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    let delete = router.delete(&route)?;
+    let delete = router.delete("(/test)");
+    assert_eq!(
+        delete,
+        Err(DeleteError::Mismatch {
+            template: "(/test)".to_owned(),
+            inserted: "/test".to_owned(),
+        })
+    );
+
+    insta::assert_snapshot!(router, @"/test [*]");
+
+    let delete = router.delete("/test")?;
     assert_eq!(delete, 1);
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    Empty
-    === Method
-    Empty
-    === Chains
-    Empty
-    ");
+    insta::assert_snapshot!(router, @"");
 
     Ok(())
 }
@@ -80,80 +42,45 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    router.insert(&route, 1)?;
+    router.insert("(/test)", 1)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ test [*]
     ");
 
-    let route = RouteBuilder::new().route("/test").build()?;
-    let delete = router.delete(&route);
+    let delete = router.delete("/test");
     assert_eq!(
         delete,
-        Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/test".to_owned(),
+        Err(DeleteError::Mismatch {
+            template: "/test".to_owned(),
             inserted: "(/test)".to_owned()
-        }))
+        })
     );
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ test [*]
     ");
 
-    let route = RouteBuilder::new().route("/").build()?;
-    let delete = router.delete(&route);
+    let delete = router.delete("/");
     assert_eq!(
         delete,
-        Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/".to_owned(),
+        Err(DeleteError::Mismatch {
+            template: "/".to_owned(),
             inserted: "(/test)".to_owned()
-        }))
+        })
     );
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    / [1]
-    ╰─ test [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    / [*]
+    ╰─ test [*]
     ");
 
-    let route = RouteBuilder::new().route("(/test)").build()?;
-    let delete = router.delete(&route)?;
+    let delete = router.delete("(/test)")?;
     assert_eq!(delete, 1);
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    Empty
-    === Method
-    Empty
-    === Chains
-    Empty
-    ");
+    insta::assert_snapshot!(router, @"");
 
     Ok(())
 }
@@ -161,56 +88,35 @@ fn test_delete_mismatch() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/a(/b)").build()?;
-    router.insert(&route, 1)?;
+    router.insert("/a(/b)", 1)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    /a [1]
-    ╰─ /b [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+    /a [*]
+    ╰─ /b [*]
     ");
 
-    let route = RouteBuilder::new().route("/a").build()?;
-    let delete = router.delete(&route);
+    let delete = router.delete("/a");
     assert_eq!(
         delete,
-        Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/a".to_owned(),
+        Err(DeleteError::Mismatch {
+            template: "/a".to_owned(),
             inserted: "/a(/b)".to_owned(),
-        }))
+        })
     );
 
-    let route = RouteBuilder::new().route("/a(/b(/c))").build()?;
-    let delete = router.delete(&route);
+    let delete = router.delete("/a(/b(/c))");
     assert_eq!(
         delete,
-        Err(DeleteError::Path(PathDeleteError::Mismatch {
-            route: "/a(/b(/c))".to_owned(),
+        Err(DeleteError::Mismatch {
+            template: "/a(/b(/c))".to_owned(),
             inserted: "/a(/b)".to_owned(),
-        }))
+        })
     );
 
-    let route = RouteBuilder::new().route("/a(/b)").build()?;
-    let delete = router.delete(&route)?;
+    let delete = router.delete("/a(/b)")?;
     assert_eq!(delete, 1);
 
-    insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
-    Empty
-    === Method
-    Empty
-    === Chains
-    Empty
-    ");
+    insta::assert_snapshot!(router, @"");
 
     Ok(())
 }
@@ -218,38 +124,26 @@ fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-
-    let route = RouteBuilder::new().route("/{id}data").build()?;
-    router.insert(&route, 1)?;
+    router.insert("/{id}data", 1)?;
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /
     ╰─ {id}
-       ╰─ data [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+       ╰─ data [*]
     ");
 
-    let route = RouteBuilder::new().route("/{id}").build()?;
-    let delete = router.delete(&route);
-    assert_eq!(delete, Err(DeleteError::NotFound));
+    let delete = router.delete("/{id}");
+    assert_eq!(
+        delete,
+        Err(DeleteError::NotFound {
+            template: "/{id}".to_owned()
+        })
+    );
 
     insta::assert_snapshot!(router, @r"
-    === Authority
-    Empty
-    === Path
     /
     ╰─ {id}
-       ╰─ data [1]
-    === Method
-    Empty
-    === Chains
-    *-1-*
+       ╰─ data [*]
     ");
 
     Ok(())
