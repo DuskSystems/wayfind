@@ -1,39 +1,45 @@
-use crate::{
-    node::{Node, NodeData},
-    state::NodeState,
-};
+use crate::{node::Node, state::NodeState};
 
 impl<T, S: NodeState> Node<'_, T, S> {
     pub(crate) fn optimize(&mut self) {
-        self.optimize_inner(0);
-    }
-
-    fn optimize_inner(&mut self, priority: usize) {
-        self.priority = priority + self.calculate_priority();
-
         if !self.needs_optimization {
             return;
         }
 
         for child in self.static_children.iter_mut() {
-            child.optimize_inner(self.priority);
+            child.optimize();
+        }
+
+        for child in self.dynamic_constrained_children.iter_mut() {
+            child.optimize();
         }
 
         for child in self.dynamic_children.iter_mut() {
-            child.optimize_inner(self.priority);
+            child.optimize();
+        }
+
+        for child in self.wildcard_constrained_children.iter_mut() {
+            child.optimize();
         }
 
         for child in self.wildcard_children.iter_mut() {
-            child.optimize_inner(self.priority);
+            child.optimize();
+        }
+
+        for child in self.end_wildcard_constrained_children.iter_mut() {
+            child.optimize();
         }
 
         for child in self.end_wildcard_children.iter_mut() {
-            child.optimize_inner(self.priority);
+            child.optimize();
         }
 
         self.static_children.sort();
+        self.dynamic_constrained_children.sort();
         self.dynamic_children.sort();
+        self.wildcard_constrained_children.sort();
         self.wildcard_children.sort();
+        self.end_wildcard_constrained_children.sort();
         self.end_wildcard_children.sort();
 
         self.update_dynamic_children_shortcut();
@@ -42,19 +48,8 @@ impl<T, S: NodeState> Node<'_, T, S> {
         self.needs_optimization = false;
     }
 
-    // TODO: I'd really like to make priority relative.
-    fn calculate_priority(&self) -> usize {
-        let mut priority = self.state.priority();
-        if self.data.is_some() {
-            priority += 1_000;
-            priority += self.data.as_ref().map_or(0, NodeData::priority);
-        }
-
-        priority
-    }
-
     fn update_dynamic_children_shortcut(&mut self) {
-        self.dynamic_children_shortcut = self.dynamic_children.iter().all(|child| {
+        let constrained_check = self.dynamic_constrained_children.iter().all(|child| {
             // Leading slash?
             if child.state.name.as_bytes().first() == Some(&b'/') {
                 return true;
@@ -62,8 +57,11 @@ impl<T, S: NodeState> Node<'_, T, S> {
 
             // No children?
             if child.static_children.is_empty()
+                && child.dynamic_constrained_children.is_empty()
                 && child.dynamic_children.is_empty()
+                && child.wildcard_constrained_children.is_empty()
                 && child.wildcard_children.is_empty()
+                && child.end_wildcard_constrained_children.is_empty()
                 && child.end_wildcard_children.is_empty()
             {
                 return true;
@@ -80,14 +78,49 @@ impl<T, S: NodeState> Node<'_, T, S> {
 
             false
         });
+
+        let unconstrained_check = self.dynamic_children.iter().all(|child| {
+            // Leading slash?
+            if child.state.name.as_bytes().first() == Some(&b'/') {
+                return true;
+            }
+
+            // No children?
+            if child.static_children.is_empty()
+                && child.dynamic_constrained_children.is_empty()
+                && child.dynamic_children.is_empty()
+                && child.wildcard_constrained_children.is_empty()
+                && child.wildcard_children.is_empty()
+                && child.end_wildcard_constrained_children.is_empty()
+                && child.end_wildcard_children.is_empty()
+            {
+                return true;
+            }
+
+            // All static children start with a slash?
+            if child
+                .static_children
+                .iter()
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
+            {
+                return true;
+            }
+
+            false
+        });
+
+        self.dynamic_children_shortcut = constrained_check && unconstrained_check;
     }
 
     fn update_wildcard_children_shortcut(&mut self) {
-        self.wildcard_children_shortcut = self.wildcard_children.iter().all(|child| {
+        let constrained_check = self.wildcard_constrained_children.iter().all(|child| {
             // No children?
             if child.static_children.is_empty()
+                && child.dynamic_constrained_children.is_empty()
                 && child.dynamic_children.is_empty()
+                && child.wildcard_constrained_children.is_empty()
                 && child.wildcard_children.is_empty()
+                && child.end_wildcard_constrained_children.is_empty()
                 && child.end_wildcard_children.is_empty()
             {
                 return true;
@@ -104,5 +137,32 @@ impl<T, S: NodeState> Node<'_, T, S> {
 
             false
         });
+
+        let unconstrained_check = self.wildcard_children.iter().all(|child| {
+            // No children?
+            if child.static_children.is_empty()
+                && child.dynamic_constrained_children.is_empty()
+                && child.dynamic_children.is_empty()
+                && child.wildcard_constrained_children.is_empty()
+                && child.wildcard_children.is_empty()
+                && child.end_wildcard_constrained_children.is_empty()
+                && child.end_wildcard_children.is_empty()
+            {
+                return true;
+            }
+
+            // All static children start with a slash?
+            if child
+                .static_children
+                .iter()
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
+            {
+                return true;
+            }
+
+            false
+        });
+
+        self.wildcard_children_shortcut = constrained_check && unconstrained_check;
     }
 }

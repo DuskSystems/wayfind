@@ -15,7 +15,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
        ╰─ /delete [*]
     ");
 
-    let search = router.search("/docs/delete")?;
+    let search = router.search("/docs/delete");
     assert_eq!(
         search,
         Some(Match {
@@ -26,7 +26,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/nested/docs/folder/delete")?;
+    let search = router.search("/nested/docs/folder/delete");
     assert_eq!(
         search,
         Some(Match {
@@ -37,7 +37,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/delete")?;
+    let search = router.search("/delete");
     assert_eq!(search, None);
 
     Ok(())
@@ -56,7 +56,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
              ╰─ /file [*]
     ");
 
-    let search = router.search("/a/static/b/file")?;
+    let search = router.search("/a/static/b/file");
     assert_eq!(
         search,
         Some(Match {
@@ -67,7 +67,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a/b/c/static/d/e/f/file")?;
+    let search = router.search("/a/b/c/static/d/e/f/file");
     assert_eq!(
         search,
         Some(Match {
@@ -92,7 +92,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
        ╰─ .html [*]
     ");
 
-    let search = router.search("/page.html")?;
+    let search = router.search("/page.html");
     assert_eq!(
         search,
         Some(Match {
@@ -103,7 +103,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/nested/page.html")?;
+    let search = router.search("/nested/page.html");
     assert_eq!(
         search,
         Some(Match {
@@ -114,7 +114,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/.html")?;
+    let search = router.search("/.html");
     assert_eq!(search, None);
 
     Ok(())
@@ -132,7 +132,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
           ╰─ {*second} [*]
     ");
 
-    let search = router.search("/a-b-c")?;
+    let search = router.search("/a-b-c");
     assert_eq!(
         search,
         Some(Match {
@@ -143,7 +143,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/path/to/some-file/with-multiple-hyphens")?;
+    let search = router.search("/path/to/some-file/with-multiple-hyphens");
     assert_eq!(
         search,
         Some(Match {
@@ -171,7 +171,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
        ╰─ /end [*]
     ");
 
-    let search = router.search("/start/middle/end")?;
+    let search = router.search("/start/middle/end");
     assert_eq!(
         search,
         Some(Match {
@@ -182,7 +182,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/start//middle///end")?;
+    let search = router.search("/start//middle///end");
     assert_eq!(
         search,
         Some(Match {
@@ -212,13 +212,13 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     ├─ static/
     │  ├─ path [*]
     │  ╰─ {*rest} [*]
-    ├─ {*prefix}
-    │  ╰─ .suffix [*]
-    ╰─ {*path}
-       ╰─ /static [*]
+    ├─ {*path}
+    │  ╰─ /static [*]
+    ╰─ {*prefix}
+       ╰─ .suffix [*]
     ");
 
-    let search = router.search("/static/path")?;
+    let search = router.search("/static/path");
     assert_eq!(
         search,
         Some(Match {
@@ -229,7 +229,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/static/some/nested/path")?;
+    let search = router.search("/static/some/nested/path");
     assert_eq!(
         search,
         Some(Match {
@@ -240,7 +240,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/some/nested/path/static")?;
+    let search = router.search("/some/nested/path/static");
     assert_eq!(
         search,
         Some(Match {
@@ -251,7 +251,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/prefix.some/nested/path")?;
+    let search = router.search("/prefix.some/nested/path");
     assert_eq!(
         search,
         Some(Match {
@@ -262,7 +262,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/some/nested/path.suffix")?;
+    let search = router.search("/some/nested/path.suffix");
     assert_eq!(
         search,
         Some(Match {

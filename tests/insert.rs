@@ -88,9 +88,9 @@ fn test_insert_conflict_overlapping() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ├─ x/y [*]
-    ╰─ a [*]
-       ╰─ /b [*]
+    ├─ a [*]
+    │  ╰─ /b [*]
+    ╰─ x/y [*]
     ");
 
     Ok(())

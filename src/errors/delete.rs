@@ -1,13 +1,10 @@
 use std::{error::Error, fmt::Display};
 
-use super::{EncodingError, TemplateError};
+use super::TemplateError;
 
 /// Errors relating to attempting to delete a template from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
-    /// A [`EncodingError`] that occurred during the decoding.
-    Encoding(EncodingError),
-
     /// A [`TemplateError`] that occurred during the delete.
     Template(TemplateError),
 
@@ -73,7 +70,6 @@ impl Error for DeleteError {}
 impl Display for DeleteError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Encoding(error) => error.fmt(f),
             Self::Template(error) => error.fmt(f),
             Self::NotFound { template } => write!(
                 f,
@@ -93,12 +89,6 @@ The specified template does not exist in the router"
 The template must be deleted using the same format as was inserted"
             ),
         }
-    }
-}
-
-impl From<EncodingError> for DeleteError {
-    fn from(error: EncodingError) -> Self {
-        Self::Encoding(error)
     }
 }
 

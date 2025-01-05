@@ -9,11 +9,11 @@ use smallvec::{smallvec, SmallVec};
 
 use crate::{
     constraints::Constraint,
-    errors::{ConstraintError, DeleteError, InsertError, SearchError},
+    errors::{ConstraintError, DeleteError, InsertError},
     node::{Node, NodeData},
     parser::{ParsedTemplate, Part},
+    sorted::SortedNode,
     state::RootState,
-    vec::SortedNode,
 };
 
 #[derive(Debug, Eq, PartialEq)]
@@ -47,13 +47,15 @@ impl<'r, T> Router<'r, T> {
                 data: None,
 
                 static_children: SortedNode::default(),
+                dynamic_constrained_children: SortedNode::default(),
                 dynamic_children: SortedNode::default(),
                 dynamic_children_shortcut: false,
+                wildcard_constrained_children: SortedNode::default(),
                 wildcard_children: SortedNode::default(),
                 wildcard_children_shortcut: false,
+                end_wildcard_constrained_children: SortedNode::default(),
                 end_wildcard_children: SortedNode::default(),
 
-                priority: 0,
                 needs_optimization: false,
             },
             constraints: HashMap::default(),
@@ -106,13 +108,11 @@ impl<'r, T> Router<'r, T> {
         // Check for invalid constraints.
         for template in &parsed.templates {
             for part in &template.parts {
-                if let Part::Dynamic {
-                    constraint: Some(name),
-                    ..
+                if let Part::DynamicConstrained {
+                    constraint: name, ..
                 }
-                | Part::Wildcard {
-                    constraint: Some(name),
-                    ..
+                | Part::WildcardConstrained {
+                    constraint: name, ..
                 } = part
                 {
                     if !self.constraints.contains_key(name.as_str()) {
@@ -135,18 +135,42 @@ impl<'r, T> Router<'r, T> {
             let data = Arc::from(data);
             for mut parsed_template in parsed.templates {
                 let expanded = Arc::from(String::from_utf8_lossy(&parsed_template.raw));
+
+                #[allow(clippy::naive_bytecount)]
+                let slashes = parsed_template.raw.iter().filter(|&b| *b == b'/').count();
+                let final_length = parsed_template
+                    .raw
+                    .rsplit(|&b| b == b'/')
+                    .next()
+                    .map_or(0, <[u8]>::len);
+
                 self.root.insert(
                     &mut parsed_template,
                     NodeData::Shared {
                         data: Arc::clone(&data),
                         template,
                         expanded,
+                        specificity: slashes + final_length,
                     },
                 );
             }
         } else if let Some(parsed_template) = parsed.templates.first_mut() {
-            self.root
-                .insert(parsed_template, NodeData::Inline { data, template });
+            #[allow(clippy::naive_bytecount)]
+            let slashes = parsed_template.raw.iter().filter(|&b| *b == b'/').count();
+            let final_length = parsed_template
+                .raw
+                .rsplit(|&b| b == b'/')
+                .next()
+                .map_or(0, <[u8]>::len);
+
+            self.root.insert(
+                parsed_template,
+                NodeData::Inline {
+                    data,
+                    template,
+                    specificity: slashes + final_length,
+                },
+            );
         };
 
         self.root.optimize();
@@ -203,15 +227,15 @@ impl<'r, T> Router<'r, T> {
         Ok(data)
     }
 
-    pub fn search<'p>(&'r self, path: &'p str) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
+    pub fn search<'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
         let data = match self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?
+            .search(path.as_bytes(), &mut parameters, &self.constraints)
         {
-            Some((data, _)) => data,
+            Some(data) => data,
             _ => {
-                return Ok(None);
+                return None;
             }
         };
 
@@ -225,12 +249,12 @@ impl<'r, T> Router<'r, T> {
             } => (data.as_ref(), template, Some(expanded.as_ref())),
         };
 
-        Ok(Some(Match {
+        Some(Match {
             data,
             template,
             expanded,
             parameters,
-        }))
+        })
     }
 }
 

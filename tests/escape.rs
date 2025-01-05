@@ -11,7 +11,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users/{id} [*]");
 
-    let search = router.search("/users/{id}")?;
+    let search = router.search("/users/{id}");
     assert_eq!(
         search,
         Some(Match {
@@ -22,7 +22,7 @@ fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/123")?;
+    let search = router.search("/users/123");
     assert_eq!(search, None);
 
     Ok(())
@@ -35,7 +35,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/(not-optional) [*]");
 
-    let search = router.search("/(not-optional)")?;
+    let search = router.search("/(not-optional)");
     assert_eq!(
         search,
         Some(Match {
@@ -46,7 +46,7 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/optional")?;
+    let search = router.search("/optional");
     assert_eq!(search, None);
 
     Ok(())
@@ -63,7 +63,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
        ╰─ /{param} [*]
     ");
 
-    let search = router.search("/a/{param}")?;
+    let search = router.search("/a/{param}");
     assert_eq!(
         search,
         Some(Match {
@@ -74,10 +74,10 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a/value")?;
+    let search = router.search("/a/value");
     assert_eq!(search, None);
 
-    let search = router.search("/a")?;
+    let search = router.search("/a");
     assert_eq!(
         search,
         Some(Match {
@@ -88,7 +88,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/")?;
+    let search = router.search("/");
     assert_eq!(
         search,
         Some(Match {

@@ -37,11 +37,19 @@ impl<T, S: NodeState> Display for Node<'_, T, S> {
             };
 
             let mut total_children = node.static_children.len()
+                + node.dynamic_constrained_children.len()
                 + node.dynamic_children.len()
+                + node.wildcard_constrained_children.len()
                 + node.wildcard_children.len()
+                + node.end_wildcard_constrained_children.len()
                 + node.end_wildcard_children.len();
 
             for child in node.static_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
+            for child in node.dynamic_constrained_children.iter() {
                 total_children -= 1;
                 debug_node(output, child, &new_prefix, false, total_children == 0)?;
             }
@@ -51,7 +59,17 @@ impl<T, S: NodeState> Display for Node<'_, T, S> {
                 debug_node(output, child, &new_prefix, false, total_children == 0)?;
             }
 
+            for child in node.wildcard_constrained_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
             for child in node.wildcard_children.iter() {
+                total_children -= 1;
+                debug_node(output, child, &new_prefix, false, total_children == 0)?;
+            }
+
+            for child in node.end_wildcard_constrained_children.iter() {
                 total_children -= 1;
                 debug_node(output, child, &new_prefix, false, total_children == 0)?;
             }
@@ -70,8 +88,11 @@ impl<T, S: NodeState> Display for Node<'_, T, S> {
         // Handle root node manually
         if self.state.key().is_empty() {
             let total_children = self.static_children.len()
+                + self.dynamic_constrained_children.len()
                 + self.dynamic_children.len()
+                + self.wildcard_constrained_children.len()
                 + self.wildcard_children.len()
+                + self.end_wildcard_constrained_children.len()
                 + self.end_wildcard_children.len();
 
             let mut remaining = total_children;
@@ -81,12 +102,27 @@ impl<T, S: NodeState> Display for Node<'_, T, S> {
                 debug_node(&mut output, child, "", true, remaining == 0)?;
             }
 
+            for child in self.dynamic_constrained_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
             for child in self.dynamic_children.iter() {
                 remaining -= 1;
                 debug_node(&mut output, child, "", true, remaining == 0)?;
             }
 
+            for child in self.wildcard_constrained_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
             for child in self.wildcard_children.iter() {
+                remaining -= 1;
+                debug_node(&mut output, child, "", true, remaining == 0)?;
+            }
+
+            for child in self.end_wildcard_constrained_children.iter() {
                 remaining -= 1;
                 debug_node(&mut output, child, "", true, remaining == 0)?;
             }

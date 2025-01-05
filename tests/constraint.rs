@@ -27,7 +27,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     ╰─ {id:name} [*]
     ");
 
-    let search = router.search("/users/john123")?;
+    let search = router.search("/users/john123");
     assert_eq!(
         search,
         Some(Match {
@@ -38,7 +38,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/john@123")?;
+    let search = router.search("/users/john@123");
     assert_eq!(search, None);
 
     Ok(())
@@ -55,7 +55,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     ╰─ {*path:name} [*]
     ");
 
-    let search = router.search("/users/john/doe123")?;
+    let search = router.search("/users/john/doe123");
     assert_eq!(
         search,
         Some(Match {
@@ -66,7 +66,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/john@doe/123")?;
+    let search = router.search("/users/john@doe/123");
     assert_eq!(search, None);
 
     Ok(())
@@ -131,7 +131,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     ╰─ {id} [*]
     ");
 
-    let search = router.search("/users/abc")?;
+    let search = router.search("/users/abc");
     assert_eq!(
         search,
         Some(Match {
@@ -142,7 +142,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/123")?;
+    let search = router.search("/users/123");
     assert_eq!(
         search,
         Some(Match {
@@ -170,7 +170,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     ╰─ {id:u32} [*]
     ");
 
-    let search = router.search("/users/123")?;
+    let search = router.search("/users/123");
     assert_eq!(
         search,
         Some(Match {
@@ -181,7 +181,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/abc123")?;
+    let search = router.search("/users/abc123");
     assert_eq!(
         search,
         Some(Match {
