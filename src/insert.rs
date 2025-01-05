@@ -36,94 +36,94 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
 
     fn insert_static(&mut self, template: &mut Template, data: NodeData<'r, T>, prefix: &[u8]) {
         // Check if the first byte is already a child here.
-        let Some(child) = self
+        if let Some(child) = self
             .static_children
             .iter_mut()
             .find(|child| child.state.prefix[0] == prefix[0])
-        else {
-            self.static_children.push({
-                let mut new_child = Node {
-                    state: StaticState::new(prefix.to_vec()),
-                    data: None,
+        {
+            let common_prefix = prefix
+                .iter()
+                .zip::<&[u8]>(child.state.prefix.as_ref())
+                .take_while(|&(x, y)| x == y)
+                .count();
 
-                    static_children: SortedNode::default(),
-                    dynamic_children: SortedNode::default(),
-                    dynamic_children_shortcut: false,
-                    wildcard_children: SortedNode::default(),
-                    wildcard_children_shortcut: false,
-                    end_wildcard_children: SortedNode::default(),
+            // If the new prefix matches or extends the existing prefix, we can just insert it directly.
+            if common_prefix >= child.state.prefix.len() {
+                if common_prefix >= prefix.len() {
+                    child.insert(template, data);
+                } else {
+                    child.insert_static(template, data, &prefix[common_prefix..]);
+                }
 
-                    priority: 0,
-                    needs_optimization: false,
-                };
+                self.needs_optimization = true;
+                return;
+            }
 
-                new_child.insert(template, data);
-                new_child
-            });
+            // Not a clean insert, need to split the existing child node.
+            let new_child_a = Node {
+                state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
+                data: child.data.take(),
 
-            self.needs_optimization = true;
-            return;
-        };
+                static_children: std::mem::take(&mut child.static_children),
+                dynamic_children: std::mem::take(&mut child.dynamic_children),
+                dynamic_children_shortcut: child.dynamic_children_shortcut,
+                wildcard_children: std::mem::take(&mut child.wildcard_children),
+                wildcard_children_shortcut: child.wildcard_children_shortcut,
+                end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
 
-        let common_prefix = prefix
-            .iter()
-            .zip::<&[u8]>(child.state.prefix.as_ref())
-            .take_while(|&(x, y)| x == y)
-            .count();
+                priority: child.priority,
+                needs_optimization: child.needs_optimization,
+            };
 
-        // If the new prefix matches or extends the existing prefix, we can just insert it directly.
-        if common_prefix >= child.state.prefix.len() {
-            if common_prefix >= prefix.len() {
+            let new_child_b = Node {
+                state: StaticState::new(prefix[common_prefix..].to_vec()),
+                data: None,
+
+                static_children: SortedNode::default(),
+                dynamic_children: SortedNode::default(),
+                dynamic_children_shortcut: false,
+                wildcard_children: SortedNode::default(),
+                wildcard_children_shortcut: false,
+                end_wildcard_children: SortedNode::default(),
+
+                priority: 0,
+                needs_optimization: false,
+            };
+
+            child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
+            child.needs_optimization = true;
+
+            if prefix[common_prefix..].is_empty() {
+                child.static_children = SortedNode::new(vec![new_child_a]);
                 child.insert(template, data);
             } else {
-                child.insert_static(template, data, &prefix[common_prefix..]);
+                child.static_children = SortedNode::new(vec![new_child_a, new_child_b]);
+                child.static_children[1].insert(template, data);
             }
 
             self.needs_optimization = true;
             return;
-        }
-
-        // Not a clean insert, need to split the existing child node.
-        let new_child_a = Node {
-            state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
-            data: child.data.take(),
-
-            static_children: std::mem::take(&mut child.static_children),
-            dynamic_children: std::mem::take(&mut child.dynamic_children),
-            dynamic_children_shortcut: child.dynamic_children_shortcut,
-            wildcard_children: std::mem::take(&mut child.wildcard_children),
-            wildcard_children_shortcut: child.wildcard_children_shortcut,
-            end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
-
-            priority: child.priority,
-            needs_optimization: child.needs_optimization,
         };
 
-        let new_child_b = Node {
-            state: StaticState::new(prefix[common_prefix..].to_vec()),
-            data: None,
+        self.static_children.push({
+            let mut new_child = Node {
+                state: StaticState::new(prefix.to_vec()),
+                data: None,
 
-            static_children: SortedNode::default(),
-            dynamic_children: SortedNode::default(),
-            dynamic_children_shortcut: false,
-            wildcard_children: SortedNode::default(),
-            wildcard_children_shortcut: false,
-            end_wildcard_children: SortedNode::default(),
+                static_children: SortedNode::default(),
+                dynamic_children: SortedNode::default(),
+                dynamic_children_shortcut: false,
+                wildcard_children: SortedNode::default(),
+                wildcard_children_shortcut: false,
+                end_wildcard_children: SortedNode::default(),
 
-            priority: 0,
-            needs_optimization: false,
-        };
+                priority: 0,
+                needs_optimization: false,
+            };
 
-        child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
-        child.needs_optimization = true;
-
-        if prefix[common_prefix..].is_empty() {
-            child.static_children = SortedNode::new(vec![new_child_a]);
-            child.insert(template, data);
-        } else {
-            child.static_children = SortedNode::new(vec![new_child_a, new_child_b]);
-            child.static_children[1].insert(template, data);
-        }
+            new_child.insert(template, data);
+            new_child
+        });
 
         self.needs_optimization = true;
     }

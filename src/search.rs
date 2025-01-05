@@ -111,13 +111,19 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                     })?,
                 ));
 
-                let Some((data, priority)) =
-                    child.search(&path[consumed..], &mut current_parameters, constraints)?
-                else {
-                    continue;
-                };
+                let (data, priority) =
+                    match child.search(&path[consumed..], &mut current_parameters, constraints)? {
+                        Some((data, priority)) => (data, priority),
+                        _ => {
+                            continue;
+                        }
+                    };
 
-                if best_match.is_none_or(|(_, best_priority)| priority >= best_priority) {
+                if best_match.is_none()
+                    || best_match
+                        .as_ref()
+                        .map_or(false, |(_, best_priority)| priority >= *best_priority)
+                {
                     best_match = Some((data, priority));
                     best_match_parameters = current_parameters;
                 }
@@ -206,13 +212,19 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                     })?,
                 ));
 
-                let Some((data, priority)) =
-                    child.search(&path[consumed..], &mut current_parameters, constraints)?
-                else {
-                    continue;
-                };
+                let (data, priority) =
+                    match child.search(&path[consumed..], &mut current_parameters, constraints)? {
+                        Some((data, priority)) => (data, priority),
+                        _ => {
+                            continue;
+                        }
+                    };
 
-                if best_match.is_none_or(|(_, best_priority)| priority >= best_priority) {
+                if best_match.is_none()
+                    || best_match
+                        .as_ref()
+                        .map_or(false, |(_, best_priority)| priority >= *best_priority)
+                {
                     best_match = Some((data, priority));
                     best_match_parameters = current_parameters;
                 }
@@ -322,13 +334,19 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         segment: &[u8],
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> bool {
-        let Some(constraint) = constraint else {
-            return true;
+        let constraint = match constraint {
+            Some(constraint) => constraint,
+            _ => {
+                return true;
+            }
         };
 
         let constraint = constraints.get(constraint.as_str()).unwrap();
-        let Ok(segment) = std::str::from_utf8(segment) else {
-            return false;
+        let segment = match std::str::from_utf8(segment) {
+            Ok(segment) => segment,
+            _ => {
+                return false;
+            }
         };
 
         (constraint.check)(segment)

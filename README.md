@@ -2,7 +2,7 @@
 [![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
 
-![rust: 1.83+](https://img.shields.io/badge/rust-1.83+-orange.svg)
+![rust: 1.63+](https://img.shields.io/badge/rust-1.63+-orange.svg)
 ![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 
@@ -304,6 +304,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 ### Router Display
 
 Routers can print their routes.
+
+`[*]` denotes nodes within the tree that can be matched against.
 
 Currenty, this doesn't handle split multi-byte characters well.
 

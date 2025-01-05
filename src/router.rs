@@ -158,8 +158,11 @@ impl<'r, T> Router<'r, T> {
 
         // Check for any conflicts or mismatches.
         for parsed_template in &parsed.templates {
-            let Some(found) = self.root.find(&mut parsed_template.clone()) else {
-                continue;
+            let found = match self.root.find(&mut parsed_template.clone()) {
+                Some(found) => found,
+                _ => {
+                    continue;
+                }
             };
 
             if found.template() == template {
@@ -187,10 +190,13 @@ impl<'r, T> Router<'r, T> {
             }
         }
 
-        let Some(data) = output else {
-            return Err(DeleteError::NotFound {
-                template: template.to_owned(),
-            });
+        let data = match output {
+            Some(data) => data,
+            _ => {
+                return Err(DeleteError::NotFound {
+                    template: template.to_owned(),
+                });
+            }
         };
 
         self.root.optimize();
@@ -199,11 +205,14 @@ impl<'r, T> Router<'r, T> {
 
     pub fn search<'p>(&'r self, path: &'p str) -> Result<Option<Match<'r, 'p, T>>, SearchError> {
         let mut parameters = smallvec![];
-        let Some((data, _)) =
-            self.root
-                .search(path.as_bytes(), &mut parameters, &self.constraints)?
-        else {
-            return Ok(None);
+        let data = match self
+            .root
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?
+        {
+            Some((data, _)) => data,
+            _ => {
+                return Ok(None);
+            }
         };
 
         let (data, template, expanded) = match data {

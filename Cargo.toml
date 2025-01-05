@@ -3,18 +3,44 @@
 resolver = "2"
 members = [".", "examples/*", "fuzz"]
 
-[workspace.package]
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+[package]
+name = "wayfind"
+description = "A speedy, flexible router."
+include = [
+  "/benches",
+  "/examples",
+  "/fuzz",
+  "/src",
+  "/tests",
+  "/ARCHITECTURE.md",
+  "/BENCHMARKING.md",
+  "/CHANGELOG.md",
+  "/LICENSE-APACHE",
+  "/LICENSE-MIT",
+  "/README.md",
+]
+
 version = "0.7.0"
 authors = ["Cathal Mullan <contact@cathal.dev>"]
 edition = "2021"
-rust-version = "1.83"
+# https://packages.debian.org/stable/rust/rustc
+rust-version = "1.63"
 repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
 keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 
 # https://doc.rust-lang.org/rustc/lints/groups.html
-[workspace.lints.rust]
+[lints.rust]
 unsafe_code = "forbid"
 
 unused = { level = "deny", priority = -2 }
@@ -28,7 +54,7 @@ rust-2018-idioms = { level = "deny", priority = -1 }
 rust-2021-compatibility = { level = "deny", priority = -1 }
 
 # https://rust-lang.github.io/rust-clippy/master/index.html
-[workspace.lints.clippy]
+[lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "deny", priority = -1 }
 correctness = { level = "deny", priority = -1 }
@@ -46,61 +72,15 @@ new_without_default = "allow"
 str_to_string = "deny"
 too_many_lines = "allow"
 
-[profile.dev.package]
-insta.opt-level = 3
-similar.opt-level = 3
-
-[profile.release]
-lto = "fat"
-codegen-units = 1
-
-[workspace.dependencies]
+[dependencies]
 # Data Structures
 smallvec = { version = "1.13", features = ["const_generics", "union"] }
 
+[dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.
 insta = "=1.41.1"
 similar-asserts = "1.6"
-
-# https://doc.rust-lang.org/cargo/reference/manifest.html
-[package]
-name = "wayfind"
-description = "A speedy, flexible router."
-include = [
-  "/benches",
-  "/crates",
-  "/examples",
-  "/fuzz",
-  "/src",
-  "/tests",
-  "/ARCHITECTURE.md",
-  "/CHANGELOG.md",
-  "/LICENSE-APACHE",
-  "/LICENSE-MIT",
-  "/README.md",
-]
-
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-repository.workspace = true
-license.workspace = true
-keywords.workspace = true
-categories.workspace = true
-
-[lints]
-workspace = true
-
-[dependencies]
-# Data Structures
-smallvec = { workspace = true }
-
-[dev-dependencies]
-# Testing
-insta = { workspace = true }
-similar-asserts = { workspace = true }
 
 # Benchmarking
 divan = "0.1"

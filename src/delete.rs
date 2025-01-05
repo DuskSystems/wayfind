@@ -35,7 +35,7 @@ impl<T, S: NodeState> Node<'_, T, S> {
 
             match data {
                 NodeData::Inline { data, .. } => Some(data),
-                NodeData::Shared { data, .. } => Arc::into_inner(data),
+                NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
             }
         }
     }
@@ -131,7 +131,7 @@ impl<T, S: NodeState> Node<'_, T, S> {
 
         match data {
             NodeData::Inline { data, .. } => Some(data),
-            NodeData::Shared { data, .. } => Arc::into_inner(data),
+            NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
         }
     }
 

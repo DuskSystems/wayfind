@@ -1,9 +1,7 @@
 //! Benches sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
-use std::hint::black_box;
-
-use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
+use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
 
 pub mod path_tree_routes;

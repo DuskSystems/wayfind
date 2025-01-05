@@ -1,9 +1,7 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.5/benches/bench.rs>
 
-use std::hint::black_box;
-
-use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
+use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 use matchit_routes::paths;
 
 pub mod matchit_routes;
