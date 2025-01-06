@@ -4,7 +4,7 @@ pub fn paths() -> impl IntoIterator<Item = &'static str> {
         "/user/repos",
         "/repos/rust-lang/rust/stargazers",
         "/orgs/rust-lang/public_members/nikomatsakis",
-        "/repos/rust-lang/rust/releases/1%2E51%2E0",
+        "/repos/rust-lang/rust/releases/1.51.0",
     ]
 }
 

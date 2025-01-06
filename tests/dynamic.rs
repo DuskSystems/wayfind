@@ -14,7 +14,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     ╰─ {id} [*]
     ");
 
-    let search = router.search("/123")?;
+    let search = router.search("/123");
     assert_eq!(
         search,
         Some(Match {
@@ -25,7 +25,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/")?;
+    let search = router.search("/");
     assert_eq!(search, None);
 
     Ok(())
@@ -47,7 +47,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 ╰─ {day} [*]
     ");
 
-    let search = router.search("/2024")?;
+    let search = router.search("/2024");
     assert_eq!(
         search,
         Some(Match {
@@ -58,7 +58,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/2024/12")?;
+    let search = router.search("/2024/12");
     assert_eq!(
         search,
         Some(Match {
@@ -69,7 +69,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/2024/12/01")?;
+    let search = router.search("/2024/12/01");
     assert_eq!(
         search,
         Some(Match {
@@ -99,7 +99,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
                 ╰─ {day} [*]
     ");
 
-    let search = router.search("/2024")?;
+    let search = router.search("/2024");
     assert_eq!(
         search,
         Some(Match {
@@ -110,7 +110,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/2024-12")?;
+    let search = router.search("/2024-12");
     assert_eq!(
         search,
         Some(Match {
@@ -121,7 +121,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/2024-12-01")?;
+    let search = router.search("/2024-12-01");
     assert_eq!(
         search,
         Some(Match {
@@ -147,10 +147,10 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
           ╰─ {extension} [*]
     ");
 
-    let search = router.search("/report")?;
+    let search = router.search("/report");
     assert_eq!(search, None);
 
-    let search = router.search("/report.pdf")?;
+    let search = router.search("/report.pdf");
     assert_eq!(
         search,
         Some(Match {
@@ -161,7 +161,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/report.final.pdf")?;
+    let search = router.search("/report.final.pdf");
     assert_eq!(
         search,
         Some(Match {
@@ -194,7 +194,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
           ╰─ {extension} [*]
     ");
 
-    let search = router.search("/robots.txt")?;
+    let search = router.search("/robots.txt");
     assert_eq!(
         search,
         Some(Match {
@@ -205,7 +205,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/robots.pdf")?;
+    let search = router.search("/robots.pdf");
     assert_eq!(
         search,
         Some(Match {
@@ -216,7 +216,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/config.txt")?;
+    let search = router.search("/config.txt");
     assert_eq!(
         search,
         Some(Match {
@@ -227,7 +227,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/config.pdf")?;
+    let search = router.search("/config.pdf");
     assert_eq!(
         search,
         Some(Match {

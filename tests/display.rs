@@ -19,23 +19,23 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     / [*]
     ├─ api/v1 [*]
     │  ╰─ / [*]
-    ├─ users [*]
-    │  ╰─ /
-    │     ╰─ {id} [*]
-    │        ╰─ /profile [*]
+    ├─ files/
+    │  ╰─ {*path}
+    │     ╰─ /download [*]
     ├─ images/
     │  ╰─ {name} [*]
     │     ╰─ .
     │        ╰─ {extension} [*]
-    ├─ files/
-    │  ╰─ {*path}
-    │     ╰─ /download [*]
     ├─ posts/
     │  ╰─ {year}
     │     ╰─ -
     │        ╰─ {month}
     │           ╰─ -
     │              ╰─ {day} [*]
+    ├─ users [*]
+    │  ╰─ /
+    │     ╰─ {id} [*]
+    │        ╰─ /profile [*]
     ╰─ {*catch_all} [*]
     ");
 

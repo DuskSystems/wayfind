@@ -17,17 +17,20 @@ impl<T, S: NodeState> Node<'_, T, S> {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(template, &prefix),
-                Part::Dynamic {
-                    name, constraint, ..
-                } => self.delete_dynamic(template, &name, constraint.as_ref()),
-                Part::Wildcard {
-                    name, constraint, ..
-                } if template.parts.is_empty() => {
-                    self.delete_end_wildcard(&name, constraint.as_ref())
+                Part::DynamicConstrained { name, constraint } => {
+                    self.delete_dynamic_constrained(template, &name, &constraint)
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } => self.delete_wildcard(template, &name, constraint.as_ref()),
+                Part::Dynamic { name } => self.delete_dynamic(template, &name),
+                Part::WildcardConstrained { name, constraint } if template.parts.is_empty() => {
+                    self.delete_end_wildcard_constrained(&name, &constraint)
+                }
+                Part::Wildcard { name } if template.parts.is_empty() => {
+                    self.delete_end_wildcard(&name)
+                }
+                Part::WildcardConstrained { name, constraint } => {
+                    self.delete_wildcard_constrained(template, &name, &constraint)
+                }
+                Part::Wildcard { name } => self.delete_wildcard(template, &name),
             }
         } else {
             let data = self.data.take()?;
@@ -57,11 +60,9 @@ impl<T, S: NodeState> Node<'_, T, S> {
         };
 
         if child.is_empty() {
-            // Delete empty nodes.
             self.static_children.remove(index);
             self.needs_optimization = true;
         } else if child.is_compressible() {
-            // Compress redundant nodes.
             let merge = child.static_children.remove(0);
 
             let mut prefix = std::mem::take(&mut child.state.prefix);
@@ -77,15 +78,33 @@ impl<T, S: NodeState> Node<'_, T, S> {
         result
     }
 
-    fn delete_dynamic(
+    fn delete_dynamic_constrained(
         &mut self,
         template: &mut Template,
         name: &str,
-        constraint: Option<&String>,
+        constraint: &str,
     ) -> Option<T> {
-        let index = self.dynamic_children.iter().position(|child| {
-            child.state.name == name && child.state.constraint.as_ref() == constraint
-        })?;
+        let index = self
+            .dynamic_constrained_children
+            .iter()
+            .position(|child| child.state.name == name && child.state.constraint == constraint)?;
+
+        let child = &mut self.dynamic_constrained_children[index];
+        let result = child.delete(template);
+
+        if child.is_empty() {
+            self.dynamic_constrained_children.remove(index);
+            self.needs_optimization = true;
+        }
+
+        result
+    }
+
+    fn delete_dynamic(&mut self, template: &mut Template, name: &str) -> Option<T> {
+        let index = self
+            .dynamic_children
+            .iter()
+            .position(|child| child.state.name == name)?;
 
         let child = &mut self.dynamic_children[index];
         let result = child.delete(template);
@@ -98,15 +117,33 @@ impl<T, S: NodeState> Node<'_, T, S> {
         result
     }
 
-    fn delete_wildcard(
+    fn delete_wildcard_constrained(
         &mut self,
         template: &mut Template,
         name: &str,
-        constraint: Option<&String>,
+        constraint: &str,
     ) -> Option<T> {
-        let index = self.wildcard_children.iter().position(|child| {
-            child.state.name == name && child.state.constraint.as_ref() == constraint
-        })?;
+        let index = self
+            .wildcard_constrained_children
+            .iter()
+            .position(|child| child.state.name == name && child.state.constraint == constraint)?;
+
+        let child = &mut self.wildcard_constrained_children[index];
+        let result = child.delete(template);
+
+        if child.is_empty() {
+            self.wildcard_constrained_children.remove(index);
+            self.needs_optimization = true;
+        }
+
+        result
+    }
+
+    fn delete_wildcard(&mut self, template: &mut Template, name: &str) -> Option<T> {
+        let index = self
+            .wildcard_children
+            .iter()
+            .position(|child| child.state.name == name)?;
 
         let child = &mut self.wildcard_children[index];
         let result = child.delete(template);
@@ -119,10 +156,28 @@ impl<T, S: NodeState> Node<'_, T, S> {
         result
     }
 
-    fn delete_end_wildcard(&mut self, name: &str, constraint: Option<&String>) -> Option<T> {
-        let index = self.end_wildcard_children.iter().position(|child| {
-            child.state.name == name && child.state.constraint.as_ref() == constraint
-        })?;
+    fn delete_end_wildcard_constrained(&mut self, name: &str, constraint: &str) -> Option<T> {
+        let index = self
+            .end_wildcard_constrained_children
+            .iter()
+            .position(|child| child.state.name == name && child.state.constraint == constraint)?;
+
+        let mut child = self.end_wildcard_constrained_children.remove(index);
+
+        let data = child.data.take()?;
+        self.needs_optimization = true;
+
+        match data {
+            NodeData::Inline { data, .. } => Some(data),
+            NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
+        }
+    }
+
+    fn delete_end_wildcard(&mut self, name: &str) -> Option<T> {
+        let index = self
+            .end_wildcard_children
+            .iter()
+            .position(|child| child.state.name == name)?;
 
         let mut child = self.end_wildcard_children.remove(index);
 
@@ -138,16 +193,22 @@ impl<T, S: NodeState> Node<'_, T, S> {
     fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
+            && self.dynamic_constrained_children.is_empty()
             && self.dynamic_children.is_empty()
+            && self.wildcard_constrained_children.is_empty()
             && self.wildcard_children.is_empty()
+            && self.end_wildcard_constrained_children.is_empty()
             && self.end_wildcard_children.is_empty()
     }
 
     fn is_compressible(&self) -> bool {
         self.data.is_none()
             && self.static_children.len() == 1
+            && self.dynamic_constrained_children.is_empty()
             && self.dynamic_children.is_empty()
+            && self.wildcard_constrained_children.is_empty()
             && self.wildcard_children.is_empty()
+            && self.end_wildcard_constrained_children.is_empty()
             && self.end_wildcard_children.is_empty()
     }
 }

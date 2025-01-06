@@ -37,7 +37,7 @@ pub fn paths() -> impl IntoIterator<Item = &'static str> {
         "/issues",
         "/legacy/issues/search/rust-lang/rust/987/1597",
         "/legacy/repos/search/1597",
-        "/legacy/user/email/rust%40rust-lang.org",
+        "/legacy/user/email/rust@rust-lang.org",
         "/legacy/user/search/1597",
         "/licenses",
         "/licenses/mit",

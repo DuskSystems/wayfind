@@ -11,7 +11,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users [*]");
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(
         search,
         Some(Match {
@@ -22,7 +22,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/user")?;
+    let search = router.search("/user");
     assert_eq!(search, None);
 
     Ok(())
@@ -39,7 +39,7 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     ╰─ s [*]
     ");
 
-    let search = router.search("/user")?;
+    let search = router.search("/user");
     assert_eq!(
         search,
         Some(Match {
@@ -50,7 +50,7 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(
         search,
         Some(Match {
@@ -61,10 +61,10 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/use")?;
+    let search = router.search("/use");
     assert_eq!(search, None);
 
-    let search = router.search("/userss")?;
+    let search = router.search("/userss");
     assert_eq!(search, None);
 
     Ok(())
@@ -82,7 +82,7 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     ╰─ _1 [*]
     ");
 
-    let search = router.search("/user_1")?;
+    let search = router.search("/user_1");
     assert_eq!(
         search,
         Some(Match {
@@ -93,7 +93,7 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/user/1")?;
+    let search = router.search("/user/1");
     assert_eq!(
         search,
         Some(Match {
@@ -104,10 +104,10 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/user")?;
+    let search = router.search("/user");
     assert_eq!(search, None);
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(search, None);
 
     Ok(())
@@ -126,19 +126,19 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /�
-    ├─ �‍👩‍�
-    │  ├─ � [*]
-    │  ╰─ � [*]
-    ╰─ �‍�
-       ├─ �‍�
-       │  ├─ � [*]
-       │  ╰─ � [*]
-       ╰─ �‍�
-          ├─ � [*]
-          ╰─ � [*]
+    ├─ �‍�
+    │  ├─ �‍�
+    │  │  ├─ � [*]
+    │  │  ╰─ � [*]
+    │  ╰─ �‍�
+    │     ├─ � [*]
+    │     ╰─ � [*]
+    ╰─ �‍👩‍�
+       ├─ � [*]
+       ╰─ � [*]
     ");
 
-    let search = router.search("/👨‍👩‍👧")?; // Family: Man, Woman, Girl
+    let search = router.search("/👨‍👩‍👧"); // Family: Man, Woman, Girl
     assert_eq!(
         search,
         Some(Match {
@@ -149,7 +149,7 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/👨‍👩‍👦")?; // Family: Man, Woman, Boy
+    let search = router.search("/👨‍👩‍👦"); // Family: Man, Woman, Boy
     assert_eq!(
         search,
         Some(Match {
@@ -160,16 +160,16 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/👨")?; // Man
+    let search = router.search("/👨"); // Man
     assert_eq!(search, None);
 
-    let search = router.search("/👨‍👨")?; // Man Woman
+    let search = router.search("/👨‍👨"); // Man Woman
     assert_eq!(search, None);
 
-    let search = router.search("/👨👩👧")?; // Man, Woman, Girl
+    let search = router.search("/👨👩👧"); // Man, Woman, Girl
     assert_eq!(search, None);
 
-    let search = router.search("/👨‍👨‍👧‍👦")?; // Family: Man, Woman, Girl, Boy
+    let search = router.search("/👨‍👨‍👧‍👦"); // Family: Man, Woman, Girl, Boy
     assert_eq!(search, None);
 
     Ok(())
@@ -187,7 +187,7 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
     ╰─ users [*]
     ");
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(
         search,
         Some(Match {
@@ -198,7 +198,7 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/Users")?;
+    let search = router.search("/Users");
     assert_eq!(
         search,
         Some(Match {
@@ -219,7 +219,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users /items [*]");
 
-    let search = router.search("/users /items")?;
+    let search = router.search("/users /items");
     assert_eq!(
         search,
         Some(Match {
@@ -230,7 +230,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/items")?;
+    let search = router.search("/users/items");
     assert_eq!(search, None);
 
     Ok(())
@@ -248,7 +248,7 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     ╰─ items [*]
     ");
 
-    let search = router.search("/users/items")?;
+    let search = router.search("/users/items");
     assert_eq!(
         search,
         Some(Match {
@@ -259,7 +259,7 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users//items")?;
+    let search = router.search("/users//items");
     assert_eq!(
         search,
         Some(Match {
@@ -280,7 +280,7 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @"/users///items [*]");
 
-    let search = router.search("/users///items")?;
+    let search = router.search("/users///items");
     assert_eq!(
         search,
         Some(Match {
@@ -291,13 +291,13 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/items")?;
+    let search = router.search("/users/items");
     assert_eq!(search, None);
 
-    let search = router.search("/users//items")?;
+    let search = router.search("/users//items");
     assert_eq!(search, None);
 
-    let search = router.search("/users////items")?;
+    let search = router.search("/users////items");
     assert_eq!(search, None);
 
     Ok(())

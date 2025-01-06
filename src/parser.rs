@@ -14,19 +14,11 @@ pub struct Template {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Part {
-    Static {
-        prefix: Vec<u8>,
-    },
-
-    Dynamic {
-        name: String,
-        constraint: Option<String>,
-    },
-
-    Wildcard {
-        name: String,
-        constraint: Option<String>,
-    },
+    Static { prefix: Vec<u8> },
+    DynamicConstrained { name: String, constraint: String },
+    Dynamic { name: String },
+    WildcardConstrained { name: String, constraint: String },
+    Wildcard { name: String },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -182,7 +174,11 @@ impl ParsedTemplate {
                     }
 
                     // Check for duplicate names.
-                    if let Part::Dynamic { name, .. } | Part::Wildcard { name, .. } = &part {
+                    if let Part::Dynamic { name }
+                    | Part::DynamicConstrained { name, .. }
+                    | Part::Wildcard { name }
+                    | Part::WildcardConstrained { name, .. } = &part
+                    {
                         if let Some((_, start, length)) = seen_parameters
                             .iter()
                             .find(|(existing, _, _)| existing == name)
@@ -354,10 +350,11 @@ impl ParsedTemplate {
             None
         };
 
-        let part = if is_wildcard {
-            Part::Wildcard { name, constraint }
-        } else {
-            Part::Dynamic { name, constraint }
+        let part = match (is_wildcard, constraint) {
+            (true, Some(constraint)) => Part::WildcardConstrained { name, constraint },
+            (true, None) => Part::Wildcard { name },
+            (false, Some(constraint)) => Part::DynamicConstrained { name, constraint },
+            (false, None) => Part::Dynamic { name },
         };
 
         Ok((part, end + 1))
@@ -400,7 +397,6 @@ mod tests {
                     parts: vec![
                         Part::Dynamic {
                             name: "name".to_owned(),
-                            constraint: None
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -424,7 +420,6 @@ mod tests {
                     parts: vec![
                         Part::Wildcard {
                             name: "route".to_owned(),
-                            constraint: None
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -446,16 +441,16 @@ mod tests {
                     input: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
                     parts: vec![
-                        Part::Dynamic {
+                        Part::DynamicConstrained {
                             name: "id".to_owned(),
-                            constraint: Some("numeric".to_owned())
+                            constraint: "numeric".to_owned()
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
                         },
-                        Part::Wildcard {
+                        Part::WildcardConstrained {
                             name: "name".to_owned(),
-                            constraint: Some("alpha".to_owned())
+                            constraint: "alpha".to_owned()
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -480,7 +475,6 @@ mod tests {
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/users/".to_vec()
@@ -516,7 +510,6 @@ mod tests {
                             },
                             Part::Dynamic {
                                 name: "id".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/users/".to_vec()
@@ -529,7 +522,6 @@ mod tests {
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/users/".to_vec()
@@ -583,7 +575,6 @@ mod tests {
                             },
                             Part::Dynamic {
                                 name: "lang".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
@@ -616,14 +607,12 @@ mod tests {
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
                             },
                             Part::Dynamic {
                                 name: "lang".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
@@ -636,7 +625,6 @@ mod tests {
                         parts: vec![
                             Part::Dynamic {
                                 name: "lang".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()
@@ -649,7 +637,6 @@ mod tests {
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
-                                constraint: None
                             },
                             Part::Static {
                                 prefix: b"/".to_vec()

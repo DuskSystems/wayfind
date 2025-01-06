@@ -16,7 +16,7 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
        ╰─ /users [*]
     ");
 
-    let search = router.search("/en/users")?;
+    let search = router.search("/en/users");
     assert_eq!(
         search,
         Some(Match {
@@ -27,7 +27,7 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(
         search,
         Some(Match {
@@ -51,7 +51,7 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
     ╰─ / [*]
     ");
 
-    let search = router.search("/users")?;
+    let search = router.search("/users");
     assert_eq!(
         search,
         Some(Match {
@@ -62,7 +62,7 @@ fn test_optional_ending() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/users/")?;
+    let search = router.search("/users/");
     assert_eq!(
         search,
         Some(Match {
@@ -88,7 +88,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
           ╰─ /c [*]
     ");
 
-    let search = router.search("/a/b/c")?;
+    let search = router.search("/a/b/c");
     assert_eq!(
         search,
         Some(Match {
@@ -99,7 +99,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a/b")?;
+    let search = router.search("/a/b");
     assert_eq!(
         search,
         Some(Match {
@@ -110,7 +110,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a")?;
+    let search = router.search("/a");
     assert_eq!(
         search,
         Some(Match {
@@ -121,7 +121,7 @@ fn test_optional_nested() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/")?;
+    let search = router.search("/");
     assert_eq!(
         search,
         Some(Match {
@@ -145,7 +145,7 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
     ╰─ test [*]
     ");
 
-    let search = router.search("/test")?;
+    let search = router.search("/test");
     assert_eq!(
         search,
         Some(Match {
@@ -156,7 +156,7 @@ fn test_optional_only() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/")?;
+    let search = router.search("/");
     assert_eq!(
         search,
         Some(Match {
@@ -187,7 +187,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
     ╰─ c [*]
     ");
 
-    let search = router.search("/a/b/c")?;
+    let search = router.search("/a/b/c");
     assert_eq!(
         search,
         Some(Match {
@@ -198,7 +198,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a/b")?;
+    let search = router.search("/a/b");
     assert_eq!(
         search,
         Some(Match {
@@ -209,7 +209,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a/c")?;
+    let search = router.search("/a/c");
     assert_eq!(
         search,
         Some(Match {
@@ -220,7 +220,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/a")?;
+    let search = router.search("/a");
     assert_eq!(
         search,
         Some(Match {
@@ -231,7 +231,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/b/c")?;
+    let search = router.search("/b/c");
     assert_eq!(
         search,
         Some(Match {
@@ -242,7 +242,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/b")?;
+    let search = router.search("/b");
     assert_eq!(
         search,
         Some(Match {
@@ -253,7 +253,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/c")?;
+    let search = router.search("/c");
     assert_eq!(
         search,
         Some(Match {
@@ -264,7 +264,7 @@ fn test_optional_touching() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    let search = router.search("/")?;
+    let search = router.search("/");
     assert_eq!(
         search,
         Some(Match {

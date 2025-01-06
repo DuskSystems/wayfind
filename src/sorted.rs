@@ -55,12 +55,7 @@ impl<'r, T, S: NodeState> SortedNode<'r, T, S> {
             return;
         }
 
-        self.vec.sort_by(|a, b| {
-            b.priority
-                .cmp(&a.priority)
-                .then_with(|| a.state.cmp(&b.state))
-        });
-
+        self.vec.sort_by(|a, b| a.state.cmp(&b.state));
         self.sorted = true;
     }
 }

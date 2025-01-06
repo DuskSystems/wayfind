@@ -1,8 +1,11 @@
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
-    state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
-    vec::SortedNode,
+    sorted::SortedNode,
+    state::{
+        DynamicConstrainedState, DynamicState, EndWildcardConstrainedState, EndWildcardState,
+        NodeState, StaticState, WildcardConstrainedState, WildcardState,
+    },
 };
 
 impl<'r, T, S: NodeState> Node<'r, T, S> {
@@ -12,21 +15,20 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(template, data, &prefix),
-                Part::Dynamic {
-                    name, constraint, ..
-                } => {
-                    self.insert_dynamic(template, data, name, constraint);
+                Part::DynamicConstrained { name, constraint } => {
+                    self.insert_dynamic_constrained(template, data, name, constraint);
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } if template.parts.is_empty() => {
-                    self.insert_end_wildcard(data, name, constraint);
+                Part::Dynamic { name } => self.insert_dynamic(template, data, name),
+                Part::WildcardConstrained { name, constraint } if template.parts.is_empty() => {
+                    self.insert_end_wildcard_constrained(data, name, constraint);
                 }
-                Part::Wildcard {
-                    name, constraint, ..
-                } => {
-                    self.insert_wildcard(template, data, name, constraint);
+                Part::Wildcard { name } if template.parts.is_empty() => {
+                    self.insert_end_wildcard(data, name);
                 }
+                Part::WildcardConstrained { name, constraint } => {
+                    self.insert_wildcard_constrained(template, data, name, constraint);
+                }
+                Part::Wildcard { name } => self.insert_wildcard(template, data, name),
             };
         } else {
             self.data = Some(data);
@@ -65,13 +67,21 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                 data: child.data.take(),
 
                 static_children: std::mem::take(&mut child.static_children),
+                dynamic_constrained_children: std::mem::take(
+                    &mut child.dynamic_constrained_children,
+                ),
                 dynamic_children: std::mem::take(&mut child.dynamic_children),
                 dynamic_children_shortcut: child.dynamic_children_shortcut,
+                wildcard_constrained_children: std::mem::take(
+                    &mut child.wildcard_constrained_children,
+                ),
                 wildcard_children: std::mem::take(&mut child.wildcard_children),
                 wildcard_children_shortcut: child.wildcard_children_shortcut,
+                end_wildcard_constrained_children: std::mem::take(
+                    &mut child.end_wildcard_constrained_children,
+                ),
                 end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
 
-                priority: child.priority,
                 needs_optimization: child.needs_optimization,
             };
 
@@ -80,13 +90,15 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                 data: None,
 
                 static_children: SortedNode::default(),
+                dynamic_constrained_children: SortedNode::default(),
                 dynamic_children: SortedNode::default(),
                 dynamic_children_shortcut: false,
+                wildcard_constrained_children: SortedNode::default(),
                 wildcard_children: SortedNode::default(),
                 wildcard_children_shortcut: false,
+                end_wildcard_constrained_children: SortedNode::default(),
                 end_wildcard_children: SortedNode::default(),
 
-                priority: 0,
                 needs_optimization: false,
             };
 
@@ -111,13 +123,15 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                 data: None,
 
                 static_children: SortedNode::default(),
+                dynamic_constrained_children: SortedNode::default(),
                 dynamic_children: SortedNode::default(),
                 dynamic_children_shortcut: false,
+                wildcard_constrained_children: SortedNode::default(),
                 wildcard_children: SortedNode::default(),
                 wildcard_children_shortcut: false,
+                end_wildcard_constrained_children: SortedNode::default(),
                 end_wildcard_children: SortedNode::default(),
 
-                priority: 0,
                 needs_optimization: false,
             };
 
@@ -128,32 +142,67 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_dynamic(
+    fn insert_dynamic_constrained(
         &mut self,
         template: &mut Template,
         data: NodeData<'r, T>,
         name: String,
-        constraint: Option<String>,
+        constraint: String,
     ) {
         if let Some(child) = self
-            .dynamic_children
+            .dynamic_constrained_children
             .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
+        {
+            child.insert(template, data);
+        } else {
+            self.dynamic_constrained_children.push({
+                let mut new_child = Node {
+                    state: DynamicConstrainedState::new(name, constraint),
+                    data: None,
+
+                    static_children: SortedNode::default(),
+                    dynamic_constrained_children: SortedNode::default(),
+                    dynamic_children: SortedNode::default(),
+                    dynamic_children_shortcut: false,
+                    wildcard_constrained_children: SortedNode::default(),
+                    wildcard_children: SortedNode::default(),
+                    wildcard_children_shortcut: false,
+                    end_wildcard_constrained_children: SortedNode::default(),
+                    end_wildcard_children: SortedNode::default(),
+
+                    needs_optimization: false,
+                };
+
+                new_child.insert(template, data);
+                new_child
+            });
+        }
+
+        self.needs_optimization = true;
+    }
+
+    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData<'r, T>, name: String) {
+        if let Some(child) = self
+            .dynamic_children
+            .find_mut(|child| child.state.name == name)
         {
             child.insert(template, data);
         } else {
             self.dynamic_children.push({
                 let mut new_child = Node {
-                    state: DynamicState::new(name, constraint),
+                    state: DynamicState::new(name),
                     data: None,
 
                     static_children: SortedNode::default(),
+                    dynamic_constrained_children: SortedNode::default(),
                     dynamic_children: SortedNode::default(),
                     dynamic_children_shortcut: false,
+                    wildcard_constrained_children: SortedNode::default(),
                     wildcard_children: SortedNode::default(),
                     wildcard_children_shortcut: false,
+                    end_wildcard_constrained_children: SortedNode::default(),
                     end_wildcard_children: SortedNode::default(),
 
-                    priority: 0,
                     needs_optimization: false,
                 };
 
@@ -165,32 +214,67 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_wildcard(
+    fn insert_wildcard_constrained(
         &mut self,
         template: &mut Template,
         data: NodeData<'r, T>,
         name: String,
-        constraint: Option<String>,
+        constraint: String,
     ) {
         if let Some(child) = self
-            .wildcard_children
+            .wildcard_constrained_children
             .find_mut(|child| child.state.name == name && child.state.constraint == constraint)
+        {
+            child.insert(template, data);
+        } else {
+            self.wildcard_constrained_children.push({
+                let mut new_child = Node {
+                    state: WildcardConstrainedState::new(name, constraint),
+                    data: None,
+
+                    static_children: SortedNode::default(),
+                    dynamic_constrained_children: SortedNode::default(),
+                    dynamic_children: SortedNode::default(),
+                    dynamic_children_shortcut: false,
+                    wildcard_constrained_children: SortedNode::default(),
+                    wildcard_children: SortedNode::default(),
+                    wildcard_children_shortcut: false,
+                    end_wildcard_constrained_children: SortedNode::default(),
+                    end_wildcard_children: SortedNode::default(),
+
+                    needs_optimization: false,
+                };
+
+                new_child.insert(template, data);
+                new_child
+            });
+        }
+
+        self.needs_optimization = true;
+    }
+
+    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData<'r, T>, name: String) {
+        if let Some(child) = self
+            .wildcard_children
+            .find_mut(|child| child.state.name == name)
         {
             child.insert(template, data);
         } else {
             self.wildcard_children.push({
                 let mut new_child = Node {
-                    state: WildcardState::new(name, constraint),
+                    state: WildcardState::new(name),
                     data: None,
 
                     static_children: SortedNode::default(),
+                    dynamic_constrained_children: SortedNode::default(),
                     dynamic_children: SortedNode::default(),
                     dynamic_children_shortcut: false,
+                    wildcard_constrained_children: SortedNode::default(),
                     wildcard_children: SortedNode::default(),
                     wildcard_children_shortcut: false,
+                    end_wildcard_constrained_children: SortedNode::default(),
                     end_wildcard_children: SortedNode::default(),
 
-                    priority: 0,
                     needs_optimization: false,
                 };
 
@@ -202,32 +286,63 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_end_wildcard(
+    fn insert_end_wildcard_constrained(
         &mut self,
         data: NodeData<'r, T>,
         name: String,
-        constraint: Option<String>,
+        constraint: String,
     ) {
         if self
-            .end_wildcard_children
+            .end_wildcard_constrained_children
             .iter()
             .any(|child| child.state.name == name && child.state.constraint == constraint)
         {
             return;
         }
 
-        self.end_wildcard_children.push(Node {
-            state: EndWildcardState::new(name, constraint),
+        self.end_wildcard_constrained_children.push(Node {
+            state: EndWildcardConstrainedState::new(name, constraint),
             data: Some(data),
 
             static_children: SortedNode::default(),
+            dynamic_constrained_children: SortedNode::default(),
             dynamic_children: SortedNode::default(),
             dynamic_children_shortcut: false,
+            wildcard_constrained_children: SortedNode::default(),
             wildcard_children: SortedNode::default(),
             wildcard_children_shortcut: false,
+            end_wildcard_constrained_children: SortedNode::default(),
             end_wildcard_children: SortedNode::default(),
 
-            priority: 0,
+            needs_optimization: false,
+        });
+
+        self.needs_optimization = true;
+    }
+
+    fn insert_end_wildcard(&mut self, data: NodeData<'r, T>, name: String) {
+        if self
+            .end_wildcard_children
+            .iter()
+            .any(|child| child.state.name == name)
+        {
+            return;
+        }
+
+        self.end_wildcard_children.push(Node {
+            state: EndWildcardState::new(name),
+            data: Some(data),
+
+            static_children: SortedNode::default(),
+            dynamic_constrained_children: SortedNode::default(),
+            dynamic_children: SortedNode::default(),
+            dynamic_children_shortcut: false,
+            wildcard_constrained_children: SortedNode::default(),
+            wildcard_children: SortedNode::default(),
+            wildcard_children_shortcut: false,
+            end_wildcard_constrained_children: SortedNode::default(),
+            end_wildcard_children: SortedNode::default(),
+
             needs_optimization: false,
         });
 

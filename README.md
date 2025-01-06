@@ -26,6 +26,8 @@ Real-world projects often need fancy routing capabilities, such as projects port
 
 The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
 
+The downside of this approach is that we can't have as rich conflict detection as other routers.
+
 ## Features
 
 ### Dynamic Routing
@@ -49,12 +51,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/users/{id}", 1)?;
     router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
 
-    let search = router.search("/users/123")?.unwrap();
+    let search = router.search("/users/123").unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.template, "/users/{id}");
     assert_eq!(search.parameters[0], ("id", "123"));
 
-    let search = router.search("/users/123/files/my.document.pdf")?.unwrap();
+    let search = router.search("/users/123/files/my.document.pdf").unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.template, "/users/{id}/files/{filename}.{extension}");
     assert_eq!(search.parameters[0], ("id", "123"));
@@ -87,12 +89,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/files/{*slug}/delete", 1)?;
     router.insert("/{*catch_all}", 2)?;
 
-    let search = router.search("/files/documents/reports/annual.pdf/delete")?.unwrap();
+    let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.template, "/files/{*slug}/delete");
     assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
 
-    let search = router.search("/any/other/path")?.unwrap();
+    let search = router.search("/any/other/path").unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.template, "/{*catch_all}");
     assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
@@ -130,18 +132,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/users(/{id})", 1)?;
     router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
 
-    let search = router.search("/users")?.unwrap();
+    let search = router.search("/users").unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.template, "/users(/{id})");
     assert_eq!(search.expanded, Some("/users"));
 
-    let search = router.search("/users/123")?.unwrap();
+    let search = router.search("/users/123").unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.template, "/users(/{id})");
     assert_eq!(search.expanded, Some("/users/{id}"));
     assert_eq!(search.parameters[0], ("id", "123"));
 
-    let search = router.search("/files/documents/folder/report.pdf")?.unwrap();
+    let search = router.search("/files/documents/folder/report.pdf").unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
@@ -149,7 +151,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(search.parameters[1], ("file", "report"));
     assert_eq!(search.parameters[2], ("extension", "pdf"));
 
-    let search = router.search("/files/documents/folder/readme")?.unwrap();
+    let search = router.search("/files/documents/folder/readme").unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
     assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
@@ -232,18 +234,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/v2", 1)?;
     router.insert("/v2/{*name:namespace}/blobs/{type}:{digest}", 2)?;
 
-    let search = router.search("/v2")?.unwrap();
+    let search = router.search("/v2").unwrap();
     assert_eq!(*search.data, 1);
     assert_eq!(search.template, "/v2");
 
-    let search = router.search("/v2/my-org/my-repo/blobs/sha256:1234567890")?.unwrap();
+    let search = router.search("/v2/my-org/my-repo/blobs/sha256:1234567890").unwrap();
     assert_eq!(*search.data, 2);
     assert_eq!(search.template, "/v2/{*name:namespace}/blobs/{type}:{digest}");
     assert_eq!(search.parameters[0], ("name", "my-org/my-repo"));
     assert_eq!(search.parameters[1], ("type", "sha256"));
     assert_eq!(search.parameters[2], ("digest", "1234567890"));
 
-    let search = router.search("/v2/invalid repo/blobs/uploads")?;
+    let search = router.search("/v2/invalid repo/blobs/uploads");
     assert!(search.is_none());
 
     Ok(())
@@ -334,13 +336,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ├─ user [*]
-    │  ╰─ /
-    │     ├─ createWithList [*]
-    │     ├─ log
-    │     │  ├─ out [*]
-    │     │  ╰─ in [*]
-    │     ╰─ {username} [*]
     ├─ pet [*]
     │  ╰─ /
     │     ├─ findBy
@@ -353,6 +348,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     │  ╰─ order [*]
     │     ╰─ /
     │        ╰─ {orderId} [*]
+    ├─ user [*]
+    │  ╰─ /
+    │     ├─ createWithList [*]
+    │     ├─ log
+    │     │  ├─ in [*]
+    │     │  ╰─ out [*]
+    │     ╰─ {username} [*]
     ╰─ {*catch_all} [*]
     ");
 

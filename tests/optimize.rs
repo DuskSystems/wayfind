@@ -13,8 +13,8 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id} [*]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ profile [*]
+          ╰─ settings [*]
     ");
 
     router.delete("/users/{id}/profile")?;
@@ -46,8 +46,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id} [*]
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ profile [*]
+          ╰─ settings [*]
     ");
 
     router.delete("/users/{id}")?;
@@ -56,8 +56,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ {id}
        ╰─ /
-          ├─ settings [*]
-          ╰─ profile [*]
+          ├─ profile [*]
+          ╰─ settings [*]
     ");
 
     Ok(())

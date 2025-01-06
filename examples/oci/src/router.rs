@@ -83,7 +83,7 @@ impl<'r> AppRouter<'r> {
             return StatusCode::METHOD_NOT_ALLOWED.into_response();
         };
 
-        let Ok(Some(search)) = router.search(&path) else {
+        let Some(search) = router.search(&path) else {
             return StatusCode::NOT_FOUND.into_response();
         };
 
