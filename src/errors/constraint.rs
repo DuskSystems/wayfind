@@ -1,6 +1,5 @@
 use std::{error::Error, fmt::Display};
 
-/// Errors relating to constraints.
 #[derive(Debug, PartialEq, Eq)]
 pub enum ConstraintError {
     /// Constraint name is already in use.
@@ -16,7 +15,7 @@ pub enum ConstraintError {
     ///     new_type: "my_crate::constraints::B",
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// duplicate constraint name
     ///
     /// The constraint name 'my_constraint' is already in use:

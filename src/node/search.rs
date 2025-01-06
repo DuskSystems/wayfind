@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::Ordering, collections::HashMap};
 
 use smallvec::smallvec;
 
@@ -9,10 +9,17 @@ use crate::{
 };
 
 impl<'r, T, S: NodeState> Node<'r, T, S> {
-    /// Searches for a matching route in the node tree.
+    /// Searches for a matching template in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
-    /// We try nodes in the order: static, dynamic, wildcard, then end wildcard.
+    /// We try nodes in the order:
+    /// - static
+    /// - dynamic constrained
+    /// - dynamic
+    /// - wildcard contrained
+    /// - wildcard
+    /// - end wildcard constrained
+    /// - wildcard
     pub fn search<'p>(
         &'r self,
         path: &'p [u8],
@@ -84,7 +91,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.static_children.iter() {
+        for child in &self.static_children {
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
             {
@@ -105,7 +112,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.dynamic_constrained_children.iter() {
+        for child in &self.dynamic_constrained_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
@@ -132,7 +139,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.dynamic_constrained_children.iter() {
+        for child in &self.dynamic_constrained_children {
             let mut consumed = 0;
 
             let mut best_match: Option<&'r NodeData<'r, T>> = None;
@@ -161,11 +168,11 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                         }
                     };
 
-                if best_match.is_none()
-                    || best_match
-                        .as_ref()
-                        .map_or(false, |best| data.specificity() >= best.specificity())
-                {
+                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                    Ordering::Greater => true,
+                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Less => false,
+                }) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -187,7 +194,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.dynamic_children.iter() {
+        for child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
@@ -211,7 +218,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.dynamic_children.iter() {
+        for child in &self.dynamic_children {
             let mut consumed = 0;
 
             let mut best_match: Option<&'r NodeData<'r, T>> = None;
@@ -237,11 +244,11 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                         }
                     };
 
-                if best_match.is_none()
-                    || best_match
-                        .as_ref()
-                        .map_or(false, |best| data.specificity() >= best.specificity())
-                {
+                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                    Ordering::Greater => true,
+                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Less => false,
+                }) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -263,7 +270,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.wildcard_constrained_children.iter() {
+        for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
             let mut remaining_path = path;
             let mut section_end = false;
@@ -324,7 +331,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.wildcard_constrained_children.iter() {
+        for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
 
             let mut best_match: Option<&'r NodeData<'r, T>> = None;
@@ -349,11 +356,11 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                         }
                     };
 
-                if best_match.is_none()
-                    || best_match
-                        .as_ref()
-                        .map_or(false, |best| data.specificity() >= best.specificity())
-                {
+                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                    Ordering::Greater => true,
+                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Less => false,
+                }) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -375,7 +382,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.wildcard_children.iter() {
+        for child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
             let mut section_end = false;
@@ -432,7 +439,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.wildcard_children.iter() {
+        for child in &self.wildcard_children {
             let mut consumed = 0;
 
             let mut best_match: Option<&'r NodeData<'r, T>> = None;
@@ -454,11 +461,11 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
                         }
                     };
 
-                if best_match.is_none()
-                    || best_match
-                        .as_ref()
-                        .map_or(false, |best| data.specificity() >= best.specificity())
-                {
+                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                    Ordering::Greater => true,
+                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Less => false,
+                }) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -479,7 +486,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'r str, StoredConstraint>,
     ) -> Option<&'r NodeData<'r, T>> {
-        for child in self.end_wildcard_constrained_children.iter() {
+        for child in &self.end_wildcard_constrained_children {
             if !Self::check_constraint(Some(&child.state.constraint), path, constraints) {
                 continue;
             }

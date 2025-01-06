@@ -16,7 +16,7 @@ pub struct NameConstraint;
 impl Constraint for NameConstraint {
     const NAME: &'static str = "name";
 
-    fn check(segment: &str) -> bool {
-        NAME_REGEX.is_match(segment)
+    fn check(part: &str) -> bool {
+        NAME_REGEX.is_match(part)
     }
 }

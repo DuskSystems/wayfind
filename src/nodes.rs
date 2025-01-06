@@ -2,19 +2,20 @@ use std::ops::{Index, IndexMut};
 
 use crate::{node::Node, state::NodeState};
 
-/// A `Node` which caches its sort state.
+/// A vec of `Node`'s, with cached sort state.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SortedNode<'r, T, S: NodeState> {
+pub struct Nodes<'r, T, S: NodeState> {
     vec: Vec<Node<'r, T, S>>,
     sorted: bool,
 }
 
-impl<'r, T, S: NodeState> SortedNode<'r, T, S> {
+impl<'r, T, S: NodeState> Nodes<'r, T, S> {
     #[must_use]
     pub const fn new(vec: Vec<Node<'r, T, S>>) -> Self {
         Self { vec, sorted: false }
     }
 
+    #[inline]
     pub fn push(&mut self, value: Node<'r, T, S>) {
         self.vec.push(value);
         self.sorted = false;
@@ -25,7 +26,6 @@ impl<'r, T, S: NodeState> SortedNode<'r, T, S> {
     }
 
     #[inline]
-    #[must_use]
     pub fn len(&self) -> usize {
         self.vec.len()
     }
@@ -35,21 +35,18 @@ impl<'r, T, S: NodeState> SortedNode<'r, T, S> {
         self.vec.is_empty()
     }
 
-    pub fn find_mut<F>(&mut self, predicate: F) -> Option<&mut Node<'r, T, S>>
-    where
-        F: Fn(&Node<'r, T, S>) -> bool,
-    {
-        self.vec.iter_mut().find(|item| predicate(item))
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Node<'r, T, S>> {
+    #[inline]
+    pub fn iter(&self) -> std::slice::Iter<'_, Node<'r, T, S>> {
         self.vec.iter()
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Node<'r, T, S>> {
+    #[inline]
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Node<'r, T, S>> {
+        self.sorted = false;
         self.vec.iter_mut()
     }
 
+    #[inline]
     pub fn sort(&mut self) {
         if self.sorted {
             return;
@@ -60,7 +57,7 @@ impl<'r, T, S: NodeState> SortedNode<'r, T, S> {
     }
 }
 
-impl<T, S: NodeState> Default for SortedNode<'_, T, S> {
+impl<T, S: NodeState> Default for Nodes<'_, T, S> {
     fn default() -> Self {
         Self {
             vec: Vec::new(),
@@ -69,7 +66,25 @@ impl<T, S: NodeState> Default for SortedNode<'_, T, S> {
     }
 }
 
-impl<'r, T, S: NodeState> Index<usize> for SortedNode<'r, T, S> {
+impl<'a, 'r, T, S: NodeState> IntoIterator for &'a Nodes<'r, T, S> {
+    type Item = &'a Node<'r, T, S>;
+    type IntoIter = std::slice::Iter<'a, Node<'r, T, S>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, 'r, T, S: NodeState> IntoIterator for &'a mut Nodes<'r, T, S> {
+    type Item = &'a mut Node<'r, T, S>;
+    type IntoIter = std::slice::IterMut<'a, Node<'r, T, S>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<'r, T, S: NodeState> Index<usize> for Nodes<'r, T, S> {
     type Output = Node<'r, T, S>;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -77,7 +92,7 @@ impl<'r, T, S: NodeState> Index<usize> for SortedNode<'r, T, S> {
     }
 }
 
-impl<T, S: NodeState> IndexMut<usize> for SortedNode<'_, T, S> {
+impl<T, S: NodeState> IndexMut<usize> for Nodes<'_, T, S> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.vec[index]
     }
