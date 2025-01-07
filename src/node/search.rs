@@ -16,7 +16,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     /// - static
     /// - dynamic constrained
     /// - dynamic
-    /// - wildcard contrained
+    /// - wildcard constrained
     /// - wildcard
     /// - end wildcard constrained
     /// - wildcard

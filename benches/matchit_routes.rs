@@ -1,15 +1,9 @@
-#[must_use]
-pub fn paths() -> impl IntoIterator<Item = &'static str> {
-    vec![
-        "/user/repos",
-        "/repos/rust-lang/rust/stargazers",
-        "/orgs/rust-lang/public_members/nikomatsakis",
-        "/repos/rust-lang/rust/releases/1.51.0",
-    ]
-}
-
 #[macro_export]
 macro_rules! routes {
+    (literal) => {{
+        routes!(finish => "p1", "p2", "p3", "p4")
+    }};
+
     (colon) => {{
         routes!(finish => ":p1", ":p2", ":p3", ":p4")
     }};
@@ -79,13 +73,13 @@ macro_rules! routes {
             concat!("/user/orgs"),
             concat!("/orgs/", $p1),
             concat!("/orgs/", $p1, "/members"),
-            concat!("/orgs/", $p1, "/members", $p2),
+            concat!("/orgs/", $p1, "/members/", $p2),
             concat!("/orgs/", $p1, "/public_members"),
             concat!("/orgs/", $p1, "/public_members/", $p2),
             concat!("/orgs/", $p1, "/teams"),
             concat!("/teams/", $p1),
             concat!("/teams/", $p1, "/members"),
-            concat!("/teams/", $p1, "/members", $p2),
+            concat!("/teams/", $p1, "/members/", $p2),
             concat!("/teams/", $p1, "/repos"),
             concat!("/teams/", $p1, "/repos/", $p2, "/", $p3),
             concat!("/user/teams"),
@@ -114,12 +108,12 @@ macro_rules! routes {
             concat!("/repos/", $p1, "/", $p2, "/commits/", $p3),
             concat!("/repos/", $p1, "/", $p2, "/readme"),
             concat!("/repos/", $p1, "/", $p2, "/keys"),
-            concat!("/repos/", $p1, "/", $p2, "/keys", $p3),
+            concat!("/repos/", $p1, "/", $p2, "/keys/", $p3),
             concat!("/repos/", $p1, "/", $p2, "/downloads"),
-            concat!("/repos/", $p1, "/", $p2, "/downloads", $p3),
+            concat!("/repos/", $p1, "/", $p2, "/downloads/", $p3),
             concat!("/repos/", $p1, "/", $p2, "/forks"),
             concat!("/repos/", $p1, "/", $p2, "/hooks"),
-            concat!("/repos/", $p1, "/", $p2, "/hooks", $p3),
+            concat!("/repos/", $p1, "/", $p2, "/hooks/", $p3),
             concat!("/repos/", $p1, "/", $p2, "/releases"),
             concat!("/repos/", $p1, "/", $p2, "/releases/", $p3),
             concat!("/repos/", $p1, "/", $p2, "/releases/", $p3, "/assets"),
@@ -146,7 +140,7 @@ macro_rules! routes {
             concat!("/users/", $p1, "/following"),
             concat!("/user/following"),
             concat!("/user/following/", $p1),
-            concat!("/users/", $p1, "/following", $p2),
+            concat!("/users/", $p1, "/following/", $p2),
             concat!("/users/", $p1, "/keys"),
             concat!("/user/keys"),
             concat!("/user/keys/", $p1),
