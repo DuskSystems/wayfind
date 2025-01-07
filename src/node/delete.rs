@@ -6,7 +6,7 @@ use crate::{
     state::{NodeState, StaticState},
 };
 
-impl<T, S: NodeState> Node<'_, T, S> {
+impl<T, S: NodeState> Node<T, S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified template.

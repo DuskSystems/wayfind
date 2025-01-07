@@ -16,14 +16,14 @@ mod optimize;
 mod search;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum NodeData<'r, T> {
+pub enum NodeData<T> {
     /// Data is stored inline.
     Inline {
         /// The associated data.
         data: T,
 
         /// The original template.
-        template: &'r str,
+        template: Arc<str>,
 
         /// The number of slashes in the template.
         depth: usize,
@@ -38,7 +38,7 @@ pub enum NodeData<'r, T> {
         data: Arc<T>,
 
         /// The original template.
-        template: &'r str,
+        template: Arc<str>,
 
         /// The expanded template.
         expanded: Arc<str>,
@@ -51,60 +51,60 @@ pub enum NodeData<'r, T> {
     },
 }
 
-impl<T> NodeData<'_, T> {
+impl<T> NodeData<T> {
     #[inline]
     pub fn data(&self) -> &T {
         match self {
-            NodeData::Inline { data, .. } => data,
-            NodeData::Shared { data, .. } => data.as_ref(),
+            Self::Inline { data, .. } => data,
+            Self::Shared { data, .. } => data.as_ref(),
         }
     }
 
-    pub const fn template(&self) -> &str {
+    pub fn template(&self) -> &str {
         match self {
-            NodeData::Inline { template, .. } | NodeData::Shared { template, .. } => template,
+            Self::Inline { template, .. } | Self::Shared { template, .. } => template,
         }
     }
 
     #[inline]
     pub fn expanded(&self) -> Option<&str> {
         match self {
-            NodeData::Inline { .. } => None,
-            NodeData::Shared { expanded, .. } => Some(expanded.as_ref()),
+            Self::Inline { .. } => None,
+            Self::Shared { expanded, .. } => Some(expanded),
         }
     }
 
     pub const fn depth(&self) -> usize {
         match self {
-            NodeData::Inline { depth, .. } | NodeData::Shared { depth, .. } => *depth,
+            Self::Inline { depth, .. } | Self::Shared { depth, .. } => *depth,
         }
     }
 
     pub const fn length(&self) -> usize {
         match self {
-            NodeData::Inline { length, .. } | NodeData::Shared { length, .. } => *length,
+            Self::Inline { length, .. } | Self::Shared { length, .. } => *length,
         }
     }
 }
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<'r, T, S: NodeState> {
+pub struct Node<T, S: NodeState> {
     /// The type of Node, and associated structure data.
     pub state: S,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a template.
-    pub data: Option<NodeData<'r, T>>,
+    pub data: Option<NodeData<T>>,
 
-    pub static_children: Nodes<'r, T, StaticState>,
-    pub dynamic_constrained_children: Nodes<'r, T, DynamicConstrainedState>,
-    pub dynamic_children: Nodes<'r, T, DynamicState>,
+    pub static_children: Nodes<T, StaticState>,
+    pub dynamic_constrained_children: Nodes<T, DynamicConstrainedState>,
+    pub dynamic_children: Nodes<T, DynamicState>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_constrained_children: Nodes<'r, T, WildcardConstrainedState>,
-    pub wildcard_children: Nodes<'r, T, WildcardState>,
+    pub wildcard_constrained_children: Nodes<T, WildcardConstrainedState>,
+    pub wildcard_children: Nodes<T, WildcardState>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_constrained_children: Nodes<'r, T, EndWildcardConstrainedState>,
-    pub end_wildcard_children: Nodes<'r, T, EndWildcardState>,
+    pub end_wildcard_constrained_children: Nodes<T, EndWildcardConstrainedState>,
+    pub end_wildcard_children: Nodes<T, EndWildcardState>,
 
     /// Flag indicating whether this node need optimization.
     /// During optimization, the shortcut flags are updated, and nodes sorted.

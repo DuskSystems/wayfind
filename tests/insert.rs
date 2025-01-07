@@ -174,7 +174,7 @@ fn test_insert_constraint_conflict() {
         }
     }
 
-    let mut router: Router<'_, usize> = Router::new();
+    let mut router: Router<usize> = Router::new();
     let constraint = router.constraint::<MyConstraint>();
     assert_eq!(
         constraint,
