@@ -1464,7 +1464,7 @@ checksum = "943aab3fdaaa029a6e0271b35ea10b72b943135afe9bffca82384098ad0e06a6"
 
 [[package]]
 name = "wayfind"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "actix-router",
  "codspeed-criterion-compat",
@@ -1483,7 +1483,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-fuzz"
-version = "0.0.0"
+version = "0.8.0"
 dependencies = [
  "libfuzzer-sys",
  "wayfind",
@@ -1491,7 +1491,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-oci-example"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "bytes",
