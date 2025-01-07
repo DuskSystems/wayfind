@@ -49,15 +49,15 @@ pub struct StoredConstraint {
 ///
 /// See [the crate documentation](crate) for usage.
 #[derive(Clone)]
-pub struct Router<'r, T> {
+pub struct Router<T> {
     /// The root node of the tree.
-    root: Node<'r, T, RootState>,
+    root: Node<T, RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: HashMap<&'r str, StoredConstraint>,
+    constraints: HashMap<&'static str, StoredConstraint>,
 }
 
-impl<'r, T> Router<'r, T> {
+impl<T> Router<T> {
     /// Creates a new Router with default constraints.
     ///
     /// # Panics
@@ -126,7 +126,7 @@ impl<'r, T> Router<'r, T> {
     ///     }
     /// }
     ///
-    /// let mut router: Router<'_, usize> = Router::new();
+    /// let mut router: Router<usize> = Router::new();
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
@@ -163,7 +163,7 @@ impl<'r, T> Router<'r, T> {
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/hello", 1).unwrap();
     /// ```
-    pub fn insert(&mut self, template: &'r str, data: T) -> Result<(), InsertError> {
+    pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed = ParsedTemplate::new(template.as_bytes())?;
 
         // Check for invalid constraints.
@@ -204,6 +204,8 @@ impl<'r, T> Router<'r, T> {
         }
 
         // All good, proceed with insert.
+        let template = Arc::from(template);
+
         if parsed.templates.len() > 1 {
             let data = Arc::from(data);
             for mut parsed_template in parsed.templates {
@@ -217,7 +219,7 @@ impl<'r, T> Router<'r, T> {
                     &mut parsed_template,
                     NodeData::Shared {
                         data: Arc::clone(&data),
-                        template,
+                        template: Arc::clone(&template),
                         expanded,
                         depth,
                         length,
@@ -320,11 +322,11 @@ impl<'r, T> Router<'r, T> {
     /// ```rust
     /// use wayfind::{Constraint, Router};
     ///
-    /// let mut router: Router<'_, usize> = Router::new();
+    /// let mut router: Router<usize> = Router::new();
     /// router.insert("/{user}", 1).unwrap();
     /// router.search("/me").unwrap();
     /// ```
-    pub fn search<'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
+    pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
         let search = match self
             .root
@@ -345,7 +347,7 @@ impl<'r, T> Router<'r, T> {
     }
 }
 
-impl<T> Display for Router<'_, T> {
+impl<T> Display for Router<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.root)
     }

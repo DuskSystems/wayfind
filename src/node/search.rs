@@ -8,7 +8,7 @@ use crate::{
     state::NodeState,
 };
 
-impl<'r, T, S: NodeState> Node<'r, T, S> {
+impl<T, S: NodeState> Node<T, S> {
     /// Searches for a matching template in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
@@ -20,12 +20,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     /// - wildcard
     /// - end wildcard constrained
     /// - wildcard
-    pub fn search<'p>(
+    pub fn search<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -85,12 +85,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         None
     }
 
-    fn search_static<'p>(
+    fn search_static<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.static_children {
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -106,12 +106,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can only handle simple dynamic templates like `/{segment}/`.
-    fn search_dynamic_constrained_segment<'p>(
+    fn search_dynamic_constrained_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.dynamic_constrained_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -133,16 +133,16 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can handle complex dynamic templates like `{name}.{extension}`.
-    fn search_dynamic_constrained_inline<'p>(
+    fn search_dynamic_constrained_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.dynamic_constrained_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<'r, T>> = None;
+            let mut best_match: Option<&'r NodeData<T>> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -188,12 +188,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can only handle simple dynamic templates like `/{segment}/`.
-    fn search_dynamic_segment<'p>(
+    fn search_dynamic_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -212,16 +212,16 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can handle complex dynamic templates like `{name}.{extension}`.
-    fn search_dynamic_inline<'p>(
+    fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.dynamic_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<'r, T>> = None;
+            let mut best_match: Option<&'r NodeData<T>> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -264,12 +264,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can only handle simple wildcard templates like `/{*segment}/`.
-    fn search_wildcard_constrained_segment<'p>(
+    fn search_wildcard_constrained_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -325,16 +325,16 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can handle complex wildcard templates like `/{*name}.{extension}`.
-    fn search_wildcard_constrained_inline<'p>(
+    fn search_wildcard_constrained_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<'r, T>> = None;
+            let mut best_match: Option<&'r NodeData<T>> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -376,12 +376,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can only handle simple wildcard templates like `/{*segment}/`.
-    fn search_wildcard_segment<'p>(
+    fn search_wildcard_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -433,16 +433,16 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     }
 
     /// Can handle complex wildcard templates like `/{*name}.{extension}`.
-    fn search_wildcard_inline<'p>(
+    fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<'r, T>> = None;
+            let mut best_match: Option<&'r NodeData<T>> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -480,12 +480,12 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         None
     }
 
-    fn search_end_wildcard_constrained<'p>(
+    fn search_end_wildcard_constrained<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'r str, StoredConstraint>,
-    ) -> Option<&'r NodeData<'r, T>> {
+        constraints: &HashMap<&'static str, StoredConstraint>,
+    ) -> Option<&'r NodeData<T>> {
         for child in &self.end_wildcard_constrained_children {
             if !Self::check_constraint(Some(&child.state.constraint), path, constraints) {
                 continue;
@@ -498,11 +498,11 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
         None
     }
 
-    fn search_end_wildcard<'p>(
+    fn search_end_wildcard<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-    ) -> Option<&'r NodeData<'r, T>> {
+    ) -> Option<&'r NodeData<T>> {
         if let Some(child) = self.end_wildcard_children.iter().next() {
             parameters.push((&child.state.name, std::str::from_utf8(path).ok()?));
             return child.data.as_ref();
@@ -514,7 +514,7 @@ impl<'r, T, S: NodeState> Node<'r, T, S> {
     fn check_constraint(
         constraint: Option<&String>,
         segment: &[u8],
-        constraints: &HashMap<&'r str, StoredConstraint>,
+        constraints: &HashMap<&str, StoredConstraint>,
     ) -> bool {
         let constraint = match constraint {
             Some(constraint) => constraint,

@@ -226,7 +226,7 @@
 //! }
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router: Router<'_, usize> = Router::new();
+//!     let mut router: Router<usize> = Router::new();
 //!     router.constraint::<NamespaceConstraint>()?;
 //!     router.insert("/{*user:namespace}", 1)?;
 //!

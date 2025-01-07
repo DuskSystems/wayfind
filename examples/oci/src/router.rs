@@ -17,12 +17,12 @@ type ArcHandler = Arc<
         + Sync,
 >;
 
-pub struct AppRouter<'r> {
+pub struct AppRouter {
     /// Maps HTTP methods to their respective `wayfind` Routers.
-    routes: HashMap<Method, wayfind::Router<'r, ArcHandler>>,
+    routes: HashMap<Method, wayfind::Router<ArcHandler>>,
 }
 
-impl<'r> AppRouter<'r> {
+impl AppRouter {
     /// Creates a new `AppRouter` with empty route tables for all HTTP methods.
     #[must_use]
     pub fn new() -> Self {
@@ -55,7 +55,7 @@ impl<'r> AppRouter<'r> {
     }
 
     /// Adds a new route with the specified method, path, and handler.
-    pub fn route<H, T>(&mut self, method: Method, path: &'r str, handler: H)
+    pub fn route<H, T>(&mut self, method: Method, path: &str, handler: H)
     where
         H: Handler<T> + Send + Sync + 'static,
     {

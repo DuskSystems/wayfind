@@ -4,11 +4,11 @@ use crate::state::NodeState;
 
 use super::Node;
 
-impl<T, S: NodeState> Display for Node<'_, T, S> {
+impl<T, S: NodeState> Display for Node<T, S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         fn debug_node<T, S: NodeState>(
             output: &mut String,
-            node: &Node<'_, T, S>,
+            node: &Node<T, S>,
             padding: &str,
             is_root: bool,
             is_last: bool,

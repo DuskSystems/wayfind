@@ -105,7 +105,7 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let mut router: Router<'_, usize> = Router::new();
+    let mut router: Router<usize> = Router::new();
     router.constraint::<Constraint1>()?;
 
     let result = router.constraint::<Constraint2>();
