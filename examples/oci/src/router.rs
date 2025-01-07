@@ -19,7 +19,6 @@ type ArcHandler = Arc<
 
 pub struct AppRouter<'r> {
     /// Maps HTTP methods to their respective `wayfind` Routers.
-    /// TODO: Replace with native `wayfind` method routing, when implemented.
     routes: HashMap<Method, wayfind::Router<'r, ArcHandler>>,
 }
 
@@ -49,7 +48,7 @@ impl<'r> AppRouter<'r> {
     }
 
     /// Registers a constraint to all route tables.
-    pub fn path_constraint<C: Constraint>(&mut self) {
+    pub fn constraint<C: Constraint>(&mut self) {
         for router in self.routes.values_mut() {
             router.constraint::<C>().unwrap();
         }

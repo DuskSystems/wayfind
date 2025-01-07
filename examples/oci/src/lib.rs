@@ -35,9 +35,8 @@ pub async fn start_server(listener: TcpListener) -> Result<(), Error> {
 
     let state = Arc::new(AppState::new());
 
-    // TODO: Enable `wayfind` method routing, when implemented.
     let mut router = AppRouter::new();
-    router.path_constraint::<NameConstraint>();
+    router.constraint::<NameConstraint>();
 
     // end-1
     router.route(Method::GET, "/v2(/)", routes::root::handle_root_get);

@@ -1,11 +1,11 @@
-pub mod constraint;
+mod constraint;
 pub use constraint::ConstraintError;
 
-pub mod delete;
+mod delete;
 pub use delete::DeleteError;
 
-pub mod insert;
+mod insert;
 pub use insert::InsertError;
 
-pub mod template;
+mod template;
 pub use template::TemplateError;

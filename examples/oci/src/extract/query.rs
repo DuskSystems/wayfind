@@ -52,8 +52,6 @@ impl IntoResponse for QueryError {
 
 /// Access to the given request parameters.
 /// Params are parsed and decoded.
-///
-/// TODO: Replace with `wayfind` native query parsing, once implemented.
 pub struct Query(pub HashMap<String, String>);
 
 impl FromRequestParts for Query {

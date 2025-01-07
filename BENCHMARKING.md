@@ -8,7 +8,7 @@ Check out [codspeed](https://codspeed.io/DuskSystems/wayfind/benchmarks) for an 
 
 For all benchmarks, we convert any extracted parameters to strings.
 
-All routers provide a way to return parameters as strings, but some delay the actual UTF8 decoding until post-search.
+All routers provide a way to return parameters as strings, but some delay the actual UTF-8 decoding until post-search.
 
 | Library          | Percent Decoding | String Parameters |
 |:-----------------|:----------------:|:-----------------:|

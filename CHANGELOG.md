@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-TODO.
+### Changed
+
+- The router no longer performs percent-decoding.
+- Searches no longer error on any invalid UTF-8 parameters, instead acting as if the path doesn't match instead.
+- Error messages are now more consistent.
+- The term 'route' has been replaced with 'template'.
+- Lowered MSRV from 1.66 to 1.63.
+
+### Removed
+
+- The `Routable` wrapper is no longer needed. The router uses strings for inserts.
+- The `Path` wrapper is no longer needed. The router uses strings for searches.
+- `EncodingError` has been removed.
+- `PathError` has been removed.
+- `RoutableError` has been removed.
+
+### Fixed
+
+- Priority logic now correctly prefers depth, then length, of templates.
 
 ## [0.7.0] - 2024-11-12
 
