@@ -2,7 +2,6 @@ use std::{error::Error, fmt::Display};
 
 use super::TemplateError;
 
-/// Errors relating to attempting to delete a template from a [`Router`](crate::Router).
 #[derive(Debug, PartialEq, Eq)]
 pub enum DeleteError {
     /// A [`TemplateError`] that occurred during the delete.
@@ -16,15 +15,19 @@ pub enum DeleteError {
     /// use wayfind::errors::DeleteError;
     ///
     /// let error = DeleteError::NotFound {
-    ///     template: "/not_found".to_string(),
+    ///     template: "/not_found".to_owned(),
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// not found
     ///
-    ///    Template: /not_found
+    ///     Template: /not_found
     ///
-    /// The specified template does not exist in the router
+    /// help: The specified template does not exist in the router
+    ///
+    /// try:
+    ///     - Check if the template is correct
+    ///     - Verify that the template was previously inserted
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -42,17 +45,21 @@ pub enum DeleteError {
     /// use wayfind::errors::DeleteError;
     ///
     /// let error = DeleteError::Mismatch {
-    ///     template: "/users/{id}/".to_string(),
-    ///     inserted: "/users/{id}(/)".to_string(),
+    ///     template: "/users/{id}/".to_owned(),
+    ///     inserted: "/users/{id}(/)".to_owned(),
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// delete mismatch
     ///
-    ///    Template: /users/{id}/
-    ///    Inserted: /users/{id}(/)
+    ///     Template: /users/{id}/
+    ///     Inserted: /users/{id}(/)
     ///
-    /// The template must be deleted using the same format as was inserted
+    /// help: The template must be deleted using the same format as was inserted
+    ///
+    /// try:
+    ///     - Use the exact template format shown in 'Inserted'
+    ///     - Check for differences in optional segments or trailing slashes
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -75,18 +82,26 @@ impl Display for DeleteError {
                 f,
                 r"not found
 
-   Template: {template}
+    Template: {template}
 
-The specified template does not exist in the router"
+help: The specified template does not exist in the router
+
+try:
+    - Check if the template is correct
+    - Verify that the template was previously inserted"
             ),
             Self::Mismatch { template, inserted } => write!(
                 f,
                 r"delete mismatch
 
-   Template: {template}
-   Inserted: {inserted}
+    Template: {template}
+    Inserted: {inserted}
 
-The template must be deleted using the same format as was inserted"
+help: The template must be deleted using the same format as was inserted
+
+try:
+    - Use the exact template format shown in 'Inserted'
+    - Check for differences in optional segments or trailing slashes"
             ),
         }
     }

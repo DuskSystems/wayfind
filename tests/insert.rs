@@ -12,10 +12,22 @@ fn test_insert_conflict() -> Result<(), Box<dyn Error>> {
     router.insert("/test", 1)?;
 
     let insert = router.insert("/test", 2);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "/test".to_owned(),
+            conflicts: vec!["/test".to_owned()]
+        })
+    );
 
     let insert = router.insert("(/test)", 3);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "(/test)".to_owned(),
+            conflicts: vec!["/test".to_owned()]
+        })
+    );
 
     insta::assert_snapshot!(router, @"/test [*]");
 
@@ -28,13 +40,31 @@ fn test_insert_conflict_expanded() -> Result<(), Box<dyn Error>> {
     router.insert("(/test)", 1)?;
 
     let insert = router.insert("/test", 2);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "/test".to_owned(),
+            conflicts: vec!["(/test)".to_owned()]
+        })
+    );
 
     let insert = router.insert("(/test)", 2);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "(/test)".to_owned(),
+            conflicts: vec!["(/test)".to_owned()]
+        })
+    );
 
     let insert = router.insert("(/best)", 3);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "(/best)".to_owned(),
+            conflicts: vec!["(/test)".to_owned()]
+        })
+    );
 
     insta::assert_snapshot!(router, @r"
     / [*]
@@ -50,7 +80,13 @@ fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
     router.insert("(/hello)", 1)?;
 
     let insert = router.insert("(/world)", 2);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "(/world)".to_owned(),
+            conflicts: vec!["(/hello)".to_owned()]
+        })
+    );
 
     insta::assert_snapshot!(router, @r"
     / [*]
@@ -60,14 +96,20 @@ fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// NOTE: End wildcards have some duplicate code, so worth testing seperate to rest.
+// NOTE: End wildcards have some duplicate code, so worth testing separate to rest.
 #[test]
 fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("(/{*catch_all})", 1)?;
 
     let insert = router.insert("/{*catch_all}", 2);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "/{*catch_all}".to_owned(),
+            conflicts: vec!["(/{*catch_all})".to_owned()]
+        })
+    );
 
     insta::assert_snapshot!(router, @r"
     / [*]
@@ -84,7 +126,13 @@ fn test_insert_conflict_overlapping() -> Result<(), Box<dyn Error>> {
     router.insert("/x/y", 2)?;
 
     let insert = router.insert("(/a(/b))(/x/y)", 3);
-    assert_eq!(insert, Err(InsertError::Conflict));
+    assert_eq!(
+        insert,
+        Err(InsertError::Conflict {
+            template: "(/a(/b))(/x/y)".to_owned(),
+            conflicts: vec!["/a(/b)".to_owned(), "/x/y".to_owned()]
+        })
+    );
 
     insta::assert_snapshot!(router, @r"
     /
@@ -121,8 +169,8 @@ fn test_insert_constraint_conflict() {
     struct MyConstraint;
     impl Constraint for MyConstraint {
         const NAME: &'static str = "u32";
-        fn check(segment: &str) -> bool {
-            segment.parse::<u32>().is_ok()
+        fn check(part: &str) -> bool {
+            part.parse::<u32>().is_ok()
         }
     }
 

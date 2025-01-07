@@ -98,6 +98,9 @@
             # TOML
             taplo
 
+            # Spellchecking
+            typos
+
             # GitHub
             zizmor
 

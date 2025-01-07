@@ -79,7 +79,7 @@ smallvec = { version = "1.13", features = ["const_generics", "union"] }
 [dev-dependencies]
 # Testing
 # NOTE: Keep in sync with `cargo-insta` Nix package.
-insta = "=1.41.1"
+insta = "=1.42.0"
 similar-asserts = "1.6"
 
 # Benchmarking

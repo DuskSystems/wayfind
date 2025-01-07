@@ -1,6 +1,6 @@
 use smallvec::{smallvec, SmallVec};
 
-use crate::errors::{EncodingError, TemplateError};
+use crate::errors::TemplateError;
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
@@ -34,8 +34,8 @@ impl ParsedTemplate {
             return Err(TemplateError::Empty);
         }
 
-        let routes = Self::expand_optional_groups(input, 0, input.len())?;
-        let templates = routes
+        let templates = Self::expand_optional_groups(input, 0, input.len())?;
+        let templates = templates
             .into_iter()
             .map(|raw| Self::parse_template(input, &raw))
             .collect::<Result<Vec<_>, _>>()?;
@@ -329,23 +329,30 @@ impl ParsedTemplate {
             if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
                 return Err(TemplateError::InvalidConstraint {
                     template: String::from_utf8_lossy(input).to_string(),
-                    name: String::from_utf8_lossy(name).to_string(),
+                    name: String::from_utf8_lossy(constraint).to_string(),
                     start: cursor,
                     length: end - cursor + 1,
                 });
             }
         }
 
-        let name = String::from_utf8(name.to_vec()).map_err(|_| EncodingError::Utf8Error {
-            input: String::from_utf8_lossy(name).to_string(),
-        })?;
+        let name =
+            String::from_utf8(name.to_vec()).map_err(|_| TemplateError::InvalidParameter {
+                template: String::from_utf8_lossy(input).to_string(),
+                name: String::from_utf8_lossy(name).to_string(),
+                start: cursor,
+                length: end - cursor + 1,
+            })?;
 
         let constraint = if let Some(constraint) = constraint {
-            Some(
-                String::from_utf8(constraint.to_vec()).map_err(|_| EncodingError::Utf8Error {
-                    input: String::from_utf8_lossy(constraint).to_string(),
-                })?,
-            )
+            Some(String::from_utf8(constraint.to_vec()).map_err(|_| {
+                TemplateError::InvalidConstraint {
+                    template: String::from_utf8_lossy(input).to_string(),
+                    name: String::from_utf8_lossy(constraint).to_string(),
+                    start: cursor,
+                    length: end - cursor + 1,
+                }
+            })?)
         } else {
             None
         };
@@ -411,15 +418,15 @@ mod tests {
     #[test]
     fn test_parser_wildcard_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{*route}"),
+            ParsedTemplate::new(b"/{*wildcard}"),
             Ok(ParsedTemplate {
-                input: b"/{*route}".to_vec(),
+                input: b"/{*wildcard}".to_vec(),
                 templates: vec![Template {
-                    input: b"/{*route}".to_vec(),
-                    raw: b"/{*route}".to_vec(),
+                    input: b"/{*wildcard}".to_vec(),
+                    raw: b"/{*wildcard}".to_vec(),
                     parts: vec![
                         Part::Wildcard {
-                            name: "route".to_owned(),
+                            name: "wildcard".to_owned(),
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -698,7 +705,7 @@ mod tests {
 
             Template: abc
 
-        tip: Routes must begin with '/'
+        help: Templates must begin with '/'
         ");
     }
 
@@ -719,7 +726,11 @@ mod tests {
             Template: /users/{id/profile
                              ^
 
-        tip: Use '\{' and '\}' to represent literal '{' and '}' characters in the template
+        help: Each '{' must have a matching '}'
+
+        try:
+            - Add the missing closing brace
+            - Use '\{' and '\}' to represent literal braces
         ");
     }
 
@@ -740,7 +751,11 @@ mod tests {
             Template: /users/id}/profile
                                ^
 
-        tip: Use '\{' and '\}' to represent literal '{' and '}' characters in the template
+        help: Each '{' must have a matching '}'
+
+        try:
+            - Add the missing closing brace
+            - Use '\{' and '\}' to represent literal braces
         ");
     }
 
@@ -780,7 +795,11 @@ mod tests {
             Template: /products(/category
                                ^
 
-        tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the template
+        help: Each '(' must have a matching ')'
+
+        try:
+            - Add the missing closing parenthesis
+            - Use '\(' and '\)' to represent literal parentheses
         ");
     }
 
@@ -801,7 +820,11 @@ mod tests {
             Template: /products)/category
                                ^
 
-        tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the template
+        help: Each '(' must have a matching ')'
+
+        try:
+            - Add the missing closing parenthesis
+            - Use '\(' and '\)' to represent literal parentheses
         ");
     }
 
@@ -839,12 +862,12 @@ mod tests {
         );
 
         insta::assert_snapshot!(error, @r"
-        invalid parameter name
+        invalid parameter name: 'user*name'
 
             Template: /users/{user*name}/profile
                              ^^^^^^^^^^^
 
-        tip: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+        help: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
         ");
     }
 
@@ -869,7 +892,10 @@ mod tests {
             Template: /users/{id}/posts/{id:uuid}
                              ^^^^       ^^^^^^^^^
 
-        tip: Parameter names must be unique within a template
+        help: Parameter names must be unique within a template
+
+        try:
+            - Rename one of the parameters to be unique
         ");
     }
 
@@ -920,41 +946,45 @@ mod tests {
             error,
             TemplateError::InvalidConstraint {
                 template: "/users/{id:*}/profile".to_owned(),
-                name: "id".to_owned(),
+                name: "*".to_owned(),
                 start: 7,
                 length: 6,
             }
         );
 
         insta::assert_snapshot!(error, @r"
-        invalid constraint name
+        invalid constraint name: '*'
 
             Template: /users/{id:*}/profile
                              ^^^^^^
 
-        tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+        help: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
         ");
     }
 
     #[test]
     fn test_parser_error_touching_parameters() {
-        let error = ParsedTemplate::new(b"/users/{id}{name}").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{id}{*name}").unwrap_err();
         assert_eq!(
             error,
             TemplateError::TouchingParameters {
-                template: "/users/{id}{name}".to_owned(),
+                template: "/users/{id}{*name}".to_owned(),
                 start: 7,
-                length: 10,
+                length: 11,
             }
         );
 
         insta::assert_snapshot!(error, @r"
         touching parameters
 
-            Template: /users/{id}{name}
-                             ^^^^^^^^^^
+            Template: /users/{id}{*name}
+                             ^^^^^^^^^^^
 
-        tip: Touching parameters are not supported
+        help: Parameters must be separated by at least one part
+
+        try:
+            - Add a part between the parameters
+            - Combine the parameters if they represent a single value
         ");
     }
 }

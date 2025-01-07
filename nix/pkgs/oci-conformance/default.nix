@@ -18,7 +18,9 @@ buildGoModule rec {
   sourceRoot = "source/conformance";
   vendorHash = "sha256-5gn9RpjCALZB/GFjlJHDqPs2fIHl7NJr5QjPmsLnnO4=";
 
-  CGO_ENABLED = 0;
+  env = {
+    CGO_ENABLED = 0;
+  };
 
   postInstall = ''
     go test -c ./... -o oci-conformance

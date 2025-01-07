@@ -32,8 +32,8 @@ impl NodeState for RootState {
 }
 
 impl Ord for RootState {
-    fn cmp(&self, _: &Self) -> Ordering {
-        unreachable!()
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.key.cmp(&other.key)
     }
 }
 

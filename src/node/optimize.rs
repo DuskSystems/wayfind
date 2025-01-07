@@ -6,31 +6,31 @@ impl<T, S: NodeState> Node<'_, T, S> {
             return;
         }
 
-        for child in self.static_children.iter_mut() {
+        for child in &mut self.static_children {
             child.optimize();
         }
 
-        for child in self.dynamic_constrained_children.iter_mut() {
+        for child in &mut self.dynamic_constrained_children {
             child.optimize();
         }
 
-        for child in self.dynamic_children.iter_mut() {
+        for child in &mut self.dynamic_children {
             child.optimize();
         }
 
-        for child in self.wildcard_constrained_children.iter_mut() {
+        for child in &mut self.wildcard_constrained_children {
             child.optimize();
         }
 
-        for child in self.wildcard_children.iter_mut() {
+        for child in &mut self.wildcard_children {
             child.optimize();
         }
 
-        for child in self.end_wildcard_constrained_children.iter_mut() {
+        for child in &mut self.end_wildcard_constrained_children {
             child.optimize();
         }
 
-        for child in self.end_wildcard_children.iter_mut() {
+        for child in &mut self.end_wildcard_children {
             child.optimize();
         }
 

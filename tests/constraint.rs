@@ -11,8 +11,8 @@ struct NameConstraint;
 impl Constraint for NameConstraint {
     const NAME: &'static str = "name";
 
-    fn check(segment: &str) -> bool {
-        segment.chars().all(|c| c.is_alphanumeric() || c == '/')
+    fn check(part: &str) -> bool {
+        part.chars().all(|c| c.is_alphanumeric() || c == '/')
     }
 }
 
@@ -90,16 +90,18 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
     struct Constraint1;
     impl Constraint for Constraint1 {
         const NAME: &'static str = "test";
-        fn check(segment: &str) -> bool {
-            segment == "1"
+
+        fn check(part: &str) -> bool {
+            part == "1"
         }
     }
 
     struct Constraint2;
     impl Constraint for Constraint2 {
         const NAME: &'static str = "test";
-        fn check(segment: &str) -> bool {
-            segment == "2"
+
+        fn check(part: &str) -> bool {
+            part == "2"
         }
     }
 
@@ -156,7 +158,6 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// NOTE: Not really happy with this. But no real way we could prevent unreachable routes at the constraint layer.
 #[test]
 fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();

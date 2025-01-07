@@ -1,12 +1,19 @@
 use std::sync::Arc;
 
 use crate::{
-    sorted::SortedNode,
+    nodes::Nodes,
     state::{
         DynamicConstrainedState, DynamicState, EndWildcardConstrainedState, EndWildcardState,
         NodeState, StaticState, WildcardConstrainedState, WildcardState,
     },
 };
+
+mod delete;
+mod display;
+mod find;
+mod insert;
+mod optimize;
+mod search;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum NodeData<'r, T> {
@@ -18,8 +25,11 @@ pub enum NodeData<'r, T> {
         /// The original template.
         template: &'r str,
 
-        /// How 'specific' of a match this data is, based on the template complexity.
-        specificity: usize,
+        /// The number of slashes in the template.
+        depth: usize,
+
+        /// The length of the template.
+        length: usize,
     },
 
     /// Data is shared between 2 or more nodes.
@@ -33,23 +43,46 @@ pub enum NodeData<'r, T> {
         /// The expanded template.
         expanded: Arc<str>,
 
-        /// How 'specific' of a match this data is, based on the expanded template complexity.
-        specificity: usize,
+        /// The number of slashes in the expanded template.
+        depth: usize,
+
+        /// The length of the expanded template.
+        length: usize,
     },
 }
 
 impl<T> NodeData<'_, T> {
+    #[inline]
+    pub fn data(&self) -> &T {
+        match self {
+            NodeData::Inline { data, .. } => data,
+            NodeData::Shared { data, .. } => data.as_ref(),
+        }
+    }
+
     pub const fn template(&self) -> &str {
         match self {
             NodeData::Inline { template, .. } | NodeData::Shared { template, .. } => template,
         }
     }
 
-    pub const fn specificity(&self) -> usize {
+    #[inline]
+    pub fn expanded(&self) -> Option<&str> {
         match self {
-            NodeData::Inline { specificity, .. } | NodeData::Shared { specificity, .. } => {
-                *specificity
-            }
+            NodeData::Inline { .. } => None,
+            NodeData::Shared { expanded, .. } => Some(expanded.as_ref()),
+        }
+    }
+
+    pub const fn depth(&self) -> usize {
+        match self {
+            NodeData::Inline { depth, .. } | NodeData::Shared { depth, .. } => *depth,
+        }
+    }
+
+    pub const fn length(&self) -> usize {
+        match self {
+            NodeData::Inline { length, .. } | NodeData::Shared { length, .. } => *length,
         }
     }
 }
@@ -63,16 +96,17 @@ pub struct Node<'r, T, S: NodeState> {
     /// The presence of this data is needed to successfully match a template.
     pub data: Option<NodeData<'r, T>>,
 
-    pub static_children: SortedNode<'r, T, StaticState>,
-    pub dynamic_constrained_children: SortedNode<'r, T, DynamicConstrainedState>,
-    pub dynamic_children: SortedNode<'r, T, DynamicState>,
+    pub static_children: Nodes<'r, T, StaticState>,
+    pub dynamic_constrained_children: Nodes<'r, T, DynamicConstrainedState>,
+    pub dynamic_children: Nodes<'r, T, DynamicState>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_constrained_children: SortedNode<'r, T, WildcardConstrainedState>,
-    pub wildcard_children: SortedNode<'r, T, WildcardState>,
+    pub wildcard_constrained_children: Nodes<'r, T, WildcardConstrainedState>,
+    pub wildcard_children: Nodes<'r, T, WildcardState>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_constrained_children: SortedNode<'r, T, EndWildcardConstrainedState>,
-    pub end_wildcard_children: SortedNode<'r, T, EndWildcardState>,
+    pub end_wildcard_constrained_children: Nodes<'r, T, EndWildcardConstrainedState>,
+    pub end_wildcard_children: Nodes<'r, T, EndWildcardState>,
 
-    /// Flag indicating whether this node or its children need optimization.
+    /// Flag indicating whether this node need optimization.
+    /// During optimization, the shortcut flags are updated, and nodes sorted.
     pub needs_optimization: bool,
 }

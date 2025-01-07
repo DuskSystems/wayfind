@@ -1,13 +1,7 @@
 use std::{error::Error, fmt::Display};
 
-use super::EncodingError;
-
-/// Errors relating to malformed routes.
 #[derive(Debug, PartialEq, Eq)]
 pub enum TemplateError {
-    /// A [`EncodingError`] that occurred during the decoding.
-    Encoding(EncodingError),
-
     /// The template is empty.
     Empty,
 
@@ -19,15 +13,15 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::MissingLeadingSlash {
-    ///     template: "abc".to_string(),
+    ///     template: "abc".to_owned(),
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// missing leading slash
     ///
     ///     Template: abc
     ///
-    /// tip: Routes must begin with '/'
+    /// help: Templates must begin with '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -45,11 +39,11 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyBraces {
-    ///     template: "/{}".to_string(),
+    ///     template: "/{}".to_owned(),
     ///     position: 1,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// empty braces
     ///
     ///     Template: /{}
@@ -73,17 +67,21 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::UnbalancedBrace {
-    ///     template: "/{".to_string(),
+    ///     template: "/{".to_owned(),
     ///     position: 1,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// unbalanced brace
     ///
     ///     Template: /{
     ///                ^
     ///
-    /// tip: Use '\\{' and '\\}' to represent literal '{' and '}' characters in the template
+    /// help: Each '{' must have a matching '}'
+    ///
+    /// try:
+    ///     - Add the missing closing brace
+    ///     - Use '\{' and '\}' to represent literal braces
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -103,11 +101,11 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyParentheses {
-    ///     template: "/()".to_string(),
+    ///     template: "/()".to_owned(),
     ///     position: 1,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// empty parentheses
     ///
     ///     Template: /()
@@ -131,17 +129,21 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::UnbalancedParenthesis {
-    ///     template: "/(".to_string(),
+    ///     template: "/(".to_owned(),
     ///     position: 1,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// unbalanced parenthesis
     ///
     ///     Template: /(
     ///                ^
     ///
-    /// tip: Use '\\(' and '\\)' to represent literal '(' and ')' characters in the template
+    /// help: Each '(' must have a matching ')'
+    ///
+    /// try:
+    ///     - Add the missing closing parenthesis
+    ///     - Use '\(' and '\)' to represent literal parentheses
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -161,12 +163,12 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyParameter {
-    ///     template: "/{:}".to_string(),
+    ///     template: "/{:}".to_owned(),
     ///     start: 1,
     ///     length: 3,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// empty parameter name
     ///
     ///     Template: /{:}
@@ -192,19 +194,19 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::InvalidParameter {
-    ///     template: "/{a/b}".to_string(),
-    ///     name: "a/b".to_string(),
+    ///     template: "/{a/b}".to_owned(),
+    ///     name: "a/b".to_owned(),
     ///     start: 1,
     ///     length: 5,
     /// };
     ///
-    /// let display = "
-    /// invalid parameter name
+    /// let display = r"
+    /// invalid parameter name: 'a/b'
     ///
     ///     Template: /{a/b}
     ///                ^^^^^
     ///
-    /// tip: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+    /// help: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -228,21 +230,24 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::DuplicateParameter {
-    ///     template: "/{id}/{id}".to_string(),
-    ///     name: "id".to_string(),
+    ///     template: "/{id}/{id}".to_owned(),
+    ///     name: "id".to_owned(),
     ///     first: 1,
     ///     first_length: 4,
     ///     second: 6,
     ///     second_length: 4,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// duplicate parameter name: 'id'
     ///
     ///     Template: /{id}/{id}
     ///                ^^^^ ^^^^
     ///
-    /// tip: Parameter names must be unique within a template
+    /// help: Parameter names must be unique within a template
+    ///
+    /// try:
+    ///     - Rename one of the parameters to be unique
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -270,12 +275,12 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyWildcard {
-    ///     template: "/{*}".to_string(),
+    ///     template: "/{*}".to_owned(),
     ///     start: 1,
     ///     length: 3,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// empty wildcard name
     ///
     ///     Template: /{*}
@@ -301,12 +306,12 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyConstraint {
-    ///     template: "/{a:}".to_string(),
+    ///     template: "/{a:}".to_owned(),
     ///     start: 1,
     ///     length: 4,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// empty constraint name
     ///
     ///     Template: /{a:}
@@ -332,19 +337,19 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::InvalidConstraint {
-    ///     template: "/{a:b/c}".to_string(),
-    ///     name: "b/c".to_string(),
+    ///     template: "/{a:b/c}".to_owned(),
+    ///     name: "b/c".to_owned(),
     ///     start: 1,
     ///     length: 7,
     /// };
     ///
-    /// let display = "
-    /// invalid constraint name
+    /// let display = r"
+    /// invalid constraint name: 'b/c'
     ///
     ///     Template: /{a:b/c}
     ///                ^^^^^^^
     ///
-    /// tip: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+    /// help: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -368,18 +373,22 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::TouchingParameters {
-    ///     template: "/{a}{b}".to_string(),
+    ///     template: "/{a}{b}".to_owned(),
     ///     start: 1,
     ///     length: 6,
     /// };
     ///
-    /// let display = "
+    /// let display = r"
     /// touching parameters
     ///
     ///     Template: /{a}{b}
     ///                ^^^^^^
     ///
-    /// tip: Touching parameters are not supported
+    /// help: Parameters must be separated by at least one part
+    ///
+    /// try:
+    ///     - Add a part between the parameters
+    ///     - Combine the parameters if they represent a single value
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -399,7 +408,6 @@ impl Error for TemplateError {}
 impl Display for TemplateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Encoding(error) => error.fmt(f),
             Self::Empty => write!(f, "empty template"),
 
             Self::MissingLeadingSlash { template } => {
@@ -409,7 +417,7 @@ impl Display for TemplateError {
 
     Template: {template}
 
-tip: Routes must begin with '/'"
+help: Templates must begin with '/'"
                 )
             }
 
@@ -433,7 +441,11 @@ tip: Routes must begin with '/'"
     Template: {template}
               {arrow}
 
-tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the template"
+help: Each '{{' must have a matching '}}'
+
+try:
+    - Add the missing closing brace
+    - Use '\{{' and '\}}' to represent literal braces"
                 )
             }
 
@@ -457,7 +469,11 @@ tip: Use '\{{' and '\}}' to represent literal '{{' and '}}' characters in the te
     Template: {template}
               {arrow}
 
-tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the template"
+help: Each '(' must have a matching ')'
+
+try:
+    - Add the missing closing parenthesis
+    - Use '\(' and '\)' to represent literal parentheses"
                 )
             }
 
@@ -478,19 +494,19 @@ tip: Use '\(' and '\)' to represent literal '(' and ')' characters in the templa
 
             Self::InvalidParameter {
                 template,
+                name,
                 start,
                 length,
-                ..
             } => {
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r"invalid parameter name
+                    r"invalid parameter name: '{name}'
 
     Template: {template}
               {arrow}
 
-tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
+help: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
                 )
             }
 
@@ -503,9 +519,7 @@ tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(',
                 second_length,
             } => {
                 let mut arrow = " ".repeat(template.len());
-
                 arrow.replace_range(*first..(*first + *first_length), &"^".repeat(*first_length));
-
                 arrow.replace_range(
                     *second..(*second + *second_length),
                     &"^".repeat(*second_length),
@@ -518,7 +532,10 @@ tip: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(',
     Template: {template}
               {arrow}
 
-tip: Parameter names must be unique within a template"
+help: Parameter names must be unique within a template
+
+try:
+    - Rename one of the parameters to be unique"
                 )
             }
 
@@ -554,6 +571,7 @@ tip: Parameter names must be unique within a template"
 
             Self::InvalidConstraint {
                 template,
+                name,
                 start,
                 length,
                 ..
@@ -561,12 +579,12 @@ tip: Parameter names must be unique within a template"
                 let arrow = " ".repeat(*start) + &"^".repeat(*length);
                 write!(
                     f,
-                    r"invalid constraint name
+                    r"invalid constraint name: '{name}'
 
     Template: {template}
               {arrow}
 
-tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
+help: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
                 )
             }
 
@@ -583,15 +601,13 @@ tip: Constraint names must not contain the characters: ':', '*', '{{', '}}', '('
     Template: {template}
               {arrow}
 
-tip: Touching parameters are not supported"
+help: Parameters must be separated by at least one part
+
+try:
+    - Add a part between the parameters
+    - Combine the parameters if they represent a single value"
                 )
             }
         }
-    }
-}
-
-impl From<EncodingError> for TemplateError {
-    fn from(error: EncodingError) -> Self {
-        Self::Encoding(error)
     }
 }
