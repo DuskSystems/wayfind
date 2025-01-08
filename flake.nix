@@ -66,7 +66,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (pkgs.rust-bin.stable."1.83.0".minimal.override {
+            (rust-bin.stable."1.83.0".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
               extensions = [
                 "clippy"
@@ -80,11 +80,13 @@
             sccache
             cargo-insta
             cargo-outdated
+            cargo-show-asm
             cargo-watch
 
             # Benchmarking
             cargo-codspeed
             gnuplot
+            heaptrack
 
             # Coverage
             cargo-llvm-cov

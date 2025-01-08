@@ -12,14 +12,15 @@ impl<T, S: NodeState> Node<T, S> {
     /// Searches for a matching template in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
+    ///
     /// We try nodes in the order:
-    /// - static
-    /// - dynamic constrained
-    /// - dynamic
-    /// - wildcard constrained
-    /// - wildcard
-    /// - end wildcard constrained
-    /// - wildcard
+    /// - statics
+    /// - dynamics constrained
+    /// - dynamics
+    /// - wildcards constrained
+    /// - wildcards
+    /// - end wildcards constrained
+    /// - end wildcards
     pub fn search<'r, 'p>(
         &'r self,
         path: &'p [u8],
