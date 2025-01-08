@@ -1,6 +1,6 @@
 #[must_use]
 pub fn paths() -> impl IntoIterator<Item = &'static str> {
-    vec![
+    [
         "/app",
         "/app-manifests/0/conversions",
         "/app/installations",
