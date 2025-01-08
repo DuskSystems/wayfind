@@ -94,7 +94,6 @@ matchit = "=0.8.6"
 ntex-router = "=0.5.3"
 path-tree = "=0.8.1"
 route-recognizer = "=0.3.1"
-routefinder = "=0.5.4"
 xitca-router = "=0.3.0"
 
 [[bench]]
