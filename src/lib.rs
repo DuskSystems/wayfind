@@ -1,6 +1,6 @@
 //! # `wayfind`
 //!
-//! A speedy, flexible router for Rust.
+//! A speedy, flexible router.
 //!
 //! ## Showcase
 //!

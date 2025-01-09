@@ -21,7 +21,6 @@ include = [
   "/fuzz",
   "/src",
   "/tests",
-  "/ARCHITECTURE.md",
   "/BENCHMARKING.md",
   "/CHANGELOG.md",
   "/LICENSE-APACHE",
