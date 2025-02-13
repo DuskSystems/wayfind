@@ -1,7 +1,7 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.6/benches/bench.rs>
 
-use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use smallvec::SmallVec;
 
 pub mod matchit_routes;
