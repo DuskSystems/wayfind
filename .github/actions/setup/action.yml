@@ -3,9 +3,11 @@ description: Common setup steps
 
 inputs:
   shell:
+    description: The Nix flake shell
     required: true
 
   cachix-auth-token:
+    description: The secret Cachix token
     required: true
 
 runs:
@@ -29,5 +31,7 @@ runs:
           core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
     - name: Initialize Nix shell
+      env:
+        NIX_SHELL: ${{ inputs.shell }}
       shell: bash
-      run: nix develop .#${{ inputs.shell }}
+      run: nix develop ".#${NIX_SHELL}"

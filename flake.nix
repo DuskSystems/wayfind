@@ -66,7 +66,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.83.0".minimal.override {
+            (rust-bin.stable."1.84.1".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
               extensions = [
                 "clippy"
@@ -125,7 +125,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.nightly."2024-11-28".minimal.override { extensions = [ "llvm-tools" ]; })
+            (rust-bin.nightly."2025-02-13".minimal.override { extensions = [ "llvm-tools" ]; })
             sccache
 
             # Coverage
@@ -171,7 +171,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.83.0".minimal.override {
+            (rust-bin.stable."1.84.1".minimal.override {
               extensions = [
                 "clippy"
                 "rustfmt"

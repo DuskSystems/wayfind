@@ -9,15 +9,16 @@
 rustPlatform.buildRustPackage rec {
   pname = "cargo-codspeed";
 
-  # NOTE: Keep in sync with `codspeed-criterion-compat` Rust package.
-  version = "2.7.2";
+  # NOTE: Keep in sync with `codspeed-*-compat` Rust packages.
+  version = "2.8.0";
 
   src = fetchCrate {
     inherit pname version;
-    hash = "sha256-BtuY3reG5BMMlas1PYtaxPygbK2dptVRnYG/JRRev3c=";
+    hash = "sha256-JchV9nnaY/Kvq2FIuDrgg/rLdn9h8AWVdUiD/brOdWU=";
   };
 
-  cargoHash = "sha256-vioMkv0496s0zVdvi9/aQxtIsk6awXWxLyjTUBJSYhg=";
+  useFetchCargoVendor = true;
+  cargoHash = "sha256-1XXh5S2qElsx4M/ag8BvqFaMhb8zQEPiekPsWyRv1mY=";
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ openssl ];
