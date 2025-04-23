@@ -240,7 +240,7 @@ impl<T> Router<T> {
                     length,
                 },
             );
-        };
+        }
 
         self.root.optimize();
         Ok(())
@@ -292,7 +292,7 @@ impl<T> Router<T> {
                 return Err(DeleteError::NotFound {
                     template: template.to_owned(),
                 });
-            };
+            }
         }
 
         let mut output = None;

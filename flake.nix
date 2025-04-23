@@ -33,8 +33,7 @@
           inherit system;
 
           overlays = [
-            (import rust-overlay)
-
+            (rust-overlay.overlays.default)
             (final: prev: {
               cargo-codspeed = prev.callPackage ./nix/pkgs/cargo-codspeed { };
               cargo-insta = prev.callPackage ./nix/pkgs/cargo-insta { };
@@ -66,7 +65,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.84.1".minimal.override {
+            (rust-bin.stable.latest.minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
               extensions = [
                 "clippy"
@@ -107,6 +106,7 @@
             zizmor
 
             # Nix
+            nix-update
             nixfmt-rfc-style
             nixd
             nil
@@ -125,7 +125,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.nightly."2025-02-13".minimal.override { extensions = [ "llvm-tools" ]; })
+            (rust-bin.nightly.latest.minimal.override { extensions = [ "llvm-tools" ]; })
             sccache
 
             # Coverage
@@ -171,7 +171,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.84.1".minimal.override {
+            (rust-bin.stable.latest.minimal.override {
               extensions = [
                 "clippy"
                 "rustfmt"
@@ -189,13 +189,8 @@
       });
 
       packages = perSystemPkgs (pkgs: {
-        # nix build .#cargo-codspeed
         cargo-codspeed = pkgs.cargo-codspeed;
-
-        # nix build .#cargo-insta
         cargo-insta = pkgs.cargo-insta;
-
-        # nix build .#oci-conformance
         oci-conformance = pkgs.oci-conformance;
       });
     };
