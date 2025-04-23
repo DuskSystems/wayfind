@@ -1,6 +1,8 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
 //! <https://github.com/ibraheemdev/matchit/blob/v0.8.6/benches/bench.rs>
 
+#![allow(clippy::significant_drop_tightening)]
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use smallvec::SmallVec;
 

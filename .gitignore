@@ -28,11 +28,7 @@ report.html
 
 # Nix
 result
-result-dev
-result-man
-result-info
-result-lib
-result-bin
+result-*
 
 # Dir Env
 .direnv

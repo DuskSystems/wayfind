@@ -1,6 +1,8 @@
 //! Benches sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
+#![allow(clippy::significant_drop_tightening)]
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use path_tree_routes::paths;
 use smallvec::SmallVec;

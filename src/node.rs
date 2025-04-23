@@ -60,6 +60,7 @@ impl<T> NodeData<T> {
         }
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     pub fn template(&self) -> &str {
         match self {
             Self::Inline { template, .. } | Self::Shared { template, .. } => template,
@@ -67,6 +68,7 @@ impl<T> NodeData<T> {
     }
 
     #[inline]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn expanded(&self) -> Option<&str> {
         match self {
             Self::Inline { .. } => None,

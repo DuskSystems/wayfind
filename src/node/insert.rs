@@ -33,7 +33,7 @@ impl<T, S: NodeState> Node<T, S> {
                     self.insert_wildcard_constrained(template, data, name, constraint);
                 }
                 Part::Wildcard { name } => self.insert_wildcard(template, data, name),
-            };
+            }
         } else {
             self.data = Some(data);
             self.needs_optimization = true;
@@ -119,7 +119,7 @@ impl<T, S: NodeState> Node<T, S> {
 
             self.needs_optimization = true;
             return;
-        };
+        }
 
         self.static_children.push({
             let mut new_child = Node {

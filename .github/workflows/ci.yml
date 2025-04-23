@@ -15,6 +15,7 @@ permissions:
   id-token: write
 
 env:
+  ACTIONS_CACHE_SERVICE_V2: "on"
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: "1"
 
@@ -34,7 +35,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: ci
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run checks
         run: |
@@ -61,7 +61,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: ci
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build benchmarks
         run: cargo codspeed build --workspace
@@ -88,7 +87,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: nightly
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Generate coverage
         run: cargo llvm-cov --workspace --doctests --codecov --output-path codecov.json
@@ -115,7 +113,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: msrv
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
         run: cargo build --package wayfind
@@ -135,7 +132,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: msrv
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Build wayfind
         run: cargo build --package wayfind --target wasm32-unknown-unknown
@@ -155,7 +151,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           shell: ci
-          cachix-auth-token: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Run OCI tests
         run: |
