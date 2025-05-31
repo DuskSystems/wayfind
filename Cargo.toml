@@ -1,7 +1,53 @@
 # https://doc.rust-lang.org/cargo/reference/workspaces.html
 [workspace]
-resolver = "2"
-members = [".", "examples/*", "fuzz"]
+resolver = "3"
+members = [".", "fuzz"]
+
+[workspace.package]
+version = "0.8.1"
+authors = ["Cathal Mullan <contact@cathal.dev>"]
+edition = "2024"
+rust-version = "1.87"
+repository = "https://github.com/DuskSystems/wayfind"
+license = "MIT OR Apache-2.0"
+keywords = ["router"]
+categories = ["network-programming", "web-programming"]
+
+# https://doc.rust-lang.org/rustc/lints/groups.html
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+unused = { level = "deny", priority = -2 }
+future-incompatible = { level = "deny", priority = -1 }
+keyword-idents = { level = "deny", priority = -1 }
+let-underscore = { level = "deny", priority = -1 }
+nonstandard-style = { level = "deny", priority = -1 }
+refining-impl-trait = { level = "deny", priority = -1 }
+rust-2018-compatibility = { level = "deny", priority = -1 }
+rust-2018-idioms = { level = "deny", priority = -1 }
+rust-2021-compatibility = { level = "deny", priority = -1 }
+rust-2024-compatibility = { level = "deny", priority = -1 }
+
+# https://rust-lang.github.io/rust-clippy/master/index.html
+[workspace.lints.clippy]
+cargo = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+style = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+# Personal Preferences
+clone_on_ref_ptr = "deny"
+cognitive_complexity = "allow"
+module_name_repetitions = "allow"
+str_to_string = "deny"
+too_many_lines = "allow"
+
+# Our templates look similar to formatted strings.
+literal_string_with_formatting_args = "allow"
 
 [profile.dev.package]
 insta.opt-level = 3
@@ -28,51 +74,17 @@ include = [
   "/README.md",
 ]
 
-version = "0.8.1"
-authors = ["Cathal Mullan <contact@cathal.dev>"]
-edition = "2021"
-# https://packages.debian.org/stable/rust/rustc
-rust-version = "1.63"
-repository = "https://github.com/DuskSystems/wayfind"
-license = "MIT OR Apache-2.0"
-keywords = ["router"]
-categories = ["network-programming", "web-programming"]
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
-# https://doc.rust-lang.org/rustc/lints/groups.html
-[lints.rust]
-unsafe_code = "forbid"
-
-unused = { level = "deny", priority = -2 }
-future-incompatible = { level = "deny", priority = -1 }
-keyword-idents = { level = "deny", priority = -1 }
-let-underscore = { level = "deny", priority = -1 }
-nonstandard-style = { level = "deny", priority = -1 }
-refining-impl-trait = { level = "deny", priority = -1 }
-rust-2018-compatibility = { level = "deny", priority = -1 }
-rust-2018-idioms = { level = "deny", priority = -1 }
-rust-2021-compatibility = { level = "deny", priority = -1 }
-
-# https://rust-lang.github.io/rust-clippy/master/index.html
-[lints.clippy]
-cargo = { level = "deny", priority = -1 }
-complexity = { level = "deny", priority = -1 }
-correctness = { level = "deny", priority = -1 }
-nursery = { level = "deny", priority = -1 }
-pedantic = { level = "deny", priority = -1 }
-perf = { level = "deny", priority = -1 }
-style = { level = "deny", priority = -1 }
-suspicious = { level = "deny", priority = -1 }
-
-# Personal Preferences
-clone_on_ref_ptr = "deny"
-cognitive_complexity = "allow"
-module_name_repetitions = "allow"
-new_without_default = "allow"
-str_to_string = "deny"
-too_many_lines = "allow"
-
-# Our templates look similar to formatted strings.
-literal_string_with_formatting_args = "allow"
+[lints]
+workspace = true
 
 [dependencies]
 # Data Structures
@@ -80,14 +92,13 @@ smallvec = { version = "1.15", features = ["const_generics", "union"] }
 
 [dev-dependencies]
 # Testing
-# NOTE: Keep in sync with `cargo-insta` Nix package.
-insta = "=1.42.2"
+# NOTE: Keep in sync with `cargo-insta` Nix package: `cargo insta --version`
+insta = "=1.43.1"
 similar-asserts = "1.7"
 
 # Benchmarking
-# NOTE: Keep versions in sync with `cargo-codspeed` Nix package.
+# NOTE: Keep versions in sync with `cargo-codspeed` Nix package: `cargo codspeed --version`
 divan = { package = "codspeed-divan-compat", version = "=2.10.1" }
-criterion = { package = "codspeed-criterion-compat", version = "=2.10.1" }
 
 # Routers
 actix-router = "=0.5.3"
@@ -98,17 +109,9 @@ route-recognizer = "=0.3.1"
 xitca-router = "=0.3.0"
 
 [[bench]]
-name = "matchit_criterion"
+name = "matchit"
 harness = false
 
 [[bench]]
-name = "matchit_divan"
-harness = false
-
-[[bench]]
-name = "path_tree_criterion"
-harness = false
-
-[[bench]]
-name = "path_tree_divan"
+name = "path_tree"
 harness = false

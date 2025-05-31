@@ -33,12 +33,7 @@
           inherit system;
 
           overlays = [
-            (rust-overlay.overlays.default)
-            (final: prev: {
-              cargo-codspeed = prev.callPackage ./nix/pkgs/cargo-codspeed { };
-              cargo-insta = prev.callPackage ./nix/pkgs/cargo-insta { };
-              oci-conformance = prev.callPackage ./nix/pkgs/oci-conformance { };
-            })
+            rust-overlay.overlays.default
           ];
         }
       );
@@ -52,15 +47,13 @@
           name = "wayfind-shell";
 
           env = {
+            # Nix
             NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
-
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myenv/myrepo";
-            OCI_TEST_PULL = 1;
           };
 
           buildInputs = with pkgs; [
@@ -79,13 +72,6 @@
             sccache
             cargo-insta
             cargo-outdated
-            cargo-show-asm
-            cargo-watch
-
-            # Benchmarking
-            cargo-codspeed
-            gnuplot
-            heaptrack
 
             # Coverage
             cargo-llvm-cov
@@ -93,20 +79,13 @@
             # Release
             cargo-semver-checks
 
-            # OCI
-            oci-conformance
-
             # TOML
             taplo
 
             # Spellchecking
             typos
 
-            # GitHub
-            zizmor
-
             # Nix
-            nix-update
             nixfmt-rfc-style
             nixd
             nil
@@ -118,6 +97,7 @@
           name = "wayfind-nightly-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -125,7 +105,9 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.nightly.latest.minimal.override { extensions = [ "llvm-tools" ]; })
+            (rust-bin.nightly.latest.minimal.override {
+              extensions = [ "llvm-tools" ];
+            })
             sccache
 
             # Coverage
@@ -141,6 +123,7 @@
           name = "wayfind-msrv-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -148,7 +131,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.63.0".minimal.override {
+            (rust-bin.stable."1.87.0".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
             })
             sccache
@@ -160,13 +143,10 @@
           name = "wayfind-ci-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
-
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myenv/myrepo";
-            OCI_TEST_PULL = 1;
           };
 
           buildInputs = with pkgs; [
@@ -179,19 +159,10 @@
             })
             sccache
 
-            # Benchmarking
+            # Benchmarks
             cargo-codspeed
-
-            # OCI
-            oci-conformance
           ];
         };
-      });
-
-      packages = perSystemPkgs (pkgs: {
-        cargo-codspeed = pkgs.cargo-codspeed;
-        cargo-insta = pkgs.cargo-insta;
-        oci-conformance = pkgs.oci-conformance;
       });
     };
 }

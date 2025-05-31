@@ -2,8 +2,8 @@ use std::error::Error;
 
 use similar_asserts::assert_eq;
 use wayfind::{
-    errors::{ConstraintError, InsertError, TemplateError},
     Constraint, Router,
+    errors::{ConstraintError, InsertError, TemplateError},
 };
 
 #[test]

@@ -1,4 +1,4 @@
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 use crate::errors::TemplateError;
 
@@ -69,9 +69,9 @@ impl ParsedTemplate {
                 }
                 (b'(', _) => {
                     if depth == 0 {
-                        result
-                            .iter_mut()
-                            .for_each(|template| template.extend_from_slice(&input[group..cursor]));
+                        for template in &mut result {
+                            template.extend_from_slice(&input[group..cursor]);
+                        }
 
                         group = cursor + 1;
                     }
@@ -130,9 +130,9 @@ impl ParsedTemplate {
         }
 
         if group < end {
-            result
-                .iter_mut()
-                .for_each(|template| template.extend_from_slice(&input[group..end]));
+            for template in &mut result {
+                template.extend_from_slice(&input[group..end]);
+            }
         }
 
         for template in &mut result {
@@ -203,7 +203,7 @@ impl ParsedTemplate {
                     return Err(TemplateError::UnbalancedBrace {
                         template: String::from_utf8_lossy(raw).to_string(),
                         position: cursor,
-                    })
+                    });
                 }
                 _ => {
                     let (part, next_cursor) = Self::parse_static_part(raw, cursor);

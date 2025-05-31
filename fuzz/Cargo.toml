@@ -1,8 +1,19 @@
 [package]
 name = "wayfind-fuzz"
-version = "0.8.1"
+description = "Fuzzing for `wayfind`."
 publish = false
-edition = "2021"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
 
 [package.metadata]
 cargo-fuzz = true

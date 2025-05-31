@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use super::TemplateError;
+use crate::errors::TemplateError;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum InsertError {

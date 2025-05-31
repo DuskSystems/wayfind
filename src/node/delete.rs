@@ -190,7 +190,7 @@ impl<T, S: NodeState> Node<T, S> {
         }
     }
 
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
             && self.dynamic_constrained_children.is_empty()
@@ -201,7 +201,7 @@ impl<T, S: NodeState> Node<T, S> {
             && self.end_wildcard_children.is_empty()
     }
 
-    fn is_compressible(&self) -> bool {
+    const fn is_compressible(&self) -> bool {
         self.data.is_none()
             && self.static_children.len() == 1
             && self.dynamic_constrained_children.is_empty()
