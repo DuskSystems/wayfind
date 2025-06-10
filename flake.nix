@@ -34,9 +34,6 @@
 
           overlays = [
             rust-overlay.overlays.default
-            (final: prev: {
-              oci-conformance = prev.callPackage ./nix/pkgs/oci-conformance { };
-            })
           ];
         }
       );
@@ -57,11 +54,6 @@
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
-
-            # OCI
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myenv/myrepo";
-            OCI_TEST_PULL = 1;
           };
 
           buildInputs = with pkgs; [
@@ -87,9 +79,6 @@
 
             # Release
             cargo-semver-checks
-
-            # OCI
-            oci-conformance
 
             # Spellchecking
             typos
@@ -117,7 +106,9 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.nightly.latest.minimal.override { extensions = [ "llvm-tools" ]; })
+            (rust-bin.nightly.latest.minimal.override {
+              extensions = [ "llvm-tools" ];
+            })
             sccache
 
             # Coverage
@@ -157,11 +148,6 @@
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
-
-            # OCI
-            OCI_ROOT_URL = "http://127.0.0.1:8000";
-            OCI_NAMESPACE = "myorg/myenv/myrepo";
-            OCI_TEST_PULL = 1;
           };
 
           buildInputs = with pkgs; [
@@ -176,15 +162,8 @@
 
             # Benchmarking
             cargo-codspeed
-
-            # OCI
-            oci-conformance
           ];
         };
-      });
-
-      packages = perSystemPkgs (pkgs: {
-        oci-conformance = pkgs.oci-conformance;
       });
     };
 }

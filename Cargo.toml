@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/workspaces.html
 [workspace]
 resolver = "2"
-members = [".", "examples/*", "fuzz"]
+members = [".", "fuzz"]
 
 [profile.dev.package]
 insta.opt-level = 3
