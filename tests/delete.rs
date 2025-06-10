@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use similar_asserts::assert_eq;
-use wayfind::{errors::DeleteError, Router};
+use wayfind::{Router, errors::DeleteError};
 
 #[test]
 fn test_delete() -> Result<(), Box<dyn Error>> {

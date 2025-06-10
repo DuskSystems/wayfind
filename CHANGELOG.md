@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Raised MSRV from 1.63 to 1.85.
+- Switch to Rust 2024 edition.
+
 ### Removed
 
 - Removed OCI example.

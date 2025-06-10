@@ -1,8 +1,6 @@
 use std::fmt::{Display, Formatter, Result, Write};
 
-use crate::state::NodeState;
-
-use super::Node;
+use crate::{node::Node, state::NodeState};
 
 impl<T, S: NodeState> Display for Node<T, S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
