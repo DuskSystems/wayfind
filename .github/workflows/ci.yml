@@ -48,9 +48,8 @@ jobs:
 
   benchmarks:
     runs-on: ubuntu-24.04
-    defaults:
-      run:
-        shell: nix develop .#ci --command bash {0}
+    env:
+      RUSTFLAGS: "-C target-cpu=native"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,17 +57,18 @@ jobs:
           persist-credentials: false
 
       - name: Setup environment
-        uses: ./.github/actions/setup
+        uses: moonrepo/setup-rust@v1
         with:
-          shell: ci
+          channel: stable
+          cache-target: release
+          bins: cargo-codspeed
 
       - name: Build benchmarks
         run: cargo codspeed build --workspace
 
       - name: Upload benchmark results to CodSpeed
-        uses: CathalMullan/action@main
+        uses: CodSpeedHQ/action@v3
         with:
-          shell: nix develop .#ci --command bash {0}
           run: cargo codspeed run
           token: "${{ secrets.CODSPEED_TOKEN }}"
 
