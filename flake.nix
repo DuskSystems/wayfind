@@ -33,10 +33,8 @@
           inherit system;
 
           overlays = [
-            (rust-overlay.overlays.default)
+            rust-overlay.overlays.default
             (final: prev: {
-              cargo-codspeed = prev.callPackage ./nix/pkgs/cargo-codspeed { };
-              cargo-insta = prev.callPackage ./nix/pkgs/cargo-insta { };
               oci-conformance = prev.callPackage ./nix/pkgs/oci-conformance { };
             })
           ];
@@ -77,15 +75,9 @@
               ];
             })
             sccache
+            taplo
             cargo-insta
             cargo-outdated
-            cargo-show-asm
-            cargo-watch
-
-            # Benchmarking
-            cargo-codspeed
-            gnuplot
-            heaptrack
 
             # Coverage
             cargo-llvm-cov
@@ -96,17 +88,10 @@
             # OCI
             oci-conformance
 
-            # TOML
-            taplo
-
             # Spellchecking
             typos
 
-            # GitHub
-            zizmor
-
             # Nix
-            nix-update
             nixfmt-rfc-style
             nixd
             nil
@@ -189,8 +174,6 @@
       });
 
       packages = perSystemPkgs (pkgs: {
-        cargo-codspeed = pkgs.cargo-codspeed;
-        cargo-insta = pkgs.cargo-insta;
         oci-conformance = pkgs.oci-conformance;
       });
     };
