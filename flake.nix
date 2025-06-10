@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+      url = "github:NixOS/nixpkgs/nixos-25.05";
     };
 
     rust-overlay = {
@@ -50,12 +50,15 @@
           name = "wayfind-shell";
 
           env = {
+            # Nix
             NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
+            # OCI
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myenv/myrepo";
             OCI_TEST_PULL = 1;
@@ -103,6 +106,7 @@
           name = "wayfind-nightly-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -110,7 +114,9 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.nightly.latest.minimal.override { extensions = [ "llvm-tools" ]; })
+            (rust-bin.nightly.latest.minimal.override {
+              extensions = [ "llvm-tools" ];
+            })
             sccache
 
             # Coverage
@@ -126,6 +132,7 @@
           name = "wayfind-msrv-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -145,10 +152,12 @@
           name = "wayfind-ci-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
+            # OCI
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myenv/myrepo";
             OCI_TEST_PULL = 1;
