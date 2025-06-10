@@ -33,10 +33,8 @@
           inherit system;
 
           overlays = [
-            (rust-overlay.overlays.default)
+            rust-overlay.overlays.default
             (final: prev: {
-              cargo-codspeed = prev.callPackage ./nix/pkgs/cargo-codspeed { };
-              cargo-insta = prev.callPackage ./nix/pkgs/cargo-insta { };
               oci-conformance = prev.callPackage ./nix/pkgs/oci-conformance { };
             })
           ];
@@ -52,12 +50,15 @@
           name = "wayfind-shell";
 
           env = {
+            # Nix
             NIX_PATH = "nixpkgs=${nixpkgs.outPath}";
 
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
+            # OCI
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myenv/myrepo";
             OCI_TEST_PULL = 1;
@@ -77,15 +78,9 @@
               ];
             })
             sccache
+            taplo
             cargo-insta
             cargo-outdated
-            cargo-show-asm
-            cargo-watch
-
-            # Benchmarking
-            cargo-codspeed
-            gnuplot
-            heaptrack
 
             # Coverage
             cargo-llvm-cov
@@ -96,9 +91,6 @@
             # OCI
             oci-conformance
 
-            # TOML
-            taplo
-
             # Spellchecking
             typos
 
@@ -106,7 +98,6 @@
             zizmor
 
             # Nix
-            nix-update
             nixfmt-rfc-style
             nixd
             nil
@@ -118,6 +109,7 @@
           name = "wayfind-nightly-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -141,6 +133,7 @@
           name = "wayfind-msrv-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
@@ -160,10 +153,12 @@
           name = "wayfind-ci-shell";
 
           env = {
+            # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native";
             CARGO_INCREMENTAL = "0";
 
+            # OCI
             OCI_ROOT_URL = "http://127.0.0.1:8000";
             OCI_NAMESPACE = "myorg/myenv/myrepo";
             OCI_TEST_PULL = 1;
@@ -189,8 +184,6 @@
       });
 
       packages = perSystemPkgs (pkgs: {
-        cargo-codspeed = pkgs.cargo-codspeed;
-        cargo-insta = pkgs.cargo-insta;
         oci-conformance = pkgs.oci-conformance;
       });
     };
