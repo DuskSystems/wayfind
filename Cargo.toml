@@ -80,14 +80,13 @@ smallvec = { version = "1.15", features = ["const_generics", "union"] }
 
 [dev-dependencies]
 # Testing
-# NOTE: Keep in sync with `cargo-insta` Nix package.
+# NOTE: Keep in sync with `cargo-insta` Nix package: `cargo insta --version`
 insta = "=1.43.1"
 similar-asserts = "1.7"
 
 # Benchmarking
-# NOTE: Keep versions in sync with `cargo-codspeed` Nix package.
+# NOTE: Keep versions in sync with `cargo-codspeed` Nix package: `cargo codspeed --version`
 divan = { package = "codspeed-divan-compat", version = "=2.10.1" }
-criterion = { package = "codspeed-criterion-compat", version = "=2.10.1" }
 
 # Routers
 actix-router = "=0.5.3"
@@ -98,17 +97,9 @@ route-recognizer = "=0.3.1"
 xitca-router = "=0.3.0"
 
 [[bench]]
-name = "matchit_criterion"
+name = "matchit"
 harness = false
 
 [[bench]]
-name = "matchit_divan"
-harness = false
-
-[[bench]]
-name = "path_tree_criterion"
-harness = false
-
-[[bench]]
-name = "path_tree_divan"
+name = "path_tree"
 harness = false
