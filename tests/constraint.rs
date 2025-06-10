@@ -3,8 +3,8 @@ use std::error::Error;
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use wayfind::{
-    errors::{ConstraintError, InsertError},
     Constraint, Match, Router,
+    errors::{ConstraintError, InsertError},
 };
 
 struct NameConstraint;

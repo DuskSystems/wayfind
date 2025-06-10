@@ -1,5 +1,3 @@
-#![allow(clippy::incompatible_msrv)]
-
 //! Benches sourced from `path-tree` (MIT OR Apache-2.0)
 //! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 

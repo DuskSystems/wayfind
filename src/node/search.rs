@@ -161,15 +161,13 @@ impl<T, S: NodeState> Node<T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
 
-                let data =
-                    match child.search(&path[consumed..], &mut current_parameters, constraints) {
-                        Some(data) => data,
-                        _ => {
-                            continue;
-                        }
-                    };
+                let Some(data) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)
+                else {
+                    continue;
+                };
 
-                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
                     Ordering::Greater => true,
                     Ordering::Equal => data.length() >= best.length(),
                     Ordering::Less => false,
@@ -237,15 +235,13 @@ impl<T, S: NodeState> Node<T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
 
-                let data =
-                    match child.search(&path[consumed..], &mut current_parameters, constraints) {
-                        Some(data) => data,
-                        _ => {
-                            continue;
-                        }
-                    };
+                let Some(data) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)
+                else {
+                    continue;
+                };
 
-                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
                     Ordering::Greater => true,
                     Ordering::Equal => data.length() >= best.length(),
                     Ordering::Less => false,
@@ -349,15 +345,13 @@ impl<T, S: NodeState> Node<T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
 
-                let data =
-                    match child.search(&path[consumed..], &mut current_parameters, constraints) {
-                        Some(data) => data,
-                        _ => {
-                            continue;
-                        }
-                    };
+                let Some(data) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)
+                else {
+                    continue;
+                };
 
-                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
                     Ordering::Greater => true,
                     Ordering::Equal => data.length() >= best.length(),
                     Ordering::Less => false,
@@ -454,15 +448,13 @@ impl<T, S: NodeState> Node<T, S> {
                 let mut current_parameters = parameters.clone();
                 current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
 
-                let data =
-                    match child.search(&path[consumed..], &mut current_parameters, constraints) {
-                        Some(data) => data,
-                        _ => {
-                            continue;
-                        }
-                    };
+                let Some(data) =
+                    child.search(&path[consumed..], &mut current_parameters, constraints)
+                else {
+                    continue;
+                };
 
-                if best_match.map_or(true, |best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
                     Ordering::Greater => true,
                     Ordering::Equal => data.length() >= best.length(),
                     Ordering::Less => false,
@@ -517,19 +509,13 @@ impl<T, S: NodeState> Node<T, S> {
         segment: &[u8],
         constraints: &HashMap<&str, StoredConstraint>,
     ) -> bool {
-        let constraint = match constraint {
-            Some(constraint) => constraint,
-            _ => {
-                return true;
-            }
+        let Some(constraint) = constraint else {
+            return true;
         };
 
         let constraint = constraints.get(constraint.as_str()).unwrap();
-        let segment = match std::str::from_utf8(segment) {
-            Ok(segment) => segment,
-            _ => {
-                return false;
-            }
+        let Ok(segment) = std::str::from_utf8(segment) else {
+            return false;
         };
 
         (constraint.check)(segment)

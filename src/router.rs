@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
 };
 
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 use crate::{
     constraints::Constraint,
@@ -270,11 +270,8 @@ impl<T> Router<T> {
 
         // Check for any conflicts or mismatches.
         for parsed_template in &parsed.templates {
-            let found = match self.root.find(&mut parsed_template.clone()) {
-                Some(found) => found,
-                _ => {
-                    continue;
-                }
+            let Some(found) = self.root.find(&mut parsed_template.clone()) else {
+                continue;
             };
 
             if found.template() == template {
@@ -302,13 +299,10 @@ impl<T> Router<T> {
             }
         }
 
-        let data = match output {
-            Some(data) => data,
-            _ => {
-                return Err(DeleteError::NotFound {
-                    template: template.to_owned(),
-                });
-            }
+        let Some(data) = output else {
+            return Err(DeleteError::NotFound {
+                template: template.to_owned(),
+            });
         };
 
         self.root.optimize();
@@ -328,15 +322,9 @@ impl<T> Router<T> {
     /// ```
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
-        let search = match self
+        let search = self
             .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)
-        {
-            Some(data) => data,
-            _ => {
-                return None;
-            }
-        };
+            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
 
         Some(Match {
             data: search.data(),
@@ -344,6 +332,12 @@ impl<T> Router<T> {
             expanded: search.expanded(),
             parameters,
         })
+    }
+}
+
+impl<T> Default for Router<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

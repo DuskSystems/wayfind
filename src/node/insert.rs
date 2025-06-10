@@ -1,4 +1,5 @@
 use crate::{
+    node::{Node, NodeData},
     nodes::Nodes,
     parser::{Part, Template},
     state::{
@@ -6,8 +7,6 @@ use crate::{
         NodeState, StaticState, WildcardConstrainedState, WildcardState,
     },
 };
-
-use super::{Node, NodeData};
 
 impl<T, S: NodeState> Node<T, S> {
     /// Inserts a new route into the node tree with associated data.

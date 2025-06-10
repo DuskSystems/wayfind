@@ -1,4 +1,4 @@
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 use crate::errors::TemplateError;
 
@@ -203,7 +203,7 @@ impl ParsedTemplate {
                     return Err(TemplateError::UnbalancedBrace {
                         template: String::from_utf8_lossy(raw).to_string(),
                         position: cursor,
-                    })
+                    });
                 }
                 _ => {
                     let (part, next_cursor) = Self::parse_static_part(raw, cursor);
