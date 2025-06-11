@@ -58,7 +58,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable.latest.minimal.override {
+            (rust-bin.stable."1.86.0".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
               extensions = [
                 "clippy"
@@ -152,7 +152,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable.latest.minimal.override {
+            (rust-bin.stable."1.86.0".minimal.override {
               extensions = [
                 "clippy"
                 "rustfmt"
