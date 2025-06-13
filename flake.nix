@@ -58,7 +58,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.86.0".minimal.override {
+            (rust-bin.stable.latest.minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
               extensions = [
                 "clippy"
@@ -152,16 +152,13 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.86.0".minimal.override {
+            (rust-bin.stable.latest.minimal.override {
               extensions = [
                 "clippy"
                 "rustfmt"
               ];
             })
             sccache
-
-            # Benchmarking
-            cargo-codspeed
           ];
         };
       });
