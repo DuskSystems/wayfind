@@ -10,10 +10,6 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  id-token: write
-
 env:
   ACTIONS_CACHE_SERVICE_V2: "on"
   SCCACHE_GHA_ENABLED: "true"
@@ -22,6 +18,8 @@ env:
 jobs:
   checks:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     defaults:
       run:
         shell: nix develop .#ci --command bash {0}
@@ -48,6 +46,8 @@ jobs:
 
   coverage:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     defaults:
       run:
         shell: nix develop .#nightly --command bash {0}
@@ -66,7 +66,7 @@ jobs:
         run: cargo llvm-cov --workspace --doctests --codecov --output-path codecov.json
 
       - name: Upload coverage results to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
         with:
           files: codecov.json
           fail_ci_if_error: true
@@ -74,6 +74,8 @@ jobs:
 
   msrv:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     defaults:
       run:
         shell: nix develop .#msrv --command bash {0}
@@ -93,6 +95,8 @@ jobs:
 
   wasm:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     defaults:
       run:
         shell: nix develop .#msrv --command bash {0}
