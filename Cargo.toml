@@ -96,8 +96,7 @@ insta = "=1.43.1"
 similar-asserts = "1.7"
 
 # Benchmarking
-# NOTE: Keep versions in sync with `cargo-codspeed` Nix package: `cargo codspeed --version`
-divan = { package = "codspeed-divan-compat", version = "=2.10.1" }
+divan = "0.1"
 
 # Routers
 actix-router = "=0.5.3"

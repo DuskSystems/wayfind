@@ -46,32 +46,6 @@ jobs:
           cargo test --workspace
           cargo test --workspace --doc
 
-  benchmarks:
-    runs-on: ubuntu-24.04
-    defaults:
-      run:
-        shell: nix develop .#ci --command bash {0}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          shell: ci
-
-      - name: Build benchmarks
-        run: cargo codspeed build --workspace
-
-      - name: Upload benchmark results to CodSpeed
-        uses: CathalMullan/action@main
-        with:
-          shell: nix develop .#ci --command bash {0}
-          run: cargo codspeed run
-          token: "${{ secrets.CODSPEED_TOKEN }}"
-
   coverage:
     runs-on: ubuntu-24.04
     defaults:
