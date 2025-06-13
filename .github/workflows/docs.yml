@@ -9,11 +9,6 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  id-token: write
-  pages: write
-
 env:
   ACTIONS_CACHE_SERVICE_V2: "on"
   SCCACHE_GHA_ENABLED: "true"
@@ -22,6 +17,8 @@ env:
 jobs:
   docs:
     runs-on: ubuntu-24.04
+    permissions:
+      actions: write
     defaults:
       run:
         shell: nix develop .#ci --command bash {0}
@@ -52,6 +49,9 @@ jobs:
   deploy:
     needs: docs
     runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: "${{ steps.deployment.outputs.page_url }}"
