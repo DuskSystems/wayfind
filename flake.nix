@@ -132,7 +132,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.85.0".minimal.override {
+            (rust-bin.stable."1.87.0".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
             })
             sccache
