@@ -52,7 +52,7 @@
 
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native";
+            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -70,6 +70,7 @@
               ];
             })
             sccache
+            mold
             taplo
             cargo-insta
             cargo-outdated
@@ -100,7 +101,7 @@
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native";
+            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -109,6 +110,7 @@
             (rust-bin.nightly.latest.minimal.override {
               extensions = [ "llvm-tools" ];
             })
+            mold
             sccache
 
             # Coverage
@@ -126,7 +128,7 @@
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native";
+            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -135,6 +137,7 @@
             (rust-bin.stable."1.87.0".minimal.override {
               targets = [ "wasm32-unknown-unknown" ];
             })
+            mold
             sccache
           ];
         };
@@ -146,7 +149,7 @@
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native";
+            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -158,6 +161,7 @@
                 "rustfmt"
               ];
             })
+            mold
             sccache
           ];
         };
