@@ -94,6 +94,7 @@ impl<S: NodeState> Node<S> {
         constraints: &HashMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.static_children {
+            // This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
             {

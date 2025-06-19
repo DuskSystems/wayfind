@@ -91,7 +91,7 @@ jobs:
           shell: msrv
 
       - name: Build wayfind
-        run: cargo build --package wayfind
+        run: cargo build --lib --package wayfind
 
   wasm:
     runs-on: ubuntu-24.04
@@ -112,7 +112,7 @@ jobs:
           shell: msrv
 
       - name: Build wayfind
-        run: cargo build --package wayfind --target wasm32-unknown-unknown
+        run: cargo build --lib --package wayfind --target wasm32-unknown-unknown
 
   no-std:
     runs-on: ubuntu-24.04
@@ -133,4 +133,4 @@ jobs:
           shell: msrv
 
       - name: Build wayfind
-        run: cargo build --package wayfind --target thumbv6m-none-eabi
+        run: cargo build --lib --package wayfind --target thumbv6m-none-eabi
