@@ -1,5 +1,6 @@
 use alloc::{
     borrow::ToOwned,
+    collections::btree_map::BTreeMap,
     string::{String, ToString},
     vec,
 };
@@ -8,7 +9,6 @@ use core::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
-use hashbrown::HashMap;
 use smallvec::{SmallVec, smallvec};
 
 use crate::{
@@ -59,7 +59,7 @@ pub struct Router<T> {
     root: Node<RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
-    constraints: HashMap<&'static str, StoredConstraint>,
+    constraints: BTreeMap<&'static str, StoredConstraint>,
 
     /// Keyed storage map containing the inserted data.
     storage: Storage<T>,
@@ -90,7 +90,7 @@ impl<T> Router<T> {
 
                 needs_optimization: false,
             },
-            constraints: HashMap::default(),
+            constraints: BTreeMap::default(),
             storage: Storage::new(),
         };
 

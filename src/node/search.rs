@@ -1,6 +1,6 @@
+use alloc::collections::btree_map::BTreeMap;
 use core::cmp::Ordering;
 
-use hashbrown::HashMap;
 use smallvec::smallvec;
 
 use crate::{
@@ -26,7 +26,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         if path.is_empty() {
             return self.data.as_ref();
@@ -91,7 +91,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.static_children {
             // This was previously a "starts_with" call, but turns out this is much faster.
@@ -113,7 +113,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.dynamic_constrained_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -140,7 +140,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.dynamic_constrained_children {
             let mut consumed = 0;
@@ -193,7 +193,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
@@ -217,7 +217,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.dynamic_children {
             let mut consumed = 0;
@@ -267,7 +267,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
@@ -328,7 +328,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
@@ -377,7 +377,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
@@ -434,7 +434,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
@@ -479,7 +479,7 @@ impl<S: NodeState> Node<S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-        constraints: &HashMap<&'static str, StoredConstraint>,
+        constraints: &BTreeMap<&'static str, StoredConstraint>,
     ) -> Option<&'r NodeData> {
         for child in &self.end_wildcard_constrained_children {
             if !Self::check_constraint(Some(&child.state.constraint), path, constraints) {
@@ -509,7 +509,7 @@ impl<S: NodeState> Node<S> {
     fn check_constraint(
         constraint: Option<&str>,
         segment: &[u8],
-        constraints: &HashMap<&str, StoredConstraint>,
+        constraints: &BTreeMap<&str, StoredConstraint>,
     ) -> bool {
         let Some(constraint) = constraint else {
             return true;

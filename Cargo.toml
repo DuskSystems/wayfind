@@ -10,7 +10,7 @@ edition = "2024"
 rust-version = "1.87"
 repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
-keywords = ["router"]
+keywords = ["router", "path"]
 categories = ["network-programming", "web-programming"]
 
 # https://doc.rust-lang.org/rustc/lints/groups.html
@@ -95,7 +95,6 @@ workspace = true
 [dependencies]
 # Data Structures
 smallvec = { version = "1.15", features = ["const_generics", "union"] }
-hashbrown = "0.15"
 
 [dev-dependencies]
 # Testing
