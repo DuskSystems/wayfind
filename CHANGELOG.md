@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support `no-std` builds.
+- `Router::get` and `Router::get_mut` methods to access data from pre-existing templates.
 
 ### Changed
 
