@@ -113,3 +113,24 @@ jobs:
 
       - name: Build wayfind
         run: cargo build --package wayfind --target wasm32-unknown-unknown
+
+  no-std:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    defaults:
+      run:
+        shell: nix develop .#msrv --command bash {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          shell: msrv
+
+      - name: Build wayfind
+        run: cargo build --package wayfind --target thumbv6m-none-eabi

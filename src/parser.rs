@@ -1,3 +1,9 @@
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
+
 use smallvec::{SmallVec, smallvec};
 
 use crate::errors::TemplateError;
@@ -370,6 +376,8 @@ impl ParsedTemplate {
 
 #[cfg(test)]
 mod tests {
+    use alloc::borrow::ToOwned;
+
     use similar_asserts::assert_eq;
 
     use super::*;

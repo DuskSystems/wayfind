@@ -5,6 +5,7 @@
 ![rust: 1.87+](https://img.shields.io/badge/rust-1.87+-orange.svg)
 ![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
+![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)
 
 [![codecov](https://codecov.io/gh/DuskSystems/wayfind/graph/badge.svg?token=QMSW55438K)](https://codecov.io/gh/DuskSystems/wayfind)
 

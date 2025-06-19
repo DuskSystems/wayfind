@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display};
+use alloc::{fmt, string::String};
+use core::error::Error;
 
 use crate::errors::TemplateError;
 
@@ -74,8 +75,8 @@ pub enum DeleteError {
 
 impl Error for DeleteError {}
 
-impl Display for DeleteError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for DeleteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Template(error) => error.fmt(f),
             Self::NotFound { template } => write!(

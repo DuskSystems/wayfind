@@ -91,6 +91,7 @@ workspace = true
 [dependencies]
 # Data Structures
 smallvec = { version = "1.15", features = ["const_generics", "union"] }
+hashbrown = "0.15"
 
 [dev-dependencies]
 # Testing

@@ -1,3 +1,5 @@
+use alloc::{string::String, vec};
+
 use crate::{
     node::{Node, NodeData},
     nodes::Nodes,
@@ -69,21 +71,21 @@ impl<S: NodeState> Node<S> {
                 state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
                 data: child.data.take(),
 
-                static_children: std::mem::take(&mut child.static_children),
-                dynamic_constrained_children: std::mem::take(
+                static_children: core::mem::take(&mut child.static_children),
+                dynamic_constrained_children: core::mem::take(
                     &mut child.dynamic_constrained_children,
                 ),
-                dynamic_children: std::mem::take(&mut child.dynamic_children),
+                dynamic_children: core::mem::take(&mut child.dynamic_children),
                 dynamic_children_shortcut: child.dynamic_children_shortcut,
-                wildcard_constrained_children: std::mem::take(
+                wildcard_constrained_children: core::mem::take(
                     &mut child.wildcard_constrained_children,
                 ),
-                wildcard_children: std::mem::take(&mut child.wildcard_children),
+                wildcard_children: core::mem::take(&mut child.wildcard_children),
                 wildcard_children_shortcut: child.wildcard_children_shortcut,
-                end_wildcard_constrained_children: std::mem::take(
+                end_wildcard_constrained_children: core::mem::take(
                     &mut child.end_wildcard_constrained_children,
                 ),
-                end_wildcard_children: std::mem::take(&mut child.end_wildcard_children),
+                end_wildcard_children: core::mem::take(&mut child.end_wildcard_children),
 
                 needs_optimization: child.needs_optimization,
             };

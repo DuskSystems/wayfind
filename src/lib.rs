@@ -347,6 +347,10 @@
 //!
 //! See [`Errors`](errors) for examples.
 
+#![no_std]
+
+extern crate alloc;
+
 mod constraints;
 pub use constraints::Constraint;
 

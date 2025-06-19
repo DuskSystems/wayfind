@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support `no-std` builds.
+
 ### Changed
 
 - Raised MSRV from 1.63 to 1.87.

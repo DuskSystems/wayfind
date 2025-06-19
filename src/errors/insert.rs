@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display};
+use alloc::{borrow::ToOwned, fmt, format, string::String, vec::Vec};
+use core::error::Error;
 
 use crate::errors::TemplateError;
 
@@ -80,8 +81,8 @@ pub enum InsertError {
 
 impl Error for InsertError {}
 
-impl Display for InsertError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for InsertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Template(error) => error.fmt(f),
             Self::Conflict {

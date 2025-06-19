@@ -1,4 +1,5 @@
-use std::ops::{Index, IndexMut};
+use alloc::vec::Vec;
+use core::ops::{Index, IndexMut};
 
 use crate::{node::Node, state::NodeState};
 
@@ -36,12 +37,12 @@ impl<S: NodeState> Nodes<S> {
     }
 
     #[inline]
-    pub fn iter(&self) -> std::slice::Iter<'_, Node<S>> {
+    pub fn iter(&self) -> core::slice::Iter<'_, Node<S>> {
         self.vec.iter()
     }
 
     #[inline]
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Node<S>> {
+    pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, Node<S>> {
         self.sorted = false;
         self.vec.iter_mut()
     }
@@ -68,7 +69,7 @@ impl<S: NodeState> Default for Nodes<S> {
 
 impl<'a, S: NodeState> IntoIterator for &'a Nodes<S> {
     type Item = &'a Node<S>;
-    type IntoIter = std::slice::Iter<'a, Node<S>>;
+    type IntoIter = core::slice::Iter<'a, Node<S>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
@@ -77,7 +78,7 @@ impl<'a, S: NodeState> IntoIterator for &'a Nodes<S> {
 
 impl<'a, S: NodeState> IntoIterator for &'a mut Nodes<S> {
     type Item = &'a mut Node<S>;
-    type IntoIter = std::slice::IterMut<'a, Node<S>>;
+    type IntoIter = core::slice::IterMut<'a, Node<S>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
