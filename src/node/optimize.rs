@@ -1,6 +1,6 @@
 use crate::{node::Node, state::NodeState};
 
-impl<T, S: NodeState> Node<T, S> {
+impl<S: NodeState> Node<S> {
     pub(crate) fn optimize(&mut self) {
         if !self.needs_optimization {
             return;

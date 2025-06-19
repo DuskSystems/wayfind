@@ -1,11 +1,10 @@
-use std::sync::Arc;
-
 use crate::{
     nodes::Nodes,
     state::{
         DynamicConstrainedState, DynamicState, EndWildcardConstrainedState, EndWildcardState,
         NodeState, StaticState, WildcardConstrainedState, WildcardState,
     },
+    storage::Key,
 };
 
 mod delete;
@@ -16,95 +15,41 @@ mod optimize;
 mod search;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum NodeData<T> {
-    /// Data is stored inline.
-    Inline {
-        /// The associated data.
-        data: T,
+pub struct NodeData {
+    /// The key to the stored data
+    pub key: Key,
 
-        /// The original template.
-        template: Arc<str>,
+    /// The original template.
+    pub template: String,
 
-        /// The number of slashes in the template.
-        depth: usize,
+    /// The expanded template (if from optional group).
+    pub expanded: Option<String>,
 
-        /// The length of the template.
-        length: usize,
-    },
+    /// The number of slashes in the template, or expanded template if exists.
+    pub depth: usize,
 
-    /// Data is shared between 2 or more nodes.
-    Shared {
-        /// The associated data, shared.
-        data: Arc<T>,
-
-        /// The original template.
-        template: Arc<str>,
-
-        /// The expanded template.
-        expanded: Arc<str>,
-
-        /// The number of slashes in the expanded template.
-        depth: usize,
-
-        /// The length of the expanded template.
-        length: usize,
-    },
-}
-
-impl<T> NodeData<T> {
-    #[inline]
-    pub fn data(&self) -> &T {
-        match self {
-            Self::Inline { data, .. } => data,
-            Self::Shared { data, .. } => data.as_ref(),
-        }
-    }
-
-    pub fn template(&self) -> &str {
-        match self {
-            Self::Inline { template, .. } | Self::Shared { template, .. } => template,
-        }
-    }
-
-    #[inline]
-    pub fn expanded(&self) -> Option<&str> {
-        match self {
-            Self::Inline { .. } => None,
-            Self::Shared { expanded, .. } => Some(expanded),
-        }
-    }
-
-    pub const fn depth(&self) -> usize {
-        match self {
-            Self::Inline { depth, .. } | Self::Shared { depth, .. } => *depth,
-        }
-    }
-
-    pub const fn length(&self) -> usize {
-        match self {
-            Self::Inline { length, .. } | Self::Shared { length, .. } => *length,
-        }
-    }
+    /// The length of the template, or expanded template if exists.
+    pub length: usize,
 }
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<T, S: NodeState> {
+pub struct Node<S: NodeState> {
     /// The type of Node, and associated structure data.
     pub state: S,
     /// Optional data associated with this node.
     /// The presence of this data is needed to successfully match a template.
-    pub data: Option<NodeData<T>>,
+    pub data: Option<NodeData>,
 
-    pub static_children: Nodes<T, StaticState>,
-    pub dynamic_constrained_children: Nodes<T, DynamicConstrainedState>,
-    pub dynamic_children: Nodes<T, DynamicState>,
+    pub static_children: Nodes<StaticState>,
+    pub dynamic_constrained_children: Nodes<DynamicConstrainedState>,
+    pub dynamic_children: Nodes<DynamicState>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_constrained_children: Nodes<T, WildcardConstrainedState>,
-    pub wildcard_children: Nodes<T, WildcardState>,
+    pub wildcard_constrained_children: Nodes<WildcardConstrainedState>,
+    pub wildcard_children: Nodes<WildcardState>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_constrained_children: Nodes<T, EndWildcardConstrainedState>,
-    pub end_wildcard_children: Nodes<T, EndWildcardState>,
+    pub end_wildcard_constrained_children: Nodes<EndWildcardConstrainedState>,
+    pub end_wildcard_children: Nodes<EndWildcardState>,
 
     /// Flag indicating whether this node need optimization.
     /// During optimization, the shortcut flags are updated, and nodes sorted.

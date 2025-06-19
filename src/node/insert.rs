@@ -8,13 +8,13 @@ use crate::{
     },
 };
 
-impl<T, S: NodeState> Node<T, S> {
+impl<S: NodeState> Node<S> {
     /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
     ///
     /// No conflict handling occurs here.
     /// To ensure there are no conflicts, check using `Node::find`.
-    pub fn insert(&mut self, template: &mut Template, data: NodeData<T>) {
+    pub fn insert(&mut self, template: &mut Template, data: NodeData) {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(template, data, &prefix),
@@ -39,7 +39,7 @@ impl<T, S: NodeState> Node<T, S> {
         }
     }
 
-    fn insert_static(&mut self, template: &mut Template, data: NodeData<T>, prefix: &[u8]) {
+    fn insert_static(&mut self, template: &mut Template, data: NodeData, prefix: &[u8]) {
         // Check if the first byte is already a child here.
         if let Some(child) = self
             .static_children
@@ -148,7 +148,7 @@ impl<T, S: NodeState> Node<T, S> {
     fn insert_dynamic_constrained(
         &mut self,
         template: &mut Template,
-        data: NodeData<T>,
+        data: NodeData,
         name: String,
         constraint: String,
     ) {
@@ -185,7 +185,7 @@ impl<T, S: NodeState> Node<T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData<T>, name: String) {
+    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: String) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -222,7 +222,7 @@ impl<T, S: NodeState> Node<T, S> {
     fn insert_wildcard_constrained(
         &mut self,
         template: &mut Template,
-        data: NodeData<T>,
+        data: NodeData,
         name: String,
         constraint: String,
     ) {
@@ -259,7 +259,7 @@ impl<T, S: NodeState> Node<T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData<T>, name: String) {
+    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: String) {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
@@ -295,7 +295,7 @@ impl<T, S: NodeState> Node<T, S> {
 
     fn insert_end_wildcard_constrained(
         &mut self,
-        data: NodeData<T>,
+        data: NodeData,
         name: String,
         constraint: String,
     ) {
@@ -327,7 +327,7 @@ impl<T, S: NodeState> Node<T, S> {
         self.needs_optimization = true;
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: String) {
+    fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
         if self
             .end_wildcard_children
             .iter()

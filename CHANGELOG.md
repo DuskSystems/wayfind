@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Raised MSRV from 1.63 to 1.87.
 - Switch to Rust 2024 edition.
+- Switched internal data store to slot storage.
 
 ### Removed
 
