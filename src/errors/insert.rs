@@ -47,36 +47,6 @@ pub enum InsertError {
         /// List of existing templates that conflict.
         conflicts: Vec<String>,
     },
-
-    /// The constraint specified in the template is not recognized by the router.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::InsertError;
-    ///
-    /// let error = InsertError::UnknownConstraint {
-    ///     constraint: "unknown_constraint".to_owned(),
-    /// };
-    ///
-    /// let display = r"
-    /// unknown constraint
-    ///
-    ///     Constraint: unknown_constraint
-    ///
-    /// help: The router must be configured with this constraint before use
-    ///
-    /// try:
-    ///     - Register the constraint with the router
-    ///     - Check for typos in the constraint name
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    UnknownConstraint {
-        /// The name of the unrecognized constraint.
-        constraint: String,
-    },
 }
 
 impl Error for InsertError {}
@@ -113,18 +83,6 @@ try:
     - Remove conflicting templates"
                 )
             }
-            Self::UnknownConstraint { constraint } => write!(
-                f,
-                r"unknown constraint
-
-    Constraint: {constraint}
-
-help: The router must be configured with this constraint before use
-
-try:
-    - Register the constraint with the router
-    - Check for typos in the constraint name"
-            ),
         }
     }
 }

@@ -2,10 +2,7 @@ use std::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
-use wayfind::{
-    Constraint, Match, Router,
-    errors::{ConstraintError, InsertError},
-};
+use wayfind::{Constraint, Match, Router, errors::ConstraintError};
 
 struct NameConstraint;
 impl Constraint for NameConstraint {
@@ -24,7 +21,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id:name} [*]
+    ╰─ {id:17} [*]
     ");
 
     let search = router.search("/users/john123");
@@ -52,7 +49,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {*path:name} [*]
+    ╰─ {*path:17} [*]
     ");
 
     let search = router.search("/users/john/doe123");
@@ -70,19 +67,6 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(search, None);
 
     Ok(())
-}
-
-#[test]
-fn test_constraint_unknown() {
-    let mut router = Router::new();
-
-    let result = router.insert("/users/{id:unknown}", 1);
-    assert_eq!(
-        result,
-        Err(InsertError::UnknownConstraint {
-            constraint: "unknown".to_owned()
-        })
-    );
 }
 
 #[test]
@@ -129,7 +113,7 @@ fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ├─ {id:u32} [*]
+    ├─ {id:2} [*]
     ╰─ {id} [*]
     ");
 
@@ -167,16 +151,16 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ├─ {id:name} [*]
-    ╰─ {id:u32} [*]
+    ├─ {id:2} [*]
+    ╰─ {id:17} [*]
     ");
 
     let search = router.search("/users/123");
     assert_eq!(
         search,
         Some(Match {
-            data: &2,
-            template: "/users/{id:name}",
+            data: &1,
+            template: "/users/{id:u32}",
             expanded: None,
             parameters: smallvec![("id", "123")],
         })

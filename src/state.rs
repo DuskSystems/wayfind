@@ -129,14 +129,14 @@ impl PartialOrd for DynamicState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DynamicConstrainedState {
     pub name: String,
-    pub constraint: String,
+    pub constraint: usize,
     padding: usize,
     key: String,
 }
 
 impl DynamicConstrainedState {
     #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
+    pub fn new(name: String, constraint: usize) -> Self {
         let padding = name.len().saturating_sub(1);
         let key = format!("{{{name}:{constraint}}}");
 
@@ -215,14 +215,14 @@ impl PartialOrd for WildcardState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WildcardConstrainedState {
     pub name: String,
-    pub constraint: String,
+    pub constraint: usize,
     padding: usize,
     key: String,
 }
 
 impl WildcardConstrainedState {
     #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
+    pub fn new(name: String, constraint: usize) -> Self {
         let padding = name.len().saturating_sub(1);
         let key = format!("{{*{name}:{constraint}}}");
 
@@ -301,14 +301,14 @@ impl Ord for EndWildcardState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EndWildcardConstrainedState {
     pub name: String,
-    pub constraint: String,
+    pub constraint: usize,
     padding: usize,
     key: String,
 }
 
 impl EndWildcardConstrainedState {
     #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
+    pub fn new(name: String, constraint: usize) -> Self {
         let padding = name.len().saturating_sub(1);
         let key = format!("{{*{name}:{constraint}}}");
 

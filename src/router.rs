@@ -2,13 +2,13 @@ use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
     vec,
+    vec::Vec,
 };
 use core::{
     fmt,
     net::{Ipv4Addr, Ipv6Addr},
 };
 
-use hashbrown::HashMap;
 use smallvec::{SmallVec, smallvec};
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
     errors::{ConstraintError, DeleteError, InsertError},
     node::{Node, NodeData},
     nodes::Nodes,
-    parser::{ParsedTemplate, Part},
+    parser::ParsedTemplate,
     state::RootState,
     storage::Storage,
 };
@@ -46,6 +46,7 @@ pub type Parameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
 /// A constraint function with its type name.
 #[derive(Clone)]
 pub struct StoredConstraint {
+    pub name: &'static str,
     pub type_name: &'static str,
     pub check: fn(&str) -> bool,
 }
@@ -58,8 +59,8 @@ pub struct Router<T> {
     /// The root node of the tree.
     root: Node<RootState>,
 
-    /// A map of constraint names to [`StoredConstraint`].
-    constraints: HashMap<&'static str, StoredConstraint>,
+    /// A list of [`StoredConstraint`].
+    constraints: Vec<StoredConstraint>,
 
     /// Keyed storage map containing the inserted data.
     storage: Storage<T>,
@@ -90,7 +91,7 @@ impl<T> Router<T> {
 
                 needs_optimization: false,
             },
-            constraints: HashMap::default(),
+            constraints: Vec::with_capacity(32),
             storage: Storage::new(),
         };
 
@@ -139,7 +140,7 @@ impl<T> Router<T> {
     /// router.constraint::<HelloConstraint>().unwrap();
     /// ```
     pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        if let Some(existing) = self.constraints.get(C::NAME) {
+        if let Some(existing) = self.constraints.iter().find(|c| c.name == C::NAME) {
             return Err(ConstraintError::DuplicateName {
                 name: C::NAME,
                 existing_type: existing.type_name,
@@ -147,13 +148,11 @@ impl<T> Router<T> {
             });
         }
 
-        self.constraints.insert(
-            C::NAME,
-            StoredConstraint {
-                type_name: core::any::type_name::<C>(),
-                check: C::check,
-            },
-        );
+        self.constraints.push(StoredConstraint {
+            name: C::NAME,
+            type_name: core::any::type_name::<C>(),
+            check: C::check,
+        });
 
         Ok(())
     }
@@ -173,26 +172,7 @@ impl<T> Router<T> {
     /// router.insert("/hello", 1).unwrap();
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
-        let mut parsed = ParsedTemplate::new(template.as_bytes())?;
-
-        // Check for invalid constraints.
-        for template in &parsed.templates {
-            for part in &template.parts {
-                if let Part::DynamicConstrained {
-                    constraint: name, ..
-                }
-                | Part::WildcardConstrained {
-                    constraint: name, ..
-                } = part
-                {
-                    if !self.constraints.contains_key(name.as_str()) {
-                        return Err(InsertError::UnknownConstraint {
-                            constraint: name.to_string(),
-                        });
-                    }
-                }
-            }
-        }
+        let mut parsed = ParsedTemplate::new(template.as_bytes(), &self.constraints)?;
 
         // Check for any conflicts.
         let mut conflicts = vec![];
@@ -275,7 +255,7 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, template: &str) -> Result<T, DeleteError> {
-        let parsed = ParsedTemplate::new(template.as_bytes())?;
+        let parsed = ParsedTemplate::new(template.as_bytes(), &self.constraints)?;
 
         // Check for any conflicts or mismatches.
         for parsed_template in &parsed.templates {
@@ -337,7 +317,7 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(parsed) = ParsedTemplate::new(template.as_bytes(), &self.constraints) else {
             return None;
         };
 
@@ -369,7 +349,7 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(parsed) = ParsedTemplate::new(template.as_bytes(), &self.constraints) else {
             return None;
         };
 

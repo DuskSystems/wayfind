@@ -6,7 +6,7 @@ use alloc::{
 
 use smallvec::{SmallVec, smallvec};
 
-use crate::errors::TemplateError;
+use crate::{errors::TemplateError, router::StoredConstraint};
 
 /// Characters that are not allowed in parameter names or constraints.
 const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
@@ -21,9 +21,9 @@ pub struct Template {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Part {
     Static { prefix: Vec<u8> },
-    DynamicConstrained { name: String, constraint: String },
+    DynamicConstrained { name: String, constraint: usize },
     Dynamic { name: String },
-    WildcardConstrained { name: String, constraint: String },
+    WildcardConstrained { name: String, constraint: usize },
     Wildcard { name: String },
 }
 
@@ -35,7 +35,7 @@ pub struct ParsedTemplate {
 }
 
 impl ParsedTemplate {
-    pub fn new(input: &[u8]) -> Result<Self, TemplateError> {
+    pub fn new(input: &[u8], constraints: &[StoredConstraint]) -> Result<Self, TemplateError> {
         if input.is_empty() {
             return Err(TemplateError::Empty);
         }
@@ -43,7 +43,7 @@ impl ParsedTemplate {
         let templates = Self::expand_optional_groups(input, 0, input.len())?;
         let templates = templates
             .into_iter()
-            .map(|raw| Self::parse_template(input, &raw))
+            .map(|raw| Self::parse_template(input, constraints, &raw))
             .collect::<Result<Vec<_>, _>>()?;
 
         let expanded = templates.len() > 1;
@@ -150,7 +150,11 @@ impl ParsedTemplate {
         Ok(result)
     }
 
-    fn parse_template(input: &[u8], raw: &[u8]) -> Result<Template, TemplateError> {
+    fn parse_template(
+        input: &[u8],
+        constraints: &[StoredConstraint],
+        raw: &[u8],
+    ) -> Result<Template, TemplateError> {
         if !raw.is_empty() && raw[0] != b'/' {
             return Err(TemplateError::MissingLeadingSlash {
                 template: String::from_utf8_lossy(raw).to_string(),
@@ -166,7 +170,7 @@ impl ParsedTemplate {
         while cursor < raw.len() {
             match raw[cursor] {
                 b'{' => {
-                    let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
+                    let (part, next_cursor) = Self::parse_parameter_part(constraints, raw, cursor)?;
 
                     // Check for touching parameters.
                     if let Some((_, start, length)) = seen_parameters.last() {
@@ -253,7 +257,11 @@ impl ParsedTemplate {
         (Part::Static { prefix }, end)
     }
 
-    fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), TemplateError> {
+    fn parse_parameter_part(
+        constraints: &[StoredConstraint],
+        input: &[u8],
+        cursor: usize,
+    ) -> Result<(Part, usize), TemplateError> {
         let start = cursor + 1;
         let mut end = start;
 
@@ -351,14 +359,26 @@ impl ParsedTemplate {
             })?;
 
         let constraint = if let Some(constraint) = constraint {
-            Some(String::from_utf8(constraint.to_vec()).map_err(|_| {
+            let constraint = String::from_utf8(constraint.to_vec()).map_err(|_| {
                 TemplateError::InvalidConstraint {
                     template: String::from_utf8_lossy(input).to_string(),
                     name: String::from_utf8_lossy(constraint).to_string(),
                     start: cursor,
                     length: end - cursor + 1,
                 }
-            })?)
+            })?;
+
+            let constraint = constraints
+                .iter()
+                .position(|c| c.name == constraint)
+                .ok_or_else(|| TemplateError::UnknownConstraint {
+                    template: String::from_utf8_lossy(input).to_string(),
+                    constraint: constraint.to_string(),
+                    start: cursor,
+                    length: end - cursor + 1,
+                })?;
+
+            Some(constraint)
         } else {
             None
         };
@@ -385,7 +405,7 @@ mod tests {
     #[test]
     fn test_parser_static_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/abcd"),
+            ParsedTemplate::new(b"/abcd", &[]),
             Ok(ParsedTemplate {
                 input: b"/abcd".to_vec(),
                 templates: vec![Template {
@@ -403,7 +423,7 @@ mod tests {
     #[test]
     fn test_parser_dynamic_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{name}"),
+            ParsedTemplate::new(b"/{name}", &[]),
             Ok(ParsedTemplate {
                 input: b"/{name}".to_vec(),
                 templates: vec![Template {
@@ -426,7 +446,7 @@ mod tests {
     #[test]
     fn test_parser_wildcard_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{*wildcard}"),
+            ParsedTemplate::new(b"/{*wildcard}", &[]),
             Ok(ParsedTemplate {
                 input: b"/{*wildcard}".to_vec(),
                 templates: vec![Template {
@@ -448,8 +468,21 @@ mod tests {
 
     #[test]
     fn test_parser_complex_route() {
+        let constraints = vec![
+            StoredConstraint {
+                name: "alpha",
+                type_name: "AlphaConstraint",
+                check: |_| true,
+            },
+            StoredConstraint {
+                name: "numeric",
+                type_name: "NumericConstraint",
+                check: |_| true,
+            },
+        ];
+
         assert_eq!(
-            ParsedTemplate::new(b"/{*name:alpha}/{id:numeric}"),
+            ParsedTemplate::new(b"/{*name:alpha}/{id:numeric}", &constraints),
             Ok(ParsedTemplate {
                 input: b"/{*name:alpha}/{id:numeric}".to_vec(),
                 templates: vec![Template {
@@ -458,14 +491,14 @@ mod tests {
                     parts: vec![
                         Part::DynamicConstrained {
                             name: "id".to_owned(),
-                            constraint: "numeric".to_owned()
+                            constraint: 1
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
                         },
                         Part::WildcardConstrained {
                             name: "name".to_owned(),
-                            constraint: "alpha".to_owned()
+                            constraint: 0
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -480,7 +513,7 @@ mod tests {
     #[test]
     fn test_parser_optional_group_simple() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/{id})"),
+            ParsedTemplate::new(b"/users(/{id})", &[]),
             Ok(ParsedTemplate {
                 input: b"/users(/{id})".to_vec(),
                 templates: vec![
@@ -512,7 +545,7 @@ mod tests {
     #[test]
     fn test_parser_optional_groups_nested() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/{id}(/profile))"),
+            ParsedTemplate::new(b"/users(/{id}(/profile))", &[]),
             Ok(ParsedTemplate {
                 input: b"/users(/{id}(/profile))".to_vec(),
                 templates: vec![
@@ -559,7 +592,7 @@ mod tests {
     #[test]
     fn test_parser_escaped_characters() {
         assert_eq!(
-            ParsedTemplate::new(b"/path/with\\{braces\\}and\\(parens\\)"),
+            ParsedTemplate::new(b"/path/with\\{braces\\}and\\(parens\\)", &[]),
             Ok(ParsedTemplate {
                 input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
                 templates: vec![Template {
@@ -577,7 +610,7 @@ mod tests {
     #[test]
     fn test_parser_edge_case_starting_optional_group() {
         assert_eq!(
-            ParsedTemplate::new(b"(/{lang})/users"),
+            ParsedTemplate::new(b"(/{lang})/users", &[]),
             Ok(ParsedTemplate {
                 input: b"(/{lang})/users".to_vec(),
                 templates: vec![
@@ -612,7 +645,7 @@ mod tests {
     #[test]
     fn test_parser_edge_case_only_optional_groups() {
         assert_eq!(
-            ParsedTemplate::new(b"(/{lang})(/{page})"),
+            ParsedTemplate::new(b"(/{lang})(/{page})", &[]),
             Ok(ParsedTemplate {
                 input: b"(/{lang})(/{page})".to_vec(),
                 templates: vec![
@@ -673,7 +706,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty() {
-        let error = ParsedTemplate::new(b"").unwrap_err();
+        let error = ParsedTemplate::new(b"", &[]).unwrap_err();
         assert_eq!(error, TemplateError::Empty);
 
         insta::assert_snapshot!(error, @"empty template");
@@ -681,7 +714,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_braces() {
-        let error = ParsedTemplate::new(b"/users/{}").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{}", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyBraces {
@@ -700,7 +733,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_missing_leading_slash() {
-        let error = ParsedTemplate::new(b"abc").unwrap_err();
+        let error = ParsedTemplate::new(b"abc", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::MissingLeadingSlash {
@@ -719,7 +752,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_brace_opening() {
-        let error = ParsedTemplate::new(b"/users/{id/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{id/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedBrace {
@@ -744,7 +777,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_brace_closing() {
-        let error = ParsedTemplate::new(b"/users/id}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/id}/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedBrace {
@@ -769,7 +802,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parenthesis() {
-        let error = ParsedTemplate::new(b"/products()/category").unwrap_err();
+        let error = ParsedTemplate::new(b"/products()/category", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyParentheses {
@@ -788,7 +821,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_parenthesis_opening() {
-        let error = ParsedTemplate::new(b"/products(/category").unwrap_err();
+        let error = ParsedTemplate::new(b"/products(/category", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedParenthesis {
@@ -813,7 +846,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_parenthesis_closing() {
-        let error = ParsedTemplate::new(b"/products)/category").unwrap_err();
+        let error = ParsedTemplate::new(b"/products)/category", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedParenthesis {
@@ -838,7 +871,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parameter() {
-        let error = ParsedTemplate::new(b"/users/{:constraint}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{:constraint}/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyParameter {
@@ -858,7 +891,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_invalid_parameter() {
-        let error = ParsedTemplate::new(b"/users/{user*name}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{user*name}/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::InvalidParameter {
@@ -881,7 +914,13 @@ mod tests {
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = ParsedTemplate::new(b"/users/{id}/posts/{id:uuid}").unwrap_err();
+        let constraints = vec![StoredConstraint {
+            name: "uuid",
+            type_name: "UUID",
+            check: |_| true,
+        }];
+
+        let error = ParsedTemplate::new(b"/users/{id}/posts/{id:uuid}", &constraints).unwrap_err();
         assert_eq!(
             error,
             TemplateError::DuplicateParameter {
@@ -909,7 +948,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_wildcard() {
-        let error = ParsedTemplate::new(b"/files/{*}").unwrap_err();
+        let error = ParsedTemplate::new(b"/files/{*}", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyWildcard {
@@ -929,7 +968,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_constraint() {
-        let error = ParsedTemplate::new(b"/users/{id:}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{id:}/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyConstraint {
@@ -949,7 +988,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_invalid_constraint() {
-        let error = ParsedTemplate::new(b"/users/{id:*}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{id:*}/profile", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::InvalidConstraint {
@@ -971,8 +1010,35 @@ mod tests {
     }
 
     #[test]
+    fn test_parser_error_unknown_constraint() {
+        let error = ParsedTemplate::new(b"/users/{id:unknown}/profile", &[]).unwrap_err();
+        assert_eq!(
+            error,
+            TemplateError::UnknownConstraint {
+                template: "/users/{id:unknown}/profile".to_owned(),
+                constraint: "unknown".to_owned(),
+                start: 7,
+                length: 12,
+            }
+        );
+
+        insta::assert_snapshot!(error, @r"
+        unknown constraint: 'unknown'
+
+            Template: /users/{id:unknown}/profile
+                             ^^^^^^^^^^^^
+
+        help: The router must be configured with this constraint before use
+
+        try:
+            - Register the constraint with the router
+            - Check for typos in the constraint name
+        ");
+    }
+
+    #[test]
     fn test_parser_error_touching_parameters() {
-        let error = ParsedTemplate::new(b"/users/{id}{*name}").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/{id}{*name}", &[]).unwrap_err();
         assert_eq!(
             error,
             TemplateError::TouchingParameters {

@@ -16,17 +16,17 @@ impl<S: NodeState> Node<S> {
             match part {
                 Part::Static { prefix } => self.delete_static(template, &prefix),
                 Part::DynamicConstrained { name, constraint } => {
-                    self.delete_dynamic_constrained(template, &name, &constraint)
+                    self.delete_dynamic_constrained(template, &name, constraint)
                 }
                 Part::Dynamic { name } => self.delete_dynamic(template, &name),
                 Part::WildcardConstrained { name, constraint } if template.parts.is_empty() => {
-                    self.delete_end_wildcard_constrained(&name, &constraint)
+                    self.delete_end_wildcard_constrained(&name, constraint)
                 }
                 Part::Wildcard { name } if template.parts.is_empty() => {
                     self.delete_end_wildcard(&name)
                 }
                 Part::WildcardConstrained { name, constraint } => {
-                    self.delete_wildcard_constrained(template, &name, &constraint)
+                    self.delete_wildcard_constrained(template, &name, constraint)
                 }
                 Part::Wildcard { name } => self.delete_wildcard(template, &name),
             }
@@ -76,7 +76,7 @@ impl<S: NodeState> Node<S> {
         &mut self,
         template: &mut Template,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<NodeData> {
         let index = self
             .dynamic_constrained_children
@@ -115,7 +115,7 @@ impl<S: NodeState> Node<S> {
         &mut self,
         template: &mut Template,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<NodeData> {
         let index = self
             .wildcard_constrained_children
@@ -153,7 +153,7 @@ impl<S: NodeState> Node<S> {
     fn delete_end_wildcard_constrained(
         &mut self,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<NodeData> {
         let index = self
             .end_wildcard_constrained_children

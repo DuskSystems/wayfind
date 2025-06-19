@@ -14,17 +14,17 @@ impl<S: NodeState> Node<S> {
             return match part {
                 Part::Static { prefix } => self.find_static(template, &prefix),
                 Part::DynamicConstrained { name, constraint } => {
-                    self.find_dynamic_constrained(template, &name, &constraint)
+                    self.find_dynamic_constrained(template, &name, constraint)
                 }
                 Part::Dynamic { name } => self.find_dynamic(template, &name),
                 Part::WildcardConstrained { name, constraint } if template.parts.is_empty() => {
-                    self.find_end_wildcard_constrained(template, &name, &constraint)
+                    self.find_end_wildcard_constrained(template, &name, constraint)
                 }
                 Part::Wildcard { name } if template.parts.is_empty() => {
                     self.find_end_wildcard(template, &name)
                 }
                 Part::WildcardConstrained { name, constraint } => {
-                    self.find_wildcard_constrained(template, &name, &constraint)
+                    self.find_wildcard_constrained(template, &name, constraint)
                 }
                 Part::Wildcard { name } => self.find_wildcard(template, &name),
             };
@@ -68,7 +68,7 @@ impl<S: NodeState> Node<S> {
         &self,
         template: &mut Template,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<&NodeData> {
         for child in &self.dynamic_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {
@@ -93,7 +93,7 @@ impl<S: NodeState> Node<S> {
         &self,
         template: &mut Template,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<&NodeData> {
         for child in &self.end_wildcard_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {
@@ -118,7 +118,7 @@ impl<S: NodeState> Node<S> {
         &self,
         template: &mut Template,
         name: &str,
-        constraint: &str,
+        constraint: usize,
     ) -> Option<&NodeData> {
         for child in &self.wildcard_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {

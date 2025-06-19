@@ -366,6 +366,46 @@ pub enum TemplateError {
         length: usize,
     },
 
+    /// The constraint specified in the template is not recognized by the router.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::TemplateError;
+    ///
+    /// let error = TemplateError::UnknownConstraint {
+    ///     template: "/{id:unknown}".to_owned(),
+    ///     constraint: "unknown".to_owned(),
+    ///     start: 1,
+    ///     length: 12,
+    /// };
+    ///
+    /// let display = r"
+    /// unknown constraint: 'unknown'
+    ///
+    ///     Template: /{id:unknown}
+    ///                ^^^^^^^^^^^^
+    ///
+    /// help: The router must be configured with this constraint before use
+    ///
+    /// try:
+    ///     - Register the constraint with the router
+    ///     - Check for typos in the constraint name
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    UnknownConstraint {
+        /// The template containing the unknown constraint.
+        template: String,
+        /// The name of the unrecognized constraint.
+        constraint: String,
+        /// The position of the opening brace of the parameter with unknown constraint.
+        start: usize,
+        /// The length of the parameter (including braces).
+        length: usize,
+    },
+
     /// Two parameters side by side were found in the template.
     ///
     /// # Examples
@@ -586,6 +626,28 @@ try:
               {arrow}
 
 help: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
+                )
+            }
+
+            Self::UnknownConstraint {
+                template,
+                constraint,
+                start,
+                length,
+            } => {
+                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+                write!(
+                    f,
+                    r"unknown constraint: '{constraint}'
+
+    Template: {template}
+              {arrow}
+
+help: The router must be configured with this constraint before use
+
+try:
+    - Register the constraint with the router
+    - Check for typos in the constraint name"
                 )
             }
 

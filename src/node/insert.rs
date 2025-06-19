@@ -152,7 +152,7 @@ impl<S: NodeState> Node<S> {
         template: &mut Template,
         data: NodeData,
         name: String,
-        constraint: String,
+        constraint: usize,
     ) {
         if let Some(child) = self
             .dynamic_constrained_children
@@ -226,7 +226,7 @@ impl<S: NodeState> Node<S> {
         template: &mut Template,
         data: NodeData,
         name: String,
-        constraint: String,
+        constraint: usize,
     ) {
         if let Some(child) = self
             .wildcard_constrained_children
@@ -295,12 +295,7 @@ impl<S: NodeState> Node<S> {
         self.needs_optimization = true;
     }
 
-    fn insert_end_wildcard_constrained(
-        &mut self,
-        data: NodeData,
-        name: String,
-        constraint: String,
-    ) {
+    fn insert_end_wildcard_constrained(&mut self, data: NodeData, name: String, constraint: usize) {
         if self
             .end_wildcard_constrained_children
             .iter()
