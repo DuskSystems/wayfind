@@ -4,8 +4,8 @@ use crate::{
     state::NodeState,
 };
 
-impl<T, S: NodeState> Node<T, S> {
-    pub(crate) fn find(&self, template: &mut Template) -> Option<&NodeData<T>> {
+impl<S: NodeState> Node<S> {
+    pub(crate) fn find(&self, template: &mut Template) -> Option<&NodeData> {
         if template.parts.is_empty() {
             return self.data.as_ref();
         }
@@ -33,7 +33,7 @@ impl<T, S: NodeState> Node<T, S> {
         None
     }
 
-    fn find_static(&self, template: &mut Template, prefix: &[u8]) -> Option<&NodeData<T>> {
+    fn find_static(&self, template: &mut Template, prefix: &[u8]) -> Option<&NodeData> {
         for child in &self.static_children {
             if !child.state.prefix.is_empty() && child.state.prefix[0] == prefix[0] {
                 let common_prefix = prefix
@@ -69,7 +69,7 @@ impl<T, S: NodeState> Node<T, S> {
         template: &mut Template,
         name: &str,
         constraint: &str,
-    ) -> Option<&NodeData<T>> {
+    ) -> Option<&NodeData> {
         for child in &self.dynamic_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {
                 return child.find(template);
@@ -79,7 +79,7 @@ impl<T, S: NodeState> Node<T, S> {
         None
     }
 
-    fn find_dynamic(&self, template: &mut Template, name: &str) -> Option<&NodeData<T>> {
+    fn find_dynamic(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
         for child in &self.dynamic_children {
             if child.state.name == name {
                 return child.find(template);
@@ -94,7 +94,7 @@ impl<T, S: NodeState> Node<T, S> {
         template: &mut Template,
         name: &str,
         constraint: &str,
-    ) -> Option<&NodeData<T>> {
+    ) -> Option<&NodeData> {
         for child in &self.end_wildcard_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {
                 return child.find(template);
@@ -104,7 +104,7 @@ impl<T, S: NodeState> Node<T, S> {
         None
     }
 
-    fn find_end_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData<T>> {
+    fn find_end_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
         for child in &self.end_wildcard_children {
             if child.state.name == name {
                 return child.find(template);
@@ -119,7 +119,7 @@ impl<T, S: NodeState> Node<T, S> {
         template: &mut Template,
         name: &str,
         constraint: &str,
-    ) -> Option<&NodeData<T>> {
+    ) -> Option<&NodeData> {
         for child in &self.wildcard_constrained_children {
             if child.state.name == name && child.state.constraint == constraint {
                 return child.find(template);
@@ -129,7 +129,7 @@ impl<T, S: NodeState> Node<T, S> {
         None
     }
 
-    fn find_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData<T>> {
+    fn find_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
         for child in &self.wildcard_children {
             if child.state.name == name {
                 return child.find(template);

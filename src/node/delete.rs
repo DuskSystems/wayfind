@@ -1,19 +1,17 @@
-use std::sync::Arc;
-
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
     state::{NodeState, StaticState},
 };
 
-impl<T, S: NodeState> Node<T, S> {
+impl<S: NodeState> Node<S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified template.
     /// Logic should match that used by the insert method.
     ///
     /// If the route is found and deleted, we re-optimize the tree structure.
-    pub fn delete(&mut self, template: &mut Template) -> Option<T> {
+    pub fn delete(&mut self, template: &mut Template) -> Option<NodeData> {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(template, &prefix),
@@ -35,15 +33,11 @@ impl<T, S: NodeState> Node<T, S> {
         } else {
             let data = self.data.take()?;
             self.needs_optimization = true;
-
-            match data {
-                NodeData::Inline { data, .. } => Some(data),
-                NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
-            }
+            Some(data)
         }
     }
 
-    fn delete_static(&mut self, template: &mut Template, prefix: &[u8]) -> Option<T> {
+    fn delete_static(&mut self, template: &mut Template, prefix: &[u8]) -> Option<NodeData> {
         let index = self.static_children.iter().position(|child| {
             prefix.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
@@ -83,7 +77,7 @@ impl<T, S: NodeState> Node<T, S> {
         template: &mut Template,
         name: &str,
         constraint: &str,
-    ) -> Option<T> {
+    ) -> Option<NodeData> {
         let index = self
             .dynamic_constrained_children
             .iter()
@@ -100,7 +94,7 @@ impl<T, S: NodeState> Node<T, S> {
         result
     }
 
-    fn delete_dynamic(&mut self, template: &mut Template, name: &str) -> Option<T> {
+    fn delete_dynamic(&mut self, template: &mut Template, name: &str) -> Option<NodeData> {
         let index = self
             .dynamic_children
             .iter()
@@ -122,7 +116,7 @@ impl<T, S: NodeState> Node<T, S> {
         template: &mut Template,
         name: &str,
         constraint: &str,
-    ) -> Option<T> {
+    ) -> Option<NodeData> {
         let index = self
             .wildcard_constrained_children
             .iter()
@@ -139,7 +133,7 @@ impl<T, S: NodeState> Node<T, S> {
         result
     }
 
-    fn delete_wildcard(&mut self, template: &mut Template, name: &str) -> Option<T> {
+    fn delete_wildcard(&mut self, template: &mut Template, name: &str) -> Option<NodeData> {
         let index = self
             .wildcard_children
             .iter()
@@ -156,7 +150,11 @@ impl<T, S: NodeState> Node<T, S> {
         result
     }
 
-    fn delete_end_wildcard_constrained(&mut self, name: &str, constraint: &str) -> Option<T> {
+    fn delete_end_wildcard_constrained(
+        &mut self,
+        name: &str,
+        constraint: &str,
+    ) -> Option<NodeData> {
         let index = self
             .end_wildcard_constrained_children
             .iter()
@@ -167,13 +165,10 @@ impl<T, S: NodeState> Node<T, S> {
         let data = child.data.take()?;
         self.needs_optimization = true;
 
-        match data {
-            NodeData::Inline { data, .. } => Some(data),
-            NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
-        }
+        Some(data)
     }
 
-    fn delete_end_wildcard(&mut self, name: &str) -> Option<T> {
+    fn delete_end_wildcard(&mut self, name: &str) -> Option<NodeData> {
         let index = self
             .end_wildcard_children
             .iter()
@@ -184,10 +179,7 @@ impl<T, S: NodeState> Node<T, S> {
         let data = child.data.take()?;
         self.needs_optimization = true;
 
-        match data {
-            NodeData::Inline { data, .. } => Some(data),
-            NodeData::Shared { data, .. } => Arc::try_unwrap(data).ok(),
-        }
+        Some(data)
     }
 
     const fn is_empty(&self) -> bool {

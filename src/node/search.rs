@@ -8,7 +8,7 @@ use crate::{
     state::NodeState,
 };
 
-impl<T, S: NodeState> Node<T, S> {
+impl<S: NodeState> Node<S> {
     /// Searches for a matching template in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
@@ -26,7 +26,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         if path.is_empty() {
             return self.data.as_ref();
         }
@@ -91,7 +91,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.static_children {
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -112,7 +112,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.dynamic_constrained_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -139,11 +139,11 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.dynamic_constrained_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<T>> = None;
+            let mut best_match: Option<&'r NodeData> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -167,9 +167,9 @@ impl<T, S: NodeState> Node<T, S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
                     Ordering::Greater => true,
-                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Equal => data.length >= best.length,
                     Ordering::Less => false,
                 }) {
                     best_match = Some(data);
@@ -192,7 +192,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.dynamic_children {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
@@ -216,11 +216,11 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.dynamic_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<T>> = None;
+            let mut best_match: Option<&'r NodeData> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -241,9 +241,9 @@ impl<T, S: NodeState> Node<T, S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
                     Ordering::Greater => true,
-                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Equal => data.length >= best.length,
                     Ordering::Less => false,
                 }) {
                     best_match = Some(data);
@@ -266,7 +266,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -327,11 +327,11 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.wildcard_constrained_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<T>> = None;
+            let mut best_match: Option<&'r NodeData> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -351,9 +351,9 @@ impl<T, S: NodeState> Node<T, S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
                     Ordering::Greater => true,
-                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Equal => data.length >= best.length,
                     Ordering::Less => false,
                 }) {
                     best_match = Some(data);
@@ -376,7 +376,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
             let mut remaining_path = path;
@@ -433,11 +433,11 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
 
-            let mut best_match: Option<&'r NodeData<T>> = None;
+            let mut best_match: Option<&'r NodeData> = None;
             let mut best_match_parameters = smallvec![];
 
             while consumed < path.len() {
@@ -454,9 +454,9 @@ impl<T, S: NodeState> Node<T, S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth().cmp(&best.depth()) {
+                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
                     Ordering::Greater => true,
-                    Ordering::Equal => data.length() >= best.length(),
+                    Ordering::Equal => data.length >= best.length,
                     Ordering::Less => false,
                 }) {
                     best_match = Some(data);
@@ -478,7 +478,7 @@ impl<T, S: NodeState> Node<T, S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
         constraints: &HashMap<&'static str, StoredConstraint>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         for child in &self.end_wildcard_constrained_children {
             if !Self::check_constraint(Some(&child.state.constraint), path, constraints) {
                 continue;
@@ -495,7 +495,7 @@ impl<T, S: NodeState> Node<T, S> {
         &'r self,
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r NodeData> {
         if let Some(child) = self.end_wildcard_children.iter().next() {
             parameters.push((&child.state.name, std::str::from_utf8(path).ok()?));
             return child.data.as_ref();

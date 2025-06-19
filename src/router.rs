@@ -2,7 +2,6 @@ use std::{
     collections::HashMap,
     fmt::Display,
     net::{Ipv4Addr, Ipv6Addr},
-    sync::Arc,
 };
 
 use smallvec::{SmallVec, smallvec};
@@ -14,6 +13,7 @@ use crate::{
     nodes::Nodes,
     parser::{ParsedTemplate, Part},
     state::RootState,
+    storage::Storage,
 };
 
 /// Stores data from a successful router match.
@@ -51,10 +51,13 @@ pub struct StoredConstraint {
 #[derive(Clone)]
 pub struct Router<T> {
     /// The root node of the tree.
-    root: Node<T, RootState>,
+    root: Node<RootState>,
 
     /// A map of constraint names to [`StoredConstraint`].
     constraints: HashMap<&'static str, StoredConstraint>,
+
+    /// Keyed storage map containing the inserted data.
+    storage: Storage<T>,
 }
 
 impl<T> Router<T> {
@@ -83,6 +86,7 @@ impl<T> Router<T> {
                 needs_optimization: false,
             },
             constraints: HashMap::default(),
+            storage: Storage::new(),
         };
 
         router.constraint::<u8>().unwrap();
@@ -189,7 +193,7 @@ impl<T> Router<T> {
         let mut conflicts = vec![];
         for parsed_template in &parsed.templates {
             if let Some(found) = self.root.find(&mut parsed_template.clone()) {
-                conflicts.push(found.template().to_owned());
+                conflicts.push(found.template.to_string());
             }
         }
 
@@ -204,12 +208,11 @@ impl<T> Router<T> {
         }
 
         // All good, proceed with insert.
-        let template = Arc::from(template);
+        let key = self.storage.insert(data);
 
         if parsed.templates.len() > 1 {
-            let data = Arc::from(data);
             for mut parsed_template in parsed.templates {
-                let expanded = Arc::from(String::from_utf8_lossy(&parsed_template.raw));
+                let expanded = Some(String::from_utf8_lossy(&parsed_template.raw).to_string());
 
                 #[allow(clippy::naive_bytecount)]
                 let depth = parsed_template.raw.iter().filter(|&b| *b == b'/').count();
@@ -217,9 +220,9 @@ impl<T> Router<T> {
 
                 self.root.insert(
                     &mut parsed_template,
-                    NodeData::Shared {
-                        data: Arc::clone(&data),
-                        template: Arc::clone(&template),
+                    NodeData {
+                        key,
+                        template: template.to_owned(),
                         expanded,
                         depth,
                         length,
@@ -233,9 +236,10 @@ impl<T> Router<T> {
 
             self.root.insert(
                 parsed_template,
-                NodeData::Inline {
-                    data,
-                    template,
+                NodeData {
+                    key,
+                    template: template.to_owned(),
+                    expanded: None,
                     depth,
                     length,
                 },
@@ -274,13 +278,13 @@ impl<T> Router<T> {
                 continue;
             };
 
-            if found.template() == template {
+            if found.template == template {
                 continue;
             }
 
             return Err(DeleteError::Mismatch {
                 template: template.to_owned(),
-                inserted: found.template().to_owned(),
+                inserted: found.template.to_string(),
             });
         }
 
@@ -292,14 +296,20 @@ impl<T> Router<T> {
             }
         }
 
-        let mut output = None;
+        let mut key = None;
         for mut template in parsed.templates {
             if let Some(data) = self.root.delete(&mut template) {
-                output = Some(data);
+                key = Some(data.key);
             }
         }
 
-        let Some(data) = output else {
+        let Some(key) = key else {
+            return Err(DeleteError::NotFound {
+                template: template.to_owned(),
+            });
+        };
+
+        let Some(data) = self.storage.remove(key) else {
             return Err(DeleteError::NotFound {
                 template: template.to_owned(),
             });
@@ -320,16 +330,17 @@ impl<T> Router<T> {
     /// router.insert("/{user}", 1).unwrap();
     /// router.search("/me").unwrap();
     /// ```
+    #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
-        let search = self
+        let data = self
             .root
             .search(path.as_bytes(), &mut parameters, &self.constraints)?;
 
         Some(Match {
-            data: search.data(),
-            template: search.template(),
-            expanded: search.expanded(),
+            data: self.storage.get(data.key)?,
+            template: data.template.as_ref(),
+            expanded: data.expanded.as_deref(),
             parameters,
         })
     }

@@ -2,11 +2,11 @@ use std::fmt::{Display, Formatter, Result, Write};
 
 use crate::{node::Node, state::NodeState};
 
-impl<T, S: NodeState> Display for Node<T, S> {
+impl<S: NodeState> Display for Node<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        fn debug_node<T, S: NodeState>(
+        fn debug_node<S: NodeState>(
             output: &mut String,
-            node: &Node<T, S>,
+            node: &Node<S>,
             padding: &str,
             is_root: bool,
             is_last: bool,
