@@ -324,6 +324,66 @@ impl<T> Router<T> {
         Ok(data)
     }
 
+    /// Checks if a template exists in the router and returns a reference to its data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::Router;
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    /// assert_eq!(router.get("/hello").unwrap(), &1);
+    /// ```
+    #[must_use]
+    pub fn get(&self, template: &str) -> Option<&T> {
+        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+            return None;
+        };
+
+        for parsed_template in &parsed.templates {
+            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
+                if found.template == template {
+                    return self.storage.get(found.key);
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Checks if a template exists in the router and returns a mutable reference to its data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::Router;
+    ///
+    /// let mut router: Router<usize> = Router::new();
+    /// router.insert("/hello", 1).unwrap();
+    /// if let Some(data) = router.get_mut("/hello") {
+    ///     *data = 2;
+    /// }
+    ///
+    /// assert_eq!(router.get("/hello").unwrap(), &2);
+    /// ```
+    #[must_use]
+    pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
+        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+            return None;
+        };
+
+        for parsed_template in &parsed.templates {
+            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
+                if found.template == template {
+                    return self.storage.get_mut(found.key);
+                }
+            }
+        }
+
+        None
+    }
+
     /// Searches for a matching template in the router for a path.
     ///
     /// # Examples

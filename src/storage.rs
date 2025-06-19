@@ -58,6 +58,15 @@ impl<T> Storage<T> {
         }
     }
 
+    pub fn get_mut(&mut self, key: Key) -> Option<&mut T> {
+        let slot = self.data.get_mut(key.index)?;
+        if slot.generation == key.generation {
+            slot.data.as_mut()
+        } else {
+            None
+        }
+    }
+
     pub fn remove(&mut self, key: Key) -> Option<T> {
         let slot = self.data.get_mut(key.index)?;
         if slot.generation != key.generation {
