@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display};
+use alloc::fmt;
+use core::error::Error;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ConstraintError {
@@ -43,8 +44,8 @@ pub enum ConstraintError {
 
 impl Error for ConstraintError {}
 
-impl Display for ConstraintError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for ConstraintError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::DuplicateName {
                 name,

@@ -1,4 +1,5 @@
-use std::cmp::Ordering;
+use alloc::{format, string::String, vec::Vec};
+use core::cmp::Ordering;
 
 pub trait NodeState: Ord {
     fn padding(&self) -> usize;

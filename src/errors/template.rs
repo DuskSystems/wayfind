@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display};
+use alloc::{fmt, string::String};
+use core::error::Error;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TemplateError {
@@ -405,8 +406,8 @@ pub enum TemplateError {
 
 impl Error for TemplateError {}
 
-impl Display for TemplateError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for TemplateError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty template"),
 

@@ -59,7 +59,10 @@
           buildInputs = with pkgs; [
             # Rust
             (rust-bin.stable.latest.minimal.override {
-              targets = [ "wasm32-unknown-unknown" ];
+              targets = [
+                "wasm32-unknown-unknown"
+                "thumbv6m-none-eabi"
+              ];
               extensions = [
                 "clippy"
                 "rust-analyzer"
@@ -135,7 +138,10 @@
           buildInputs = with pkgs; [
             # Rust
             (rust-bin.stable."1.87.0".minimal.override {
-              targets = [ "wasm32-unknown-unknown" ];
+              targets = [
+                "wasm32-unknown-unknown"
+                "thumbv6m-none-eabi"
+              ];
             })
             mold
             sccache

@@ -1,5 +1,6 @@
-use std::{cmp::Ordering, collections::HashMap};
+use core::cmp::Ordering;
 
+use hashbrown::HashMap;
 use smallvec::smallvec;
 
 use crate::{
@@ -121,7 +122,7 @@ impl<S: NodeState> Node<S> {
                 continue;
             }
 
-            parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+            parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
             if let Some(result) = child.search(&path[segment_end..], parameters, constraints) {
                 return Some(result);
@@ -159,7 +160,7 @@ impl<S: NodeState> Node<S> {
                 }
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 let Some(data) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)
@@ -198,7 +199,7 @@ impl<S: NodeState> Node<S> {
 
             let segment = &path[..segment_end];
 
-            parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+            parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
             if let Some(result) = child.search(&path[segment_end..], parameters, constraints) {
                 return Some(result);
@@ -233,7 +234,7 @@ impl<S: NodeState> Node<S> {
                 let segment = &path[..consumed];
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 let Some(data) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)
@@ -300,7 +301,7 @@ impl<S: NodeState> Node<S> {
                     break;
                 }
 
-                parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 if let Some(result) =
                     child.search(&remaining_path[segment_end..], parameters, constraints)
@@ -343,7 +344,7 @@ impl<S: NodeState> Node<S> {
                 }
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 let Some(data) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)
@@ -406,7 +407,7 @@ impl<S: NodeState> Node<S> {
                     &path[..consumed]
                 };
 
-                parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 if let Some(result) =
                     child.search(&remaining_path[segment_end..], parameters, constraints)
@@ -446,7 +447,7 @@ impl<S: NodeState> Node<S> {
                 let segment = &path[..consumed];
 
                 let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, std::str::from_utf8(segment).ok()?));
+                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
                 let Some(data) =
                     child.search(&path[consumed..], &mut current_parameters, constraints)
@@ -484,7 +485,7 @@ impl<S: NodeState> Node<S> {
                 continue;
             }
 
-            parameters.push((&child.state.name, std::str::from_utf8(path).ok()?));
+            parameters.push((&child.state.name, core::str::from_utf8(path).ok()?));
             return child.data.as_ref();
         }
 
@@ -497,7 +498,7 @@ impl<S: NodeState> Node<S> {
         parameters: &mut Parameters<'r, 'p>,
     ) -> Option<&'r NodeData> {
         if let Some(child) = self.end_wildcard_children.iter().next() {
-            parameters.push((&child.state.name, std::str::from_utf8(path).ok()?));
+            parameters.push((&child.state.name, core::str::from_utf8(path).ok()?));
             return child.data.as_ref();
         }
 
@@ -505,7 +506,7 @@ impl<S: NodeState> Node<S> {
     }
 
     fn check_constraint(
-        constraint: Option<&String>,
+        constraint: Option<&str>,
         segment: &[u8],
         constraints: &HashMap<&str, StoredConstraint>,
     ) -> bool {
@@ -513,8 +514,8 @@ impl<S: NodeState> Node<S> {
             return true;
         };
 
-        let constraint = constraints.get(constraint.as_str()).unwrap();
-        let Ok(segment) = std::str::from_utf8(segment) else {
+        let constraint = constraints.get(constraint).unwrap();
+        let Ok(segment) = core::str::from_utf8(segment) else {
             return false;
         };
 

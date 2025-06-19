@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Key {
     index: usize,

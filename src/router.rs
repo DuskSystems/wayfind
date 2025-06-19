@@ -1,9 +1,14 @@
-use std::{
-    collections::HashMap,
-    fmt::Display,
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
+    vec,
+};
+use core::{
+    fmt,
     net::{Ipv4Addr, Ipv6Addr},
 };
 
+use hashbrown::HashMap;
 use smallvec::{SmallVec, smallvec};
 
 use crate::{
@@ -138,14 +143,14 @@ impl<T> Router<T> {
             return Err(ConstraintError::DuplicateName {
                 name: C::NAME,
                 existing_type: existing.type_name,
-                new_type: std::any::type_name::<C>(),
+                new_type: core::any::type_name::<C>(),
             });
         }
 
         self.constraints.insert(
             C::NAME,
             StoredConstraint {
-                type_name: std::any::type_name::<C>(),
+                type_name: core::any::type_name::<C>(),
                 check: C::check,
             },
         );
@@ -346,8 +351,8 @@ impl<T> Router<T> {
     }
 }
 
-impl<T> Display for Router<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T> fmt::Display for Router<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.root)
     }
 }

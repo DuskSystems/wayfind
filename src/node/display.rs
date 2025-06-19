@@ -1,16 +1,17 @@
-use std::fmt::{Display, Formatter, Result, Write};
+use alloc::{borrow::ToOwned, fmt, format, string::String};
+use core::fmt::Write;
 
 use crate::{node::Node, state::NodeState};
 
-impl<S: NodeState> Display for Node<S> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+impl<S: NodeState> fmt::Display for Node<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn debug_node<S: NodeState>(
             output: &mut String,
             node: &Node<S>,
             padding: &str,
             is_root: bool,
             is_last: bool,
-        ) -> Result {
+        ) -> fmt::Result {
             let key = node.state.key();
             if !key.is_empty() {
                 if is_root {
