@@ -86,6 +86,7 @@
 
             # Spellchecking
             typos
+            typos-lsp
 
             # GitHub
             zizmor
