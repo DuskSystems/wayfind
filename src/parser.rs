@@ -75,9 +75,9 @@ impl ParsedTemplate {
                 }
                 (b'(', _) => {
                     if depth == 0 {
-                        result
-                            .iter_mut()
-                            .for_each(|template| template.extend_from_slice(&input[group..cursor]));
+                        for template in &mut result {
+                            template.extend_from_slice(&input[group..cursor]);
+                        }
 
                         group = cursor + 1;
                     }
@@ -136,9 +136,9 @@ impl ParsedTemplate {
         }
 
         if group < end {
-            result
-                .iter_mut()
-                .for_each(|template| template.extend_from_slice(&input[group..end]));
+            for template in &mut result {
+                template.extend_from_slice(&input[group..end]);
+            }
         }
 
         for template in &mut result {
@@ -169,14 +169,14 @@ impl ParsedTemplate {
                     let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, start, length)) = seen_parameters.last() {
-                        if cursor == start + length {
-                            return Err(TemplateError::TouchingParameters {
-                                template: String::from_utf8_lossy(raw).to_string(),
-                                start: *start,
-                                length: next_cursor - start,
-                            });
-                        }
+                    if let Some((_, start, length)) = seen_parameters.last()
+                        && cursor == start + length
+                    {
+                        return Err(TemplateError::TouchingParameters {
+                            template: String::from_utf8_lossy(raw).to_string(),
+                            start: *start,
+                            length: next_cursor - start,
+                        });
                     }
 
                     // Check for duplicate names.
