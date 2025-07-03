@@ -77,6 +77,7 @@
             taplo
             cargo-insta
             cargo-outdated
+            vscode-extensions.vadimcn.vscode-lldb.adapter
 
             # Coverage
             cargo-llvm-cov
