@@ -18,7 +18,7 @@ use core::net::{Ipv4Addr, Ipv6Addr};
 ///     }
 /// }
 /// ```
-pub trait Constraint: Send + Sync {
+pub trait Constraint {
     /// The name of the constraint.
     ///
     /// Must be unique within a given router.

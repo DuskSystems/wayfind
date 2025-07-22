@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch to Rust 2024 edition.
 - Switched internal data store to slot storage.
 
+### Fixed
+
+- No longer require `Send + Sync` on constraints.
+
 ### Removed
 
 - Removed OCI example.
