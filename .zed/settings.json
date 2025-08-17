@@ -2,7 +2,10 @@
   "remove_trailing_whitespace_on_save": true,
   "ensure_final_newline_on_save": true,
 
-  "file_scan_exclusions": ["**/.git", "**/.direnv"],
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.direnv"
+  ],
 
   "languages": {
     "Rust": {

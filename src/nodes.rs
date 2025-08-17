@@ -27,12 +27,12 @@ impl<S: NodeState> Nodes<S> {
     }
 
     #[inline]
-    pub const fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.vec.len()
     }
 
     #[must_use]
-    pub const fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
     }
 

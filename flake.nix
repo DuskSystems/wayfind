@@ -76,14 +76,10 @@
             mold
             taplo
             cargo-insta
-            cargo-outdated
-            vscode-extensions.vadimcn.vscode-lldb.adapter
-
-            # Coverage
             cargo-llvm-cov
-
-            # Release
+            cargo-outdated
             cargo-semver-checks
+            vscode-extensions.vadimcn.vscode-lldb.adapter
 
             # Spellchecking
             typos
@@ -117,12 +113,8 @@
             })
             mold
             sccache
-
-            # Coverage
-            cargo-llvm-cov
-
-            # Fuzzing
             cargo-fuzz
+            cargo-llvm-cov
           ];
         };
 
@@ -139,7 +131,7 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.88.0".minimal.override {
+            (rust-bin.stable."1.85.0".minimal.override {
               targets = [
                 "wasm32-unknown-unknown"
                 "thumbv6m-none-eabi"

@@ -169,14 +169,14 @@ impl ParsedTemplate {
                     let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, start, length)) = seen_parameters.last()
-                        && cursor == start + length
-                    {
-                        return Err(TemplateError::TouchingParameters {
-                            template: String::from_utf8_lossy(raw).to_string(),
-                            start: *start,
-                            length: next_cursor - start,
-                        });
+                    if let Some((_, start, length)) = seen_parameters.last() {
+                        if cursor == start + length {
+                            return Err(TemplateError::TouchingParameters {
+                                template: String::from_utf8_lossy(raw).to_string(),
+                                start: *start,
+                                length: next_cursor - start,
+                            });
+                        }
                     }
 
                     // Check for duplicate names.

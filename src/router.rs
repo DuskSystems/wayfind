@@ -184,11 +184,12 @@ impl<T> Router<T> {
                 | Part::WildcardConstrained {
                     constraint: name, ..
                 } = part
-                    && !self.constraints.contains_key(name.as_str())
                 {
-                    return Err(InsertError::UnknownConstraint {
-                        constraint: name.to_string(),
-                    });
+                    if !self.constraints.contains_key(name.as_str()) {
+                        return Err(InsertError::UnknownConstraint {
+                            constraint: name.to_string(),
+                        });
+                    }
                 }
             }
         }
@@ -341,10 +342,10 @@ impl<T> Router<T> {
         };
 
         for parsed_template in &parsed.templates {
-            if let Some(found) = self.root.find(&mut parsed_template.clone())
-                && found.template == template
-            {
-                return self.storage.get(found.key);
+            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
+                if found.template == template {
+                    return self.storage.get(found.key);
+                }
             }
         }
 
@@ -373,10 +374,10 @@ impl<T> Router<T> {
         };
 
         for parsed_template in &parsed.templates {
-            if let Some(found) = self.root.find(&mut parsed_template.clone())
-                && found.template == template
-            {
-                return self.storage.get_mut(found.key);
+            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
+                if found.template == template {
+                    return self.storage.get_mut(found.key);
+                }
             }
         }
 

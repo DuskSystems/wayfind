@@ -7,7 +7,7 @@ members = [".", "fuzz"]
 version = "0.8.1"
 authors = ["Cathal Mullan <contact@cathal.dev>"]
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.85"
 repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
 keywords = ["router", "path"]
@@ -98,8 +98,7 @@ smallvec = { version = "1.15", features = ["const_generics", "union"] }
 
 [dev-dependencies]
 # Testing
-# NOTE: Keep in sync with `cargo-insta` Nix package: `cargo insta --version`
-insta = "=1.43.1"
+insta = "1.43"
 similar-asserts = "1.7"
 
 # Benchmarking
