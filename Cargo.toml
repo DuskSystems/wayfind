@@ -69,11 +69,8 @@ debug = true
 name = "wayfind"
 description = "A speedy, flexible router."
 include = [
-  "/benches",
-  "/fuzz",
   "/src",
   "/tests",
-  "/BENCHMARKING.md",
   "/CHANGELOG.md",
   "/LICENSE-APACHE",
   "/LICENSE-MIT",

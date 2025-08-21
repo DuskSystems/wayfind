@@ -77,7 +77,6 @@
             taplo
             cargo-insta
             cargo-llvm-cov
-            cargo-outdated
             cargo-semver-checks
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
@@ -89,7 +88,7 @@
             zizmor
 
             # Nix
-            nixfmt-rfc-style
+            nixfmt
             nixd
             nil
           ];
