@@ -33,17 +33,29 @@ wayfind = "0.8"
 
 ```rust
 use std::error::Error;
-use wayfind::Router;
+
+use wayfind::{Constraint, Router};
+
+struct NumberConstraint;
+impl Constraint for NumberConstraint {
+    const NAME: &'static str = "number";
+
+    fn check(part: &str) -> bool {
+        part.parse::<usize>().is_ok()
+    }
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
+    router.constraint::<NumberConstraint>()?;
+
     router.insert("/pet(/)", 1)?;
     router.insert("/pet/findByStatus(/)", 2)?;
     router.insert("/pet/findByTags(/)", 3)?;
     router.insert("/pet/{pet}(/)", 4)?;
-    router.insert("/pet/{petId:u16}/uploadImage(/)", 5)?;
+    router.insert("/pet/{petId:number}/uploadImage(/)", 5)?;
     router.insert("/store/inventory(/)", 6)?;
-    router.insert("/store/order(/{orderId:u16})(/)", 7)?;
+    router.insert("/store/order(/{orderId:number})(/)", 7)?;
     router.insert("/user(/)", 8)?;
     router.insert("/user/createWithList(/)", 9)?;
     router.insert("/user/login(/)", 10)?;
@@ -90,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 │     │  │  ╰─ / [*]
 │     │  ╰─ Tags [*]
 │     │     ╰─ / [*]
-│     ├─ {petId:u16}
+│     ├─ {petId:number}
 │     │  ╰─ /uploadImage [*]
 │     │     ╰─ / [*]
 │     ╰─ {pet} [*]
@@ -100,7 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 │  │  ╰─ / [*]
 │  ╰─ order [*]
 │     ╰─ / [*]
-│        ╰─ {orderId:u16} [*]
+│        ╰─ {orderId:number} [*]
 │           ╰─ / [*]
 ├─ user [*]
 │  ╰─ / [*]

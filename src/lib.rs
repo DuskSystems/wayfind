@@ -6,17 +6,29 @@
 //!
 //! ```rust
 //! use std::error::Error;
-//! use wayfind::Router;
+//!
+//! use wayfind::{Constraint, Router};
+//!
+//! struct NumberConstraint;
+//! impl Constraint for NumberConstraint {
+//!     const NAME: &'static str = "number";
+//!
+//!     fn check(part: &str) -> bool {
+//!         part.parse::<usize>().is_ok()
+//!     }
+//! }
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
+//!     router.constraint::<NumberConstraint>()?;
+//!
 //!     router.insert("/pet(/)", 1)?;
 //!     router.insert("/pet/findByStatus(/)", 2)?;
 //!     router.insert("/pet/findByTags(/)", 3)?;
 //!     router.insert("/pet/{pet}(/)", 4)?;
-//!     router.insert("/pet/{petId:u16}/uploadImage(/)", 5)?;
+//!     router.insert("/pet/{petId:number}/uploadImage(/)", 5)?;
 //!     router.insert("/store/inventory(/)", 6)?;
-//!     router.insert("/store/order(/{orderId:u16})(/)", 7)?;
+//!     router.insert("/store/order(/{orderId:number})(/)", 7)?;
 //!     router.insert("/user(/)", 8)?;
 //!     router.insert("/user/createWithList(/)", 9)?;
 //!     router.insert("/user/login(/)", 10)?;
@@ -68,6 +80,7 @@
 //!
 //! ```rust
 //! use std::error::Error;
+//!
 //! use wayfind::Router;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -104,6 +117,7 @@
 //!
 //! ```rust
 //! use std::error::Error;
+//!
 //! use wayfind::Router;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -142,6 +156,7 @@
 //!
 //! ```rust
 //! use std::error::Error;
+//!
 //! use wayfind::Router;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
@@ -177,37 +192,15 @@
 //! - Dynamic constraint: `/{name:constraint}`
 //! - Wildcard constraint: `/{*name:constraint}`
 //!
-//! ### Default Constraints
+//! ### Adding Constraints
 //!
-//! There are a number of default constraints included:
-//! - `u8`
-//! - `u16`
-//! - `u32`
-//! - `u64`
-//! - `u128`
-//! - `usize`
-//! - `i8`
-//! - `i16`
-//! - `i32`
-//! - `i64`
-//! - `i128`
-//! - `isize`
-//! - `f32`
-//! - `f64`
-//! - `bool`
-//! - `ipv4`
-//! - `ipv6`
+//! Constraints can be created using the [`Constraint`] trait.
 //!
-//! These all make use of the relevant [`FromStr`](std::str::FromStr) implementation.
-//!
-//! ### Custom Constraints
-//!
-//! Custom constraints can be created using the [`Constraint`] trait.
-//!
-//! To register it, call the [`constraint`](crate::Router::constraint) function on router.
+//! To register them, call the [`constraint`](crate::Router::constraint) function on router.
 //!
 //! ```rust
 //! use std::error::Error;
+//!
 //! use wayfind::{Router, Constraint};
 //!
 //! struct NamespaceConstraint;
@@ -236,7 +229,7 @@
 //!
 //! Constraints must be registered first, before inserting any templates that references it.
 //!
-//! They cannot be removed after registering.
+//! They cannot be removed once registered.
 //!
 //! ## Optional Groups
 //!
@@ -254,12 +247,11 @@
 //! - `/release/v{major}.{minor}`
 //! - `/release/v{major}`
 //!
-//! There is a small overhead to using optional groups, due to [`Arc`](std::sync::Arc) usage internally for data storage.
-//!
 //! ### Example
 //!
 //! ```rust
 //! use std::error::Error;
+//!
 //! use wayfind::Router;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {

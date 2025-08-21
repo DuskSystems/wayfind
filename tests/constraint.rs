@@ -16,6 +16,15 @@ impl Constraint for NameConstraint {
     }
 }
 
+struct NumberConstraint;
+impl Constraint for NumberConstraint {
+    const NAME: &'static str = "number";
+
+    fn check(part: &str) -> bool {
+        part.parse::<usize>().is_ok()
+    }
+}
+
 #[test]
 fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
@@ -122,60 +131,24 @@ fn test_constraint_conflict() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_constraint_builtin() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id:u32}", 2)?;
-
-    insta::assert_snapshot!(router, @r"
-    /users/
-    ├─ {id:u32} [*]
-    ╰─ {id} [*]
-    ");
-
-    let search = router.search("/users/abc");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/users/{id}",
-            expanded: None,
-            parameters: smallvec![("id", "abc")],
-        })
-    );
-
-    let search = router.search("/users/123");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/users/{id:u32}",
-            expanded: None,
-            parameters: smallvec![("id", "123")],
-        })
-    );
-
-    Ok(())
-}
-
-#[test]
 fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<NameConstraint>()?;
-    router.insert("/users/{id:u32}", 1)?;
-    router.insert("/users/{id:name}", 2)?;
+    router.constraint::<NumberConstraint>()?;
+    router.insert("/users/{id:name}", 1)?;
+    router.insert("/users/{id:number}", 2)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
     ├─ {id:name} [*]
-    ╰─ {id:u32} [*]
+    ╰─ {id:number} [*]
     ");
 
     let search = router.search("/users/123");
     assert_eq!(
         search,
         Some(Match {
-            data: &2,
+            data: &1,
             template: "/users/{id:name}",
             expanded: None,
             parameters: smallvec![("id", "123")],
@@ -186,7 +159,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
-            data: &2,
+            data: &1,
             template: "/users/{id:name}",
             expanded: None,
             parameters: smallvec![("id", "abc123")],

@@ -4,10 +4,7 @@ use alloc::{
     string::{String, ToString},
     vec,
 };
-use core::{
-    fmt,
-    net::{Ipv4Addr, Ipv6Addr},
-};
+use core::fmt;
 
 use smallvec::{SmallVec, smallvec};
 
@@ -67,13 +64,9 @@ pub struct Router<T> {
 
 impl<T> Router<T> {
     /// Creates a new Router with default constraints.
-    ///
-    /// # Panics
-    ///
-    /// Can only panic if the default constraint registrations fail, which should never happen.
     #[must_use]
     pub fn new() -> Self {
-        let mut router = Self {
+        Self {
             root: Node {
                 state: RootState::new(),
                 data: None,
@@ -92,27 +85,7 @@ impl<T> Router<T> {
             },
             constraints: BTreeMap::default(),
             storage: Storage::new(),
-        };
-
-        router.constraint::<u8>().unwrap();
-        router.constraint::<u16>().unwrap();
-        router.constraint::<u32>().unwrap();
-        router.constraint::<u64>().unwrap();
-        router.constraint::<u128>().unwrap();
-        router.constraint::<usize>().unwrap();
-        router.constraint::<i8>().unwrap();
-        router.constraint::<i16>().unwrap();
-        router.constraint::<i32>().unwrap();
-        router.constraint::<i64>().unwrap();
-        router.constraint::<i128>().unwrap();
-        router.constraint::<isize>().unwrap();
-        router.constraint::<f32>().unwrap();
-        router.constraint::<f64>().unwrap();
-        router.constraint::<bool>().unwrap();
-        router.constraint::<Ipv4Addr>().unwrap();
-        router.constraint::<Ipv6Addr>().unwrap();
-
-        router
+        }
     }
 
     /// Registers a new constraint to the router.
@@ -167,7 +140,7 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::Router;
     ///
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/hello", 1).unwrap();
@@ -268,7 +241,7 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::Router;
     ///
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/hello", 1).unwrap();
@@ -389,7 +362,7 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::{Constraint, Router};
+    /// use wayfind::Router;
     ///
     /// let mut router: Router<usize> = Router::new();
     /// router.insert("/{user}", 1).unwrap();

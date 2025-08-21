@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed OCI example.
+- Routers no longer ship with any default constraints.
 
 ## [0.8.1] - 2025-01-07
 

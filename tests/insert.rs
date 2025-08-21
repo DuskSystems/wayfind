@@ -2,8 +2,8 @@ use std::error::Error;
 
 use similar_asserts::assert_eq;
 use wayfind::{
-    Constraint, Router,
-    errors::{ConstraintError, InsertError, TemplateError},
+    Router,
+    errors::{InsertError, TemplateError},
 };
 
 #[test]
@@ -162,26 +162,4 @@ fn test_insert_duplicate_parameter() {
     );
 
     insta::assert_snapshot!(router, @"");
-}
-
-#[test]
-fn test_insert_constraint_conflict() {
-    struct MyConstraint;
-    impl Constraint for MyConstraint {
-        const NAME: &'static str = "u32";
-        fn check(part: &str) -> bool {
-            part.parse::<u32>().is_ok()
-        }
-    }
-
-    let mut router: Router<usize> = Router::new();
-    let constraint = router.constraint::<MyConstraint>();
-    assert_eq!(
-        constraint,
-        Err(ConstraintError::DuplicateName {
-            name: "u32",
-            existing_type: "u32",
-            new_type: "insert::test_insert_constraint_conflict::MyConstraint"
-        })
-    );
 }
