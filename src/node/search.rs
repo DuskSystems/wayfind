@@ -108,7 +108,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can only handle simple dynamic templates like `/{segment}/`.
+    /// Can only handle simple dynamic templates like `/<segment>/`.
     fn search_dynamic_constrained_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -135,7 +135,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can handle complex dynamic templates like `{name}.{extension}`.
+    /// Can handle complex dynamic templates like `<name>.<extension>`.
     fn search_dynamic_constrained_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -188,7 +188,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can only handle simple dynamic templates like `/{segment}/`.
+    /// Can only handle simple dynamic templates like `/<segment>/`.
     fn search_dynamic_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -212,7 +212,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can handle complex dynamic templates like `{name}.{extension}`.
+    /// Can handle complex dynamic templates like `<name>.<extension>`.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -262,7 +262,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can only handle simple wildcard templates like `/{*segment}/`.
+    /// Can only handle simple wildcard templates like `/<*segment>/`.
     fn search_wildcard_constrained_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -323,7 +323,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can handle complex wildcard templates like `/{*name}.{extension}`.
+    /// Can handle complex wildcard templates like `/<*name>.<extension>`.
     fn search_wildcard_constrained_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -372,7 +372,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can only handle simple wildcard templates like `/{*segment}/`.
+    /// Can only handle simple wildcard templates like `/<*segment>/`.
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -429,7 +429,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can handle complex wildcard templates like `/{*name}.{extension}`.
+    /// Can handle complex wildcard templates like `/<*name>.<extension>`.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],

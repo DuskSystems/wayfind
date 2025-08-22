@@ -94,6 +94,10 @@ macro_rules! routes {
         routes!(finish => "{p1}", "{p2}", "{p3}", "{p4}")
     }};
 
+    (arrows) => {{
+        routes!(finish => "<p1>", "<p2>", "<p3>", "<p4>")
+    }};
+
     (finish => $p1:literal, $p2:literal, $p3:literal, $p4:literal) => {{
         [
             "/app",

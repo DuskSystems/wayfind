@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised MSRV from 1.63 to 1.85.
 - Switch to Rust 2024 edition.
 - Switched internal data store to slot storage.
+- Syntax for parameters has changed from `{name}` to `<name>`
 
 ### Fixed
 

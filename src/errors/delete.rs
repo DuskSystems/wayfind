@@ -46,15 +46,15 @@ pub enum DeleteError {
     /// use wayfind::errors::DeleteError;
     ///
     /// let error = DeleteError::Mismatch {
-    ///     template: "/users/{id}/".to_owned(),
-    ///     inserted: "/users/{id}(/)".to_owned(),
+    ///     template: "/users/<id>/".to_owned(),
+    ///     inserted: "/users/<id>(/)".to_owned(),
     /// };
     ///
     /// let display = r"
     /// delete mismatch
     ///
-    ///     Template: /users/{id}/
-    ///     Inserted: /users/{id}(/)
+    ///     Template: /users/<id>/
+    ///     Inserted: /users/<id>(/)
     ///
     /// help: The template must be deleted using the same format as was inserted
     ///

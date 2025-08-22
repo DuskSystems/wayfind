@@ -100,20 +100,20 @@ fn test_insert_conflict_multiple_expanded() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/{*catch_all})", 1)?;
+    router.insert("(/<*catch_all>)", 1)?;
 
-    let insert = router.insert("/{*catch_all}", 2);
+    let insert = router.insert("/<*catch_all>", 2);
     assert_eq!(
         insert,
         Err(InsertError::Conflict {
-            template: "/{*catch_all}".to_owned(),
-            conflicts: vec!["(/{*catch_all})".to_owned()]
+            template: "/<*catch_all>".to_owned(),
+            conflicts: vec!["(/<*catch_all>)".to_owned()]
         })
     );
 
     insta::assert_snapshot!(router, @r"
     / [*]
-    ╰─ {*catch_all} [*]
+    ╰─ <*catch_all> [*]
     ");
 
     Ok(())
@@ -147,12 +147,11 @@ fn test_insert_conflict_overlapping() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_insert_duplicate_parameter() {
     let mut router = Router::new();
-
-    let insert = router.insert("/{*id}/users/{id}", 3);
+    let insert = router.insert("/<*id>/users/<id>", 3);
     assert_eq!(
         insert,
         Err(InsertError::Template(TemplateError::DuplicateParameter {
-            template: "/{*id}/users/{id}".to_owned(),
+            template: "/<*id>/users/<id>".to_owned(),
             name: "id".to_owned(),
             first: 1,
             first_length: 5,

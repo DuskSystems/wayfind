@@ -7,16 +7,16 @@ use wayfind::{Match, Router};
 #[test]
 fn test_escape_parameter() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert(r"/users/\{id\}", 1)?; // "/users/{id}"
+    router.insert(r"/users/\<id\>", 1)?; // "/users/<id>"
 
-    insta::assert_snapshot!(router, @"/users/{id} [*]");
+    insta::assert_snapshot!(router, @"/users/<id> [*]");
 
-    let search = router.search("/users/{id}");
+    let search = router.search("/users/<id>");
     assert_eq!(
         search,
         Some(Match {
             data: &1,
-            template: r"/users/\{id\}",
+            template: r"/users/\<id\>",
             expanded: None,
             parameters: smallvec![],
         })
@@ -55,21 +55,21 @@ fn test_escape_group() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_escape_nested() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert(r"(/a(/\{param\}))", 1)?; // "(/a(/{param}))"
+    router.insert(r"(/a(/\<param\>))", 1)?; // "(/a(/<param>))"
 
     insta::assert_snapshot!(router, @r"
     / [*]
     ╰─ a [*]
-       ╰─ /{param} [*]
+       ╰─ /<param> [*]
     ");
 
-    let search = router.search("/a/{param}");
+    let search = router.search("/a/<param>");
     assert_eq!(
         search,
         Some(Match {
             data: &1,
-            template: r"(/a(/\{param\}))",
-            expanded: Some("/a/\\{param\\}"),
+            template: r"(/a(/\<param\>))",
+            expanded: Some("/a/\\<param\\>"),
             parameters: smallvec![],
         })
     );
@@ -82,7 +82,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: r"(/a(/\{param\}))",
+            template: r"(/a(/\<param\>))",
             expanded: Some("/a"),
             parameters: smallvec![],
         })
@@ -93,7 +93,7 @@ fn test_escape_nested() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: r"(/a(/\{param\}))",
+            template: r"(/a(/\<param\>))",
             expanded: Some("/"),
             parameters: smallvec![],
         })

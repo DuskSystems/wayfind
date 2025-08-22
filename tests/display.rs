@@ -7,36 +7,36 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
     router.insert("/users", 2)?;
-    router.insert("/users/{id}", 3)?;
-    router.insert("/users/{id}/profile", 4)?;
-    router.insert("/posts/{year}-{month}-{day}", 5)?;
-    router.insert("/files/{*path}/download", 6)?;
+    router.insert("/users/<id>", 3)?;
+    router.insert("/users/<id>/profile", 4)?;
+    router.insert("/posts/<year>-<month>-<day>", 5)?;
+    router.insert("/files/<*path>/download", 6)?;
     router.insert("/api/v1(/)", 7)?;
-    router.insert("/images/{name}(.{extension})", 8)?;
-    router.insert("/{*catch_all}", 9)?;
+    router.insert("/images/<name>(.<extension>)", 8)?;
+    router.insert("/<*catch_all>", 9)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]
     ├─ api/v1 [*]
     │  ╰─ / [*]
     ├─ files/
-    │  ╰─ {*path}
+    │  ╰─ <*path>
     │     ╰─ /download [*]
     ├─ images/
-    │  ╰─ {name} [*]
+    │  ╰─ <name> [*]
     │     ╰─ .
-    │        ╰─ {extension} [*]
+    │        ╰─ <extension> [*]
     ├─ posts/
-    │  ╰─ {year}
+    │  ╰─ <year>
     │     ╰─ -
-    │        ╰─ {month}
+    │        ╰─ <month>
     │           ╰─ -
-    │              ╰─ {day} [*]
+    │              ╰─ <day> [*]
     ├─ users [*]
     │  ╰─ /
-    │     ╰─ {id} [*]
+    │     ╰─ <id> [*]
     │        ╰─ /profile [*]
-    ╰─ {*catch_all} [*]
+    ╰─ <*catch_all> [*]
     ");
 
     Ok(())

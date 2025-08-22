@@ -32,65 +32,65 @@ pub enum TemplateError {
         template: String,
     },
 
-    /// Empty braces were found in the template.
+    /// Empty angles were found in the template.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::TemplateError;
     ///
-    /// let error = TemplateError::EmptyBraces {
-    ///     template: "/{}".to_owned(),
+    /// let error = TemplateError::EmptyAngles {
+    ///     template: "/<>".to_owned(),
     ///     position: 1,
     /// };
     ///
     /// let display = r"
-    /// empty braces
+    /// empty angles
     ///
-    ///     Template: /{}
+    ///     Template: /<>
     ///                ^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    EmptyBraces {
-        /// The template containing empty braces.
+    EmptyAngles {
+        /// The template containing empty angles.
         template: String,
-        /// The position of the first empty brace.
+        /// The position of the first empty angle.
         position: usize,
     },
 
-    /// An unbalanced brace was found in the template.
+    /// An unbalanced angle was found in the template.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::TemplateError;
     ///
-    /// let error = TemplateError::UnbalancedBrace {
-    ///     template: "/{".to_owned(),
+    /// let error = TemplateError::UnbalancedAngle {
+    ///     template: "/<".to_owned(),
     ///     position: 1,
     /// };
     ///
     /// let display = r"
-    /// unbalanced brace
+    /// unbalanced angle
     ///
-    ///     Template: /{
+    ///     Template: /<
     ///                ^
     ///
-    /// help: Each '{' must have a matching '}'
+    /// help: Each '<' must have a matching '>'
     ///
     /// try:
-    ///     - Add the missing closing brace
-    ///     - Use '\{' and '\}' to represent literal braces
+    ///     - Add the missing closing angle
+    ///     - Use '\<' and '\>' to represent literal angles
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
     /// ```
-    UnbalancedBrace {
-        /// The template containing an unbalanced brace.
+    UnbalancedAngle {
+        /// The template containing an unbalanced angle.
         template: String,
-        /// The position of the unbalanced brace.
+        /// The position of the unbalanced angle.
         position: usize,
     },
 
@@ -164,7 +164,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyParameter {
-    ///     template: "/{:}".to_owned(),
+    ///     template: "/<:>".to_owned(),
     ///     start: 1,
     ///     length: 3,
     /// };
@@ -172,7 +172,7 @@ pub enum TemplateError {
     /// let display = r"
     /// empty parameter name
     ///
-    ///     Template: /{:}
+    ///     Template: /<:>
     ///                ^^^
     /// ";
     ///
@@ -181,9 +181,9 @@ pub enum TemplateError {
     EmptyParameter {
         /// The template containing an empty parameter.
         template: String,
-        /// The position of the opening brace of the empty name parameter.
+        /// The position of the opening angle of the empty name parameter.
         start: usize,
-        /// The length of the parameter (including braces).
+        /// The length of the parameter (including angles).
         length: usize,
     },
 
@@ -195,7 +195,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::InvalidParameter {
-    ///     template: "/{a/b}".to_owned(),
+    ///     template: "/<a/b>".to_owned(),
     ///     name: "a/b".to_owned(),
     ///     start: 1,
     ///     length: 5,
@@ -204,10 +204,10 @@ pub enum TemplateError {
     /// let display = r"
     /// invalid parameter name: 'a/b'
     ///
-    ///     Template: /{a/b}
+    ///     Template: /<a/b>
     ///                ^^^^^
     ///
-    /// help: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+    /// help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -217,9 +217,9 @@ pub enum TemplateError {
         template: String,
         /// The invalid parameter name.
         name: String,
-        /// The position of the opening brace of the invalid name parameter.
+        /// The position of the opening angle of the invalid name parameter.
         start: usize,
-        /// The length of the parameter (including braces).
+        /// The length of the parameter (including angles).
         length: usize,
     },
 
@@ -231,7 +231,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::DuplicateParameter {
-    ///     template: "/{id}/{id}".to_owned(),
+    ///     template: "/<id>/<id>".to_owned(),
     ///     name: "id".to_owned(),
     ///     first: 1,
     ///     first_length: 4,
@@ -242,7 +242,7 @@ pub enum TemplateError {
     /// let display = r"
     /// duplicate parameter name: 'id'
     ///
-    ///     Template: /{id}/{id}
+    ///     Template: /<id>/<id>
     ///                ^^^^ ^^^^
     ///
     /// help: Parameter names must be unique within a template
@@ -258,13 +258,13 @@ pub enum TemplateError {
         template: String,
         /// The duplicated parameter name.
         name: String,
-        /// The position of the opening brace of the first occurrence.
+        /// The position of the opening angle of the first occurrence.
         first: usize,
-        /// The length of the first parameter (including braces).
+        /// The length of the first parameter (including angles).
         first_length: usize,
-        /// The position of the opening brace of the second occurrence.
+        /// The position of the opening angle of the second occurrence.
         second: usize,
-        /// The length of the second parameter (including braces).
+        /// The length of the second parameter (including angles).
         second_length: usize,
     },
 
@@ -276,7 +276,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyWildcard {
-    ///     template: "/{*}".to_owned(),
+    ///     template: "/<*>".to_owned(),
     ///     start: 1,
     ///     length: 3,
     /// };
@@ -284,7 +284,7 @@ pub enum TemplateError {
     /// let display = r"
     /// empty wildcard name
     ///
-    ///     Template: /{*}
+    ///     Template: /<*>
     ///                ^^^
     /// ";
     ///
@@ -293,9 +293,9 @@ pub enum TemplateError {
     EmptyWildcard {
         /// The template containing an empty wildcard parameter.
         template: String,
-        /// The position of the opening brace of the empty wildcard parameter.
+        /// The position of the opening angle of the empty wildcard parameter.
         start: usize,
-        /// The length of the parameter (including braces).
+        /// The length of the parameter (including angles).
         length: usize,
     },
 
@@ -307,7 +307,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyConstraint {
-    ///     template: "/{a:}".to_owned(),
+    ///     template: "/<a:>".to_owned(),
     ///     start: 1,
     ///     length: 4,
     /// };
@@ -315,7 +315,7 @@ pub enum TemplateError {
     /// let display = r"
     /// empty constraint name
     ///
-    ///     Template: /{a:}
+    ///     Template: /<a:>
     ///                ^^^^
     /// ";
     ///
@@ -324,9 +324,9 @@ pub enum TemplateError {
     EmptyConstraint {
         /// The template containing an empty constraint.
         template: String,
-        /// The position of the opening brace of the empty constraint parameter.
+        /// The position of the opening angle of the empty constraint parameter.
         start: usize,
-        /// The length of the parameter (including braces).
+        /// The length of the parameter (including angles).
         length: usize,
     },
 
@@ -338,7 +338,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::InvalidConstraint {
-    ///     template: "/{a:b/c}".to_owned(),
+    ///     template: "/<a:b/c>".to_owned(),
     ///     name: "b/c".to_owned(),
     ///     start: 1,
     ///     length: 7,
@@ -347,10 +347,10 @@ pub enum TemplateError {
     /// let display = r"
     /// invalid constraint name: 'b/c'
     ///
-    ///     Template: /{a:b/c}
+    ///     Template: /<a:b/c>
     ///                ^^^^^^^
     ///
-    /// help: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+    /// help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -360,9 +360,9 @@ pub enum TemplateError {
         template: String,
         /// The invalid constraint name.
         name: String,
-        /// The position of the opening brace of the invalid constraint parameter.
+        /// The position of the opening angle of the invalid constraint parameter.
         start: usize,
-        /// The length of the parameter (including braces).
+        /// The length of the parameter (including angles).
         length: usize,
     },
 
@@ -374,7 +374,7 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::TouchingParameters {
-    ///     template: "/{a}{b}".to_owned(),
+    ///     template: "/<a><b>".to_owned(),
     ///     start: 1,
     ///     length: 6,
     /// };
@@ -382,7 +382,7 @@ pub enum TemplateError {
     /// let display = r"
     /// touching parameters
     ///
-    ///     Template: /{a}{b}
+    ///     Template: /<a><b>
     ///                ^^^^^^
     ///
     /// help: Parameters must be separated by at least one part
@@ -397,9 +397,9 @@ pub enum TemplateError {
     TouchingParameters {
         /// The template containing touching parameters.
         template: String,
-        /// The position of the first opening brace.
+        /// The position of the first opening angle.
         start: usize,
-        /// The combined length of both parameters (including braces).
+        /// The combined length of both parameters (including angles).
         length: usize,
     },
 }
@@ -422,31 +422,31 @@ help: Templates must begin with '/'"
                 )
             }
 
-            Self::EmptyBraces { template, position } => {
+            Self::EmptyAngles { template, position } => {
                 let arrow = " ".repeat(*position) + "^^";
                 write!(
                     f,
-                    r"empty braces
+                    r"empty angles
 
     Template: {template}
               {arrow}"
                 )
             }
 
-            Self::UnbalancedBrace { template, position } => {
+            Self::UnbalancedAngle { template, position } => {
                 let arrow = " ".repeat(*position) + "^";
                 write!(
                     f,
-                    r"unbalanced brace
+                    r"unbalanced angle
 
     Template: {template}
               {arrow}
 
-help: Each '{{' must have a matching '}}'
+help: Each '<' must have a matching '>'
 
 try:
-    - Add the missing closing brace
-    - Use '\{{' and '\}}' to represent literal braces"
+    - Add the missing closing angle
+    - Use '\<' and '\>' to represent literal angles"
                 )
             }
 
@@ -507,7 +507,7 @@ try:
     Template: {template}
               {arrow}
 
-help: Parameter names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
+help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{{', '}}', '/'"
                 )
             }
 
@@ -585,7 +585,7 @@ try:
     Template: {template}
               {arrow}
 
-help: Constraint names must not contain the characters: ':', '*', '{{', '}}', '(', ')', '/'"
+help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{{', '}}', '/'"
                 )
             }
 

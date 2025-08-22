@@ -7,11 +7,11 @@ use wayfind::{Match, Router};
 #[test]
 fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{id}", 1)?;
+    router.insert("/<id>", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {id} [*]
+    ╰─ <id> [*]
     ");
 
     let search = router.search("/123");
@@ -19,7 +19,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{id}",
+            template: "/<id>",
             expanded: None,
             parameters: smallvec![("id", "123")],
         })
@@ -34,17 +34,17 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{year}", 1)?;
-    router.insert("/{year}/{month}", 2)?;
-    router.insert("/{year}/{month}/{day}", 3)?;
+    router.insert("/<year>", 1)?;
+    router.insert("/<year>/<month>", 2)?;
+    router.insert("/<year>/<month>/<day>", 3)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {year} [*]
+    ╰─ <year> [*]
        ╰─ /
-          ╰─ {month} [*]
+          ╰─ <month> [*]
              ╰─ /
-                ╰─ {day} [*]
+                ╰─ <day> [*]
     ");
 
     let search = router.search("/2024");
@@ -52,7 +52,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{year}",
+            template: "/<year>",
             expanded: None,
             parameters: smallvec![("year", "2024")],
         })
@@ -63,7 +63,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            template: "/{year}/{month}",
+            template: "/<year>/<month>",
             expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
@@ -74,7 +74,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            template: "/{year}/{month}/{day}",
+            template: "/<year>/<month>/<day>",
             expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
@@ -86,17 +86,17 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{year}", 1)?;
-    router.insert("/{year}-{month}", 2)?;
-    router.insert("/{year}-{month}-{day}", 3)?;
+    router.insert("/<year>", 1)?;
+    router.insert("/<year>-<month>", 2)?;
+    router.insert("/<year>-<month>-<day>", 3)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {year} [*]
+    ╰─ <year> [*]
        ╰─ -
-          ╰─ {month} [*]
+          ╰─ <month> [*]
              ╰─ -
-                ╰─ {day} [*]
+                ╰─ <day> [*]
     ");
 
     let search = router.search("/2024");
@@ -104,7 +104,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{year}",
+            template: "/<year>",
             expanded: None,
             parameters: smallvec![("year", "2024")],
         })
@@ -115,7 +115,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            template: "/{year}-{month}",
+            template: "/<year>-<month>",
             expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
@@ -126,7 +126,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            template: "/{year}-{month}-{day}",
+            template: "/<year>-<month>-<day>",
             expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
@@ -138,13 +138,13 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{file}.{extension}", 1)?;
+    router.insert("/<file>.<extension>", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {file}
+    ╰─ <file>
        ╰─ .
-          ╰─ {extension} [*]
+          ╰─ <extension> [*]
     ");
 
     let search = router.search("/report");
@@ -155,7 +155,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{file}.{extension}",
+            template: "/<file>.<extension>",
             expanded: None,
             parameters: smallvec![("file", "report"), ("extension", "pdf")],
         })
@@ -166,7 +166,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{file}.{extension}",
+            template: "/<file>.<extension>",
             expanded: None,
             parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
         })
@@ -179,19 +179,19 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
 fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/robots.txt", 1)?;
-    router.insert("/robots.{extension}", 2)?;
-    router.insert("/{name}.txt", 3)?;
-    router.insert("/{name}.{extension}", 4)?;
+    router.insert("/robots.<extension>", 2)?;
+    router.insert("/<name>.txt", 3)?;
+    router.insert("/<name>.<extension>", 4)?;
 
     insta::assert_snapshot!(router, @r"
     /
     ├─ robots.
     │  ├─ txt [*]
-    │  ╰─ {extension} [*]
-    ╰─ {name}
+    │  ╰─ <extension> [*]
+    ╰─ <name>
        ╰─ .
           ├─ txt [*]
-          ╰─ {extension} [*]
+          ╰─ <extension> [*]
     ");
 
     let search = router.search("/robots.txt");
@@ -210,7 +210,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            template: "/robots.{extension}",
+            template: "/robots.<extension>",
             expanded: None,
             parameters: smallvec![("extension", "pdf")],
         })
@@ -221,7 +221,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            template: "/{name}.txt",
+            template: "/<name>.txt",
             expanded: None,
             parameters: smallvec![("name", "config")],
         })
@@ -232,7 +232,7 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &4,
-            template: "/{name}.{extension}",
+            template: "/<name>.<extension>",
             expanded: None,
             parameters: smallvec![("name", "config"), ("extension", "pdf")],
         })

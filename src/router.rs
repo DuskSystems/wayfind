@@ -365,7 +365,7 @@ impl<T> Router<T> {
     /// use wayfind::Router;
     ///
     /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/{user}", 1).unwrap();
+    /// router.insert("/<user>", 1).unwrap();
     /// router.search("/me").unwrap();
     /// ```
     #[must_use]

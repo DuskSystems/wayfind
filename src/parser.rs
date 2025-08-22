@@ -9,7 +9,7 @@ use smallvec::{SmallVec, smallvec};
 use crate::errors::TemplateError;
 
 /// Characters that are not allowed in parameter names or constraints.
-const INVALID_PARAM_CHARS: [u8; 7] = [b':', b'*', b'{', b'}', b'(', b')', b'/'];
+const INVALID_PARAM_CHARS: [u8; 9] = [b':', b'*', b'<', b'>', b'(', b')', b'{', b'}', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
@@ -165,7 +165,7 @@ impl ParsedTemplate {
 
         while cursor < raw.len() {
             match raw[cursor] {
-                b'{' => {
+                b'<' => {
                     let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
 
                     // Check for touching parameters.
@@ -205,8 +205,8 @@ impl ParsedTemplate {
                     parts.push(part);
                     cursor = next_cursor;
                 }
-                b'}' => {
-                    return Err(TemplateError::UnbalancedBrace {
+                b'>' => {
+                    return Err(TemplateError::UnbalancedAngle {
                         template: String::from_utf8_lossy(raw).to_string(),
                         position: cursor,
                     });
@@ -242,7 +242,7 @@ impl ParsedTemplate {
                     prefix.push(b'\\');
                     end += 1;
                 }
-                (b'{' | b'}', _) => break,
+                (b'<' | b'>', _) => break,
                 (char, _) => {
                     prefix.push(char);
                     end += 1;
@@ -257,13 +257,13 @@ impl ParsedTemplate {
         let start = cursor + 1;
         let mut end = start;
 
-        let mut brace_count = 1;
+        let mut angle_count = 1;
         while end < input.len() {
             match input[end] {
-                b'{' => brace_count += 1,
-                b'}' => {
-                    brace_count -= 1;
-                    if brace_count == 0 {
+                b'<' => angle_count += 1,
+                b'>' => {
+                    angle_count -= 1;
+                    if angle_count == 0 {
                         break;
                     }
                 }
@@ -273,8 +273,8 @@ impl ParsedTemplate {
             end += 1;
         }
 
-        if brace_count != 0 {
-            return Err(TemplateError::UnbalancedBrace {
+        if angle_count != 0 {
+            return Err(TemplateError::UnbalancedAngle {
                 template: String::from_utf8_lossy(input).to_string(),
                 position: cursor,
             });
@@ -282,7 +282,7 @@ impl ParsedTemplate {
 
         let content = &input[start..end];
         if content.is_empty() {
-            return Err(TemplateError::EmptyBraces {
+            return Err(TemplateError::EmptyAngles {
                 template: String::from_utf8_lossy(input).to_string(),
                 position: cursor,
             });
@@ -403,12 +403,12 @@ mod tests {
     #[test]
     fn test_parser_dynamic_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{name}"),
+            ParsedTemplate::new(b"/<name>"),
             Ok(ParsedTemplate {
-                input: b"/{name}".to_vec(),
+                input: b"/<name>".to_vec(),
                 templates: vec![Template {
-                    input: b"/{name}".to_vec(),
-                    raw: b"/{name}".to_vec(),
+                    input: b"/<name>".to_vec(),
+                    raw: b"/<name>".to_vec(),
                     parts: vec![
                         Part::Dynamic {
                             name: "name".to_owned(),
@@ -426,12 +426,12 @@ mod tests {
     #[test]
     fn test_parser_wildcard_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{*wildcard}"),
+            ParsedTemplate::new(b"/<*wildcard>"),
             Ok(ParsedTemplate {
-                input: b"/{*wildcard}".to_vec(),
+                input: b"/<*wildcard>".to_vec(),
                 templates: vec![Template {
-                    input: b"/{*wildcard}".to_vec(),
-                    raw: b"/{*wildcard}".to_vec(),
+                    input: b"/<*wildcard>".to_vec(),
+                    raw: b"/<*wildcard>".to_vec(),
                     parts: vec![
                         Part::Wildcard {
                             name: "wildcard".to_owned(),
@@ -449,12 +449,12 @@ mod tests {
     #[test]
     fn test_parser_complex_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/{*name:alpha}/{id:numeric}"),
+            ParsedTemplate::new(b"/<*name:alpha>/<id:numeric>"),
             Ok(ParsedTemplate {
-                input: b"/{*name:alpha}/{id:numeric}".to_vec(),
+                input: b"/<*name:alpha>/<id:numeric>".to_vec(),
                 templates: vec![Template {
-                    input: b"/{*name:alpha}/{id:numeric}".to_vec(),
-                    raw: b"/{*name:alpha}/{id:numeric}".to_vec(),
+                    input: b"/<*name:alpha>/<id:numeric>".to_vec(),
+                    raw: b"/<*name:alpha>/<id:numeric>".to_vec(),
                     parts: vec![
                         Part::DynamicConstrained {
                             name: "id".to_owned(),
@@ -480,13 +480,13 @@ mod tests {
     #[test]
     fn test_parser_optional_group_simple() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/{id})"),
+            ParsedTemplate::new(b"/users(/<id>)"),
             Ok(ParsedTemplate {
-                input: b"/users(/{id})".to_vec(),
+                input: b"/users(/<id>)".to_vec(),
                 templates: vec![
                     Template {
-                        input: b"/users(/{id})".to_vec(),
-                        raw: b"/users/{id}".to_vec(),
+                        input: b"/users(/<id>)".to_vec(),
+                        raw: b"/users/<id>".to_vec(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
@@ -497,7 +497,7 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"/users(/{id})".to_vec(),
+                        input: b"/users(/<id>)".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -512,13 +512,13 @@ mod tests {
     #[test]
     fn test_parser_optional_groups_nested() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/{id}(/profile))"),
+            ParsedTemplate::new(b"/users(/<id>(/profile))"),
             Ok(ParsedTemplate {
-                input: b"/users(/{id}(/profile))".to_vec(),
+                input: b"/users(/<id>(/profile))".to_vec(),
                 templates: vec![
                     Template {
-                        input: b"/users(/{id}(/profile))".to_vec(),
-                        raw: b"/users/{id}/profile".to_vec(),
+                        input: b"/users(/<id>(/profile))".to_vec(),
+                        raw: b"/users/<id>/profile".to_vec(),
                         parts: vec![
                             Part::Static {
                                 prefix: b"/profile".to_vec()
@@ -532,8 +532,8 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"/users(/{id}(/profile))".to_vec(),
-                        raw: b"/users/{id}".to_vec(),
+                        input: b"/users(/<id>(/profile))".to_vec(),
+                        raw: b"/users/<id>".to_vec(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "id".to_owned(),
@@ -544,7 +544,7 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"/users(/{id}(/profile))".to_vec(),
+                        input: b"/users(/<id>(/profile))".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -559,14 +559,14 @@ mod tests {
     #[test]
     fn test_parser_escaped_characters() {
         assert_eq!(
-            ParsedTemplate::new(b"/path/with\\{braces\\}and\\(parens\\)"),
+            ParsedTemplate::new(b"/path/with\\<angles\\>and\\(parens\\)"),
             Ok(ParsedTemplate {
-                input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
+                input: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
                 templates: vec![Template {
-                    input: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
-                    raw: b"/path/with\\{braces\\}and\\(parens\\)".to_vec(),
+                    input: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
+                    raw: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
                     parts: vec![Part::Static {
-                        prefix: b"/path/with{braces}and(parens)".to_vec()
+                        prefix: b"/path/with<angles>and(parens)".to_vec()
                     }],
                 }],
                 expanded: false,
@@ -577,13 +577,13 @@ mod tests {
     #[test]
     fn test_parser_edge_case_starting_optional_group() {
         assert_eq!(
-            ParsedTemplate::new(b"(/{lang})/users"),
+            ParsedTemplate::new(b"(/<lang>)/users"),
             Ok(ParsedTemplate {
-                input: b"(/{lang})/users".to_vec(),
+                input: b"(/<lang>)/users".to_vec(),
                 templates: vec![
                     Template {
-                        input: b"(/{lang})/users".to_vec(),
-                        raw: b"/{lang}/users".to_vec(),
+                        input: b"(/<lang>)/users".to_vec(),
+                        raw: b"/<lang>/users".to_vec(),
                         parts: vec![
                             Part::Static {
                                 prefix: b"/users".to_vec()
@@ -597,7 +597,7 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"(/{lang})/users".to_vec(),
+                        input: b"(/<lang>)/users".to_vec(),
                         raw: b"/users".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/users".to_vec()
@@ -612,13 +612,13 @@ mod tests {
     #[test]
     fn test_parser_edge_case_only_optional_groups() {
         assert_eq!(
-            ParsedTemplate::new(b"(/{lang})(/{page})"),
+            ParsedTemplate::new(b"(/<lang>)(/<page>)"),
             Ok(ParsedTemplate {
-                input: b"(/{lang})(/{page})".to_vec(),
+                input: b"(/<lang>)(/<page>)".to_vec(),
                 templates: vec![
                     Template {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{lang}/{page}".to_vec(),
+                        input: b"(/<lang>)(/<page>)".to_vec(),
+                        raw: b"/<lang>/<page>".to_vec(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
@@ -635,8 +635,8 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{lang}".to_vec(),
+                        input: b"(/<lang>)(/<page>)".to_vec(),
+                        raw: b"/<lang>".to_vec(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "lang".to_owned(),
@@ -647,8 +647,8 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"(/{lang})(/{page})".to_vec(),
-                        raw: b"/{page}".to_vec(),
+                        input: b"(/<lang>)(/<page>)".to_vec(),
+                        raw: b"/<page>".to_vec(),
                         parts: vec![
                             Part::Dynamic {
                                 name: "page".to_owned(),
@@ -659,7 +659,7 @@ mod tests {
                         ],
                     },
                     Template {
-                        input: b"(/{lang})(/{page})".to_vec(),
+                        input: b"(/<lang>)(/<page>)".to_vec(),
                         raw: b"/".to_vec(),
                         parts: vec![Part::Static {
                             prefix: b"/".to_vec()
@@ -680,20 +680,20 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_empty_braces() {
-        let error = ParsedTemplate::new(b"/users/{}").unwrap_err();
+    fn test_parser_error_empty_angles() {
+        let error = ParsedTemplate::new(b"/users/<>").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyBraces {
-                template: "/users/{}".to_owned(),
+            TemplateError::EmptyAngles {
+                template: "/users/<>".to_owned(),
                 position: 7,
             }
         );
 
         insta::assert_snapshot!(error, @r"
-        empty braces
+        empty angles
 
-            Template: /users/{}
+            Template: /users/<>
                              ^^
         ");
     }
@@ -718,52 +718,52 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_unbalanced_brace_opening() {
-        let error = ParsedTemplate::new(b"/users/{id/profile").unwrap_err();
+    fn test_parser_error_unbalanced_angle_opening() {
+        let error = ParsedTemplate::new(b"/users/<id/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedBrace {
-                template: "/users/{id/profile".to_owned(),
+            TemplateError::UnbalancedAngle {
+                template: "/users/<id/profile".to_owned(),
                 position: 7,
             }
         );
 
         insta::assert_snapshot!(error, @r"
-        unbalanced brace
+        unbalanced angle
 
-            Template: /users/{id/profile
+            Template: /users/<id/profile
                              ^
 
-        help: Each '{' must have a matching '}'
+        help: Each '<' must have a matching '>'
 
         try:
-            - Add the missing closing brace
-            - Use '\{' and '\}' to represent literal braces
+            - Add the missing closing angle
+            - Use '\<' and '\>' to represent literal angles
         ");
     }
 
     #[test]
-    fn test_parser_error_unbalanced_brace_closing() {
-        let error = ParsedTemplate::new(b"/users/id}/profile").unwrap_err();
+    fn test_parser_error_unbalanced_angle_closing() {
+        let error = ParsedTemplate::new(b"/users/id>/profile").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::UnbalancedBrace {
-                template: "/users/id}/profile".to_owned(),
+            TemplateError::UnbalancedAngle {
+                template: "/users/id>/profile".to_owned(),
                 position: 9,
             }
         );
 
         insta::assert_snapshot!(error, @r"
-        unbalanced brace
+        unbalanced angle
 
-            Template: /users/id}/profile
+            Template: /users/id>/profile
                                ^
 
-        help: Each '{' must have a matching '}'
+        help: Each '<' must have a matching '>'
 
         try:
-            - Add the missing closing brace
-            - Use '\{' and '\}' to represent literal braces
+            - Add the missing closing angle
+            - Use '\<' and '\>' to represent literal angles
         ");
     }
 
@@ -838,11 +838,11 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_parameter() {
-        let error = ParsedTemplate::new(b"/users/{:constraint}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<:constraint>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyParameter {
-                template: "/users/{:constraint}/profile".to_owned(),
+                template: "/users/<:constraint>/profile".to_owned(),
                 start: 7,
                 length: 13,
             }
@@ -851,18 +851,18 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         empty parameter name
 
-            Template: /users/{:constraint}/profile
+            Template: /users/<:constraint>/profile
                              ^^^^^^^^^^^^^
         ");
     }
 
     #[test]
     fn test_parser_error_invalid_parameter() {
-        let error = ParsedTemplate::new(b"/users/{user*name}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<user*name>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::InvalidParameter {
-                template: "/users/{user*name}/profile".to_owned(),
+                template: "/users/<user*name>/profile".to_owned(),
                 name: "user*name".to_owned(),
                 start: 7,
                 length: 11,
@@ -872,20 +872,20 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         invalid parameter name: 'user*name'
 
-            Template: /users/{user*name}/profile
+            Template: /users/<user*name>/profile
                              ^^^^^^^^^^^
 
-        help: Parameter names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+        help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
         ");
     }
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = ParsedTemplate::new(b"/users/{id}/posts/{id:uuid}").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<id>/posts/<id:uuid>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::DuplicateParameter {
-                template: "/users/{id}/posts/{id:uuid}".to_owned(),
+                template: "/users/<id>/posts/<id:uuid>".to_owned(),
                 name: "id".to_owned(),
                 first: 7,
                 first_length: 4,
@@ -897,7 +897,7 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         duplicate parameter name: 'id'
 
-            Template: /users/{id}/posts/{id:uuid}
+            Template: /users/<id>/posts/<id:uuid>
                              ^^^^       ^^^^^^^^^
 
         help: Parameter names must be unique within a template
@@ -909,11 +909,11 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_wildcard() {
-        let error = ParsedTemplate::new(b"/files/{*}").unwrap_err();
+        let error = ParsedTemplate::new(b"/files/<*>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyWildcard {
-                template: "/files/{*}".to_owned(),
+                template: "/files/<*>".to_owned(),
                 start: 7,
                 length: 3,
             }
@@ -922,18 +922,18 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         empty wildcard name
 
-            Template: /files/{*}
+            Template: /files/<*>
                              ^^^
         ");
     }
 
     #[test]
     fn test_parser_error_empty_constraint() {
-        let error = ParsedTemplate::new(b"/users/{id:}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<id:>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyConstraint {
-                template: "/users/{id:}/profile".to_owned(),
+                template: "/users/<id:>/profile".to_owned(),
                 start: 7,
                 length: 5,
             }
@@ -942,18 +942,18 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         empty constraint name
 
-            Template: /users/{id:}/profile
+            Template: /users/<id:>/profile
                              ^^^^^
         ");
     }
 
     #[test]
     fn test_parser_error_invalid_constraint() {
-        let error = ParsedTemplate::new(b"/users/{id:*}/profile").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<id:*>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::InvalidConstraint {
-                template: "/users/{id:*}/profile".to_owned(),
+                template: "/users/<id:*>/profile".to_owned(),
                 name: "*".to_owned(),
                 start: 7,
                 length: 6,
@@ -963,20 +963,20 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         invalid constraint name: '*'
 
-            Template: /users/{id:*}/profile
+            Template: /users/<id:*>/profile
                              ^^^^^^
 
-        help: Constraint names must not contain the characters: ':', '*', '{', '}', '(', ')', '/'
+        help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
         ");
     }
 
     #[test]
     fn test_parser_error_touching_parameters() {
-        let error = ParsedTemplate::new(b"/users/{id}{*name}").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<id><*name>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::TouchingParameters {
-                template: "/users/{id}{*name}".to_owned(),
+                template: "/users/<id><*name>".to_owned(),
                 start: 7,
                 length: 11,
             }
@@ -985,7 +985,7 @@ mod tests {
         insta::assert_snapshot!(error, @r"
         touching parameters
 
-            Template: /users/{id}{*name}
+            Template: /users/<id><*name>
                              ^^^^^^^^^^^
 
         help: Parameters must be separated by at least one part

@@ -7,11 +7,11 @@ use wayfind::{Match, Router};
 #[test]
 fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}/delete", 1)?;
+    router.insert("/<*path>/delete", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {*path}
+    ╰─ <*path>
        ╰─ /delete [*]
     ");
 
@@ -20,7 +20,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}/delete",
+            template: "/<*path>/delete",
             expanded: None,
             parameters: smallvec![("path", "docs")],
         })
@@ -31,7 +31,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}/delete",
+            template: "/<*path>/delete",
             expanded: None,
             parameters: smallvec![("path", "nested/docs/folder")],
         })
@@ -46,13 +46,13 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*prefix}/static/{*suffix}/file", 1)?;
+    router.insert("/<*prefix>/static/<*suffix>/file", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {*prefix}
+    ╰─ <*prefix>
        ╰─ /static/
-          ╰─ {*suffix}
+          ╰─ <*suffix>
              ╰─ /file [*]
     ");
 
@@ -61,7 +61,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*prefix}/static/{*suffix}/file",
+            template: "/<*prefix>/static/<*suffix>/file",
             expanded: None,
             parameters: smallvec![("prefix", "a"), ("suffix", "b")],
         })
@@ -72,7 +72,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*prefix}/static/{*suffix}/file",
+            template: "/<*prefix>/static/<*suffix>/file",
             expanded: None,
             parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
         })
@@ -84,11 +84,11 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}.html", 1)?;
+    router.insert("/<*path>.html", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {*path}
+    ╰─ <*path>
        ╰─ .html [*]
     ");
 
@@ -97,7 +97,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}.html",
+            template: "/<*path>.html",
             expanded: None,
             parameters: smallvec![("path", "page")],
         })
@@ -108,7 +108,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}.html",
+            template: "/<*path>.html",
             expanded: None,
             parameters: smallvec![("path", "nested/page")],
         })
@@ -123,13 +123,13 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*first}-{*second}", 1)?;
+    router.insert("/<*first>-<*second>", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {*first}
+    ╰─ <*first>
        ╰─ -
-          ╰─ {*second} [*]
+          ╰─ <*second> [*]
     ");
 
     let search = router.search("/a-b-c");
@@ -137,7 +137,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*first}-{*second}",
+            template: "/<*first>-<*second>",
             expanded: None,
             parameters: smallvec![("first", "a-b"), ("second", "c")],
         })
@@ -148,7 +148,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*first}-{*second}",
+            template: "/<*first>-<*second>",
             expanded: None,
             parameters: smallvec![
                 ("first", "path/to/some-file/with-multiple"),
@@ -163,11 +163,11 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{*path}/end", 1)?;
+    router.insert("/<*path>/end", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {*path}
+    ╰─ <*path>
        ╰─ /end [*]
     ");
 
@@ -176,7 +176,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}/end",
+            template: "/<*path>/end",
             expanded: None,
             parameters: smallvec![("path", "start/middle")],
         })
@@ -187,7 +187,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/{*path}/end",
+            template: "/<*path>/end",
             expanded: None,
             parameters: smallvec![("path", "start//middle//")],
         })
@@ -200,21 +200,21 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
 fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/static/path", 1)?;
-    router.insert("/static/{*rest}", 2)?;
-    router.insert("/{*path}/static", 3)?;
-    router.insert("/prefix.{*suffix}", 4)?;
-    router.insert("/{*prefix}.suffix", 5)?;
+    router.insert("/static/<*rest>", 2)?;
+    router.insert("/<*path>/static", 3)?;
+    router.insert("/prefix.<*suffix>", 4)?;
+    router.insert("/<*prefix>.suffix", 5)?;
 
     insta::assert_snapshot!(router, @r"
     /
     ├─ prefix.
-    │  ╰─ {*suffix} [*]
+    │  ╰─ <*suffix> [*]
     ├─ static/
     │  ├─ path [*]
-    │  ╰─ {*rest} [*]
-    ├─ {*path}
+    │  ╰─ <*rest> [*]
+    ├─ <*path>
     │  ╰─ /static [*]
-    ╰─ {*prefix}
+    ╰─ <*prefix>
        ╰─ .suffix [*]
     ");
 
@@ -234,7 +234,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &2,
-            template: "/static/{*rest}",
+            template: "/static/<*rest>",
             expanded: None,
             parameters: smallvec![("rest", "some/nested/path")],
         })
@@ -245,7 +245,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &3,
-            template: "/{*path}/static",
+            template: "/<*path>/static",
             expanded: None,
             parameters: smallvec![("path", "some/nested/path")],
         })
@@ -256,7 +256,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &4,
-            template: "/prefix.{*suffix}",
+            template: "/prefix.<*suffix>",
             expanded: None,
             parameters: smallvec![("suffix", "some/nested/path")],
         })
@@ -267,7 +267,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &5,
-            template: "/{*prefix}.suffix",
+            template: "/<*prefix>.suffix",
             expanded: None,
             parameters: smallvec![("prefix", "some/nested/path")],
         })

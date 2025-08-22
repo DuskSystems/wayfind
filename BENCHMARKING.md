@@ -89,5 +89,5 @@ TODO.
 
 The features `wayfind` provides come with inherent risk.
 It is possible to insert a 'bad template' that poisons the performance of the entire router.
-For example, having a top-level constrained wildcard route like `/{*path:constraint}`.
+For example, having a top-level constrained wildcard route like `/<*path:constraint>`.
 As such, it would be nice to have more `wayfind` focused benchmarks, to measure such scenarios.

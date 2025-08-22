@@ -25,16 +25,16 @@
 //!     router.insert("/pet(/)", 1)?;
 //!     router.insert("/pet/findByStatus(/)", 2)?;
 //!     router.insert("/pet/findByTags(/)", 3)?;
-//!     router.insert("/pet/{pet}(/)", 4)?;
-//!     router.insert("/pet/{petId:number}/uploadImage(/)", 5)?;
+//!     router.insert("/pet/<pet>(/)", 4)?;
+//!     router.insert("/pet/<petId:number>/uploadImage(/)", 5)?;
 //!     router.insert("/store/inventory(/)", 6)?;
-//!     router.insert("/store/order(/{orderId:number})(/)", 7)?;
+//!     router.insert("/store/order(/<orderId:number>)(/)", 7)?;
 //!     router.insert("/user(/)", 8)?;
 //!     router.insert("/user/createWithList(/)", 9)?;
 //!     router.insert("/user/login(/)", 10)?;
 //!     router.insert("/user/logout(/)", 11)?;
-//!     router.insert("/user/{username}(/)", 12)?;
-//!     router.insert("/{*catch_all}", 13)?;
+//!     router.insert("/user/<username>(/)", 12)?;
+//!     router.insert("/<*catch_all>", 13)?;
 //!
 //!     let search = router.search("/pet").unwrap();
 //!     assert_eq!(*search.data, 1);
@@ -108,8 +108,8 @@
 //! Dynamic parameters can match any byte, **excluding** the path delimiter `/`.
 //!
 //! We support both:
-//! - whole segment parameters: `/{name}/`
-//! - inline parameters: `/{year}-{month}-{day}/`
+//! - whole segment parameters: `/<name>/`
+//! - inline parameters: `/<year>-<month>-<day>/`
 //!
 //! Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
 //!
@@ -122,17 +122,17 @@
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
-//!     router.insert("/users/{id}", 1)?;
-//!     router.insert("/users/{id}/files/{filename}.{extension}", 2)?;
+//!     router.insert("/users/<id>", 1)?;
+//!     router.insert("/users/<id>/files/<filename>.<extension>", 2)?;
 //!
 //!     let search = router.search("/users/123").unwrap();
 //!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/users/{id}");
+//!     assert_eq!(search.template, "/users/<id>");
 //!     assert_eq!(search.parameters[0], ("id", "123"));
 //!
 //!     let search = router.search("/users/123/files/my.document.pdf").unwrap();
 //!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/users/{id}/files/{filename}.{extension}");
+//!     assert_eq!(search.template, "/users/<id>/files/<filename>.<extension>");
 //!     assert_eq!(search.parameters[0], ("id", "123"));
 //!     assert_eq!(search.parameters[1], ("filename", "my.document"));
 //!     assert_eq!(search.parameters[2], ("extension", "pdf"));
@@ -146,9 +146,9 @@
 //! Wildcard parameters can match any byte, **including** the path delimiter `/`.
 //!
 //! We support both:
-//! - inline wildcards: `/{*path}.html`
-//! - mid-route wildcards: `/api/{*path}/help`
-//! - end-route catch-all: `/{*catch_all}`
+//! - inline wildcards: `/<*path>.html`
+//! - mid-route wildcards: `/api/<*path>/help`
+//! - end-route catch-all: `/<*catch_all>`
 //!
 //! Like dynamic parameters, wildcard parameters are also greedy in nature.
 //!
@@ -161,17 +161,17 @@
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
-//!     router.insert("/files/{*slug}/delete", 1)?;
-//!     router.insert("/{*catch_all}", 2)?;
+//!     router.insert("/files/<*slug>/delete", 1)?;
+//!     router.insert("/<*catch_all>", 2)?;
 //!
 //!     let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
 //!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/files/{*slug}/delete");
+//!     assert_eq!(search.template, "/files/<*slug>/delete");
 //!     assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
 //!
 //!     let search = router.search("/any/other/path").unwrap();
 //!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/{*catch_all}");
+//!     assert_eq!(search.template, "/<*catch_all>");
 //!     assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
 //!
 //!     Ok(())
@@ -189,8 +189,8 @@
 //! Both dynamic and wildcard parameters support constraints.
 //!
 //! Examples:
-//! - Dynamic constraint: `/{name:constraint}`
-//! - Wildcard constraint: `/{*name:constraint}`
+//! - Dynamic constraint: `/<name:constraint>`
+//! - Wildcard constraint: `/<*name:constraint>`
 //!
 //! ### Adding Constraints
 //!
@@ -221,7 +221,7 @@
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router: Router<usize> = Router::new();
 //!     router.constraint::<NamespaceConstraint>()?;
-//!     router.insert("/{*user:namespace}", 1)?;
+//!     router.insert("/<*user:namespace>", 1)?;
 //!
 //!     Ok(())
 //! }
@@ -236,16 +236,16 @@
 //! Optional groups allow for parts of a route to be absent.
 //!
 //! They are commonly used for:
-//! - optional IDs: `/users(/{id})`
+//! - optional IDs: `/users(/<id>)`
 //! - optional trailing slashes: `/users(/)`
-//! - optional file extensions: `/images/{name}(.{extension})`
+//! - optional file extensions: `/images/<name>(.<extension>)`
 //!
 //! They work via 'expanding' the route into equivalent, simplified routes.
 //!
-//! `/release/v{major}(.{minor}(.{patch}))`equivalent
-//! - `/release/v{major}.{minor}.{patch}`
-//! - `/release/v{major}.{minor}`
-//! - `/release/v{major}`
+//! `/release/v<major>(.<minor>(.<patch>))` equivalent
+//! - `/release/v<major>.<minor>.<patch>`
+//! - `/release/v<major>.<minor>`
+//! - `/release/v<major>`
 //!
 //! ### Example
 //!
@@ -256,32 +256,32 @@
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
-//!     router.insert("/users(/{id})", 1)?;
-//!     router.insert("/files/{*slug}/{file}(.{extension})", 2)?;
+//!     router.insert("/users(/<id>)", 1)?;
+//!     router.insert("/files/<*slug>/<file>(.<extension>)", 2)?;
 //!
 //!     let search = router.search("/users").unwrap();
 //!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/users(/{id})");
+//!     assert_eq!(search.template, "/users(/<id>)");
 //!     assert_eq!(search.expanded, Some("/users"));
 //!
 //!     let search = router.search("/users/123").unwrap();
 //!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/users(/{id})");
-//!     assert_eq!(search.expanded, Some("/users/{id}"));
+//!     assert_eq!(search.template, "/users(/<id>)");
+//!     assert_eq!(search.expanded, Some("/users/<id>"));
 //!     assert_eq!(search.parameters[0], ("id", "123"));
 //!
 //!     let search = router.search("/files/documents/folder/report.pdf").unwrap();
 //!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
-//!     assert_eq!(search.expanded, Some("/files/{*slug}/{file}.{extension}"));
+//!     assert_eq!(search.template, "/files/<*slug>/<file>(.<extension>)");
+//!     assert_eq!(search.expanded, Some("/files/<*slug>/<file>.<extension>"));
 //!     assert_eq!(search.parameters[0], ("slug", "documents/folder"));
 //!     assert_eq!(search.parameters[1], ("file", "report"));
 //!     assert_eq!(search.parameters[2], ("extension", "pdf"));
 //!
 //!     let search = router.search("/files/documents/folder/readme").unwrap();
 //!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/files/{*slug}/{file}(.{extension})");
-//!     assert_eq!(search.expanded, Some("/files/{*slug}/{file}"));
+//!     assert_eq!(search.template, "/files/<*slug>/<file>(.<extension>)");
+//!     assert_eq!(search.expanded, Some("/files/<*slug>/<file>"));
 //!     assert_eq!(search.parameters[0], ("slug", "documents/folder"));
 //!     assert_eq!(search.parameters[1], ("file", "readme"));
 //!
@@ -322,7 +322,7 @@
 //! Special characters in the template can be escaped using a backslash.
 //!
 //! Examples:
-//! - `/items/\{id\}`
+//! - `/items/\<id\>`
 //! - `/items/\(test\)`
 //!
 //! ## Display

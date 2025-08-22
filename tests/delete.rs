@@ -124,25 +124,25 @@ fn test_delete_overlap() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_delete_empty() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/{id}data", 1)?;
+    router.insert("/<id>data", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {id}
+    ╰─ <id>
        ╰─ data [*]
     ");
 
-    let delete = router.delete("/{id}");
+    let delete = router.delete("/<id>");
     assert_eq!(
         delete,
         Err(DeleteError::NotFound {
-            template: "/{id}".to_owned()
+            template: "/<id>".to_owned()
         })
     );
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ {id}
+    ╰─ <id>
        ╰─ data [*]
     ");
 

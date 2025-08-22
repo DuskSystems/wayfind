@@ -52,16 +52,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/pet(/)", 1)?;
     router.insert("/pet/findByStatus(/)", 2)?;
     router.insert("/pet/findByTags(/)", 3)?;
-    router.insert("/pet/{pet}(/)", 4)?;
-    router.insert("/pet/{petId:number}/uploadImage(/)", 5)?;
+    router.insert("/pet/<pet>(/)", 4)?;
+    router.insert("/pet/<petId:number>/uploadImage(/)", 5)?;
     router.insert("/store/inventory(/)", 6)?;
-    router.insert("/store/order(/{orderId:number})(/)", 7)?;
+    router.insert("/store/order(/<orderId:number>)(/)", 7)?;
     router.insert("/user(/)", 8)?;
     router.insert("/user/createWithList(/)", 9)?;
     router.insert("/user/login(/)", 10)?;
     router.insert("/user/logout(/)", 11)?;
-    router.insert("/user/{username}(/)", 12)?;
-    router.insert("/{*catch_all}", 13)?;
+    router.insert("/user/<username>(/)", 12)?;
+    router.insert("/<*catch_all>", 13)?;
 
     let search = router.search("/pet").unwrap();
     assert_eq!(*search.data, 1);
@@ -102,17 +102,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 │     │  │  ╰─ / [*]
 │     │  ╰─ Tags [*]
 │     │     ╰─ / [*]
-│     ├─ {petId:number}
+│     ├─ <petId:number>
 │     │  ╰─ /uploadImage [*]
 │     │     ╰─ / [*]
-│     ╰─ {pet} [*]
+│     ╰─ <pet> [*]
 │        ╰─ / [*]
 ├─ store/
 │  ├─ inventory [*]
 │  │  ╰─ / [*]
 │  ╰─ order [*]
 │     ╰─ / [*]
-│        ╰─ {orderId:number} [*]
+│        ╰─ <orderId:number> [*]
 │           ╰─ / [*]
 ├─ user [*]
 │  ╰─ / [*]
@@ -123,9 +123,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 │     │  │  ╰─ / [*]
 │     │  ╰─ out [*]
 │     │     ╰─ / [*]
-│     ╰─ {username} [*]
+│     ╰─ <username> [*]
 │        ╰─ / [*]
-╰─ {*catch_all} [*]
+╰─ <*catch_all> [*]
 ```
 
 ## Performance

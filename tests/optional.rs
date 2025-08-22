@@ -7,12 +7,12 @@ use wayfind::{Match, Router};
 #[test]
 fn test_optional_starting() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("(/{lang})/users", 1)?;
+    router.insert("(/<lang>)/users", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /
     ├─ users [*]
-    ╰─ {lang}
+    ╰─ <lang>
        ╰─ /users [*]
     ");
 
@@ -21,8 +21,8 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "(/{lang})/users",
-            expanded: Some("/{lang}/users"),
+            template: "(/<lang>)/users",
+            expanded: Some("/<lang>/users"),
             parameters: smallvec![("lang", "en")],
         })
     );
@@ -32,7 +32,7 @@ fn test_optional_starting() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "(/{lang})/users",
+            template: "(/<lang>)/users",
             expanded: Some("/users"),
             parameters: smallvec![],
         })

@@ -20,7 +20,7 @@ fn test_get_missing() {
 #[test]
 fn test_get_invalid() {
     let router: Router<i32> = Router::new();
-    assert_eq!(router.get("/{invalid"), None);
+    assert_eq!(router.get("/<invalid"), None);
 }
 
 #[test]
@@ -56,7 +56,7 @@ fn test_get_mut_missing() {
 #[test]
 fn test_get_mut_invalid() {
     let mut router: Router<i32> = Router::new();
-    assert_eq!(router.get_mut("/{invalid"), None);
+    assert_eq!(router.get_mut("/<invalid"), None);
 }
 
 #[test]

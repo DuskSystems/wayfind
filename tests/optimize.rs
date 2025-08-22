@@ -5,31 +5,31 @@ use wayfind::Router;
 #[test]
 fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id}/profile", 2)?;
-    router.insert("/users/{id}/settings", 3)?;
+    router.insert("/users/<id>", 1)?;
+    router.insert("/users/<id>/profile", 2)?;
+    router.insert("/users/<id>/settings", 3)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id} [*]
+    ╰─ <id> [*]
        ╰─ /
           ├─ profile [*]
           ╰─ settings [*]
     ");
 
-    router.delete("/users/{id}/profile")?;
+    router.delete("/users/<id>/profile")?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id} [*]
+    ╰─ <id> [*]
        ╰─ /settings [*]
     ");
 
-    router.delete("/users/{id}/settings")?;
+    router.delete("/users/<id>/settings")?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id} [*]
+    ╰─ <id> [*]
     ");
 
     Ok(())
@@ -38,23 +38,23 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/users/{id}", 1)?;
-    router.insert("/users/{id}/profile", 2)?;
-    router.insert("/users/{id}/settings", 3)?;
+    router.insert("/users/<id>", 1)?;
+    router.insert("/users/<id>/profile", 2)?;
+    router.insert("/users/<id>/settings", 3)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id} [*]
+    ╰─ <id> [*]
        ╰─ /
           ├─ profile [*]
           ╰─ settings [*]
     ");
 
-    router.delete("/users/{id}")?;
+    router.delete("/users/<id>")?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id}
+    ╰─ <id>
        ╰─ /
           ├─ profile [*]
           ╰─ settings [*]

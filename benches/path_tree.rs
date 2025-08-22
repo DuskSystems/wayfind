@@ -23,7 +23,7 @@ mod wayfind {
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
         let mut router = ::wayfind::Router::new();
-        for (index, route) in routes!(brackets).iter().enumerate() {
+        for (index, route) in routes!(arrows).iter().enumerate() {
             router.insert(route, index).unwrap();
         }
 
@@ -37,7 +37,7 @@ mod wayfind {
     #[divan::bench]
     fn parameters(bencher: divan::Bencher<'_, '_>) {
         let mut router = ::wayfind::Router::new();
-        for (index, route) in routes!(brackets).iter().enumerate() {
+        for (index, route) in routes!(arrows).iter().enumerate() {
             router.insert(route, index).unwrap();
         }
 

@@ -98,7 +98,7 @@ impl DynamicState {
     #[must_use]
     pub fn new(name: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{{name}}}");
+        let key = format!("<{name}>");
 
         Self { name, padding, key }
     }
@@ -138,7 +138,7 @@ impl DynamicConstrainedState {
     #[must_use]
     pub fn new(name: String, constraint: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{{name}:{constraint}}}");
+        let key = format!("<{name}:{constraint}>");
 
         Self {
             name,
@@ -184,7 +184,7 @@ impl WildcardState {
     #[must_use]
     pub fn new(name: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{*{name}}}");
+        let key = format!("<*{name}>");
 
         Self { name, padding, key }
     }
@@ -224,7 +224,7 @@ impl WildcardConstrainedState {
     #[must_use]
     pub fn new(name: String, constraint: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{*{name}:{constraint}}}");
+        let key = format!("<*{name}:{constraint}>");
 
         Self {
             name,
@@ -270,7 +270,7 @@ impl EndWildcardState {
     #[must_use]
     pub fn new(name: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{*{name}}}");
+        let key = format!("<*{name}>");
 
         Self { name, padding, key }
     }
@@ -310,7 +310,7 @@ impl EndWildcardConstrainedState {
     #[must_use]
     pub fn new(name: String, constraint: String) -> Self {
         let padding = name.len().saturating_sub(1);
-        let key = format!("{{*{name}:{constraint}}}");
+        let key = format!("<*{name}:{constraint}>");
 
         Self {
             name,

@@ -29,11 +29,11 @@ impl Constraint for NumberConstraint {
 fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<NameConstraint>()?;
-    router.insert("/users/{id:name}", 1)?;
+    router.insert("/users/<id:name>", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {id:name} [*]
+    ╰─ <id:name> [*]
     ");
 
     let search = router.search("/users/john123");
@@ -41,7 +41,7 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/users/{id:name}",
+            template: "/users/<id:name>",
             expanded: None,
             parameters: smallvec![("id", "john123")],
         })
@@ -57,11 +57,11 @@ fn test_constraint_dynamic() -> Result<(), Box<dyn Error>> {
 fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<NameConstraint>()?;
-    router.insert("/users/{*path:name}", 1)?;
+    router.insert("/users/<*path:name>", 1)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ {*path:name} [*]
+    ╰─ <*path:name> [*]
     ");
 
     let search = router.search("/users/john/doe123");
@@ -69,7 +69,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/users/{*path:name}",
+            template: "/users/<*path:name>",
             expanded: None,
             parameters: smallvec![("path", "john/doe123")],
         })
@@ -85,7 +85,7 @@ fn test_constraint_wildcard() -> Result<(), Box<dyn Error>> {
 fn test_constraint_unknown() {
     let mut router = Router::new();
 
-    let result = router.insert("/users/{id:unknown}", 1);
+    let result = router.insert("/users/<id:unknown>", 1);
     assert_eq!(
         result,
         Err(InsertError::UnknownConstraint {
@@ -135,13 +135,13 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.constraint::<NameConstraint>()?;
     router.constraint::<NumberConstraint>()?;
-    router.insert("/users/{id:name}", 1)?;
-    router.insert("/users/{id:number}", 2)?;
+    router.insert("/users/<id:name>", 1)?;
+    router.insert("/users/<id:number>", 2)?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ├─ {id:name} [*]
-    ╰─ {id:number} [*]
+    ├─ <id:name> [*]
+    ╰─ <id:number> [*]
     ");
 
     let search = router.search("/users/123");
@@ -149,7 +149,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/users/{id:name}",
+            template: "/users/<id:name>",
             expanded: None,
             parameters: smallvec![("id", "123")],
         })
@@ -160,7 +160,7 @@ fn test_constraint_unreachable() -> Result<(), Box<dyn Error>> {
         search,
         Some(Match {
             data: &1,
-            template: "/users/{id:name}",
+            template: "/users/<id:name>",
             expanded: None,
             parameters: smallvec![("id", "abc123")],
         })
