@@ -11,25 +11,25 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ <id> [*]
+    ╰─ <id>
        ╰─ /
-          ├─ profile [*]
-          ╰─ settings [*]
+          ├─ profile
+          ╰─ settings
     ");
 
     router.delete("/users/<id>/profile")?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ <id> [*]
-       ╰─ /settings [*]
+    ╰─ <id>
+       ╰─ /settings
     ");
 
     router.delete("/users/<id>/settings")?;
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ <id> [*]
+    ╰─ <id>
     ");
 
     Ok(())
@@ -44,10 +44,10 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ╰─ <id> [*]
+    ╰─ <id>
        ╰─ /
-          ├─ profile [*]
-          ╰─ settings [*]
+          ├─ profile
+          ╰─ settings
     ");
 
     router.delete("/users/<id>")?;
@@ -56,8 +56,8 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
     /users/
     ╰─ <id>
        ╰─ /
-          ├─ profile [*]
-          ╰─ settings [*]
+          ├─ profile
+          ╰─ settings
     ");
 
     Ok(())
@@ -71,16 +71,16 @@ fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
     router.insert("/ab", 3)?;
 
     insta::assert_snapshot!(router, @r"
-    /a [*]
-    ╰─ b [*]
-       ╰─ c [*]
+    /a
+    ╰─ b
+       ╰─ c
     ");
 
     router.delete("/ab")?;
 
     insta::assert_snapshot!(router, @r"
-    /a [*]
-    ╰─ bc [*]
+    /a
+    ╰─ bc
     ");
 
     Ok(())

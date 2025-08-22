@@ -8,7 +8,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/test", 1)?;
 
-    insta::assert_snapshot!(router, @"/test [*]");
+    insta::assert_snapshot!(router, @"/test");
 
     let delete = router.delete("/tests");
     assert_eq!(
@@ -18,7 +18,7 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    insta::assert_snapshot!(router, @"/test [*]");
+    insta::assert_snapshot!(router, @"/test");
 
     let delete = router.delete("/test")?;
     assert_eq!(delete, 1);

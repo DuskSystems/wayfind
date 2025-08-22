@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
@@ -16,22 +16,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Raised MSRV from 1.63 to 1.85.
 - Switch to Rust 2024 edition.
-- Switched internal data store to slot storage.
 - Syntax for parameters has changed from `{name}` to `<name>`
 - Parameter characters `<` and `>` can no longer be escaped.
+- Display no longer shows nodes storing data.
 
 ### Removed
 
-- Removed OCI example.
 - Constraints are no longer supported.
 - Optional groups are no longer supported.
+
+### Fixed
+
+- Improved detection for structural conflicts.
 
 ## [0.8.1] - 2025-01-07
 
 ### Fixed
 
 - Remove required lifetime from router.
-- Improved detection for structural conflicts.
 
 ## [0.8.0] - 2025-01-07
 

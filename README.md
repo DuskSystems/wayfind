@@ -82,24 +82,24 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ```
 /
-├─ pet [*]
+├─ pet
 │  ├─ /findBy
-│  │  ├─ Status [*]
-│  │  ╰─ Tags [*]
-│  ├─ /<pet> [*]
+│  │  ├─ Status
+│  │  ╰─ Tags
+│  ├─ /<pet>
 │  ╰─ /<petId>
-│     ╰─ /uploadImage [*]
+│     ╰─ /uploadImage
 ├─ store/
-│  ├─ inventory [*]
-│  ╰─ order [*]
-│     ╰─ /<orderId> [*]
-├─ user [*]
-│  ├─ /createWithList [*]
+│  ├─ inventory
+│  ╰─ order
+│     ╰─ /<orderId>
+├─ user
+│  ├─ /createWithList
 │  ├─ /log
-│  │  ├─ in [*]
-│  │  ╰─ out [*]
-│  ╰─ /<username> [*]
-╰─ <*catch_all> [*]
+│  │  ├─ in
+│  │  ╰─ out
+│  ╰─ /<username>
+╰─ <*catch_all>
 ```
 
 ## Performance

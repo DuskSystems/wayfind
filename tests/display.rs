@@ -14,21 +14,21 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     router.insert("/<*catch_all>", 7)?;
 
     insta::assert_snapshot!(router, @r"
-    / [*]
+    /
     ├─ files/
     │  ╰─ <*path>
-    │     ╰─ /download [*]
+    │     ╰─ /download
     ├─ posts/
     │  ╰─ <year>
     │     ╰─ -
     │        ╰─ <month>
     │           ╰─ -
-    │              ╰─ <day> [*]
-    ├─ users [*]
+    │              ╰─ <day>
+    ├─ users
     │  ╰─ /
-    │     ╰─ <id> [*]
-    │        ╰─ /profile [*]
-    ╰─ <*catch_all> [*]
+    │     ╰─ <id>
+    │        ╰─ /profile
+    ╰─ <*catch_all>
     ");
 
     Ok(())

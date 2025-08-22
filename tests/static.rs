@@ -9,7 +9,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users", 1)?;
 
-    insta::assert_snapshot!(router, @"/users [*]");
+    insta::assert_snapshot!(router, @"/users");
 
     let search = router.search("/users");
     assert_eq!(
@@ -34,8 +34,8 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
     router.insert("/users", 2)?;
 
     insta::assert_snapshot!(router, @r"
-    /user [*]
-    ╰─ s [*]
+    /user
+    ╰─ s
     ");
 
     let search = router.search("/user");
@@ -75,8 +75,8 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /user
-    ├─ /1 [*]
-    ╰─ _1 [*]
+    ├─ /1
+    ╰─ _1
     ");
 
     let search = router.search("/user_1");
@@ -123,14 +123,14 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
     /�
     ├─ �‍�
     │  ├─ �‍�
-    │  │  ├─ � [*]
-    │  │  ╰─ � [*]
+    │  │  ├─ �
+    │  │  ╰─ �
     │  ╰─ �‍�
-    │     ├─ � [*]
-    │     ╰─ � [*]
+    │     ├─ �
+    │     ╰─ �
     ╰─ �‍👩‍�
-       ├─ � [*]
-       ╰─ � [*]
+       ├─ �
+       ╰─ �
     ");
 
     let search = router.search("/👨‍👩‍👧"); // Family: Man, Woman, Girl
@@ -176,8 +176,8 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ├─ Users [*]
-    ╰─ users [*]
+    ├─ Users
+    ╰─ users
     ");
 
     let search = router.search("/users");
@@ -208,7 +208,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users /items", 1)?;
 
-    insta::assert_snapshot!(router, @"/users /items [*]");
+    insta::assert_snapshot!(router, @"/users /items");
 
     let search = router.search("/users /items");
     assert_eq!(
@@ -234,8 +234,8 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /users/
-    ├─ /items [*]
-    ╰─ items [*]
+    ├─ /items
+    ╰─ items
     ");
 
     let search = router.search("/users/items");
@@ -266,7 +266,7 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users///items", 1)?;
 
-    insta::assert_snapshot!(router, @"/users///items [*]");
+    insta::assert_snapshot!(router, @"/users///items");
 
     let search = router.search("/users///items");
     assert_eq!(

@@ -12,7 +12,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
-       ╰─ /delete [*]
+       ╰─ /delete
     ");
 
     let search = router.search("/docs/delete");
@@ -51,7 +51,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
     ╰─ <*prefix>
        ╰─ /static/
           ╰─ <*suffix>
-             ╰─ /file [*]
+             ╰─ /file
     ");
 
     let search = router.search("/a/static/b/file");
@@ -85,7 +85,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
-       ╰─ .html [*]
+       ╰─ .html
     ");
 
     let search = router.search("/page.html");
@@ -123,7 +123,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ <*first>
        ╰─ -
-          ╰─ <*second> [*]
+          ╰─ <*second>
     ");
 
     let search = router.search("/a-b-c");
@@ -160,7 +160,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
-       ╰─ /end [*]
+       ╰─ /end
     ");
 
     let search = router.search("/start/middle/end");
@@ -198,14 +198,14 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /
     ├─ prefix.
-    │  ╰─ <*suffix> [*]
+    │  ╰─ <*suffix>
     ├─ static/
-    │  ├─ path [*]
-    │  ╰─ <*rest> [*]
+    │  ├─ path
+    │  ╰─ <*rest>
     ├─ <*path>
-    │  ╰─ /static [*]
+    │  ╰─ /static
     ╰─ <*prefix>
-       ╰─ .suffix [*]
+       ╰─ .suffix
     ");
 
     let search = router.search("/static/path");

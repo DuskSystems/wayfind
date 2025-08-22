@@ -93,7 +93,6 @@ impl<T> Router<T> {
         // All good, proceed with insert.
         let key = self.storage.insert(data);
 
-        #[allow(clippy::naive_bytecount)]
         let depth = template.bytes().filter(|&b| b == b'/').count();
         let length = template.len();
 
@@ -166,13 +165,12 @@ impl<T> Router<T> {
             return None;
         };
 
-        if let Some(found) = self.root.find(&mut parsed) {
-            if found.template == template {
-                return self.storage.get(found.key);
-            }
+        let found = self.root.find(&mut parsed)?;
+        if found.template == template {
+            self.storage.get(found.key)
+        } else {
+            None
         }
-
-        None
     }
 
     /// Checks if a template exists in the router and returns a mutable reference to its data.
@@ -196,13 +194,12 @@ impl<T> Router<T> {
             return None;
         };
 
-        if let Some(found) = self.root.find(&mut parsed) {
-            if found.template == template {
-                return self.storage.get_mut(found.key);
-            }
+        let found = self.root.find(&mut parsed)?;
+        if found.template == template {
+            self.storage.get_mut(found.key)
+        } else {
+            None
         }
-
-        None
     }
 
     /// Searches for a matching template in the router for a path.

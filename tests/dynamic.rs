@@ -11,7 +11,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <id> [*]
+    ╰─ <id>
     ");
 
     let search = router.search("/123");
@@ -39,11 +39,11 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <year> [*]
+    ╰─ <year>
        ╰─ /
-          ╰─ <month> [*]
+          ╰─ <month>
              ╰─ /
-                ╰─ <day> [*]
+                ╰─ <day>
     ");
 
     let search = router.search("/2024");
@@ -88,11 +88,11 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <year> [*]
+    ╰─ <year>
        ╰─ -
-          ╰─ <month> [*]
+          ╰─ <month>
              ╰─ -
-                ╰─ <day> [*]
+                ╰─ <day>
     ");
 
     let search = router.search("/2024");
@@ -137,7 +137,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
     /
     ╰─ <file>
        ╰─ .
-          ╰─ <extension> [*]
+          ╰─ <extension>
     ");
 
     let search = router.search("/report");
@@ -177,12 +177,12 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @r"
     /
     ├─ robots.
-    │  ├─ txt [*]
-    │  ╰─ <extension> [*]
+    │  ├─ txt
+    │  ╰─ <extension>
     ╰─ <name>
        ╰─ .
-          ├─ txt [*]
-          ╰─ <extension> [*]
+          ├─ txt
+          ╰─ <extension>
     ");
 
     let search = router.search("/robots.txt");

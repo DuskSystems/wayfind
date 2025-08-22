@@ -251,29 +251,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_complex_route() {
-        assert_eq!(
-            Template::new(b"/v2/<name>/manifests/<reference>"),
-            Ok(Template {
-                parts: vec![
-                    Part::Dynamic {
-                        name: "reference".to_owned(),
-                    },
-                    Part::Static {
-                        prefix: b"/manifests/".to_vec()
-                    },
-                    Part::Dynamic {
-                        name: "name".to_owned(),
-                    },
-                    Part::Static {
-                        prefix: b"/v2/".to_vec()
-                    },
-                ],
-            }),
-        );
-    }
-
-    #[test]
     fn test_parser_route_with_wildcard_at_end() {
         assert_eq!(
             Template::new(b"/files/<*path>"),

@@ -20,7 +20,7 @@ fn test_insert_conflict_static() -> Result<(), Box<dyn Error>> {
         })
     );
 
-    insta::assert_snapshot!(router, @"/test [*]");
+    insta::assert_snapshot!(router, @"/test");
 
     Ok(())
 }
@@ -41,7 +41,7 @@ fn test_insert_conflict_dynamic() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <id> [*]
+    ╰─ <id>
     ");
 
     Ok(())
@@ -63,7 +63,7 @@ fn test_insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <id> [*]
+    ╰─ <id>
     ");
 
     Ok(())
@@ -85,7 +85,7 @@ fn test_insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <*catch_all> [*]
+    ╰─ <*catch_all>
     ");
 
     Ok(())
@@ -107,7 +107,7 @@ fn test_insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
 
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <*catch_all> [*]
+    ╰─ <*catch_all>
     ");
 
     Ok(())

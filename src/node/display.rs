@@ -15,18 +15,10 @@ impl<S: NodeState> fmt::Display for Node<S> {
             let key = node.state.key();
             if !key.is_empty() {
                 if is_root {
-                    if node.data.is_some() {
-                        writeln!(output, "{key} [*]")?;
-                    } else {
-                        writeln!(output, "{key}")?;
-                    }
+                    writeln!(output, "{key}")?;
                 } else {
                     let branch = if is_last { "╰─" } else { "├─" };
-                    if node.data.is_some() {
-                        writeln!(output, "{padding}{branch} {key} [*]")?;
-                    } else {
-                        writeln!(output, "{padding}{branch} {key}")?;
-                    }
+                    writeln!(output, "{padding}{branch} {key}")?;
                 }
             }
 
