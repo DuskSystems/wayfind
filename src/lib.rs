@@ -317,14 +317,6 @@
 //! 1. Depth - routes with more slashes take precedence
 //! 2. Length - if depths are equal, longer routes take precedence
 //!
-//! ## Escaping
-//!
-//! Special characters in the template can be escaped using a backslash.
-//!
-//! Examples:
-//! - `/items/\<id\>`
-//! - `/items/\(test\)`
-//!
 //! ## Display
 //!
 //! The router can be printed as a tree, via a [`Display`](std::fmt::Display) implementation.

@@ -69,10 +69,6 @@ impl ParsedTemplate {
 
         while cursor < end {
             match (input[cursor], input.get(cursor + 1)) {
-                (b'\\', Some(_)) => {
-                    // Skip the backslash and the escaped character
-                    cursor += 2;
-                }
                 (b'(', _) => {
                     if depth == 0 {
                         for template in &mut result {
@@ -552,24 +548,6 @@ mod tests {
                     },
                 ],
                 expanded: true,
-            }),
-        );
-    }
-
-    #[test]
-    fn test_parser_escaped_characters() {
-        assert_eq!(
-            ParsedTemplate::new(b"/path/with\\<angles\\>and\\(parens\\)"),
-            Ok(ParsedTemplate {
-                input: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
-                templates: vec![Template {
-                    input: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
-                    raw: b"/path/with\\<angles\\>and\\(parens\\)".to_vec(),
-                    parts: vec![Part::Static {
-                        prefix: b"/path/with<angles>and(parens)".to_vec()
-                    }],
-                }],
-                expanded: false,
             }),
         );
     }
