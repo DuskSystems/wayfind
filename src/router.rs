@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, string::ToString};
+use alloc::{borrow::ToOwned, string::ToString, vec};
 use core::fmt;
 
 use smallvec::{SmallVec, smallvec};
@@ -6,7 +6,6 @@ use smallvec::{SmallVec, smallvec};
 use crate::{
     errors::{DeleteError, InsertError},
     node::{Node, NodeData},
-    nodes::Nodes,
     parser::Template,
     state::RootState,
     storage::Storage,
@@ -46,18 +45,18 @@ pub struct Router<T> {
 impl<T> Router<T> {
     /// Creates a new Router.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             root: Node {
                 state: RootState::new(),
                 data: None,
 
-                static_children: Nodes::default(),
-                dynamic_children: Nodes::default(),
+                static_children: vec![],
+                dynamic_children: vec![],
                 dynamic_children_shortcut: false,
-                wildcard_children: Nodes::default(),
+                wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: Nodes::default(),
+                end_wildcard_children: vec![],
 
                 needs_optimization: false,
             },

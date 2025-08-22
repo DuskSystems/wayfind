@@ -2,7 +2,6 @@ use alloc::{string::String, vec};
 
 use crate::{
     node::{Node, NodeData},
-    nodes::Nodes,
     parser::{Part, Template},
     state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
 };
@@ -73,12 +72,12 @@ impl<S: NodeState> Node<S> {
                 state: StaticState::new(prefix[common_prefix..].to_vec()),
                 data: None,
 
-                static_children: Nodes::default(),
-                dynamic_children: Nodes::default(),
+                static_children: vec![],
+                dynamic_children: vec![],
                 dynamic_children_shortcut: false,
-                wildcard_children: Nodes::default(),
+                wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: Nodes::default(),
+                end_wildcard_children: vec![],
 
                 needs_optimization: false,
             };
@@ -87,10 +86,10 @@ impl<S: NodeState> Node<S> {
             child.needs_optimization = true;
 
             if prefix[common_prefix..].is_empty() {
-                child.static_children = Nodes::new(vec![new_child_a]);
+                child.static_children = vec![new_child_a];
                 child.insert(template, data);
             } else {
-                child.static_children = Nodes::new(vec![new_child_a, new_child_b]);
+                child.static_children = vec![new_child_a, new_child_b];
                 child.static_children[1].insert(template, data);
             }
 
@@ -103,12 +102,12 @@ impl<S: NodeState> Node<S> {
                 state: StaticState::new(prefix.to_vec()),
                 data: None,
 
-                static_children: Nodes::default(),
-                dynamic_children: Nodes::default(),
+                static_children: vec![],
+                dynamic_children: vec![],
                 dynamic_children_shortcut: false,
-                wildcard_children: Nodes::default(),
+                wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: Nodes::default(),
+                end_wildcard_children: vec![],
 
                 needs_optimization: false,
             };
@@ -133,12 +132,12 @@ impl<S: NodeState> Node<S> {
                     state: DynamicState::new(name),
                     data: None,
 
-                    static_children: Nodes::default(),
-                    dynamic_children: Nodes::default(),
+                    static_children: vec![],
+                    dynamic_children: vec![],
                     dynamic_children_shortcut: false,
-                    wildcard_children: Nodes::default(),
+                    wildcard_children: vec![],
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: Nodes::default(),
+                    end_wildcard_children: vec![],
 
                     needs_optimization: false,
                 };
@@ -164,12 +163,12 @@ impl<S: NodeState> Node<S> {
                     state: WildcardState::new(name),
                     data: None,
 
-                    static_children: Nodes::default(),
-                    dynamic_children: Nodes::default(),
+                    static_children: vec![],
+                    dynamic_children: vec![],
                     dynamic_children_shortcut: false,
-                    wildcard_children: Nodes::default(),
+                    wildcard_children: vec![],
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: Nodes::default(),
+                    end_wildcard_children: vec![],
 
                     needs_optimization: false,
                 };
@@ -195,12 +194,12 @@ impl<S: NodeState> Node<S> {
             state: EndWildcardState::new(name),
             data: Some(data),
 
-            static_children: Nodes::default(),
-            dynamic_children: Nodes::default(),
+            static_children: vec![],
+            dynamic_children: vec![],
             dynamic_children_shortcut: false,
-            wildcard_children: Nodes::default(),
+            wildcard_children: vec![],
             wildcard_children_shortcut: false,
-            end_wildcard_children: Nodes::default(),
+            end_wildcard_children: vec![],
 
             needs_optimization: false,
         });

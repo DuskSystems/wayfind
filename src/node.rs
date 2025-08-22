@@ -1,7 +1,8 @@
-use alloc::string::String;
+use core::cmp::Ordering;
+
+use alloc::{string::String, vec::Vec};
 
 use crate::{
-    nodes::Nodes,
     state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
     storage::Key,
 };
@@ -38,14 +39,26 @@ pub struct Node<S: NodeState> {
     /// The presence of this data is needed to successfully match a template.
     pub data: Option<NodeData>,
 
-    pub static_children: Nodes<StaticState>,
-    pub dynamic_children: Nodes<DynamicState>,
+    pub static_children: Vec<Node<StaticState>>,
+    pub dynamic_children: Vec<Node<DynamicState>>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_children: Nodes<WildcardState>,
+    pub wildcard_children: Vec<Node<WildcardState>>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Nodes<EndWildcardState>,
+    pub end_wildcard_children: Vec<Node<EndWildcardState>>,
 
     /// Flag indicating whether this node need optimization.
     /// During optimization, the shortcut flags are updated, and nodes sorted.
     pub needs_optimization: bool,
+}
+
+impl<S: NodeState> Ord for Node<S> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.state.cmp(&other.state)
+    }
+}
+
+impl<S: NodeState> PartialOrd for Node<S> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
