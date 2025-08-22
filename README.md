@@ -34,28 +34,17 @@ wayfind = "0.8"
 ```rust
 use std::error::Error;
 
-use wayfind::{Constraint, Router};
-
-struct NumberConstraint;
-impl Constraint for NumberConstraint {
-    const NAME: &'static str = "number";
-
-    fn check(part: &str) -> bool {
-        part.parse::<usize>().is_ok()
-    }
-}
+use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.constraint::<NumberConstraint>()?;
-
     router.insert("/pet(/)", 1)?;
     router.insert("/pet/findByStatus(/)", 2)?;
     router.insert("/pet/findByTags(/)", 3)?;
     router.insert("/pet/<pet>(/)", 4)?;
-    router.insert("/pet/<petId:number>/uploadImage(/)", 5)?;
+    router.insert("/pet/<petId>/uploadImage(/)", 5)?;
     router.insert("/store/inventory(/)", 6)?;
-    router.insert("/store/order(/<orderId:number>)(/)", 7)?;
+    router.insert("/store/order(/<orderId>)(/)", 7)?;
     router.insert("/user(/)", 8)?;
     router.insert("/user/createWithList(/)", 9)?;
     router.insert("/user/login(/)", 10)?;
@@ -102,7 +91,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 │     │  │  ╰─ / [*]
 │     │  ╰─ Tags [*]
 │     │     ╰─ / [*]
-│     ├─ <petId:number>
+│     ├─ <petId>
 │     │  ╰─ /uploadImage [*]
 │     │     ╰─ / [*]
 │     ╰─ <pet> [*]
@@ -112,7 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 │  │  ╰─ / [*]
 │  ╰─ order [*]
 │     ╰─ / [*]
-│        ╰─ <orderId:number> [*]
+│        ╰─ <orderId> [*]
 │           ╰─ / [*]
 ├─ user [*]
 │  ╰─ / [*]
@@ -143,4 +132,3 @@ See [BENCHMARKING.md](BENCHMARKING.md) for the results.
 - [poem](https://github.com/poem-web/poem): Initial experimentations started out as a Poem router fork
 - [matchit](https://github.com/ibraheemdev/matchit): Performance leader among pre-existing routers
 - [path-tree](https://github.com/viz-rs/path-tree): Extensive testing and router display feature
-- [ASP.NET Core](https://github.com/dotnet/AspNetCore): Constraints-based approach to routing

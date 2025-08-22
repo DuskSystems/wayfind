@@ -41,19 +41,11 @@ impl<S: NodeState> fmt::Display for Node<S> {
             };
 
             let mut count = node.static_children.len()
-                + node.dynamic_constrained_children.len()
                 + node.dynamic_children.len()
-                + node.wildcard_constrained_children.len()
                 + node.wildcard_children.len()
-                + node.end_wildcard_constrained_children.len()
                 + node.end_wildcard_children.len();
 
             for child in &node.static_children {
-                count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
-            }
-
-            for child in &node.dynamic_constrained_children {
                 count -= 1;
                 debug_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
@@ -63,17 +55,7 @@ impl<S: NodeState> fmt::Display for Node<S> {
                 debug_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
 
-            for child in &node.wildcard_constrained_children {
-                count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
-            }
-
             for child in &node.wildcard_children {
-                count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
-            }
-
-            for child in &node.end_wildcard_constrained_children {
                 count -= 1;
                 debug_node(output, child, &padding, key.is_empty(), count == 0)?;
             }

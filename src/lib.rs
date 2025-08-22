@@ -7,28 +7,17 @@
 //! ```rust
 //! use std::error::Error;
 //!
-//! use wayfind::{Constraint, Router};
-//!
-//! struct NumberConstraint;
-//! impl Constraint for NumberConstraint {
-//!     const NAME: &'static str = "number";
-//!
-//!     fn check(part: &str) -> bool {
-//!         part.parse::<usize>().is_ok()
-//!     }
-//! }
+//! use wayfind::Router;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
-//!     router.constraint::<NumberConstraint>()?;
-//!
 //!     router.insert("/pet(/)", 1)?;
 //!     router.insert("/pet/findByStatus(/)", 2)?;
 //!     router.insert("/pet/findByTags(/)", 3)?;
 //!     router.insert("/pet/<pet>(/)", 4)?;
-//!     router.insert("/pet/<petId:number>/uploadImage(/)", 5)?;
+//!     router.insert("/pet/<petId>/uploadImage(/)", 5)?;
 //!     router.insert("/store/inventory(/)", 6)?;
-//!     router.insert("/store/order(/<orderId:number>)(/)", 7)?;
+//!     router.insert("/store/order(/<orderId>)(/)", 7)?;
 //!     router.insert("/user(/)", 8)?;
 //!     router.insert("/user/createWithList(/)", 9)?;
 //!     router.insert("/user/login(/)", 10)?;
@@ -178,59 +167,6 @@
 //! }
 //! ```
 //!
-//! ## Constraints
-//!
-//! Constraints allow for custom logic to be injected into the routing process.
-//!
-//! They act as an escape-hatch for when you need to disambiguate routes.
-//!
-//! If a constraint check fails, the routing process will still continue, trying subsequent templates.
-//!
-//! Both dynamic and wildcard parameters support constraints.
-//!
-//! Examples:
-//! - Dynamic constraint: `/<name:constraint>`
-//! - Wildcard constraint: `/<*name:constraint>`
-//!
-//! ### Adding Constraints
-//!
-//! Constraints can be created using the [`Constraint`] trait.
-//!
-//! To register them, call the [`constraint`](crate::Router::constraint) function on router.
-//!
-//! ```rust
-//! use std::error::Error;
-//!
-//! use wayfind::{Router, Constraint};
-//!
-//! struct NamespaceConstraint;
-//! impl Constraint for NamespaceConstraint {
-//!     const NAME: &'static str = "namespace";
-//!
-//!     fn check(part: &str) -> bool {
-//!         part
-//!             .split('/')
-//!             .all(|part| {
-//!                 part
-//!                     .chars()
-//!                     .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '_' || c == '-')
-//!             })
-//!     }
-//! }
-//!
-//! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router: Router<usize> = Router::new();
-//!     router.constraint::<NamespaceConstraint>()?;
-//!     router.insert("/<*user:namespace>", 1)?;
-//!
-//!     Ok(())
-//! }
-//! ```
-//!
-//! Constraints must be registered first, before inserting any templates that references it.
-//!
-//! They cannot be removed once registered.
-//!
 //! ## Optional Groups
 //!
 //! Optional groups allow for parts of a route to be absent.
@@ -295,17 +231,12 @@
 //!
 //! It is an imperfect process, but for most scenarios, is unlikely to cause problems.
 //!
-//! In the event on an unexpected match, constraints can be used.
-//!
 //! ### 1. Kind
 //!
 //! From highest priority to lowest, we walk the current nodes children in this order:
 //! - statics
-//! - dynamics with constraints
 //! - dynamics
-//! - wildcards with constraints
 //! - wildcards
-//! - end wildcards with constraints
 //! - end wildcards
 //!
 //! In the event of multiple children of the same type, we walk them in alphabetical order, to ensure order remains predictable.
@@ -334,9 +265,6 @@
 #![no_std]
 
 extern crate alloc;
-
-mod constraints;
-pub use constraints::Constraint;
 
 pub mod errors;
 

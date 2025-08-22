@@ -207,7 +207,7 @@ pub enum TemplateError {
     ///     Template: /<a/b>
     ///                ^^^^^
     ///
-    /// help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
+    /// help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{', '}', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -294,73 +294,6 @@ pub enum TemplateError {
         /// The template containing an empty wildcard parameter.
         template: String,
         /// The position of the opening angle of the empty wildcard parameter.
-        start: usize,
-        /// The length of the parameter (including angles).
-        length: usize,
-    },
-
-    /// An empty constraint name was found in the template.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::TemplateError;
-    ///
-    /// let error = TemplateError::EmptyConstraint {
-    ///     template: "/<a:>".to_owned(),
-    ///     start: 1,
-    ///     length: 4,
-    /// };
-    ///
-    /// let display = r"
-    /// empty constraint name
-    ///
-    ///     Template: /<a:>
-    ///                ^^^^
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    EmptyConstraint {
-        /// The template containing an empty constraint.
-        template: String,
-        /// The position of the opening angle of the empty constraint parameter.
-        start: usize,
-        /// The length of the parameter (including angles).
-        length: usize,
-    },
-
-    /// An invalid constraint name was found in the template.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::TemplateError;
-    ///
-    /// let error = TemplateError::InvalidConstraint {
-    ///     template: "/<a:b/c>".to_owned(),
-    ///     name: "b/c".to_owned(),
-    ///     start: 1,
-    ///     length: 7,
-    /// };
-    ///
-    /// let display = r"
-    /// invalid constraint name: 'b/c'
-    ///
-    ///     Template: /<a:b/c>
-    ///                ^^^^^^^
-    ///
-    /// help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    InvalidConstraint {
-        /// The template containing an invalid constraint.
-        template: String,
-        /// The invalid constraint name.
-        name: String,
-        /// The position of the opening angle of the invalid constraint parameter.
         start: usize,
         /// The length of the parameter (including angles).
         length: usize,
@@ -507,7 +440,7 @@ try:
     Template: {template}
               {arrow}
 
-help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{{', '}}', '/'"
+help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{{', '}}', '/'"
                 )
             }
 
@@ -552,40 +485,6 @@ try:
 
     Template: {template}
               {arrow}"
-                )
-            }
-
-            Self::EmptyConstraint {
-                template,
-                start,
-                length,
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
-                write!(
-                    f,
-                    r"empty constraint name
-
-    Template: {template}
-              {arrow}"
-                )
-            }
-
-            Self::InvalidConstraint {
-                template,
-                name,
-                start,
-                length,
-                ..
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
-                write!(
-                    f,
-                    r"invalid constraint name: '{name}'
-
-    Template: {template}
-              {arrow}
-
-help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{{', '}}', '/'"
                 )
             }
 

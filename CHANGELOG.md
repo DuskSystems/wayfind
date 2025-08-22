@@ -20,14 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Syntax for parameters has changed from `{name}` to `<name>`
 - Parameter characters `<` and `>` can no longer be escaped.
 
-### Fixed
-
-- No longer require `Send + Sync` on constraints.
-
 ### Removed
 
 - Removed OCI example.
-- Routers no longer ship with any default constraints.
+- Constraints are no longer supported.
 
 ## [0.8.1] - 2025-01-07
 

@@ -1,6 +1,5 @@
 use alloc::{
     borrow::ToOwned,
-    collections::btree_map::BTreeMap,
     string::{String, ToString},
     vec,
 };
@@ -9,11 +8,10 @@ use core::fmt;
 use smallvec::{SmallVec, smallvec};
 
 use crate::{
-    constraints::Constraint,
-    errors::{ConstraintError, DeleteError, InsertError},
+    errors::{DeleteError, InsertError},
     node::{Node, NodeData},
     nodes::Nodes,
-    parser::{ParsedTemplate, Part},
+    parser::ParsedTemplate,
     state::RootState,
     storage::Storage,
 };
@@ -40,13 +38,6 @@ pub struct Match<'r, 'p, T> {
 /// The value is extracted from the path.
 pub type Parameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
 
-/// A constraint function with its type name.
-#[derive(Clone)]
-pub struct StoredConstraint {
-    pub type_name: &'static str,
-    pub check: fn(&str) -> bool,
-}
-
 /// The [`wayfind`](crate) router.
 ///
 /// See [the crate documentation](crate) for usage.
@@ -55,15 +46,12 @@ pub struct Router<T> {
     /// The root node of the tree.
     root: Node<RootState>,
 
-    /// A map of constraint names to [`StoredConstraint`].
-    constraints: BTreeMap<&'static str, StoredConstraint>,
-
     /// Keyed storage map containing the inserted data.
     storage: Storage<T>,
 }
 
 impl<T> Router<T> {
-    /// Creates a new Router with default constraints.
+    /// Creates a new Router.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -72,63 +60,16 @@ impl<T> Router<T> {
                 data: None,
 
                 static_children: Nodes::default(),
-                dynamic_constrained_children: Nodes::default(),
                 dynamic_children: Nodes::default(),
                 dynamic_children_shortcut: false,
-                wildcard_constrained_children: Nodes::default(),
                 wildcard_children: Nodes::default(),
                 wildcard_children_shortcut: false,
-                end_wildcard_constrained_children: Nodes::default(),
                 end_wildcard_children: Nodes::default(),
 
                 needs_optimization: false,
             },
-            constraints: BTreeMap::default(),
             storage: Storage::new(),
         }
-    }
-
-    /// Registers a new constraint to the router.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ConstraintError`] if the constraint could not be added.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::{Constraint, Router};
-    ///
-    /// struct HelloConstraint;
-    /// impl Constraint for HelloConstraint {
-    ///     const NAME: &'static str = "hello";
-    ///
-    ///     fn check(segment: &str) -> bool {
-    ///         segment == "hello"
-    ///     }
-    /// }
-    ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.constraint::<HelloConstraint>().unwrap();
-    /// ```
-    pub fn constraint<C: Constraint>(&mut self) -> Result<(), ConstraintError> {
-        if let Some(existing) = self.constraints.get(C::NAME) {
-            return Err(ConstraintError::DuplicateName {
-                name: C::NAME,
-                existing_type: existing.type_name,
-                new_type: core::any::type_name::<C>(),
-            });
-        }
-
-        self.constraints.insert(
-            C::NAME,
-            StoredConstraint {
-                type_name: core::any::type_name::<C>(),
-                check: C::check,
-            },
-        );
-
-        Ok(())
     }
 
     /// Inserts a new template with associated data into the router.
@@ -147,25 +88,6 @@ impl<T> Router<T> {
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed = ParsedTemplate::new(template.as_bytes())?;
-
-        // Check for invalid constraints.
-        for template in &parsed.templates {
-            for part in &template.parts {
-                if let Part::DynamicConstrained {
-                    constraint: name, ..
-                }
-                | Part::WildcardConstrained {
-                    constraint: name, ..
-                } = part
-                {
-                    if !self.constraints.contains_key(name.as_str()) {
-                        return Err(InsertError::UnknownConstraint {
-                            constraint: name.to_string(),
-                        });
-                    }
-                }
-            }
-        }
 
         // Check for any conflicts.
         let mut conflicts = vec![];
@@ -371,9 +293,7 @@ impl<T> Router<T> {
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
-        let data = self
-            .root
-            .search(path.as_bytes(), &mut parameters, &self.constraints)?;
+        let data = self.root.search(path.as_bytes(), &mut parameters)?;
 
         Some(Match {
             data: self.storage.get(data.key)?,

@@ -2,10 +2,7 @@ use alloc::string::String;
 
 use crate::{
     nodes::Nodes,
-    state::{
-        DynamicConstrainedState, DynamicState, EndWildcardConstrainedState, EndWildcardState,
-        NodeState, StaticState, WildcardConstrainedState, WildcardState,
-    },
+    state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
     storage::Key,
 };
 
@@ -44,13 +41,10 @@ pub struct Node<S: NodeState> {
     pub data: Option<NodeData>,
 
     pub static_children: Nodes<StaticState>,
-    pub dynamic_constrained_children: Nodes<DynamicConstrainedState>,
     pub dynamic_children: Nodes<DynamicState>,
     pub dynamic_children_shortcut: bool,
-    pub wildcard_constrained_children: Nodes<WildcardConstrainedState>,
     pub wildcard_children: Nodes<WildcardState>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_constrained_children: Nodes<EndWildcardConstrainedState>,
     pub end_wildcard_children: Nodes<EndWildcardState>,
 
     /// Flag indicating whether this node need optimization.

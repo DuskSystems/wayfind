@@ -4,10 +4,7 @@ use crate::{
     node::{Node, NodeData},
     nodes::Nodes,
     parser::{Part, Template},
-    state::{
-        DynamicConstrainedState, DynamicState, EndWildcardConstrainedState, EndWildcardState,
-        NodeState, StaticState, WildcardConstrainedState, WildcardState,
-    },
+    state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
 };
 
 impl<S: NodeState> Node<S> {
@@ -20,18 +17,9 @@ impl<S: NodeState> Node<S> {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(template, data, &prefix),
-                Part::DynamicConstrained { name, constraint } => {
-                    self.insert_dynamic_constrained(template, data, name, constraint);
-                }
                 Part::Dynamic { name } => self.insert_dynamic(template, data, name),
-                Part::WildcardConstrained { name, constraint } if template.parts.is_empty() => {
-                    self.insert_end_wildcard_constrained(data, name, constraint);
-                }
                 Part::Wildcard { name } if template.parts.is_empty() => {
                     self.insert_end_wildcard(data, name);
-                }
-                Part::WildcardConstrained { name, constraint } => {
-                    self.insert_wildcard_constrained(template, data, name, constraint);
                 }
                 Part::Wildcard { name } => self.insert_wildcard(template, data, name),
             }
@@ -72,19 +60,10 @@ impl<S: NodeState> Node<S> {
                 data: child.data.take(),
 
                 static_children: core::mem::take(&mut child.static_children),
-                dynamic_constrained_children: core::mem::take(
-                    &mut child.dynamic_constrained_children,
-                ),
                 dynamic_children: core::mem::take(&mut child.dynamic_children),
                 dynamic_children_shortcut: child.dynamic_children_shortcut,
-                wildcard_constrained_children: core::mem::take(
-                    &mut child.wildcard_constrained_children,
-                ),
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 wildcard_children_shortcut: child.wildcard_children_shortcut,
-                end_wildcard_constrained_children: core::mem::take(
-                    &mut child.end_wildcard_constrained_children,
-                ),
                 end_wildcard_children: core::mem::take(&mut child.end_wildcard_children),
 
                 needs_optimization: child.needs_optimization,
@@ -95,13 +74,10 @@ impl<S: NodeState> Node<S> {
                 data: None,
 
                 static_children: Nodes::default(),
-                dynamic_constrained_children: Nodes::default(),
                 dynamic_children: Nodes::default(),
                 dynamic_children_shortcut: false,
-                wildcard_constrained_children: Nodes::default(),
                 wildcard_children: Nodes::default(),
                 wildcard_children_shortcut: false,
-                end_wildcard_constrained_children: Nodes::default(),
                 end_wildcard_children: Nodes::default(),
 
                 needs_optimization: false,
@@ -128,13 +104,10 @@ impl<S: NodeState> Node<S> {
                 data: None,
 
                 static_children: Nodes::default(),
-                dynamic_constrained_children: Nodes::default(),
                 dynamic_children: Nodes::default(),
                 dynamic_children_shortcut: false,
-                wildcard_constrained_children: Nodes::default(),
                 wildcard_children: Nodes::default(),
                 wildcard_children_shortcut: false,
-                end_wildcard_constrained_children: Nodes::default(),
                 end_wildcard_children: Nodes::default(),
 
                 needs_optimization: false,
@@ -143,46 +116,6 @@ impl<S: NodeState> Node<S> {
             new_child.insert(template, data);
             new_child
         });
-
-        self.needs_optimization = true;
-    }
-
-    fn insert_dynamic_constrained(
-        &mut self,
-        template: &mut Template,
-        data: NodeData,
-        name: String,
-        constraint: String,
-    ) {
-        if let Some(child) = self
-            .dynamic_constrained_children
-            .iter_mut()
-            .find(|child| child.state.name == name && child.state.constraint == constraint)
-        {
-            child.insert(template, data);
-        } else {
-            self.dynamic_constrained_children.push({
-                let mut new_child = Node {
-                    state: DynamicConstrainedState::new(name, constraint),
-                    data: None,
-
-                    static_children: Nodes::default(),
-                    dynamic_constrained_children: Nodes::default(),
-                    dynamic_children: Nodes::default(),
-                    dynamic_children_shortcut: false,
-                    wildcard_constrained_children: Nodes::default(),
-                    wildcard_children: Nodes::default(),
-                    wildcard_children_shortcut: false,
-                    end_wildcard_constrained_children: Nodes::default(),
-                    end_wildcard_children: Nodes::default(),
-
-                    needs_optimization: false,
-                };
-
-                new_child.insert(template, data);
-                new_child
-            });
-        }
 
         self.needs_optimization = true;
     }
@@ -201,53 +134,10 @@ impl<S: NodeState> Node<S> {
                     data: None,
 
                     static_children: Nodes::default(),
-                    dynamic_constrained_children: Nodes::default(),
                     dynamic_children: Nodes::default(),
                     dynamic_children_shortcut: false,
-                    wildcard_constrained_children: Nodes::default(),
                     wildcard_children: Nodes::default(),
                     wildcard_children_shortcut: false,
-                    end_wildcard_constrained_children: Nodes::default(),
-                    end_wildcard_children: Nodes::default(),
-
-                    needs_optimization: false,
-                };
-
-                new_child.insert(template, data);
-                new_child
-            });
-        }
-
-        self.needs_optimization = true;
-    }
-
-    fn insert_wildcard_constrained(
-        &mut self,
-        template: &mut Template,
-        data: NodeData,
-        name: String,
-        constraint: String,
-    ) {
-        if let Some(child) = self
-            .wildcard_constrained_children
-            .iter_mut()
-            .find(|child| child.state.name == name && child.state.constraint == constraint)
-        {
-            child.insert(template, data);
-        } else {
-            self.wildcard_constrained_children.push({
-                let mut new_child = Node {
-                    state: WildcardConstrainedState::new(name, constraint),
-                    data: None,
-
-                    static_children: Nodes::default(),
-                    dynamic_constrained_children: Nodes::default(),
-                    dynamic_children: Nodes::default(),
-                    dynamic_children_shortcut: false,
-                    wildcard_constrained_children: Nodes::default(),
-                    wildcard_children: Nodes::default(),
-                    wildcard_children_shortcut: false,
-                    end_wildcard_constrained_children: Nodes::default(),
                     end_wildcard_children: Nodes::default(),
 
                     needs_optimization: false,
@@ -275,13 +165,10 @@ impl<S: NodeState> Node<S> {
                     data: None,
 
                     static_children: Nodes::default(),
-                    dynamic_constrained_children: Nodes::default(),
                     dynamic_children: Nodes::default(),
                     dynamic_children_shortcut: false,
-                    wildcard_constrained_children: Nodes::default(),
                     wildcard_children: Nodes::default(),
                     wildcard_children_shortcut: false,
-                    end_wildcard_constrained_children: Nodes::default(),
                     end_wildcard_children: Nodes::default(),
 
                     needs_optimization: false,
@@ -291,40 +178,6 @@ impl<S: NodeState> Node<S> {
                 new_child
             });
         }
-
-        self.needs_optimization = true;
-    }
-
-    fn insert_end_wildcard_constrained(
-        &mut self,
-        data: NodeData,
-        name: String,
-        constraint: String,
-    ) {
-        if self
-            .end_wildcard_constrained_children
-            .iter()
-            .any(|child| child.state.name == name && child.state.constraint == constraint)
-        {
-            return;
-        }
-
-        self.end_wildcard_constrained_children.push(Node {
-            state: EndWildcardConstrainedState::new(name, constraint),
-            data: Some(data),
-
-            static_children: Nodes::default(),
-            dynamic_constrained_children: Nodes::default(),
-            dynamic_children: Nodes::default(),
-            dynamic_children_shortcut: false,
-            wildcard_constrained_children: Nodes::default(),
-            wildcard_children: Nodes::default(),
-            wildcard_children_shortcut: false,
-            end_wildcard_constrained_children: Nodes::default(),
-            end_wildcard_children: Nodes::default(),
-
-            needs_optimization: false,
-        });
 
         self.needs_optimization = true;
     }
@@ -343,13 +196,10 @@ impl<S: NodeState> Node<S> {
             data: Some(data),
 
             static_children: Nodes::default(),
-            dynamic_constrained_children: Nodes::default(),
             dynamic_children: Nodes::default(),
             dynamic_children_shortcut: false,
-            wildcard_constrained_children: Nodes::default(),
             wildcard_children: Nodes::default(),
             wildcard_children_shortcut: false,
-            end_wildcard_constrained_children: Nodes::default(),
             end_wildcard_children: Nodes::default(),
 
             needs_optimization: false,

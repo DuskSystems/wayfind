@@ -1,6 +1,3 @@
-mod constraint;
-pub use constraint::ConstraintError;
-
 mod delete;
 pub use delete::DeleteError;
 

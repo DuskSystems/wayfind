@@ -127,53 +127,6 @@ impl PartialOrd for DynamicState {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DynamicConstrainedState {
-    pub name: String,
-    pub constraint: String,
-    padding: usize,
-    key: String,
-}
-
-impl DynamicConstrainedState {
-    #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<{name}:{constraint}>");
-
-        Self {
-            name,
-            constraint,
-            padding,
-            key,
-        }
-    }
-}
-
-impl NodeState for DynamicConstrainedState {
-    fn padding(&self) -> usize {
-        self.padding
-    }
-
-    fn key(&self) -> &str {
-        &self.key
-    }
-}
-
-impl Ord for DynamicConstrainedState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name
-            .cmp(&other.name)
-            .then_with(|| self.constraint.cmp(&other.constraint))
-    }
-}
-
-impl PartialOrd for DynamicConstrainedState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WildcardState {
     pub name: String,
     padding: usize,
@@ -207,53 +160,6 @@ impl Ord for WildcardState {
 }
 
 impl PartialOrd for WildcardState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct WildcardConstrainedState {
-    pub name: String,
-    pub constraint: String,
-    padding: usize,
-    key: String,
-}
-
-impl WildcardConstrainedState {
-    #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<*{name}:{constraint}>");
-
-        Self {
-            name,
-            constraint,
-            padding,
-            key,
-        }
-    }
-}
-
-impl NodeState for WildcardConstrainedState {
-    fn padding(&self) -> usize {
-        self.padding
-    }
-
-    fn key(&self) -> &str {
-        &self.key
-    }
-}
-
-impl Ord for WildcardConstrainedState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name
-            .cmp(&other.name)
-            .then_with(|| self.constraint.cmp(&other.constraint))
-    }
-}
-
-impl PartialOrd for WildcardConstrainedState {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -295,52 +201,5 @@ impl PartialOrd for EndWildcardState {
 impl Ord for EndWildcardState {
     fn cmp(&self, other: &Self) -> Ordering {
         self.name.cmp(&other.name)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct EndWildcardConstrainedState {
-    pub name: String,
-    pub constraint: String,
-    padding: usize,
-    key: String,
-}
-
-impl EndWildcardConstrainedState {
-    #[must_use]
-    pub fn new(name: String, constraint: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<*{name}:{constraint}>");
-
-        Self {
-            name,
-            constraint,
-            padding,
-            key,
-        }
-    }
-}
-
-impl NodeState for EndWildcardConstrainedState {
-    fn padding(&self) -> usize {
-        self.padding
-    }
-
-    fn key(&self) -> &str {
-        &self.key
-    }
-}
-
-impl Ord for EndWildcardConstrainedState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name
-            .cmp(&other.name)
-            .then_with(|| self.constraint.cmp(&other.constraint))
-    }
-}
-
-impl PartialOrd for EndWildcardConstrainedState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }

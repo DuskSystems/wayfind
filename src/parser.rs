@@ -8,8 +8,8 @@ use smallvec::{SmallVec, smallvec};
 
 use crate::errors::TemplateError;
 
-/// Characters that are not allowed in parameter names or constraints.
-const INVALID_PARAM_CHARS: [u8; 9] = [b':', b'*', b'<', b'>', b'(', b')', b'{', b'}', b'/'];
+/// Characters that are not allowed in parameter names.
+const INVALID_PARAM_CHARS: [u8; 8] = [b'*', b'<', b'>', b'(', b')', b'{', b'}', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
@@ -21,9 +21,7 @@ pub struct Template {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Part {
     Static { prefix: Vec<u8> },
-    DynamicConstrained { name: String, constraint: String },
     Dynamic { name: String },
-    WildcardConstrained { name: String, constraint: String },
     Wildcard { name: String },
 }
 
@@ -176,11 +174,7 @@ impl ParsedTemplate {
                     }
 
                     // Check for duplicate names.
-                    if let Part::Dynamic { name }
-                    | Part::DynamicConstrained { name, .. }
-                    | Part::Wildcard { name }
-                    | Part::WildcardConstrained { name, .. } = &part
-                    {
+                    if let Part::Dynamic { name } | Part::Wildcard { name } = &part {
                         if let Some((_, start, length)) = seen_parameters
                             .iter()
                             .find(|(existing, _, _)| existing == name)
@@ -284,14 +278,7 @@ impl ParsedTemplate {
             });
         }
 
-        let (name, constraint) = content
-            .iter()
-            .position(|&c| c == b':')
-            .map_or((content, None), |colon_pos| {
-                (&content[..colon_pos], Some(&content[colon_pos + 1..]))
-            });
-
-        if name.is_empty() {
+        if content.is_empty() {
             return Err(TemplateError::EmptyParameter {
                 template: String::from_utf8_lossy(input).to_string(),
                 start: cursor,
@@ -299,8 +286,8 @@ impl ParsedTemplate {
             });
         }
 
-        let is_wildcard = name.starts_with(b"*");
-        let name = if is_wildcard { &name[1..] } else { name };
+        let is_wildcard = content.starts_with(b"*");
+        let name = if is_wildcard { &content[1..] } else { content };
 
         if is_wildcard && name.is_empty() {
             return Err(TemplateError::EmptyWildcard {
@@ -319,25 +306,6 @@ impl ParsedTemplate {
             });
         }
 
-        if let Some(constraint) = constraint {
-            if constraint.is_empty() {
-                return Err(TemplateError::EmptyConstraint {
-                    template: String::from_utf8_lossy(input).to_string(),
-                    start: cursor,
-                    length: end - cursor + 1,
-                });
-            }
-
-            if constraint.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
-                return Err(TemplateError::InvalidConstraint {
-                    template: String::from_utf8_lossy(input).to_string(),
-                    name: String::from_utf8_lossy(constraint).to_string(),
-                    start: cursor,
-                    length: end - cursor + 1,
-                });
-            }
-        }
-
         let name =
             String::from_utf8(name.to_vec()).map_err(|_| TemplateError::InvalidParameter {
                 template: String::from_utf8_lossy(input).to_string(),
@@ -346,24 +314,10 @@ impl ParsedTemplate {
                 length: end - cursor + 1,
             })?;
 
-        let constraint = if let Some(constraint) = constraint {
-            Some(String::from_utf8(constraint.to_vec()).map_err(|_| {
-                TemplateError::InvalidConstraint {
-                    template: String::from_utf8_lossy(input).to_string(),
-                    name: String::from_utf8_lossy(constraint).to_string(),
-                    start: cursor,
-                    length: end - cursor + 1,
-                }
-            })?)
+        let part = if is_wildcard {
+            Part::Wildcard { name }
         } else {
-            None
-        };
-
-        let part = match (is_wildcard, constraint) {
-            (true, Some(constraint)) => Part::WildcardConstrained { name, constraint },
-            (true, None) => Part::Wildcard { name },
-            (false, Some(constraint)) => Part::DynamicConstrained { name, constraint },
-            (false, None) => Part::Dynamic { name },
+            Part::Dynamic { name }
         };
 
         Ok((part, end + 1))
@@ -431,37 +385,6 @@ mod tests {
                     parts: vec![
                         Part::Wildcard {
                             name: "wildcard".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/".to_vec()
-                        },
-                    ],
-                }],
-                expanded: false,
-            }),
-        );
-    }
-
-    #[test]
-    fn test_parser_complex_route() {
-        assert_eq!(
-            ParsedTemplate::new(b"/<*name:alpha>/<id:numeric>"),
-            Ok(ParsedTemplate {
-                input: b"/<*name:alpha>/<id:numeric>".to_vec(),
-                templates: vec![Template {
-                    input: b"/<*name:alpha>/<id:numeric>".to_vec(),
-                    raw: b"/<*name:alpha>/<id:numeric>".to_vec(),
-                    parts: vec![
-                        Part::DynamicConstrained {
-                            name: "id".to_owned(),
-                            constraint: "numeric".to_owned()
-                        },
-                        Part::Static {
-                            prefix: b"/".to_vec()
-                        },
-                        Part::WildcardConstrained {
-                            name: "name".to_owned(),
-                            constraint: "alpha".to_owned()
                         },
                         Part::Static {
                             prefix: b"/".to_vec()
@@ -815,26 +738,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_empty_parameter() {
-        let error = ParsedTemplate::new(b"/users/<:constraint>/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::EmptyParameter {
-                template: "/users/<:constraint>/profile".to_owned(),
-                start: 7,
-                length: 13,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        empty parameter name
-
-            Template: /users/<:constraint>/profile
-                             ^^^^^^^^^^^^^
-        ");
-    }
-
-    #[test]
     fn test_parser_error_invalid_parameter() {
         let error = ParsedTemplate::new(b"/users/<user*name>/profile").unwrap_err();
         assert_eq!(
@@ -853,30 +756,30 @@ mod tests {
             Template: /users/<user*name>/profile
                              ^^^^^^^^^^^
 
-        help: Parameter names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
+        help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{', '}', '/'
         ");
     }
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = ParsedTemplate::new(b"/users/<id>/posts/<id:uuid>").unwrap_err();
+        let error = ParsedTemplate::new(b"/users/<id>/posts/<id>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::DuplicateParameter {
-                template: "/users/<id>/posts/<id:uuid>".to_owned(),
+                template: "/users/<id>/posts/<id>".to_owned(),
                 name: "id".to_owned(),
                 first: 7,
                 first_length: 4,
                 second: 18,
-                second_length: 9,
+                second_length: 4,
             }
         );
 
         insta::assert_snapshot!(error, @r"
         duplicate parameter name: 'id'
 
-            Template: /users/<id>/posts/<id:uuid>
-                             ^^^^       ^^^^^^^^^
+            Template: /users/<id>/posts/<id>
+                             ^^^^       ^^^^
 
         help: Parameter names must be unique within a template
 
@@ -902,49 +805,6 @@ mod tests {
 
             Template: /files/<*>
                              ^^^
-        ");
-    }
-
-    #[test]
-    fn test_parser_error_empty_constraint() {
-        let error = ParsedTemplate::new(b"/users/<id:>/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::EmptyConstraint {
-                template: "/users/<id:>/profile".to_owned(),
-                start: 7,
-                length: 5,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        empty constraint name
-
-            Template: /users/<id:>/profile
-                             ^^^^^
-        ");
-    }
-
-    #[test]
-    fn test_parser_error_invalid_constraint() {
-        let error = ParsedTemplate::new(b"/users/<id:*>/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::InvalidConstraint {
-                template: "/users/<id:*>/profile".to_owned(),
-                name: "*".to_owned(),
-                start: 7,
-                length: 6,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        invalid constraint name: '*'
-
-            Template: /users/<id:*>/profile
-                             ^^^^^^
-
-        help: Constraint names must not contain the characters: ':', '*', '<', '>', '(', ')', '{', '}', '/'
         ");
     }
 
