@@ -101,7 +101,7 @@ impl<S: NodeState> Node<S> {
         None
     }
 
-    /// Can handle complex dynamic templates like `<name>.<extension>`.
+    /// Can handle complex dynamic templates like `/<name>.<extension>`.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],

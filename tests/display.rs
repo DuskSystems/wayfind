@@ -11,21 +11,13 @@ fn test_display_router() -> Result<(), Box<dyn Error>> {
     router.insert("/users/<id>/profile", 4)?;
     router.insert("/posts/<year>-<month>-<day>", 5)?;
     router.insert("/files/<*path>/download", 6)?;
-    router.insert("/api/v1(/)", 7)?;
-    router.insert("/images/<name>(.<extension>)", 8)?;
-    router.insert("/<*catch_all>", 9)?;
+    router.insert("/<*catch_all>", 7)?;
 
     insta::assert_snapshot!(router, @r"
     / [*]
-    ├─ api/v1 [*]
-    │  ╰─ / [*]
     ├─ files/
     │  ╰─ <*path>
     │     ╰─ /download [*]
-    ├─ images/
-    │  ╰─ <name> [*]
-    │     ╰─ .
-    │        ╰─ <extension> [*]
     ├─ posts/
     │  ╰─ <year>
     │     ╰─ -

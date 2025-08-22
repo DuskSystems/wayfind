@@ -1,8 +1,4 @@
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-    vec,
-};
+use alloc::{borrow::ToOwned, string::ToString};
 use core::fmt;
 
 use smallvec::{SmallVec, smallvec};
@@ -24,9 +20,6 @@ pub struct Match<'r, 'p, T> {
 
     /// The matching template.
     pub template: &'r str,
-
-    /// The matching expanded template, if applicable.
-    pub expanded: Option<&'r str>,
 
     /// Key-value pairs of parameters, extracted from the template and path.
     pub parameters: Parameters<'r, 'p>,
@@ -90,61 +83,29 @@ impl<T> Router<T> {
         let mut parsed = ParsedTemplate::new(template.as_bytes())?;
 
         // Check for any conflicts.
-        let mut conflicts = vec![];
-        for parsed_template in &parsed.templates {
-            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
-                conflicts.push(found.template.to_string());
-            }
-        }
-
-        if !conflicts.is_empty() {
-            conflicts.dedup();
-            conflicts.sort();
-
+        if let Some(found) = self.root.find(&mut parsed.template.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),
-                conflicts,
+                conflict: found.template.to_string(),
             });
         }
 
         // All good, proceed with insert.
         let key = self.storage.insert(data);
 
-        if parsed.templates.len() > 1 {
-            for mut parsed_template in parsed.templates {
-                let expanded = Some(String::from_utf8_lossy(&parsed_template.raw).to_string());
+        #[allow(clippy::naive_bytecount)]
+        let depth = parsed.template.raw.iter().filter(|&b| *b == b'/').count();
+        let length = parsed.template.raw.len();
 
-                #[allow(clippy::naive_bytecount)]
-                let depth = parsed_template.raw.iter().filter(|&b| *b == b'/').count();
-                let length = parsed_template.raw.len();
-
-                self.root.insert(
-                    &mut parsed_template,
-                    NodeData {
-                        key,
-                        template: template.to_owned(),
-                        expanded,
-                        depth,
-                        length,
-                    },
-                );
-            }
-        } else if let Some(parsed_template) = parsed.templates.first_mut() {
-            #[allow(clippy::naive_bytecount)]
-            let depth = parsed_template.raw.iter().filter(|&b| *b == b'/').count();
-            let length = parsed_template.raw.len();
-
-            self.root.insert(
-                parsed_template,
-                NodeData {
-                    key,
-                    template: template.to_owned(),
-                    expanded: None,
-                    depth,
-                    length,
-                },
-            );
-        }
+        self.root.insert(
+            &mut parsed.template,
+            NodeData {
+                key,
+                template: template.to_owned(),
+                depth,
+                length,
+            },
+        );
 
         self.root.optimize();
         Ok(())
@@ -170,53 +131,22 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, template: &str) -> Result<T, DeleteError> {
-        let parsed = ParsedTemplate::new(template.as_bytes())?;
+        let mut parsed = ParsedTemplate::new(template.as_bytes())?;
 
-        // Check for any conflicts or mismatches.
-        for parsed_template in &parsed.templates {
-            let Some(found) = self.root.find(&mut parsed_template.clone()) else {
-                continue;
-            };
-
-            if found.template == template {
-                continue;
-            }
-
-            return Err(DeleteError::Mismatch {
-                template: template.to_owned(),
-                inserted: found.template.to_string(),
-            });
-        }
-
-        for parsed_template in &parsed.templates {
-            if self.root.find(&mut parsed_template.clone()).is_none() {
-                return Err(DeleteError::NotFound {
-                    template: template.to_owned(),
-                });
-            }
-        }
-
-        let mut key = None;
-        for mut template in parsed.templates {
-            if let Some(data) = self.root.delete(&mut template) {
-                key = Some(data.key);
-            }
-        }
-
-        let Some(key) = key else {
+        let Some(data) = self.root.delete(&mut parsed.template) else {
             return Err(DeleteError::NotFound {
                 template: template.to_owned(),
             });
         };
 
-        let Some(data) = self.storage.remove(key) else {
+        let Some(stored_data) = self.storage.remove(data.key) else {
             return Err(DeleteError::NotFound {
                 template: template.to_owned(),
             });
         };
 
         self.root.optimize();
-        Ok(data)
+        Ok(stored_data)
     }
 
     /// Checks if a template exists in the router and returns a reference to its data.
@@ -232,15 +162,13 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(mut parsed) = ParsedTemplate::new(template.as_bytes()) else {
             return None;
         };
 
-        for parsed_template in &parsed.templates {
-            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
-                if found.template == template {
-                    return self.storage.get(found.key);
-                }
+        if let Some(found) = self.root.find(&mut parsed.template) {
+            if found.template == template {
+                return self.storage.get(found.key);
             }
         }
 
@@ -264,15 +192,13 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(mut parsed) = ParsedTemplate::new(template.as_bytes()) else {
             return None;
         };
 
-        for parsed_template in &parsed.templates {
-            if let Some(found) = self.root.find(&mut parsed_template.clone()) {
-                if found.template == template {
-                    return self.storage.get_mut(found.key);
-                }
+        if let Some(found) = self.root.find(&mut parsed.template) {
+            if found.template == template {
+                return self.storage.get_mut(found.key);
             }
         }
 
@@ -298,7 +224,6 @@ impl<T> Router<T> {
         Some(Match {
             data: self.storage.get(data.key)?,
             template: data.template.as_ref(),
-            expanded: data.expanded.as_deref(),
             parameters,
         })
     }

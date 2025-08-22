@@ -24,17 +24,6 @@ fn test_get_invalid() {
 }
 
 #[test]
-fn test_get_expanded() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("(/hello)", 123)?;
-
-    assert_eq!(router.get("(/hello)"), Some(&123));
-    assert_eq!(router.get("/hello"), None);
-
-    Ok(())
-}
-
-#[test]
 fn test_get_mut() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hello", 1)?;
@@ -57,17 +46,4 @@ fn test_get_mut_missing() {
 fn test_get_mut_invalid() {
     let mut router: Router<i32> = Router::new();
     assert_eq!(router.get_mut("/<invalid"), None);
-}
-
-#[test]
-fn test_get_mut_expanded() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("(/world)", 456)?;
-
-    if let Some(data) = router.get_mut("(/world)") {
-        *data = 789;
-    }
-
-    assert_eq!(router.get("(/world)"), Some(&789));
-    Ok(())
 }

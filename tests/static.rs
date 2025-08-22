@@ -17,7 +17,6 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/users",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -45,7 +44,6 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/user",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -56,7 +54,6 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/users",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -88,7 +85,6 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/user_1",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -99,7 +95,6 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/user/1",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -144,7 +139,6 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/👨‍👩‍👧",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -155,7 +149,6 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/👨‍👩‍👦",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -193,7 +186,6 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/users",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -204,7 +196,6 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/Users",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -225,7 +216,6 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/users /items",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -254,7 +244,6 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/users/items",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -265,7 +254,6 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/users//items",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -286,7 +274,6 @@ fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/users///items",
-            expanded: None,
             parameters: smallvec![],
         })
     );

@@ -11,43 +11,42 @@
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
-//!     router.insert("/pet(/)", 1)?;
-//!     router.insert("/pet/findByStatus(/)", 2)?;
-//!     router.insert("/pet/findByTags(/)", 3)?;
-//!     router.insert("/pet/<pet>(/)", 4)?;
-//!     router.insert("/pet/<petId>/uploadImage(/)", 5)?;
-//!     router.insert("/store/inventory(/)", 6)?;
-//!     router.insert("/store/order(/<orderId>)(/)", 7)?;
-//!     router.insert("/user(/)", 8)?;
-//!     router.insert("/user/createWithList(/)", 9)?;
-//!     router.insert("/user/login(/)", 10)?;
-//!     router.insert("/user/logout(/)", 11)?;
-//!     router.insert("/user/<username>(/)", 12)?;
-//!     router.insert("/<*catch_all>", 13)?;
+//!     router.insert("/pet", 1)?;
+//!     router.insert("/pet/", 2)?;
+//!     router.insert("/pet/findByStatus", 3)?;
+//!     router.insert("/pet/findByTags", 4)?;
+//!     router.insert("/pet/<pet>", 5)?;
+//!     router.insert("/pet/<petId>/uploadImage", 6)?;
+//!     router.insert("/store/inventory", 7)?;
+//!     router.insert("/store/order", 8)?;
+//!     router.insert("/store/order/<orderId>", 9)?;
+//!     router.insert("/user", 10)?;
+//!     router.insert("/user/createWithList", 11)?;
+//!     router.insert("/user/login", 12)?;
+//!     router.insert("/user/logout", 13)?;
+//!     router.insert("/user/<username>", 14)?;
+//!     router.insert("/<*catch_all>", 15)?;
 //!
 //!     let search = router.search("/pet").unwrap();
 //!     assert_eq!(*search.data, 1);
 //!
-//!     let search = router.search("/pet/").unwrap();
-//!     assert_eq!(*search.data, 1);
-//!
 //!     let search = router.search("/pet/123/uploadImage").unwrap();
-//!     assert_eq!(*search.data, 5);
+//!     assert_eq!(*search.data, 6);
 //!     assert_eq!(search.parameters[0], ("petId", "123"));
 //!
 //!     let search = router.search("/store/order").unwrap();
-//!     assert_eq!(*search.data, 7);
+//!     assert_eq!(*search.data, 8);
 //!
 //!     let search = router.search("/store/order/456").unwrap();
-//!     assert_eq!(*search.data, 7);
+//!     assert_eq!(*search.data, 9);
 //!     assert_eq!(search.parameters[0], ("orderId", "456"));
 //!
 //!     let search = router.search("/user/alice").unwrap();
-//!     assert_eq!(*search.data, 12);
+//!     assert_eq!(*search.data, 14);
 //!     assert_eq!(search.parameters[0], ("username", "alice"));
 //!
 //!     let search = router.search("/unknown/path").unwrap();
-//!     assert_eq!(*search.data, 13);
+//!     assert_eq!(*search.data, 15);
 //!     assert_eq!(search.parameters[0], ("catch_all", "unknown/path"));
 //!
 //!     Ok(())
@@ -162,64 +161,6 @@
 //!     assert_eq!(*search.data, 2);
 //!     assert_eq!(search.template, "/<*catch_all>");
 //!     assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
-//!
-//!     Ok(())
-//! }
-//! ```
-//!
-//! ## Optional Groups
-//!
-//! Optional groups allow for parts of a route to be absent.
-//!
-//! They are commonly used for:
-//! - optional IDs: `/users(/<id>)`
-//! - optional trailing slashes: `/users(/)`
-//! - optional file extensions: `/images/<name>(.<extension>)`
-//!
-//! They work via 'expanding' the route into equivalent, simplified routes.
-//!
-//! `/release/v<major>(.<minor>(.<patch>))` equivalent
-//! - `/release/v<major>.<minor>.<patch>`
-//! - `/release/v<major>.<minor>`
-//! - `/release/v<major>`
-//!
-//! ### Example
-//!
-//! ```rust
-//! use std::error::Error;
-//!
-//! use wayfind::Router;
-//!
-//! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router = Router::new();
-//!     router.insert("/users(/<id>)", 1)?;
-//!     router.insert("/files/<*slug>/<file>(.<extension>)", 2)?;
-//!
-//!     let search = router.search("/users").unwrap();
-//!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/users(/<id>)");
-//!     assert_eq!(search.expanded, Some("/users"));
-//!
-//!     let search = router.search("/users/123").unwrap();
-//!     assert_eq!(*search.data, 1);
-//!     assert_eq!(search.template, "/users(/<id>)");
-//!     assert_eq!(search.expanded, Some("/users/<id>"));
-//!     assert_eq!(search.parameters[0], ("id", "123"));
-//!
-//!     let search = router.search("/files/documents/folder/report.pdf").unwrap();
-//!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/files/<*slug>/<file>(.<extension>)");
-//!     assert_eq!(search.expanded, Some("/files/<*slug>/<file>.<extension>"));
-//!     assert_eq!(search.parameters[0], ("slug", "documents/folder"));
-//!     assert_eq!(search.parameters[1], ("file", "report"));
-//!     assert_eq!(search.parameters[2], ("extension", "pdf"));
-//!
-//!     let search = router.search("/files/documents/folder/readme").unwrap();
-//!     assert_eq!(*search.data, 2);
-//!     assert_eq!(search.template, "/files/<*slug>/<file>(.<extension>)");
-//!     assert_eq!(search.expanded, Some("/files/<*slug>/<file>"));
-//!     assert_eq!(search.parameters[0], ("slug", "documents/folder"));
-//!     assert_eq!(search.parameters[1], ("file", "readme"));
 //!
 //!     Ok(())
 //! }

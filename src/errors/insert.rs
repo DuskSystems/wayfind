@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, fmt, format, string::String, vec::Vec};
+use alloc::{fmt, string::String};
 use core::error::Error;
 
 use crate::errors::TemplateError;
@@ -8,7 +8,7 @@ pub enum InsertError {
     /// A [`TemplateError`] that occurred during the insert.
     Template(TemplateError),
 
-    /// One or more conflicting templates found during the insert.
+    /// A conflicting template found during the insert.
     ///
     /// # Examples
     ///
@@ -16,26 +16,21 @@ pub enum InsertError {
     /// use wayfind::errors::InsertError;
     ///
     /// let error = InsertError::Conflict {
-    ///     template: "(/a(/b))(/x/y)".to_owned(),
-    ///     conflicts: vec![
-    ///         "/a(/b)".to_owned(),
-    ///         "/x/y".to_owned(),
-    ///     ]
+    ///     template: "/users/<id>".to_owned(),
+    ///     conflict: "/users/<user>".to_owned(),
     /// };
     ///
     /// let display = r"
-    /// conflicts detected
+    /// conflict detected
     ///
-    ///     Template: (/a(/b))(/x/y)
-    ///     Conflicts:
-    ///         - /a(/b)
-    ///         - /x/y
+    ///     Template: /users/<id>
+    ///     Conflict: /users/<user>
     ///
     /// help: Templates cannot overlap with existing templates
     ///
     /// try:
     ///     - Modify the template to be more specific
-    ///     - Remove conflicting templates
+    ///     - Remove the conflicting template
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -43,8 +38,8 @@ pub enum InsertError {
     Conflict {
         /// The template being inserted.
         template: String,
-        /// List of existing templates that conflict.
-        conflicts: Vec<String>,
+        /// The existing template that conflicts.
+        conflict: String,
     },
 }
 
@@ -54,31 +49,19 @@ impl fmt::Display for InsertError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Template(error) => error.fmt(f),
-            Self::Conflict {
-                template,
-                conflicts,
-            } => {
-                let conflicts = conflicts
-                    .iter()
-                    .map(|conflict| format!("        - {conflict}"))
-                    .collect::<Vec<_>>()
-                    .join("\n")
-                    .trim_end()
-                    .to_owned();
-
+            Self::Conflict { template, conflict } => {
                 write!(
                     f,
-                    r"conflicts detected
+                    r"conflict detected
 
     Template: {template}
-    Conflicts:
-{conflicts}
+    Conflict: {conflict}
 
 help: Templates cannot overlap with existing templates
 
 try:
     - Modify the template to be more specific
-    - Remove conflicting templates"
+    - Remove the conflicting template"
                 )
             }
         }

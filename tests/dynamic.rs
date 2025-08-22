@@ -20,7 +20,6 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<id>",
-            expanded: None,
             parameters: smallvec![("id", "123")],
         })
     );
@@ -53,7 +52,6 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<year>",
-            expanded: None,
             parameters: smallvec![("year", "2024")],
         })
     );
@@ -64,7 +62,6 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/<year>/<month>",
-            expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
     );
@@ -75,7 +72,6 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &3,
             template: "/<year>/<month>/<day>",
-            expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
     );
@@ -105,7 +101,6 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<year>",
-            expanded: None,
             parameters: smallvec![("year", "2024")],
         })
     );
@@ -116,7 +111,6 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/<year>-<month>",
-            expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12")],
         })
     );
@@ -127,7 +121,6 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &3,
             template: "/<year>-<month>-<day>",
-            expanded: None,
             parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
         })
     );
@@ -156,7 +149,6 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<file>.<extension>",
-            expanded: None,
             parameters: smallvec![("file", "report"), ("extension", "pdf")],
         })
     );
@@ -167,7 +159,6 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<file>.<extension>",
-            expanded: None,
             parameters: smallvec![("file", "report.final"), ("extension", "pdf")],
         })
     );
@@ -200,7 +191,6 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/robots.txt",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -211,7 +201,6 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/robots.<extension>",
-            expanded: None,
             parameters: smallvec![("extension", "pdf")],
         })
     );
@@ -222,7 +211,6 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &3,
             template: "/<name>.txt",
-            expanded: None,
             parameters: smallvec![("name", "config")],
         })
     );
@@ -233,7 +221,6 @@ fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &4,
             template: "/<name>.<extension>",
-            expanded: None,
             parameters: smallvec![("name", "config"), ("extension", "pdf")],
         })
     );

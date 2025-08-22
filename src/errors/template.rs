@@ -82,7 +82,6 @@ pub enum TemplateError {
     ///
     /// try:
     ///     - Add the missing closing angle
-    ///     - Use '\<' and '\>' to represent literal angles
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -91,68 +90,6 @@ pub enum TemplateError {
         /// The template containing an unbalanced angle.
         template: String,
         /// The position of the unbalanced angle.
-        position: usize,
-    },
-
-    /// Empty parentheses were found in the template.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::TemplateError;
-    ///
-    /// let error = TemplateError::EmptyParentheses {
-    ///     template: "/()".to_owned(),
-    ///     position: 1,
-    /// };
-    ///
-    /// let display = r"
-    /// empty parentheses
-    ///
-    ///     Template: /()
-    ///                ^^
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    EmptyParentheses {
-        /// The template containing empty parentheses.
-        template: String,
-        /// The position of the first empty parenthesis.
-        position: usize,
-    },
-
-    /// An unbalanced parenthesis was found in the template.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::TemplateError;
-    ///
-    /// let error = TemplateError::UnbalancedParenthesis {
-    ///     template: "/(".to_owned(),
-    ///     position: 1,
-    /// };
-    ///
-    /// let display = r"
-    /// unbalanced parenthesis
-    ///
-    ///     Template: /(
-    ///                ^
-    ///
-    /// help: Each '(' must have a matching ')'
-    ///
-    /// try:
-    ///     - Add the missing closing parenthesis
-    ///     - Use '\(' and '\)' to represent literal parentheses
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    UnbalancedParenthesis {
-        /// The template containing an unbalanced parenthesis.
-        template: String,
-        /// The position of the unbalanced parenthesis.
         position: usize,
     },
 
@@ -207,7 +144,7 @@ pub enum TemplateError {
     ///     Template: /<a/b>
     ///                ^^^^^
     ///
-    /// help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{', '}', '/'
+    /// help: Parameter names must not contain the characters: '*', '<', '>', '/'
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -378,36 +315,7 @@ help: Templates must begin with '/'"
 help: Each '<' must have a matching '>'
 
 try:
-    - Add the missing closing angle
-    - Use '\<' and '\>' to represent literal angles"
-                )
-            }
-
-            Self::EmptyParentheses { template, position } => {
-                let arrow = " ".repeat(*position) + "^^";
-                write!(
-                    f,
-                    r"empty parentheses
-
-    Template: {template}
-              {arrow}"
-                )
-            }
-
-            Self::UnbalancedParenthesis { template, position } => {
-                let arrow = " ".repeat(*position) + "^";
-                write!(
-                    f,
-                    r"unbalanced parenthesis
-
-    Template: {template}
-              {arrow}
-
-help: Each '(' must have a matching ')'
-
-try:
-    - Add the missing closing parenthesis
-    - Use '\(' and '\)' to represent literal parentheses"
+    - Add the missing closing angle"
                 )
             }
 
@@ -440,7 +348,7 @@ try:
     Template: {template}
               {arrow}
 
-help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{{', '}}', '/'"
+help: Parameter names must not contain the characters: '*', '<', '>', '/'"
                 )
             }
 

@@ -21,9 +21,6 @@ pub struct NodeData {
     /// The original template.
     pub template: String,
 
-    /// The expanded template (if from optional group).
-    pub expanded: Option<String>,
-
     /// The number of slashes in the template, or expanded template if exists.
     pub depth: usize,
 

@@ -9,7 +9,7 @@ use smallvec::{SmallVec, smallvec};
 use crate::errors::TemplateError;
 
 /// Characters that are not allowed in parameter names.
-const INVALID_PARAM_CHARS: [u8; 8] = [b'*', b'<', b'>', b'(', b')', b'{', b'}', b'/'];
+const INVALID_PARAM_CHARS: [u8; 4] = [b'*', b'<', b'>', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Template {
@@ -28,8 +28,7 @@ pub enum Part {
 #[derive(Debug, PartialEq, Eq)]
 pub struct ParsedTemplate {
     pub input: Vec<u8>,
-    pub templates: Vec<Template>,
-    pub expanded: bool,
+    pub template: Template,
 }
 
 impl ParsedTemplate {
@@ -38,116 +37,18 @@ impl ParsedTemplate {
             return Err(TemplateError::Empty);
         }
 
-        let templates = Self::expand_optional_groups(input, 0, input.len())?;
-        let templates = templates
-            .into_iter()
-            .map(|raw| Self::parse_template(input, &raw))
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let expanded = templates.len() > 1;
+        let template = Self::parse_template(input)?;
 
         Ok(Self {
             input: input.to_vec(),
-            templates,
-            expanded,
+            template,
         })
     }
 
-    // Recursively expands optional groups in the template, generating all possible combinations
-    fn expand_optional_groups(
-        input: &[u8],
-        start: usize,
-        end: usize,
-    ) -> Result<Vec<Vec<u8>>, TemplateError> {
-        let mut result = Vec::from([vec![]]);
-
-        let mut cursor = start;
-        let mut group = start;
-        let mut depth = 0;
-
-        while cursor < end {
-            match (input[cursor], input.get(cursor + 1)) {
-                (b'(', _) => {
-                    if depth == 0 {
-                        for template in &mut result {
-                            template.extend_from_slice(&input[group..cursor]);
-                        }
-
-                        group = cursor + 1;
-                    }
-
-                    depth += 1;
-                    cursor += 1;
-                }
-                (b')', _) => {
-                    depth -= 1;
-
-                    if depth < 0 {
-                        return Err(TemplateError::UnbalancedParenthesis {
-                            template: String::from_utf8_lossy(input).to_string(),
-                            position: cursor,
-                        });
-                    }
-
-                    if depth == 0 {
-                        if cursor == group {
-                            return Err(TemplateError::EmptyParentheses {
-                                template: String::from_utf8_lossy(input).to_string(),
-                                position: cursor - 1,
-                            });
-                        }
-
-                        let optional_groups = Self::expand_optional_groups(input, group, cursor)?;
-
-                        let mut new_result = vec![];
-                        for template in result {
-                            for optional_group in &optional_groups {
-                                let mut new_template = template.clone();
-                                new_template.extend_from_slice(optional_group);
-                                new_result.push(new_template);
-                            }
-
-                            new_result.push(template);
-                        }
-
-                        result = new_result;
-                        group = cursor + 1;
-                    }
-
-                    cursor += 1;
-                }
-                (_, _) => {
-                    cursor += 1;
-                }
-            }
-        }
-
-        if depth != 0 {
-            return Err(TemplateError::UnbalancedParenthesis {
-                template: String::from_utf8_lossy(input).to_string(),
-                position: start + group - 1,
-            });
-        }
-
-        if group < end {
-            for template in &mut result {
-                template.extend_from_slice(&input[group..end]);
-            }
-        }
-
-        for template in &mut result {
-            if template.is_empty() {
-                template.push(b'/');
-            }
-        }
-
-        Ok(result)
-    }
-
-    fn parse_template(input: &[u8], raw: &[u8]) -> Result<Template, TemplateError> {
-        if !raw.is_empty() && raw[0] != b'/' {
+    fn parse_template(input: &[u8]) -> Result<Template, TemplateError> {
+        if !input.is_empty() && input[0] != b'/' {
             return Err(TemplateError::MissingLeadingSlash {
-                template: String::from_utf8_lossy(raw).to_string(),
+                template: String::from_utf8_lossy(input).to_string(),
             });
         }
 
@@ -157,16 +58,16 @@ impl ParsedTemplate {
         // Parameters in order (name, start, length)
         let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
 
-        while cursor < raw.len() {
-            match raw[cursor] {
+        while cursor < input.len() {
+            match input[cursor] {
                 b'<' => {
-                    let (part, next_cursor) = Self::parse_parameter_part(raw, cursor)?;
+                    let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
                     if let Some((_, start, length)) = seen_parameters.last() {
                         if cursor == start + length {
                             return Err(TemplateError::TouchingParameters {
-                                template: String::from_utf8_lossy(raw).to_string(),
+                                template: String::from_utf8_lossy(input).to_string(),
                                 start: *start,
                                 length: next_cursor - start,
                             });
@@ -180,7 +81,7 @@ impl ParsedTemplate {
                             .find(|(existing, _, _)| existing == name)
                         {
                             return Err(TemplateError::DuplicateParameter {
-                                template: String::from_utf8_lossy(raw).to_string(),
+                                template: String::from_utf8_lossy(input).to_string(),
                                 name: name.to_string(),
                                 first: *start,
                                 first_length: *length,
@@ -197,12 +98,12 @@ impl ParsedTemplate {
                 }
                 b'>' => {
                     return Err(TemplateError::UnbalancedAngle {
-                        template: String::from_utf8_lossy(raw).to_string(),
+                        template: String::from_utf8_lossy(input).to_string(),
                         position: cursor,
                     });
                 }
                 _ => {
-                    let (part, next_cursor) = Self::parse_static_part(raw, cursor);
+                    let (part, next_cursor) = Self::parse_static_part(input, cursor);
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -213,7 +114,7 @@ impl ParsedTemplate {
 
         Ok(Template {
             input: input.to_vec(),
-            raw: raw.to_vec(),
+            raw: input.to_vec(),
             parts,
         })
     }
@@ -338,14 +239,13 @@ mod tests {
             ParsedTemplate::new(b"/abcd"),
             Ok(ParsedTemplate {
                 input: b"/abcd".to_vec(),
-                templates: vec![Template {
+                template: Template {
                     input: b"/abcd".to_vec(),
                     raw: b"/abcd".to_vec(),
                     parts: vec![Part::Static {
                         prefix: b"/abcd".to_vec()
                     }],
-                }],
-                expanded: false,
+                },
             }),
         );
     }
@@ -356,7 +256,7 @@ mod tests {
             ParsedTemplate::new(b"/<name>"),
             Ok(ParsedTemplate {
                 input: b"/<name>".to_vec(),
-                templates: vec![Template {
+                template: Template {
                     input: b"/<name>".to_vec(),
                     raw: b"/<name>".to_vec(),
                     parts: vec![
@@ -367,8 +267,7 @@ mod tests {
                             prefix: b"/".to_vec()
                         },
                     ],
-                }],
-                expanded: false,
+                },
             }),
         );
     }
@@ -379,7 +278,7 @@ mod tests {
             ParsedTemplate::new(b"/<*wildcard>"),
             Ok(ParsedTemplate {
                 input: b"/<*wildcard>".to_vec(),
-                templates: vec![Template {
+                template: Template {
                     input: b"/<*wildcard>".to_vec(),
                     raw: b"/<*wildcard>".to_vec(),
                     parts: vec![
@@ -390,184 +289,57 @@ mod tests {
                             prefix: b"/".to_vec()
                         },
                     ],
-                }],
-                expanded: false,
+                },
             }),
         );
     }
 
     #[test]
-    fn test_parser_optional_group_simple() {
+    fn test_parser_complex_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/<id>)"),
+            ParsedTemplate::new(b"/v2/<name>/manifests/<reference>"),
             Ok(ParsedTemplate {
-                input: b"/users(/<id>)".to_vec(),
-                templates: vec![
-                    Template {
-                        input: b"/users(/<id>)".to_vec(),
-                        raw: b"/users/<id>".to_vec(),
-                        parts: vec![
-                            Part::Dynamic {
-                                name: "id".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/users/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"/users(/<id>)".to_vec(),
-                        raw: b"/users".to_vec(),
-                        parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
-                        }],
-                    },
-                ],
-                expanded: true,
+                input: b"/v2/<name>/manifests/<reference>".to_vec(),
+                template: Template {
+                    input: b"/v2/<name>/manifests/<reference>".to_vec(),
+                    raw: b"/v2/<name>/manifests/<reference>".to_vec(),
+                    parts: vec![
+                        Part::Dynamic {
+                            name: "reference".to_owned(),
+                        },
+                        Part::Static {
+                            prefix: b"/manifests/".to_vec()
+                        },
+                        Part::Dynamic {
+                            name: "name".to_owned(),
+                        },
+                        Part::Static {
+                            prefix: b"/v2/".to_vec()
+                        },
+                    ],
+                },
             }),
         );
     }
 
     #[test]
-    fn test_parser_optional_groups_nested() {
+    fn test_parser_route_with_wildcard_at_end() {
         assert_eq!(
-            ParsedTemplate::new(b"/users(/<id>(/profile))"),
+            ParsedTemplate::new(b"/files/<*path>"),
             Ok(ParsedTemplate {
-                input: b"/users(/<id>(/profile))".to_vec(),
-                templates: vec![
-                    Template {
-                        input: b"/users(/<id>(/profile))".to_vec(),
-                        raw: b"/users/<id>/profile".to_vec(),
-                        parts: vec![
-                            Part::Static {
-                                prefix: b"/profile".to_vec()
-                            },
-                            Part::Dynamic {
-                                name: "id".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/users/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"/users(/<id>(/profile))".to_vec(),
-                        raw: b"/users/<id>".to_vec(),
-                        parts: vec![
-                            Part::Dynamic {
-                                name: "id".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/users/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"/users(/<id>(/profile))".to_vec(),
-                        raw: b"/users".to_vec(),
-                        parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
-                        }],
-                    },
-                ],
-                expanded: true,
-            }),
-        );
-    }
-
-    #[test]
-    fn test_parser_edge_case_starting_optional_group() {
-        assert_eq!(
-            ParsedTemplate::new(b"(/<lang>)/users"),
-            Ok(ParsedTemplate {
-                input: b"(/<lang>)/users".to_vec(),
-                templates: vec![
-                    Template {
-                        input: b"(/<lang>)/users".to_vec(),
-                        raw: b"/<lang>/users".to_vec(),
-                        parts: vec![
-                            Part::Static {
-                                prefix: b"/users".to_vec()
-                            },
-                            Part::Dynamic {
-                                name: "lang".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"(/<lang>)/users".to_vec(),
-                        raw: b"/users".to_vec(),
-                        parts: vec![Part::Static {
-                            prefix: b"/users".to_vec()
-                        }],
-                    },
-                ],
-                expanded: true,
-            }),
-        );
-    }
-
-    #[test]
-    fn test_parser_edge_case_only_optional_groups() {
-        assert_eq!(
-            ParsedTemplate::new(b"(/<lang>)(/<page>)"),
-            Ok(ParsedTemplate {
-                input: b"(/<lang>)(/<page>)".to_vec(),
-                templates: vec![
-                    Template {
-                        input: b"(/<lang>)(/<page>)".to_vec(),
-                        raw: b"/<lang>/<page>".to_vec(),
-                        parts: vec![
-                            Part::Dynamic {
-                                name: "page".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/".to_vec()
-                            },
-                            Part::Dynamic {
-                                name: "lang".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"(/<lang>)(/<page>)".to_vec(),
-                        raw: b"/<lang>".to_vec(),
-                        parts: vec![
-                            Part::Dynamic {
-                                name: "lang".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"(/<lang>)(/<page>)".to_vec(),
-                        raw: b"/<page>".to_vec(),
-                        parts: vec![
-                            Part::Dynamic {
-                                name: "page".to_owned(),
-                            },
-                            Part::Static {
-                                prefix: b"/".to_vec()
-                            },
-                        ],
-                    },
-                    Template {
-                        input: b"(/<lang>)(/<page>)".to_vec(),
-                        raw: b"/".to_vec(),
-                        parts: vec![Part::Static {
-                            prefix: b"/".to_vec()
-                        }],
-                    },
-                ],
-                expanded: true,
+                input: b"/files/<*path>".to_vec(),
+                template: Template {
+                    input: b"/files/<*path>".to_vec(),
+                    raw: b"/files/<*path>".to_vec(),
+                    parts: vec![
+                        Part::Wildcard {
+                            name: "path".to_owned(),
+                        },
+                        Part::Static {
+                            prefix: b"/files/".to_vec()
+                        },
+                    ],
+                },
             }),
         );
     }
@@ -639,7 +411,6 @@ mod tests {
 
         try:
             - Add the missing closing angle
-            - Use '\<' and '\>' to represent literal angles
         ");
     }
 
@@ -664,76 +435,6 @@ mod tests {
 
         try:
             - Add the missing closing angle
-            - Use '\<' and '\>' to represent literal angles
-        ");
-    }
-
-    #[test]
-    fn test_parser_error_empty_parenthesis() {
-        let error = ParsedTemplate::new(b"/products()/category").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::EmptyParentheses {
-                template: "/products()/category".to_owned(),
-                position: 9,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        empty parentheses
-
-            Template: /products()/category
-                               ^^
-        ");
-    }
-
-    #[test]
-    fn test_parser_error_unbalanced_parenthesis_opening() {
-        let error = ParsedTemplate::new(b"/products(/category").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::UnbalancedParenthesis {
-                template: "/products(/category".to_owned(),
-                position: 9,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        unbalanced parenthesis
-
-            Template: /products(/category
-                               ^
-
-        help: Each '(' must have a matching ')'
-
-        try:
-            - Add the missing closing parenthesis
-            - Use '\(' and '\)' to represent literal parentheses
-        ");
-    }
-
-    #[test]
-    fn test_parser_error_unbalanced_parenthesis_closing() {
-        let error = ParsedTemplate::new(b"/products)/category").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::UnbalancedParenthesis {
-                template: "/products)/category".to_owned(),
-                position: 9,
-            }
-        );
-
-        insta::assert_snapshot!(error, @r"
-        unbalanced parenthesis
-
-            Template: /products)/category
-                               ^
-
-        help: Each '(' must have a matching ')'
-
-        try:
-            - Add the missing closing parenthesis
-            - Use '\(' and '\)' to represent literal parentheses
         ");
     }
 
@@ -756,7 +457,7 @@ mod tests {
             Template: /users/<user*name>/profile
                              ^^^^^^^^^^^
 
-        help: Parameter names must not contain the characters: '*', '<', '>', '(', ')', '{', '}', '/'
+        help: Parameter names must not contain the characters: '*', '<', '>', '/'
         ");
     }
 

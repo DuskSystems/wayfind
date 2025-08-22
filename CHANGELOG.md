@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed OCI example.
 - Constraints are no longer supported.
+- Optional groups are no longer supported.
 
 ## [0.8.1] - 2025-01-07
 

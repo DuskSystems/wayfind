@@ -38,24 +38,22 @@ use wayfind::Router;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/pet(/)", 1)?;
-    router.insert("/pet/findByStatus(/)", 2)?;
-    router.insert("/pet/findByTags(/)", 3)?;
-    router.insert("/pet/<pet>(/)", 4)?;
-    router.insert("/pet/<petId>/uploadImage(/)", 5)?;
-    router.insert("/store/inventory(/)", 6)?;
-    router.insert("/store/order(/<orderId>)(/)", 7)?;
-    router.insert("/user(/)", 8)?;
-    router.insert("/user/createWithList(/)", 9)?;
-    router.insert("/user/login(/)", 10)?;
-    router.insert("/user/logout(/)", 11)?;
-    router.insert("/user/<username>(/)", 12)?;
-    router.insert("/<*catch_all>", 13)?;
+    router.insert("/pet", 1)?;
+    router.insert("/pet/findByStatus", 2)?;
+    router.insert("/pet/findByTags", 3)?;
+    router.insert("/pet/<pet>", 4)?;
+    router.insert("/pet/<petId>/uploadImage", 5)?;
+    router.insert("/store/inventory", 6)?;
+    router.insert("/store/order", 7)?;
+    router.insert("/store/order/<orderId>", 8)?;
+    router.insert("/user", 9)?;
+    router.insert("/user/createWithList", 10)?;
+    router.insert("/user/login", 11)?;
+    router.insert("/user/logout", 12)?;
+    router.insert("/user/<username>", 13)?;
+    router.insert("/<*catch_all>", 14)?;
 
     let search = router.search("/pet").unwrap();
-    assert_eq!(*search.data, 1);
-
-    let search = router.search("/pet/").unwrap();
     assert_eq!(*search.data, 1);
 
     let search = router.search("/pet/123/uploadImage").unwrap();
@@ -66,15 +64,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(*search.data, 7);
 
     let search = router.search("/store/order/456").unwrap();
-    assert_eq!(*search.data, 7);
+    assert_eq!(*search.data, 8);
     assert_eq!(search.parameters[0], ("orderId", "456"));
 
     let search = router.search("/user/alice").unwrap();
-    assert_eq!(*search.data, 12);
+    assert_eq!(*search.data, 13);
     assert_eq!(search.parameters[0], ("username", "alice"));
 
     let search = router.search("/unknown/path").unwrap();
-    assert_eq!(*search.data, 13);
+    assert_eq!(*search.data, 14);
     assert_eq!(search.parameters[0], ("catch_all", "unknown/path"));
 
     println!("{router}");
@@ -85,35 +83,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 ```
 /
 ├─ pet [*]
-│  ╰─ / [*]
-│     ├─ findBy
-│     │  ├─ Status [*]
-│     │  │  ╰─ / [*]
-│     │  ╰─ Tags [*]
-│     │     ╰─ / [*]
-│     ├─ <petId>
-│     │  ╰─ /uploadImage [*]
-│     │     ╰─ / [*]
-│     ╰─ <pet> [*]
-│        ╰─ / [*]
+│  ├─ /findBy
+│  │  ├─ Status [*]
+│  │  ╰─ Tags [*]
+│  ├─ /<pet> [*]
+│  ╰─ /<petId>
+│     ╰─ /uploadImage [*]
 ├─ store/
 │  ├─ inventory [*]
-│  │  ╰─ / [*]
 │  ╰─ order [*]
-│     ╰─ / [*]
-│        ╰─ <orderId> [*]
-│           ╰─ / [*]
+│     ╰─ /<orderId> [*]
 ├─ user [*]
-│  ╰─ / [*]
-│     ├─ createWithList [*]
-│     │  ╰─ / [*]
-│     ├─ log
-│     │  ├─ in [*]
-│     │  │  ╰─ / [*]
-│     │  ╰─ out [*]
-│     │     ╰─ / [*]
-│     ╰─ <username> [*]
-│        ╰─ / [*]
+│  ├─ /createWithList [*]
+│  ├─ /log
+│  │  ├─ in [*]
+│  │  ╰─ out [*]
+│  ╰─ /<username> [*]
 ╰─ <*catch_all> [*]
 ```
 

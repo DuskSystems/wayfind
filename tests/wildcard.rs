@@ -21,7 +21,6 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>/delete",
-            expanded: None,
             parameters: smallvec![("path", "docs")],
         })
     );
@@ -32,7 +31,6 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>/delete",
-            expanded: None,
             parameters: smallvec![("path", "nested/docs/folder")],
         })
     );
@@ -62,7 +60,6 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*prefix>/static/<*suffix>/file",
-            expanded: None,
             parameters: smallvec![("prefix", "a"), ("suffix", "b")],
         })
     );
@@ -73,7 +70,6 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*prefix>/static/<*suffix>/file",
-            expanded: None,
             parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
         })
     );
@@ -98,7 +94,6 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>.html",
-            expanded: None,
             parameters: smallvec![("path", "page")],
         })
     );
@@ -109,7 +104,6 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>.html",
-            expanded: None,
             parameters: smallvec![("path", "nested/page")],
         })
     );
@@ -138,7 +132,6 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*first>-<*second>",
-            expanded: None,
             parameters: smallvec![("first", "a-b"), ("second", "c")],
         })
     );
@@ -149,7 +142,6 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*first>-<*second>",
-            expanded: None,
             parameters: smallvec![
                 ("first", "path/to/some-file/with-multiple"),
                 ("second", "hyphens")
@@ -177,7 +169,6 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>/end",
-            expanded: None,
             parameters: smallvec![("path", "start/middle")],
         })
     );
@@ -188,7 +179,6 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/<*path>/end",
-            expanded: None,
             parameters: smallvec![("path", "start//middle//")],
         })
     );
@@ -224,7 +214,6 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &1,
             template: "/static/path",
-            expanded: None,
             parameters: smallvec![],
         })
     );
@@ -235,7 +224,6 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &2,
             template: "/static/<*rest>",
-            expanded: None,
             parameters: smallvec![("rest", "some/nested/path")],
         })
     );
@@ -246,7 +234,6 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &3,
             template: "/<*path>/static",
-            expanded: None,
             parameters: smallvec![("path", "some/nested/path")],
         })
     );
@@ -257,7 +244,6 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &4,
             template: "/prefix.<*suffix>",
-            expanded: None,
             parameters: smallvec![("suffix", "some/nested/path")],
         })
     );
@@ -268,7 +254,6 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
         Some(Match {
             data: &5,
             template: "/<*prefix>.suffix",
-            expanded: None,
             parameters: smallvec![("prefix", "some/nested/path")],
         })
     );
