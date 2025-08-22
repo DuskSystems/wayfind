@@ -7,7 +7,7 @@ use crate::{
     errors::{DeleteError, InsertError},
     node::{Node, NodeData},
     nodes::Nodes,
-    parser::ParsedTemplate,
+    parser::Template,
     state::RootState,
     storage::Storage,
 };
@@ -80,10 +80,10 @@ impl<T> Router<T> {
     /// router.insert("/hello", 1).unwrap();
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
-        let mut parsed = ParsedTemplate::new(template.as_bytes())?;
+        let mut parsed = Template::new(template.as_bytes())?;
 
         // Check for any conflicts.
-        if let Some(found) = self.root.find(&mut parsed.template.clone()) {
+        if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),
                 conflict: found.template.to_string(),
@@ -94,11 +94,11 @@ impl<T> Router<T> {
         let key = self.storage.insert(data);
 
         #[allow(clippy::naive_bytecount)]
-        let depth = parsed.template.raw.iter().filter(|&b| *b == b'/').count();
-        let length = parsed.template.raw.len();
+        let depth = template.bytes().filter(|&b| b == b'/').count();
+        let length = template.len();
 
         self.root.insert(
-            &mut parsed.template,
+            &mut parsed,
             NodeData {
                 key,
                 template: template.to_owned(),
@@ -131,9 +131,9 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, template: &str) -> Result<T, DeleteError> {
-        let mut parsed = ParsedTemplate::new(template.as_bytes())?;
+        let mut parsed = Template::new(template.as_bytes())?;
 
-        let Some(data) = self.root.delete(&mut parsed.template) else {
+        let Some(data) = self.root.delete(&mut parsed) else {
             return Err(DeleteError::NotFound {
                 template: template.to_owned(),
             });
@@ -162,11 +162,11 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(mut parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(mut parsed) = Template::new(template.as_bytes()) else {
             return None;
         };
 
-        if let Some(found) = self.root.find(&mut parsed.template) {
+        if let Some(found) = self.root.find(&mut parsed) {
             if found.template == template {
                 return self.storage.get(found.key);
             }
@@ -192,11 +192,11 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(mut parsed) = ParsedTemplate::new(template.as_bytes()) else {
+        let Ok(mut parsed) = Template::new(template.as_bytes()) else {
             return None;
         };
 
-        if let Some(found) = self.root.find(&mut parsed.template) {
+        if let Some(found) = self.root.find(&mut parsed) {
             if found.template == template {
                 return self.storage.get_mut(found.key);
             }

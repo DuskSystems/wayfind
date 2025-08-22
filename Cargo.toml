@@ -40,17 +40,9 @@ style = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
 # Personal Preferences
-clone_on_ref_ptr = "deny"
-cognitive_complexity = "allow"
-map_unwrap_or = "allow"
-module_name_repetitions = "allow"
-option_if_let_else = "allow"
 str_to_string = "deny"
 too_many_lines = "allow"
 new_without_default = "allow"
-
-# Our templates look similar to formatted strings.
-literal_string_with_formatting_args = "allow"
 
 [profile.dev.package]
 insta.opt-level = 3

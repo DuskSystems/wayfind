@@ -12,40 +12,23 @@ use crate::errors::TemplateError;
 const INVALID_PARAM_CHARS: [u8; 4] = [b'*', b'<', b'>', b'/'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Template {
-    pub input: Vec<u8>,
-    pub raw: Vec<u8>,
-    pub parts: Vec<Part>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Part {
     Static { prefix: Vec<u8> },
     Dynamic { name: String },
     Wildcard { name: String },
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct ParsedTemplate {
-    pub input: Vec<u8>,
-    pub template: Template,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Template {
+    pub parts: Vec<Part>,
 }
 
-impl ParsedTemplate {
+impl Template {
     pub fn new(input: &[u8]) -> Result<Self, TemplateError> {
         if input.is_empty() {
             return Err(TemplateError::Empty);
         }
 
-        let template = Self::parse_template(input)?;
-
-        Ok(Self {
-            input: input.to_vec(),
-            template,
-        })
-    }
-
-    fn parse_template(input: &[u8]) -> Result<Template, TemplateError> {
         if !input.is_empty() && input[0] != b'/' {
             return Err(TemplateError::MissingLeadingSlash {
                 template: String::from_utf8_lossy(input).to_string(),
@@ -112,11 +95,7 @@ impl ParsedTemplate {
 
         parts.reverse();
 
-        Ok(Template {
-            input: input.to_vec(),
-            raw: input.to_vec(),
-            parts,
-        })
+        Ok(Self { parts })
     }
 
     fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
@@ -125,14 +104,6 @@ impl ParsedTemplate {
         let mut end = cursor;
         while end < input.len() {
             match (input[end], input.get(end + 1)) {
-                (b'\\', Some(&next_char)) => {
-                    prefix.push(next_char);
-                    end += 2;
-                }
-                (b'\\', None) => {
-                    prefix.push(b'\\');
-                    end += 1;
-                }
                 (b'<' | b'>', _) => break,
                 (char, _) => {
                     prefix.push(char);
@@ -236,16 +207,11 @@ mod tests {
     #[test]
     fn test_parser_static_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/abcd"),
-            Ok(ParsedTemplate {
-                input: b"/abcd".to_vec(),
-                template: Template {
-                    input: b"/abcd".to_vec(),
-                    raw: b"/abcd".to_vec(),
-                    parts: vec![Part::Static {
-                        prefix: b"/abcd".to_vec()
-                    }],
-                },
+            Template::new(b"/abcd"),
+            Ok(Template {
+                parts: vec![Part::Static {
+                    prefix: b"/abcd".to_vec()
+                }],
             }),
         );
     }
@@ -253,21 +219,16 @@ mod tests {
     #[test]
     fn test_parser_dynamic_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/<name>"),
-            Ok(ParsedTemplate {
-                input: b"/<name>".to_vec(),
-                template: Template {
-                    input: b"/<name>".to_vec(),
-                    raw: b"/<name>".to_vec(),
-                    parts: vec![
-                        Part::Dynamic {
-                            name: "name".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/".to_vec()
-                        },
-                    ],
-                },
+            Template::new(b"/<name>"),
+            Ok(Template {
+                parts: vec![
+                    Part::Dynamic {
+                        name: "name".to_owned(),
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                ],
             }),
         );
     }
@@ -275,21 +236,16 @@ mod tests {
     #[test]
     fn test_parser_wildcard_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/<*wildcard>"),
-            Ok(ParsedTemplate {
-                input: b"/<*wildcard>".to_vec(),
-                template: Template {
-                    input: b"/<*wildcard>".to_vec(),
-                    raw: b"/<*wildcard>".to_vec(),
-                    parts: vec![
-                        Part::Wildcard {
-                            name: "wildcard".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/".to_vec()
-                        },
-                    ],
-                },
+            Template::new(b"/<*wildcard>"),
+            Ok(Template {
+                parts: vec![
+                    Part::Wildcard {
+                        name: "wildcard".to_owned(),
+                    },
+                    Part::Static {
+                        prefix: b"/".to_vec()
+                    },
+                ],
             }),
         );
     }
@@ -297,27 +253,22 @@ mod tests {
     #[test]
     fn test_parser_complex_route() {
         assert_eq!(
-            ParsedTemplate::new(b"/v2/<name>/manifests/<reference>"),
-            Ok(ParsedTemplate {
-                input: b"/v2/<name>/manifests/<reference>".to_vec(),
-                template: Template {
-                    input: b"/v2/<name>/manifests/<reference>".to_vec(),
-                    raw: b"/v2/<name>/manifests/<reference>".to_vec(),
-                    parts: vec![
-                        Part::Dynamic {
-                            name: "reference".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/manifests/".to_vec()
-                        },
-                        Part::Dynamic {
-                            name: "name".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/v2/".to_vec()
-                        },
-                    ],
-                },
+            Template::new(b"/v2/<name>/manifests/<reference>"),
+            Ok(Template {
+                parts: vec![
+                    Part::Dynamic {
+                        name: "reference".to_owned(),
+                    },
+                    Part::Static {
+                        prefix: b"/manifests/".to_vec()
+                    },
+                    Part::Dynamic {
+                        name: "name".to_owned(),
+                    },
+                    Part::Static {
+                        prefix: b"/v2/".to_vec()
+                    },
+                ],
             }),
         );
     }
@@ -325,28 +276,23 @@ mod tests {
     #[test]
     fn test_parser_route_with_wildcard_at_end() {
         assert_eq!(
-            ParsedTemplate::new(b"/files/<*path>"),
-            Ok(ParsedTemplate {
-                input: b"/files/<*path>".to_vec(),
-                template: Template {
-                    input: b"/files/<*path>".to_vec(),
-                    raw: b"/files/<*path>".to_vec(),
-                    parts: vec![
-                        Part::Wildcard {
-                            name: "path".to_owned(),
-                        },
-                        Part::Static {
-                            prefix: b"/files/".to_vec()
-                        },
-                    ],
-                },
+            Template::new(b"/files/<*path>"),
+            Ok(Template {
+                parts: vec![
+                    Part::Wildcard {
+                        name: "path".to_owned(),
+                    },
+                    Part::Static {
+                        prefix: b"/files/".to_vec()
+                    },
+                ],
             }),
         );
     }
 
     #[test]
     fn test_parser_error_empty() {
-        let error = ParsedTemplate::new(b"").unwrap_err();
+        let error = Template::new(b"").unwrap_err();
         assert_eq!(error, TemplateError::Empty);
 
         insta::assert_snapshot!(error, @"empty template");
@@ -354,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_angles() {
-        let error = ParsedTemplate::new(b"/users/<>").unwrap_err();
+        let error = Template::new(b"/users/<>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyAngles {
@@ -373,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_missing_leading_slash() {
-        let error = ParsedTemplate::new(b"abc").unwrap_err();
+        let error = Template::new(b"abc").unwrap_err();
         assert_eq!(
             error,
             TemplateError::MissingLeadingSlash {
@@ -392,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_angle_opening() {
-        let error = ParsedTemplate::new(b"/users/<id/profile").unwrap_err();
+        let error = Template::new(b"/users/<id/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedAngle {
@@ -416,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_unbalanced_angle_closing() {
-        let error = ParsedTemplate::new(b"/users/id>/profile").unwrap_err();
+        let error = Template::new(b"/users/id>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::UnbalancedAngle {
@@ -440,7 +386,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_invalid_parameter() {
-        let error = ParsedTemplate::new(b"/users/<user*name>/profile").unwrap_err();
+        let error = Template::new(b"/users/<user*name>/profile").unwrap_err();
         assert_eq!(
             error,
             TemplateError::InvalidParameter {
@@ -463,7 +409,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_duplicate_parameter() {
-        let error = ParsedTemplate::new(b"/users/<id>/posts/<id>").unwrap_err();
+        let error = Template::new(b"/users/<id>/posts/<id>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::DuplicateParameter {
@@ -491,7 +437,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_empty_wildcard() {
-        let error = ParsedTemplate::new(b"/files/<*>").unwrap_err();
+        let error = Template::new(b"/files/<*>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::EmptyWildcard {
@@ -511,7 +457,7 @@ mod tests {
 
     #[test]
     fn test_parser_error_touching_parameters() {
-        let error = ParsedTemplate::new(b"/users/<id><*name>").unwrap_err();
+        let error = Template::new(b"/users/<id><*name>").unwrap_err();
         assert_eq!(
             error,
             TemplateError::TouchingParameters {

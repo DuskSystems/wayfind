@@ -6,6 +6,7 @@ use crate::{
     storage::Key,
 };
 
+mod conflict;
 mod delete;
 mod display;
 mod find;

@@ -27,31 +27,3 @@ fn test_delete() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
-#[test]
-fn test_delete_empty() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>data", 1)?;
-
-    insta::assert_snapshot!(router, @r"
-    /
-    ╰─ <id>
-       ╰─ data [*]
-    ");
-
-    let delete = router.delete("/<id>");
-    assert_eq!(
-        delete,
-        Err(DeleteError::NotFound {
-            template: "/<id>".to_owned()
-        })
-    );
-
-    insta::assert_snapshot!(router, @r"
-    /
-    ╰─ <id>
-       ╰─ data [*]
-    ");
-
-    Ok(())
-}

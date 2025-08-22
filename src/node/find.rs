@@ -42,7 +42,6 @@ impl<S: NodeState> Node<S> {
                     if !remaining.is_empty() {
                         let mut new_template = Template {
                             parts: template.parts.clone(),
-                            ..template.clone()
                         };
 
                         new_template.parts.push(Part::Static { prefix: remaining });

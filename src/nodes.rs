@@ -37,6 +37,12 @@ impl<S: NodeState> Nodes<S> {
     }
 
     #[inline]
+    #[must_use]
+    pub fn first(&self) -> Option<&Node<S>> {
+        self.vec.first()
+    }
+
+    #[inline]
     pub fn iter(&self) -> core::slice::Iter<'_, Node<S>> {
         self.vec.iter()
     }
