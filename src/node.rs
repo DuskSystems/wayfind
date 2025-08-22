@@ -17,16 +17,16 @@ mod search;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData {
-    /// The key to the stored data
+    /// The key to the stored data.
     pub key: Key,
 
     /// The original template.
     pub template: String,
 
-    /// The number of slashes in the template, or expanded template if exists.
+    /// The number of slashes in the template.
     pub depth: usize,
 
-    /// The length of the template, or expanded template if exists.
+    /// The length of the template.
     pub length: usize,
 }
 

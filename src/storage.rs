@@ -1,4 +1,4 @@
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Key {
@@ -21,8 +21,8 @@ pub struct Storage<T> {
 impl<T> Storage<T> {
     pub const fn new() -> Self {
         Self {
-            data: Vec::new(),
-            free: Vec::new(),
+            data: vec![],
+            free: vec![],
         }
     }
 

@@ -3,38 +3,32 @@ use core::cmp::Ordering;
 
 pub trait NodeState: Ord {
     fn padding(&self) -> usize;
-    fn key(&self) -> &str;
+    fn key(&self) -> String;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RootState {
-    padding: usize,
-    key: String,
-}
+pub struct RootState;
 
 impl RootState {
     #[must_use]
     pub const fn new() -> Self {
-        Self {
-            padding: 0,
-            key: String::new(),
-        }
+        Self
     }
 }
 
 impl NodeState for RootState {
     fn padding(&self) -> usize {
-        self.padding
+        0
     }
 
-    fn key(&self) -> &str {
-        &self.key
+    fn key(&self) -> String {
+        String::new()
     }
 }
 
 impl Ord for RootState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.key.cmp(&other.key)
+    fn cmp(&self, _: &Self) -> Ordering {
+        Ordering::Equal
     }
 }
 
@@ -47,31 +41,22 @@ impl PartialOrd for RootState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StaticState {
     pub prefix: Vec<u8>,
-    padding: usize,
-    key: String,
 }
 
 impl StaticState {
     #[must_use]
-    pub fn new(prefix: Vec<u8>) -> Self {
-        let padding = prefix.len().saturating_sub(1);
-        let key = String::from_utf8_lossy(&prefix).into_owned();
-
-        Self {
-            prefix,
-            padding,
-            key,
-        }
+    pub const fn new(prefix: Vec<u8>) -> Self {
+        Self { prefix }
     }
 }
 
 impl NodeState for StaticState {
     fn padding(&self) -> usize {
-        self.padding
+        self.prefix.len().saturating_sub(1)
     }
 
-    fn key(&self) -> &str {
-        &self.key
+    fn key(&self) -> String {
+        String::from_utf8_lossy(&self.prefix).into_owned()
     }
 }
 
@@ -90,27 +75,22 @@ impl PartialOrd for StaticState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DynamicState {
     pub name: String,
-    padding: usize,
-    key: String,
 }
 
 impl DynamicState {
     #[must_use]
-    pub fn new(name: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<{name}>");
-
-        Self { name, padding, key }
+    pub const fn new(name: String) -> Self {
+        Self { name }
     }
 }
 
 impl NodeState for DynamicState {
     fn padding(&self) -> usize {
-        self.padding
+        self.name.len().saturating_sub(1)
     }
 
-    fn key(&self) -> &str {
-        &self.key
+    fn key(&self) -> String {
+        format!("<{}>", self.name)
     }
 }
 
@@ -129,27 +109,22 @@ impl PartialOrd for DynamicState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WildcardState {
     pub name: String,
-    padding: usize,
-    key: String,
 }
 
 impl WildcardState {
     #[must_use]
-    pub fn new(name: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<*{name}>");
-
-        Self { name, padding, key }
+    pub const fn new(name: String) -> Self {
+        Self { name }
     }
 }
 
 impl NodeState for WildcardState {
     fn padding(&self) -> usize {
-        self.padding
+        self.name.len().saturating_sub(1)
     }
 
-    fn key(&self) -> &str {
-        &self.key
+    fn key(&self) -> String {
+        format!("<*{}>", self.name)
     }
 }
 
@@ -168,27 +143,22 @@ impl PartialOrd for WildcardState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EndWildcardState {
     pub name: String,
-    padding: usize,
-    key: String,
 }
 
 impl EndWildcardState {
     #[must_use]
-    pub fn new(name: String) -> Self {
-        let padding = name.len().saturating_sub(1);
-        let key = format!("<*{name}>");
-
-        Self { name, padding, key }
+    pub const fn new(name: String) -> Self {
+        Self { name }
     }
 }
 
 impl NodeState for EndWildcardState {
     fn padding(&self) -> usize {
-        self.padding
+        self.name.len().saturating_sub(1)
     }
 
-    fn key(&self) -> &str {
-        &self.key
+    fn key(&self) -> String {
+        format!("<*{}>", self.name)
     }
 }
 
