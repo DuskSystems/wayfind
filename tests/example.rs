@@ -1,42 +1,9 @@
-![license: MIT/Apache-2.0](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)
-[![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
-[![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
-
-![rust: 1.85+](https://img.shields.io/badge/rust-1.85+-orange.svg)
-![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
-![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
-![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)
-
-[![codecov](https://codecov.io/gh/DuskSystems/wayfind/graph/badge.svg?token=QMSW55438K)](https://codecov.io/gh/DuskSystems/wayfind)
-
-# `wayfind`
-
-A speedy, flexible router for Rust.
-
-## Why another router?
-
-`wayfind` attempts to bridge the gap between existing Rust router options:
-
-- fast routers, lacking in flexibility
-- flexible routers, lacking in speed
-
-Real-world projects often need fancy routing capabilities, such as projects ported from frameworks like [Ruby on Rails](https://guides.rubyonrails.org/routing.html), or those adhering to specifications like the [Open Container Initiative (OCI) Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md).
-
-The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
-
-## Showcase
-
-```toml
-[dependencies]
-wayfind = "0.8"
-```
-
-```rust
 use std::error::Error;
-
 use wayfind::Router;
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[test]
+#[allow(clippy::cognitive_complexity)]
+fn test_example() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     // Static
@@ -111,7 +78,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     router.insert("/backups/<*path>.<ext>", 10)?;
 
     {
-        let search = router.search("/backups/production/database.tar.gz").unwrap();
+        let search = router
+            .search("/backups/production/database.tar.gz")
+            .unwrap();
         assert_eq!(search.data, &9);
         assert_eq!(search.parameters[0], ("path", "production/database"));
 
@@ -124,45 +93,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         assert_eq!(search, None);
     }
 
-    println!("{router}");
+    insta::assert_snapshot!(router, @r"
+    /
+    ├─ backups/
+    │  ╰─ <*path>
+    │     ╰─ .
+    │        ├─ tar.gz
+    │        ╰─ <ext>
+    ├─ files/
+    │  ├─ <*path>
+    │  │  ╰─ /delete
+    │  ╰─ <*path>
+    ├─ health
+    ├─ images/
+    │  ╰─ <name>
+    │     ╰─ .
+    │        ├─ png
+    │        ╰─ <ext>
+    ╰─ users/
+       ╰─ <id>
+          ╰─ /message
+    ");
+
     Ok(())
 }
-```
-
-```
-/
-├─ backups/
-│  ╰─ <*path>
-│     ╰─ .
-│        ├─ tar.gz
-│        ╰─ <ext>
-├─ files/
-│  ├─ <*path>
-│  │  ╰─ /delete
-│  ╰─ <*path>
-├─ health
-├─ images/
-│  ╰─ <name>
-│     ╰─ .
-│        ├─ png
-│        ╰─ <ext>
-╰─ users/
-   ╰─ <id>
-      ╰─ /message
-```
-
-## Performance
-
-`wayfind` is fast, and appears to be competitive against other top performers in all benchmarks we currently run.
-
-See [BENCHMARKING.md](BENCHMARKING.md) for the results.
-
-## License
-
-`wayfind` is licensed under the terms of both the [MIT License](LICENSE-MIT) and the [Apache License (Version 2.0)](LICENSE-APACHE).
-
-## Inspirations
-
-- [poem](https://github.com/poem-web/poem): Initial experimentations started out as a Poem router fork
-- [matchit](https://github.com/ibraheemdev/matchit): Performance leader among pre-existing routers
-- [path-tree](https://github.com/viz-rs/path-tree): Extensive testing and router display feature

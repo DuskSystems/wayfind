@@ -1,5 +1,3 @@
-use core::cmp::Ordering;
-
 use smallvec::smallvec;
 
 use crate::{
@@ -129,11 +127,7 @@ impl<S: NodeState> Node<S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
-                    Ordering::Greater => true,
-                    Ordering::Equal => data.length >= best.length,
-                    Ordering::Less => false,
-                }) {
+                if best_match.is_none_or(|best| data.specificity >= best.specificity) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -226,11 +220,7 @@ impl<S: NodeState> Node<S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| match data.depth.cmp(&best.depth) {
-                    Ordering::Greater => true,
-                    Ordering::Equal => data.length >= best.length,
-                    Ordering::Less => false,
-                }) {
+                if best_match.is_none_or(|best| data.specificity >= best.specificity) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }

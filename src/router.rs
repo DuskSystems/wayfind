@@ -92,16 +92,13 @@ impl<T> Router<T> {
         // All good, proceed with insert.
         let key = self.storage.insert(data);
 
-        let depth = template.bytes().filter(|&b| b == b'/').count();
-        let length = template.len();
-
+        let specificity = parsed.specificity();
         self.root.insert(
             &mut parsed,
             NodeData {
                 key,
                 template: template.to_owned(),
-                depth,
-                length,
+                specificity,
             },
         );
 

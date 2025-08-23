@@ -23,11 +23,8 @@ pub struct NodeData {
     /// The original template.
     pub template: String,
 
-    /// The number of slashes in the template.
-    pub depth: usize,
-
-    /// The length of the template.
-    pub length: usize,
+    /// The specificity of the template.
+    pub specificity: usize,
 }
 
 /// Represents a node in the tree structure.

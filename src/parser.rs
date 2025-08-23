@@ -194,6 +194,33 @@ impl Template {
 
         Ok((part, end + 1))
     }
+
+    /// Calculate a specificity of this template.
+    /// This is not a perfect solution, but appears 'good enough' for now.
+    pub fn specificity(&self) -> usize {
+        let mut static_length = 0;
+        let mut dynamic_count = 0;
+        let mut wildcard_count = 0;
+
+        for part in &self.parts {
+            match part {
+                Part::Static { prefix } => {
+                    static_length += prefix.len();
+                }
+                Part::Dynamic { .. } => {
+                    dynamic_count += 1;
+                }
+                Part::Wildcard { .. } => {
+                    wildcard_count += 1;
+                }
+            }
+        }
+
+        let mut specificity = static_length.saturating_mul(1000);
+        specificity = specificity.saturating_sub(dynamic_count * 10);
+        specificity = specificity.saturating_sub(wildcard_count * 100);
+        specificity
+    }
 }
 
 #[cfg(test)]
