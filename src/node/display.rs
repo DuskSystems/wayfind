@@ -1,18 +1,22 @@
-use alloc::{borrow::ToOwned, fmt, format, string::String};
+use alloc::{
+    borrow::ToOwned,
+    fmt, format,
+    string::{String, ToString},
+};
 use core::fmt::Write;
 
-use crate::{node::Node, state::NodeState};
+use crate::node::Node;
 
-impl<S: NodeState> fmt::Display for Node<S> {
+impl<S: fmt::Display> fmt::Display for Node<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn debug_node<S: NodeState>(
+        fn debug_node<S: fmt::Display>(
             output: &mut String,
             node: &Node<S>,
             padding: &str,
             is_root: bool,
             is_last: bool,
         ) -> fmt::Result {
-            let key = node.state.key();
+            let key = node.state.to_string();
             if !key.is_empty() {
                 if is_root {
                     writeln!(output, "{key}")?;
@@ -61,8 +65,7 @@ impl<S: NodeState> fmt::Display for Node<S> {
         }
 
         let mut output = String::new();
-        let padding = " ".repeat(self.state.padding());
-        debug_node(&mut output, self, &padding, true, true)?;
+        debug_node(&mut output, self, "", true, true)?;
         write!(f, "{}", output.trim_end())
     }
 }

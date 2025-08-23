@@ -3,15 +3,12 @@ use alloc::{string::String, vec};
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
-    state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
+    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
 };
 
-impl<S: NodeState> Node<S> {
+impl<S> Node<S> {
     /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    ///
-    /// No conflict handling occurs here.
-    /// To ensure there are no conflicts, check using `Node::find`.
     pub fn insert(&mut self, template: &mut Template, data: NodeData) {
         if let Some(part) = template.parts.pop() {
             match part {

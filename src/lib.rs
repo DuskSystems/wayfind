@@ -119,8 +119,6 @@
 //!
 //! Templates are matched using a hierarchical priority system.
 //!
-//! It is an imperfect process, but for most scenarios, is unlikely to cause problems.
-//!
 //! ### 1. Kind
 //!
 //! From highest priority to lowest, we walk the current nodes children in this order:
@@ -138,10 +136,6 @@
 //! ## Display
 //!
 //! The router can be printed as a tree, via a [`Display`](std::fmt::Display) implementation.
-//!
-//! All nodes within the tree that can be matched against will be denoted with an asterisk.
-//!
-//! This doesn't handle split multi-byte characters well.
 //!
 //! ## Error Messages
 //!

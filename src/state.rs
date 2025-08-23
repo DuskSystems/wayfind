@@ -1,10 +1,6 @@
-use alloc::{format, string::String, vec::Vec};
+use alloc::{string::String, vec::Vec};
 use core::cmp::Ordering;
-
-pub trait NodeState: Ord {
-    fn padding(&self) -> usize;
-    fn key(&self) -> String;
-}
+use core::fmt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RootState;
@@ -16,13 +12,9 @@ impl RootState {
     }
 }
 
-impl NodeState for RootState {
-    fn padding(&self) -> usize {
-        0
-    }
-
-    fn key(&self) -> String {
-        String::new()
+impl fmt::Display for RootState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "")
     }
 }
 
@@ -50,13 +42,9 @@ impl StaticState {
     }
 }
 
-impl NodeState for StaticState {
-    fn padding(&self) -> usize {
-        self.prefix.len().saturating_sub(1)
-    }
-
-    fn key(&self) -> String {
-        String::from_utf8_lossy(&self.prefix).into_owned()
+impl fmt::Display for StaticState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", String::from_utf8_lossy(&self.prefix))
     }
 }
 
@@ -84,13 +72,9 @@ impl DynamicState {
     }
 }
 
-impl NodeState for DynamicState {
-    fn padding(&self) -> usize {
-        self.name.len().saturating_sub(1)
-    }
-
-    fn key(&self) -> String {
-        format!("<{}>", self.name)
+impl fmt::Display for DynamicState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<{}>", self.name)
     }
 }
 
@@ -118,13 +102,9 @@ impl WildcardState {
     }
 }
 
-impl NodeState for WildcardState {
-    fn padding(&self) -> usize {
-        self.name.len().saturating_sub(1)
-    }
-
-    fn key(&self) -> String {
-        format!("<*{}>", self.name)
+impl fmt::Display for WildcardState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<*{}>", self.name)
     }
 }
 
@@ -152,24 +132,20 @@ impl EndWildcardState {
     }
 }
 
-impl NodeState for EndWildcardState {
-    fn padding(&self) -> usize {
-        self.name.len().saturating_sub(1)
-    }
-
-    fn key(&self) -> String {
-        format!("<*{}>", self.name)
-    }
-}
-
-impl PartialOrd for EndWildcardState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+impl fmt::Display for EndWildcardState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<*{}>", self.name)
     }
 }
 
 impl Ord for EndWildcardState {
     fn cmp(&self, other: &Self) -> Ordering {
         self.name.cmp(&other.name)
+    }
+}
+
+impl PartialOrd for EndWildcardState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }

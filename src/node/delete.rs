@@ -1,10 +1,10 @@
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
-    state::{NodeState, StaticState},
+    state::StaticState,
 };
 
-impl<S: NodeState> Node<S> {
+impl<S> Node<S> {
     /// Deletes a route from the node tree.
     ///
     /// This method recursively traverses the tree to find and remove the specified template.

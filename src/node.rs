@@ -3,7 +3,7 @@ use core::cmp::Ordering;
 use alloc::{string::String, vec::Vec};
 
 use crate::{
-    state::{DynamicState, EndWildcardState, NodeState, StaticState, WildcardState},
+    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
     storage::Key,
 };
 
@@ -29,7 +29,7 @@ pub struct NodeData {
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Node<S: NodeState> {
+pub struct Node<S> {
     /// The type of Node, and associated structure data.
     pub state: S,
     /// Optional data associated with this node.
@@ -48,13 +48,13 @@ pub struct Node<S: NodeState> {
     pub needs_optimization: bool,
 }
 
-impl<S: NodeState> Ord for Node<S> {
+impl<S: Ord> Ord for Node<S> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.state.cmp(&other.state)
     }
 }
 
-impl<S: NodeState> PartialOrd for Node<S> {
+impl<S: Ord> PartialOrd for Node<S> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }

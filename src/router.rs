@@ -134,14 +134,14 @@ impl<T> Router<T> {
             });
         };
 
-        let Some(stored_data) = self.storage.remove(data.key) else {
+        let Some(entry) = self.storage.remove(data.key) else {
             return Err(DeleteError::NotFound {
                 template: template.to_owned(),
             });
         };
 
         self.root.optimize();
-        Ok(stored_data)
+        Ok(entry)
     }
 
     /// Checks if a template exists in the router and returns a reference to its data.

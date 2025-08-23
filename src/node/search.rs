@@ -3,10 +3,9 @@ use smallvec::smallvec;
 use crate::{
     node::{Node, NodeData},
     router::Parameters,
-    state::NodeState,
 };
 
-impl<S: NodeState> Node<S> {
+impl<S> Node<S> {
     /// Searches for a matching template in the node tree.
     ///
     /// This method traverses the tree to find a route node that matches the given path, collecting parameters along the way.
@@ -86,7 +85,6 @@ impl<S: NodeState> Node<S> {
             let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
 
             let segment = &path[..segment_end];
-
             parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
             if let Some(result) = child.search(&path[segment_end..], parameters) {

@@ -1,10 +1,9 @@
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
-    state::NodeState,
 };
 
-impl<S: NodeState> Node<S> {
+impl<S> Node<S> {
     pub(crate) fn find(&self, template: &mut Template) -> Option<&NodeData> {
         if template.parts.is_empty() {
             return self.data.as_ref();

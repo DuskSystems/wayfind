@@ -1,10 +1,9 @@
 use crate::{
     node::{Node, NodeData},
     parser::{Part, Template},
-    state::NodeState,
 };
 
-impl<S: NodeState> Node<S> {
+impl<S> Node<S> {
     pub fn conflict(&self, template: &mut Template) -> Option<&NodeData> {
         if let Some(part) = template.parts.pop() {
             match part {
