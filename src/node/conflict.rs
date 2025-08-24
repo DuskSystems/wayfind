@@ -60,7 +60,7 @@ impl<S> Node<S> {
     }
 
     fn conflict_end_wildcard(&self, template: &mut Template) -> Option<&NodeData> {
-        if let Some(child) = self.end_wildcard_children.first() {
+        if let Some(child) = &self.end_wildcard {
             return child.conflict(template);
         }
 

@@ -238,7 +238,7 @@ impl<S> Node<S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
     ) -> Option<&'r NodeData> {
-        if let Some(child) = self.end_wildcard_children.first() {
+        if let Some(child) = &self.end_wildcard {
             parameters.push((&child.state.name, core::str::from_utf8(path).ok()?));
             return child.data.as_ref();
         }

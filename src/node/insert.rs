@@ -1,4 +1,4 @@
-use alloc::{string::String, vec};
+use alloc::{boxed::Box, string::String, vec};
 
 use crate::{
     node::{Node, NodeData},
@@ -34,7 +34,7 @@ impl<S> Node<S> {
         {
             let common_prefix = prefix
                 .iter()
-                .zip::<&[u8]>(child.state.prefix.as_ref())
+                .zip::<&[u8]>(&child.state.prefix)
                 .take_while(|&(x, y)| x == y)
                 .count();
 
@@ -60,7 +60,7 @@ impl<S> Node<S> {
                 dynamic_children_shortcut: child.dynamic_children_shortcut,
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 wildcard_children_shortcut: child.wildcard_children_shortcut,
-                end_wildcard_children: core::mem::take(&mut child.end_wildcard_children),
+                end_wildcard: core::mem::take(&mut child.end_wildcard),
 
                 needs_optimization: child.needs_optimization,
             };
@@ -74,7 +74,7 @@ impl<S> Node<S> {
                 dynamic_children_shortcut: false,
                 wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: vec![],
+                end_wildcard: None,
 
                 needs_optimization: false,
             };
@@ -104,7 +104,7 @@ impl<S> Node<S> {
                 dynamic_children_shortcut: false,
                 wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: vec![],
+                end_wildcard: None,
 
                 needs_optimization: false,
             };
@@ -134,7 +134,7 @@ impl<S> Node<S> {
                     dynamic_children_shortcut: false,
                     wildcard_children: vec![],
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: vec![],
+                    end_wildcard: None,
 
                     needs_optimization: false,
                 };
@@ -165,7 +165,7 @@ impl<S> Node<S> {
                     dynamic_children_shortcut: false,
                     wildcard_children: vec![],
                     wildcard_children_shortcut: false,
-                    end_wildcard_children: vec![],
+                    end_wildcard: None,
 
                     needs_optimization: false,
                 };
@@ -179,15 +179,13 @@ impl<S> Node<S> {
     }
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
-        if self
-            .end_wildcard_children
-            .iter()
-            .any(|child| child.state.name == name)
-        {
-            return;
+        if let Some(child) = &self.end_wildcard {
+            if child.state.name == name {
+                return;
+            }
         }
 
-        self.end_wildcard_children.push(Node {
+        self.end_wildcard = Some(Box::new(Node {
             state: EndWildcardState::new(name),
             data: Some(data),
 
@@ -196,10 +194,10 @@ impl<S> Node<S> {
             dynamic_children_shortcut: false,
             wildcard_children: vec![],
             wildcard_children_shortcut: false,
-            end_wildcard_children: vec![],
+            end_wildcard: None,
 
             needs_optimization: false,
-        });
+        }));
 
         self.needs_optimization = true;
     }

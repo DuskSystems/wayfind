@@ -18,14 +18,13 @@ impl<S> Node<S> {
             child.optimize();
         }
 
-        for child in &mut self.end_wildcard_children {
+        if let Some(child) = self.end_wildcard.as_mut() {
             child.optimize();
         }
 
         self.static_children.sort();
         self.dynamic_children.sort();
         self.wildcard_children.sort();
-        self.end_wildcard_children.sort();
 
         self.update_dynamic_children_shortcut();
         self.update_wildcard_children_shortcut();
@@ -44,7 +43,7 @@ impl<S> Node<S> {
             if child.static_children.is_empty()
                 && child.dynamic_children.is_empty()
                 && child.wildcard_children.is_empty()
-                && child.end_wildcard_children.is_empty()
+                && child.end_wildcard.is_none()
             {
                 return true;
             }
@@ -68,7 +67,7 @@ impl<S> Node<S> {
             if child.static_children.is_empty()
                 && child.dynamic_children.is_empty()
                 && child.wildcard_children.is_empty()
-                && child.end_wildcard_children.is_empty()
+                && child.end_wildcard.is_none()
             {
                 return true;
             }

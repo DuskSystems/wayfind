@@ -98,13 +98,12 @@ impl<S> Node<S> {
     }
 
     fn delete_end_wildcard(&mut self, name: &str) -> Option<NodeData> {
-        let index = self
-            .end_wildcard_children
-            .iter()
-            .position(|child| child.state.name == name)?;
+        let child = self.end_wildcard.as_ref()?;
+        if child.state.name != name {
+            return None;
+        }
 
-        let mut child = self.end_wildcard_children.remove(index);
-
+        let mut child = self.end_wildcard.take()?;
         let data = child.data.take()?;
         self.needs_optimization = true;
 
@@ -116,7 +115,7 @@ impl<S> Node<S> {
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
-            && self.end_wildcard_children.is_empty()
+            && self.end_wildcard.is_none()
     }
 
     fn is_compressible(&self) -> bool {
@@ -124,6 +123,6 @@ impl<S> Node<S> {
             && self.static_children.len() == 1
             && self.dynamic_children.is_empty()
             && self.wildcard_children.is_empty()
-            && self.end_wildcard_children.is_empty()
+            && self.end_wildcard.is_none()
     }
 }

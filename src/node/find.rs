@@ -64,7 +64,7 @@ impl<S> Node<S> {
     }
 
     fn find_end_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
-        for child in &self.end_wildcard_children {
+        if let Some(child) = &self.end_wildcard {
             if child.state.name == name {
                 return child.find(template);
             }

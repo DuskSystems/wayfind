@@ -56,7 +56,7 @@ impl<T> Router<T> {
                 dynamic_children_shortcut: false,
                 wildcard_children: vec![],
                 wildcard_children_shortcut: false,
-                end_wildcard_children: vec![],
+                end_wildcard: None,
 
                 needs_optimization: false,
             },

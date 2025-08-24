@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 
-use alloc::{string::String, vec::Vec};
+use alloc::{boxed::Box, string::String, vec::Vec};
 
 use crate::{
     state::{DynamicState, EndWildcardState, StaticState, WildcardState},
@@ -41,7 +41,7 @@ pub struct Node<S> {
     pub dynamic_children_shortcut: bool,
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub wildcard_children_shortcut: bool,
-    pub end_wildcard_children: Vec<Node<EndWildcardState>>,
+    pub end_wildcard: Option<Box<Node<EndWildcardState>>>,
 
     /// Flag indicating whether this node need optimization.
     /// During optimization, the shortcut flags are updated, and nodes sorted.

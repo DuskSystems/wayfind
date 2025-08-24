@@ -39,7 +39,7 @@ impl<S: fmt::Display> fmt::Display for Node<S> {
             let mut count = node.static_children.len()
                 + node.dynamic_children.len()
                 + node.wildcard_children.len()
-                + node.end_wildcard_children.len();
+                + usize::from(node.end_wildcard.is_some());
 
             for child in &node.static_children {
                 count -= 1;
@@ -56,7 +56,7 @@ impl<S: fmt::Display> fmt::Display for Node<S> {
                 debug_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
 
-            for child in &node.end_wildcard_children {
+            if let Some(child) = &node.end_wildcard {
                 count -= 1;
                 debug_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
