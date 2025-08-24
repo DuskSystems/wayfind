@@ -103,6 +103,9 @@
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
             CARGO_INCREMENTAL = "0";
+
+            # C++
+            LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
           };
 
           buildInputs = with pkgs; [
