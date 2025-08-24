@@ -1,20 +1,13 @@
 use alloc::{vec, vec::Vec};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Key {
     index: usize,
-    generation: usize,
-}
-
-#[derive(Debug, Clone)]
-struct Slot<T> {
-    data: Option<T>,
-    generation: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct Storage<T> {
-    data: Vec<Slot<T>>,
+    data: Vec<Option<T>>,
     free: Vec<usize>,
 }
 
@@ -28,53 +21,26 @@ impl<T> Storage<T> {
 
     pub fn insert(&mut self, data: T) -> Key {
         if let Some(index) = self.free.pop() {
-            let slot = &mut self.data[index];
-            slot.data = Some(data);
-
-            Key {
-                index,
-                generation: slot.generation,
-            }
+            self.data[index] = Some(data);
+            Key { index }
         } else {
             let index = self.data.len();
-            self.data.push(Slot {
-                data: Some(data),
-                generation: 0,
-            });
-
-            Key {
-                index,
-                generation: 0,
-            }
+            self.data.push(Some(data));
+            Key { index }
         }
     }
 
     pub fn get(&self, key: Key) -> Option<&T> {
-        let slot = self.data.get(key.index)?;
-        if slot.generation == key.generation {
-            slot.data.as_ref()
-        } else {
-            None
-        }
+        self.data.get(key.index)?.as_ref()
     }
 
     pub fn get_mut(&mut self, key: Key) -> Option<&mut T> {
-        let slot = self.data.get_mut(key.index)?;
-        if slot.generation == key.generation {
-            slot.data.as_mut()
-        } else {
-            None
-        }
+        self.data.get_mut(key.index)?.as_mut()
     }
 
     pub fn remove(&mut self, key: Key) -> Option<T> {
         let slot = self.data.get_mut(key.index)?;
-        if slot.generation != key.generation {
-            return None;
-        }
-
-        if let Some(data) = slot.data.take() {
-            slot.generation += 1;
+        if let Some(data) = slot.take() {
             self.free.push(key.index);
             Some(data)
         } else {
