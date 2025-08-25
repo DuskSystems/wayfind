@@ -1,6 +1,5 @@
 use alloc::{string::String, vec::Vec};
-use core::cmp::Ordering;
-use core::fmt;
+use core::{cmp::Ordering, fmt};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RootState;

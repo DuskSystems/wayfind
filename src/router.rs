@@ -1,6 +1,7 @@
 use alloc::{borrow::ToOwned, string::ToString, vec};
 use core::fmt;
 
+use slab::Slab;
 use smallvec::{SmallVec, smallvec};
 
 use crate::{
@@ -8,7 +9,6 @@ use crate::{
     node::{Node, NodeData},
     parser::Template,
     state::RootState,
-    storage::Storage,
 };
 
 /// Stores data from a successful router match.
@@ -39,7 +39,7 @@ pub struct Router<T> {
     root: Node<RootState>,
 
     /// Keyed storage map containing the inserted data.
-    storage: Storage<T>,
+    storage: Slab<T>,
 }
 
 impl<T> Router<T> {
@@ -60,7 +60,7 @@ impl<T> Router<T> {
 
                 needs_optimization: false,
             },
-            storage: Storage::new(),
+            storage: Slab::new(),
         }
     }
 
@@ -134,11 +134,7 @@ impl<T> Router<T> {
             });
         };
 
-        let Some(entry) = self.storage.remove(data.key) else {
-            return Err(DeleteError::NotFound {
-                template: template.to_owned(),
-            });
-        };
+        let entry = self.storage.remove(data.key);
 
         self.root.optimize();
         Ok(entry)

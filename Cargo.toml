@@ -83,7 +83,11 @@ workspace = true
 
 [dependencies]
 # Data Structures
-smallvec = { version = "1.15", features = ["const_generics", "union"] }
+slab = { version = "0.4", default-features = false }
+smallvec = { version = "1.15", default-features = false, features = [
+  "const_generics",
+  "union",
+] }
 
 [dev-dependencies]
 # Testing

@@ -46,9 +46,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let search = router.search("/").unwrap();
         assert_eq!(search.data, &1);
+        assert_eq!(search.template, "/");
 
         let search = router.search("/health").unwrap();
         assert_eq!(search.data, &2);
+        assert_eq!(search.template, "/health");
 
         let search = router.search("/heal");
         assert_eq!(search, None);
@@ -61,10 +63,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let search = router.search("/users/123").unwrap();
         assert_eq!(search.data, &3);
+        assert_eq!(search.template, "/users/<id>");
         assert_eq!(search.parameters[0], ("id", "123"));
 
         let search = router.search("/users/123/message").unwrap();
         assert_eq!(search.data, &4);
+        assert_eq!(search.template, "/users/<id>/message");
         assert_eq!(search.parameters[0], ("id", "123"));
 
         let search = router.search("/users/");
@@ -78,10 +82,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let search = router.search("/images/avatar.final.png").unwrap();
         assert_eq!(search.data, &5);
+        assert_eq!(search.template, "/images/<name>.png");
         assert_eq!(search.parameters[0], ("name", "avatar.final"));
 
         let search = router.search("/images/photo.jpg").unwrap();
         assert_eq!(search.data, &6);
+        assert_eq!(search.template, "/images/<name>.<ext>");
         assert_eq!(search.parameters[0], ("name", "photo"));
         assert_eq!(search.parameters[1], ("ext", "jpg"));
 
@@ -96,10 +102,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let search = router.search("/files/documents").unwrap();
         assert_eq!(search.data, &7);
+        assert_eq!(search.template, "/files/<*path>");
         assert_eq!(search.parameters[0], ("path", "documents"));
 
         let search = router.search("/files/documents/my-project/delete").unwrap();
         assert_eq!(search.data, &8);
+        assert_eq!(search.template, "/files/<*path>/delete");
         assert_eq!(search.parameters[0], ("path", "documents/my-project"));
 
         let search = router.search("/files");
@@ -113,10 +121,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     {
         let search = router.search("/backups/production/database.tar.gz").unwrap();
         assert_eq!(search.data, &9);
+        assert_eq!(search.template, "/backups/<*path>.tar.gz");
         assert_eq!(search.parameters[0], ("path", "production/database"));
 
         let search = router.search("/backups/dev/application.log.bak").unwrap();
         assert_eq!(search.data, &10);
+        assert_eq!(search.template, "/backups/<*path>.<ext>");
         assert_eq!(search.parameters[0], ("path", "dev/application.log"));
         assert_eq!(search.parameters[1], ("ext", "bak"));
 

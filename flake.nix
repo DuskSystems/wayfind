@@ -58,6 +58,7 @@
 
           buildInputs = with pkgs; [
             # Rust
+            rust-bin.nightly.latest.rustfmt
             (rust-bin.stable.latest.minimal.override {
               targets = [
                 "wasm32-unknown-unknown"
@@ -68,7 +69,6 @@
                 "rust-analyzer"
                 "rust-docs"
                 "rust-src"
-                "rustfmt"
                 "llvm-tools"
               ];
             })
@@ -157,10 +157,10 @@
 
           buildInputs = with pkgs; [
             # Rust
+            rust-bin.nightly.latest.rustfmt
             (rust-bin.stable.latest.minimal.override {
               extensions = [
                 "clippy"
-                "rustfmt"
               ];
             })
             mold

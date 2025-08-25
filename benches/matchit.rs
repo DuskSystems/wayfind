@@ -4,7 +4,6 @@
 use std::hint::black_box;
 
 use divan::AllocProfiler;
-use smallvec::SmallVec;
 
 pub mod matchit_routes;
 
@@ -17,7 +16,7 @@ fn main() {
 
 #[divan::bench_group]
 mod wayfind {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -43,7 +42,7 @@ mod wayfind {
         bencher.bench(|| {
             for path in black_box(routes!(literal)) {
                 let output = black_box(router.search(black_box(path)).unwrap());
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(output.parameters.iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -52,7 +51,7 @@ mod wayfind {
 
 #[divan::bench_group]
 mod actix_router {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -82,7 +81,7 @@ mod actix_router {
             for path in black_box(routes!(literal)) {
                 let mut path = ::actix_router::Path::new(path);
                 let _output = black_box(router.recognize(black_box(&mut path)).unwrap());
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -91,7 +90,7 @@ mod actix_router {
 
 #[divan::bench_group]
 mod matchit {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -117,7 +116,7 @@ mod matchit {
         bencher.bench(|| {
             for path in black_box(routes!(literal)) {
                 let output = black_box(router.at(black_box(path)).unwrap());
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -126,7 +125,7 @@ mod matchit {
 
 #[divan::bench_group]
 mod ntex_router {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -156,7 +155,7 @@ mod ntex_router {
             for path in black_box(routes!(literal)) {
                 let mut path = ::ntex_router::Path::new(path);
                 let _output = router.recognize(&mut path).unwrap();
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -165,7 +164,7 @@ mod ntex_router {
 
 #[divan::bench_group]
 mod path_tree {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -191,7 +190,7 @@ mod path_tree {
         bencher.bench(|| {
             for path in black_box(routes!(literal)) {
                 let output = router.find(path).unwrap();
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(output.1.params_iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -200,7 +199,7 @@ mod path_tree {
 
 #[divan::bench_group]
 mod route_recognizer {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -226,7 +225,7 @@ mod route_recognizer {
         bencher.bench(|| {
             for path in black_box(routes!(literal)) {
                 let output = router.recognize(path).unwrap();
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(output.params().iter().map(|p| (p.0, p.1)).collect());
             }
         });
@@ -235,7 +234,7 @@ mod route_recognizer {
 
 #[divan::bench_group]
 mod xitca_router {
-    use super::{SmallVec, black_box, routes};
+    use super::{black_box, routes};
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
@@ -261,7 +260,7 @@ mod xitca_router {
         bencher.bench(|| {
             for path in black_box(routes!(literal)) {
                 let output = router.at(path).unwrap();
-                let _parameters: SmallVec<[(&str, &str); 4]> =
+                let _parameters: Vec<(&str, &str)> =
                     black_box(output.params.iter().map(|p| (p.0, p.1)).collect());
             }
         });

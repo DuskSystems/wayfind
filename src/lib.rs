@@ -157,5 +157,3 @@ mod router;
 pub use router::{Match, Parameters, Router};
 
 mod state;
-
-mod storage;

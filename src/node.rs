@@ -1,11 +1,7 @@
+use alloc::{boxed::Box, string::String, vec::Vec};
 use core::cmp::Ordering;
 
-use alloc::{boxed::Box, string::String, vec::Vec};
-
-use crate::{
-    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
-    storage::Key,
-};
+use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;
@@ -18,7 +14,7 @@ mod search;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NodeData {
     /// The key to the stored data.
-    pub key: Key,
+    pub key: usize,
 
     /// The original template.
     pub template: String,
