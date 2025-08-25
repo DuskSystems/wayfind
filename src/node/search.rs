@@ -81,13 +81,14 @@ impl<S> Node<S> {
         path: &'p [u8],
         parameters: &mut Parameters<'r, 'p>,
     ) -> Option<&'r NodeData> {
-        for child in &self.dynamic_children {
-            let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
+        let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
+        let segment = &path[..segment_end];
+        let path = &path[segment_end..];
 
-            let segment = &path[..segment_end];
+        for child in &self.dynamic_children {
             parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
 
-            if let Some(result) = child.search(&path[segment_end..], parameters) {
+            if let Some(result) = child.search(path, parameters) {
                 return Some(result);
             }
 
