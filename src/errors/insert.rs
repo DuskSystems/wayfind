@@ -3,7 +3,7 @@ use core::error::Error;
 
 use crate::errors::TemplateError;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum InsertError {
     /// A [`TemplateError`] that occurred during the insert.
     Template(TemplateError),

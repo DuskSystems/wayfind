@@ -8,11 +8,12 @@ use crate::{
     errors::{DeleteError, InsertError},
     node::{Node, NodeData},
     parser::Template,
+    specificity::Specificity,
     state::RootState,
 };
 
 /// Stores data from a successful router match.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 pub struct Match<'r, 'p, T> {
     /// A reference to the matching template data.
     pub data: &'r T,
@@ -53,10 +54,11 @@ impl<T> Router<T> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
-                dynamic_children_shortcut: false,
                 wildcard_children: vec![],
-                wildcard_children_shortcut: false,
                 end_wildcard: None,
+
+                dynamic_segment_only: false,
+                wildcard_segment_only: false,
 
                 needs_optimization: false,
             },
@@ -81,7 +83,6 @@ impl<T> Router<T> {
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed = Template::new(template.as_bytes())?;
 
-        // Check for any conflicts.
         if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),
@@ -89,16 +90,13 @@ impl<T> Router<T> {
             });
         }
 
-        // All good, proceed with insert.
         let key = self.storage.insert(data);
-
-        let specificity = parsed.specificity();
         self.root.insert(
             &mut parsed,
             NodeData {
                 key,
                 template: template.to_owned(),
-                specificity,
+                specificity: Specificity::default(),
             },
         );
 

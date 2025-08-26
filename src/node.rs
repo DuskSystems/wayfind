@@ -1,7 +1,10 @@
 use alloc::{boxed::Box, string::String, vec::Vec};
 use core::cmp::Ordering;
 
-use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
+use crate::{
+    specificity::Specificity,
+    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
+};
 
 mod conflict;
 mod delete;
@@ -11,20 +14,20 @@ mod insert;
 mod optimize;
 mod search;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct NodeData {
-    /// The key to the stored data.
+    /// The key to the stored data in the routers slab.
     pub key: usize,
 
-    /// The original template.
+    /// This nodes template.
     pub template: String,
 
     /// The specificity of the template.
-    pub specificity: usize,
+    pub specificity: Specificity,
 }
 
 /// Represents a node in the tree structure.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Node<S> {
     /// The type of Node, and associated structure data.
     pub state: S,
@@ -34,13 +37,16 @@ pub struct Node<S> {
 
     pub static_children: Vec<Node<StaticState>>,
     pub dynamic_children: Vec<Node<DynamicState>>,
-    pub dynamic_children_shortcut: bool,
     pub wildcard_children: Vec<Node<WildcardState>>,
-    pub wildcard_children_shortcut: bool,
     pub end_wildcard: Option<Box<Node<EndWildcardState>>>,
 
+    /// Whether all dynamic children are full segments, allowing for faster searching.
+    pub dynamic_segment_only: bool,
+    /// Whether all wildcard children are full segments, allowing for faster searching.
+    pub wildcard_segment_only: bool,
+
     /// Flag indicating whether this node need optimization.
-    /// During optimization, the shortcut flags are updated, and nodes sorted.
+    /// During optimization, the shortcut flags are updated, specificity calculated, and nodes sorted.
     pub needs_optimization: bool,
 }
 

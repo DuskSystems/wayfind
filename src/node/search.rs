@@ -29,7 +29,7 @@ impl<S> Node<S> {
         }
 
         if let Some(search) = {
-            if self.dynamic_children_shortcut {
+            if self.dynamic_segment_only {
                 self.search_dynamic_segment(path, parameters)
             } else {
                 self.search_dynamic_inline(path, parameters)
@@ -39,7 +39,7 @@ impl<S> Node<S> {
         }
 
         if let Some(search) = {
-            if self.wildcard_children_shortcut {
+            if self.wildcard_segment_only {
                 self.search_wildcard_segment(path, parameters)
             } else {
                 self.search_wildcard_inline(path, parameters)
@@ -55,6 +55,7 @@ impl<S> Node<S> {
         None
     }
 
+    /// Simple byte comparison between the path and stored static prefixes.
     fn search_static<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -75,7 +76,8 @@ impl<S> Node<S> {
         None
     }
 
-    /// Can only handle simple dynamic templates like `/<segment>/`.
+    /// Fast dynamic path for segmented templates like `/<segment>`.
+    /// This lets use skip ahead to the next `/` (or end of path), rather than walk byte by byte.
     fn search_dynamic_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -98,7 +100,9 @@ impl<S> Node<S> {
         None
     }
 
-    /// Can handle complex dynamic templates like `/<name>.<extension>`.
+    /// Slower dynamic path for complex templates like `/<name>.<extension>`.
+    /// Must try each byte to consider all possible permutations.
+    /// Prefers the most specific match.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -141,7 +145,8 @@ impl<S> Node<S> {
         None
     }
 
-    /// Can only handle simple wildcard templates like `/<*segment>/`.
+    /// Fast wildcard path for segmented templates like `/<*path>`.
+    /// This lets us search segment by segment, rather than byte by byte.
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -195,7 +200,9 @@ impl<S> Node<S> {
         None
     }
 
-    /// Can handle complex wildcard templates like `/<*name>.<extension>`.
+    /// Slower wildcard path for complex templates like `/<*name>.txt`.
+    /// Must try each byte, since the wildcard ends mid-segment.
+    /// Prefers the most specific match.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -234,6 +241,7 @@ impl<S> Node<S> {
         None
     }
 
+    /// If there's anything else, it matches.
     fn search_end_wildcard<'r, 'p>(
         &'r self,
         path: &'p [u8],

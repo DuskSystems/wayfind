@@ -1,7 +1,7 @@
 use alloc::{fmt, string::String};
 use core::error::Error;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum TemplateError {
     /// The template is empty.
     Empty,

@@ -57,10 +57,11 @@ impl<S> Node<S> {
 
                 static_children: core::mem::take(&mut child.static_children),
                 dynamic_children: core::mem::take(&mut child.dynamic_children),
-                dynamic_children_shortcut: child.dynamic_children_shortcut,
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
-                wildcard_children_shortcut: child.wildcard_children_shortcut,
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
+
+                dynamic_segment_only: child.dynamic_segment_only,
+                wildcard_segment_only: child.wildcard_segment_only,
 
                 needs_optimization: child.needs_optimization,
             };
@@ -71,10 +72,11 @@ impl<S> Node<S> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
-                dynamic_children_shortcut: false,
                 wildcard_children: vec![],
-                wildcard_children_shortcut: false,
                 end_wildcard: None,
+
+                dynamic_segment_only: false,
+                wildcard_segment_only: false,
 
                 needs_optimization: false,
             };
@@ -101,10 +103,11 @@ impl<S> Node<S> {
 
                 static_children: vec![],
                 dynamic_children: vec![],
-                dynamic_children_shortcut: false,
                 wildcard_children: vec![],
-                wildcard_children_shortcut: false,
                 end_wildcard: None,
+
+                dynamic_segment_only: false,
+                wildcard_segment_only: false,
 
                 needs_optimization: false,
             };
@@ -131,10 +134,11 @@ impl<S> Node<S> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
-                    dynamic_children_shortcut: false,
                     wildcard_children: vec![],
-                    wildcard_children_shortcut: false,
                     end_wildcard: None,
+
+                    dynamic_segment_only: false,
+                    wildcard_segment_only: false,
 
                     needs_optimization: false,
                 };
@@ -162,10 +166,11 @@ impl<S> Node<S> {
 
                     static_children: vec![],
                     dynamic_children: vec![],
-                    dynamic_children_shortcut: false,
                     wildcard_children: vec![],
-                    wildcard_children_shortcut: false,
                     end_wildcard: None,
+
+                    dynamic_segment_only: false,
+                    wildcard_segment_only: false,
 
                     needs_optimization: false,
                 };
@@ -191,10 +196,11 @@ impl<S> Node<S> {
 
             static_children: vec![],
             dynamic_children: vec![],
-            dynamic_children_shortcut: false,
             wildcard_children: vec![],
-            wildcard_children_shortcut: false,
             end_wildcard: None,
+
+            dynamic_segment_only: false,
+            wildcard_segment_only: false,
 
             needs_optimization: false,
         }));

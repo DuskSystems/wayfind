@@ -3,7 +3,7 @@ use core::error::Error;
 
 use crate::errors::TemplateError;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Eq, PartialEq, Debug)]
 pub enum DeleteError {
     /// A [`TemplateError`] that occurred during the delete.
     Template(TemplateError),

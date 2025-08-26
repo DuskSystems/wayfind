@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Raised MSRV from 1.63 to 1.85.
 - Switch to Rust 2024 edition.
-- Syntax for parameters has changed from `{name}` to `<name>`
-- Parameter characters `<` and `>` can no longer be escaped.
+- Syntax for parameters has changed from `{name}` to `<name>`, to remove ambiguity with formatted strings.
+- Parameter characters `<` and `>` can no longer be escaped, since they aren't valid URL characters anyways.
 - Display no longer shows nodes storing data.
 
 ### Removed
@@ -27,8 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Improved detection for structural conflicts.
-- Improved preference of more specific route matches.
+- Improved detection of structural conflicts.
+- Correcting routing specificity for inline parameters.
 
 ## [0.8.1] - 2025-01-07
 

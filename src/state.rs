@@ -1,7 +1,8 @@
 use alloc::{string::String, vec::Vec};
 use core::{cmp::Ordering, fmt};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Root node of the tree.
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct RootState;
 
 impl RootState {
@@ -29,7 +30,9 @@ impl PartialOrd for RootState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Static path segment bytes.
+/// May not be valid UTF-8 due to multibyte splitting.
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct StaticState {
     pub prefix: Vec<u8>,
 }
@@ -59,7 +62,8 @@ impl PartialOrd for StaticState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Dynamic parameter with it's name.
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct DynamicState {
     pub name: String,
 }
@@ -89,7 +93,8 @@ impl PartialOrd for DynamicState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Wildcard parameter with it's name.
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct WildcardState {
     pub name: String,
 }
@@ -119,7 +124,8 @@ impl PartialOrd for WildcardState {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// End wildcard parameter with it's name.
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct EndWildcardState {
     pub name: String,
 }
