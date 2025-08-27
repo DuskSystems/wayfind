@@ -139,7 +139,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-```
+```text
 /
 ├─ backups/
 │  ╰─ <*path>
@@ -160,6 +160,21 @@ fn main() -> Result<(), Box<dyn Error>> {
    ╰─ <id>
       ╰─ /message
 ```
+
+## Implementation details
+
+`wayfind` uses a compressed radix trie for its data storage.
+This is the common backbone of almost all routers implemented in Rust.
+
+What sets `wayfind` apart is its search strategy.
+Most routers either use "first match wins" or "best match wins" (via backtracking), `wayfind` uses a hybrid approach:
+
+- per segment: first match wins
+- within segment: best match wins
+
+You only pay the cost of backtracking if you make use of inline parameters, and only for that given segment.
+
+This can result in some matches which may be unexpected, but in practice it works well for real-world usage.
 
 ## Performance
 

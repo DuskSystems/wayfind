@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switch to Rust 2024 edition.
 - Syntax for parameters has changed from `{name}` to `<name>`, to remove ambiguity with formatted strings.
 - Parameter characters `<` and `>` can no longer be escaped, since they aren't valid URL characters anyways.
-- Display no longer shows nodes storing data.
+- Display no longer shows nodes storing data, since it was redundant.
 
 ### Removed
 
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improved detection of structural conflicts.
-- Correcting routing priority for inline parameters.
+- Corrected routing priority for inline parameters.
 
 ## [0.8.1] - 2025-01-07
 

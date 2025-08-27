@@ -136,8 +136,11 @@
 //! See [`Errors`](errors) for examples.
 
 #![no_std]
-
 extern crate alloc;
+
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+mod readme_doctests {}
 
 pub mod errors;
 
