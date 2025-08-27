@@ -4,6 +4,8 @@ use crate::{
 };
 
 impl<S> Node<S> {
+    /// Check if a template conflicts with a pre-existing template.
+    /// Handles both direct and structural conflicts.
     pub fn conflict(&self, template: &mut Template) -> Option<&NodeData> {
         if let Some(part) = template.parts.pop() {
             match part {

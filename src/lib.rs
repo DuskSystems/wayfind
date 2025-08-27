@@ -154,7 +154,7 @@ mod node;
 mod parser;
 
 mod router;
-pub use router::{Match, Parameters, Router};
+pub use router::{Match, Router};
 
 mod specificity;
 mod state;

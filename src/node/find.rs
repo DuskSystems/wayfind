@@ -4,6 +4,8 @@ use crate::{
 };
 
 impl<S> Node<S> {
+    /// Find an exact template match in the node tree.
+    /// Essentially the same as the `Node::insert` logic, without any tree modifications.
     pub(crate) fn find(&self, template: &mut Template) -> Option<&NodeData> {
         if template.parts.is_empty() {
             return self.data.as_ref();

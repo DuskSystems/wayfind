@@ -21,15 +21,11 @@ pub struct Match<'r, 'p, T> {
     /// The matching template.
     pub template: &'r str,
 
-    /// Key-value pairs of parameters, extracted from the template and path.
-    pub parameters: Parameters<'r, 'p>,
+    /// Key-value pairs of parameters.
+    /// The key of the parameter is tied to the lifetime of the.
+    /// The value is extracted from the path.
+    pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
-
-/// All the parameter pairs of a given match.
-///
-/// The key of the parameter is tied to the lifetime of the router, since it is a ref to the template of a given node.
-/// The value is extracted from the path.
-pub type Parameters<'r, 'p> = SmallVec<[(&'r str, &'p str); 4]>;
 
 /// The [`wayfind`](crate) router.
 ///
@@ -83,6 +79,8 @@ impl<T> Router<T> {
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed = Template::new(template.as_bytes())?;
 
+        // Check for conflicts up front.
+        // Prevent partial inserts.
         if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),

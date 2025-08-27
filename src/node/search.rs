@@ -1,9 +1,6 @@
-use smallvec::smallvec;
+use smallvec::{SmallVec, smallvec};
 
-use crate::{
-    node::{Node, NodeData},
-    router::Parameters,
-};
+use crate::node::{Node, NodeData};
 
 impl<S> Node<S> {
     /// Searches for a matching template in the node tree.
@@ -18,7 +15,7 @@ impl<S> Node<S> {
     pub fn search<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         if path.is_empty() {
             return self.data.as_ref();
@@ -59,7 +56,7 @@ impl<S> Node<S> {
     fn search_static<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         for child in &self.static_children {
             // This was previously a "starts_with" call, but turns out this is much faster.
@@ -81,7 +78,7 @@ impl<S> Node<S> {
     fn search_dynamic_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
         let segment = &path[..segment_end];
@@ -106,7 +103,7 @@ impl<S> Node<S> {
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         for child in &self.dynamic_children {
             let mut consumed = 0;
@@ -150,7 +147,7 @@ impl<S> Node<S> {
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
@@ -206,7 +203,7 @@ impl<S> Node<S> {
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
             let mut consumed = 0;
@@ -245,7 +242,7 @@ impl<S> Node<S> {
     fn search_end_wildcard<'r, 'p>(
         &'r self,
         path: &'p [u8],
-        parameters: &mut Parameters<'r, 'p>,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         if let Some(child) = &self.end_wildcard {
             parameters.push((&child.state.name, core::str::from_utf8(path).ok()?));

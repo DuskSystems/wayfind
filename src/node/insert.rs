@@ -34,7 +34,7 @@ impl<S> Node<S> {
         {
             let common_prefix = prefix
                 .iter()
-                .zip::<&[u8]>(&child.state.prefix)
+                .zip(&child.state.prefix)
                 .take_while(|&(x, y)| x == y)
                 .count();
 

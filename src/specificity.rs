@@ -14,17 +14,17 @@ pub struct Specificity {
 }
 
 impl Specificity {
-    pub const fn count_static(mut self, length: usize) -> Self {
+    pub const fn with_static(mut self, length: usize) -> Self {
         self.static_length += length;
         self
     }
 
-    pub const fn count_dynamic(mut self) -> Self {
+    pub const fn with_dynamic(mut self) -> Self {
         self.dynamics_count += 1;
         self
     }
 
-    pub const fn count_wildcard(mut self) -> Self {
+    pub const fn with_wildcard(mut self) -> Self {
         self.wildcards_count += 1;
         self
     }
