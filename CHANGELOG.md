@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Constraints are no longer supported.
 - Optional groups are no longer supported.
+- `Parameters` alias has been removed.
 
 ### Fixed
 

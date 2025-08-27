@@ -260,3 +260,34 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_dynamic_wildcard_priority() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/api/<version>/<*rest>", 1)?;
+    router.insert("/api/<*path>/help", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /api/
+    ├─ <version>
+    │  ╰─ /
+    │     ╰─ <*rest>
+    ╰─ <*path>
+       ╰─ /help
+    ");
+
+    // NOTE: This appears to match the 2nd template closer.
+    // But since we always prefer dynamic over wildcard, it doesn't.
+    // One to consider for the future.
+    let search = router.search("/api/docs/reference/help");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/api/<version>/<*rest>",
+            parameters: smallvec![("version", "docs"), ("rest", "reference/help")],
+        })
+    );
+
+    Ok(())
+}
