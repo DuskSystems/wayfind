@@ -1,40 +1,40 @@
-use crate::{node::Node, specificity::Specificity};
+use crate::{node::Node, priority::Priority};
 
 impl<S> Node<S> {
     /// Optimizes the tree structure.
     pub(crate) fn optimize(&mut self) {
-        self.optimize_inner(Specificity::default());
+        self.optimize_inner(Priority::default());
     }
 
     /// Recursively optimizes nodes from root to leaf.
     /// We can skip optimization if the current node hasn't changed.
-    fn optimize_inner(&mut self, parent: Specificity) {
+    fn optimize_inner(&mut self, parent: Priority) {
         if !self.needs_optimization {
             return;
         }
 
         if let Some(data) = &mut self.data {
-            data.specificity = parent.clone();
+            data.priority = parent.clone();
         }
 
         for child in &mut self.static_children {
-            let child_specificity = parent.clone().with_static(child.state.prefix.len());
-            child.optimize_inner(child_specificity);
+            let child_priority = parent.clone().with_static(child.state.prefix.len());
+            child.optimize_inner(child_priority);
         }
 
         for child in &mut self.dynamic_children {
-            let child_specificity = parent.clone().with_dynamic();
-            child.optimize_inner(child_specificity);
+            let child_priority = parent.clone().with_dynamic();
+            child.optimize_inner(child_priority);
         }
 
         for child in &mut self.wildcard_children {
-            let child_specificity = parent.clone().with_wildcard();
-            child.optimize_inner(child_specificity);
+            let child_priority = parent.clone().with_wildcard();
+            child.optimize_inner(child_priority);
         }
 
         if let Some(child) = &mut self.end_wildcard {
-            let child_specificity = parent.with_wildcard();
-            child.optimize_inner(child_specificity);
+            let child_priority = parent.with_wildcard();
+            child.optimize_inner(child_priority);
         }
 
         self.static_children.sort();

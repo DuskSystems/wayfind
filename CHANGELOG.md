@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improved detection of structural conflicts.
-- Correcting routing specificity for inline parameters.
+- Correcting routing priority for inline parameters.
 
 ## [0.8.1] - 2025-01-07
 

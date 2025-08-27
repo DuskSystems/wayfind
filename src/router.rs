@@ -8,7 +8,7 @@ use crate::{
     errors::{DeleteError, InsertError},
     node::{Node, NodeData},
     parser::Template,
-    specificity::Specificity,
+    priority::Priority,
     state::RootState,
 };
 
@@ -94,7 +94,7 @@ impl<T> Router<T> {
             NodeData {
                 key,
                 template: template.to_owned(),
-                specificity: Specificity::default(),
+                priority: Priority::default(),
             },
         );
 

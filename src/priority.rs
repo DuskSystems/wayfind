@@ -7,13 +7,13 @@ use core::cmp::Ordering;
 /// 2. Dynamic parameter count: less dynamics, more specific
 /// 3. Wildcard parameter count: less wildcards, more specific
 #[derive(Clone, Eq, PartialEq, Debug, Default)]
-pub struct Specificity {
+pub struct Priority {
     pub static_length: usize,
     pub dynamics_count: usize,
     pub wildcards_count: usize,
 }
 
-impl Specificity {
+impl Priority {
     pub const fn with_static(mut self, length: usize) -> Self {
         self.static_length += length;
         self
@@ -30,13 +30,13 @@ impl Specificity {
     }
 }
 
-impl PartialOrd for Specificity {
+impl PartialOrd for Priority {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Specificity {
+impl Ord for Priority {
     fn cmp(&self, other: &Self) -> Ordering {
         self.static_length
             .cmp(&other.static_length)

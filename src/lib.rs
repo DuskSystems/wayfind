@@ -119,19 +119,11 @@
 //!
 //! Templates are matched using a hierarchical priority system.
 //!
-//! ### 1. Kind
-//!
 //! From highest priority to lowest, we walk the current nodes children in this order:
 //! - statics
 //! - dynamics
 //! - wildcards
 //! - end wildcards
-//!
-//! In the event of multiple children of the same type, we walk them in alphabetical order, to ensure order remains predictable.
-//!
-//! ### 2. Structure
-//!
-//! When comparing templates at the same node level and of the same kind, we prefer the "more specific" template.
 //!
 //! ## Display
 //!
@@ -156,5 +148,5 @@ mod parser;
 mod router;
 pub use router::{Match, Router};
 
-mod specificity;
+mod priority;
 mod state;

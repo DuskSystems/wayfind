@@ -2,7 +2,7 @@ use alloc::{boxed::Box, string::String, vec::Vec};
 use core::cmp::Ordering;
 
 use crate::{
-    specificity::Specificity,
+    priority::Priority,
     state::{DynamicState, EndWildcardState, StaticState, WildcardState},
 };
 
@@ -22,8 +22,8 @@ pub struct NodeData {
     /// This nodes template.
     pub template: String,
 
-    /// The specificity of the template.
-    pub specificity: Specificity,
+    /// The priority of the template.
+    pub priority: Priority,
 }
 
 /// Represents a node in the tree structure.
@@ -46,7 +46,7 @@ pub struct Node<S> {
     pub wildcard_segment_only: bool,
 
     /// Flag indicating whether this node need optimization.
-    /// During optimization, the shortcut flags are updated, specificity calculated, and nodes sorted.
+    /// During optimization, the shortcut flags are updated, priority calculated, and nodes sorted.
     pub needs_optimization: bool,
 }
 

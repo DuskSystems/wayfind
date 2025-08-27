@@ -99,7 +99,7 @@ impl<S> Node<S> {
 
     /// Slower dynamic path for complex templates like `/<name>.<extension>`.
     /// Must try each byte to consider all possible permutations.
-    /// Prefers the most specific match.
+    /// Prefers the most specific match, via backtracking.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -127,7 +127,7 @@ impl<S> Node<S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| data.specificity >= best.specificity) {
+                if best_match.is_none_or(|best| data.priority >= best.priority) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
@@ -199,7 +199,7 @@ impl<S> Node<S> {
 
     /// Slower wildcard path for complex templates like `/<*name>.txt`.
     /// Must try each byte, since the wildcard ends mid-segment.
-    /// Prefers the most specific match.
+    /// Prefers the most specific match, via backtracking.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
@@ -223,7 +223,7 @@ impl<S> Node<S> {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| data.specificity >= best.specificity) {
+                if best_match.is_none_or(|best| data.priority >= best.priority) {
                     best_match = Some(data);
                     best_match_parameters = current_parameters;
                 }
