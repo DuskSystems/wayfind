@@ -28,7 +28,7 @@ The goal of `wayfind` is to remain competitive with the fastest libraries, while
 
 ```toml
 [dependencies]
-wayfind = "0.8"
+wayfind = "0.9"
 ```
 
 ```rust
