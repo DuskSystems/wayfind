@@ -1,7 +1,7 @@
-//! Benches sourced from `path-tree` (MIT OR Apache-2.0)
-//! <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
+//! Benches sourced from `path-tree` (MIT OR Apache-2.0):
+//! - <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
 
-use std::hint::black_box;
+use core::hint::black_box;
 
 use divan::AllocProfiler;
 use path_tree_routes::paths;

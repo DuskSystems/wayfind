@@ -1,4 +1,5 @@
-use alloc::{fmt, string::String};
+use alloc::fmt;
+use alloc::string::String;
 use core::error::Error;
 
 use crate::errors::TemplateError;

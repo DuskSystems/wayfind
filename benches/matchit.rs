@@ -1,7 +1,7 @@
-//! Benches sourced from `matchit` (MIT AND BSD-3-Clause)
-//! <https://github.com/ibraheemdev/matchit/blob/v0.8.6/benches/bench.rs>
+//! Benches sourced from `matchit` (MIT AND BSD-3-Clause):
+//! - <https://github.com/ibraheemdev/matchit/blob/v0.9.0/benches/bench.rs>
 
-use std::hint::black_box;
+use core::hint::black_box;
 
 use divan::AllocProfiler;
 

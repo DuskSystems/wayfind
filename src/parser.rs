@@ -1,8 +1,6 @@
-use alloc::{
-    string::{String, ToString},
-    vec,
-    vec::Vec,
-};
+use alloc::string::{String, ToString as _};
+use alloc::vec;
+use alloc::vec::Vec;
 
 use smallvec::{SmallVec, smallvec};
 
@@ -65,7 +63,7 @@ impl Template {
                         {
                             return Err(TemplateError::DuplicateParameter {
                                 template: String::from_utf8_lossy(input).to_string(),
-                                name: name.to_string(),
+                                name: name.clone(),
                                 first: *start,
                                 first_length: *length,
                                 second: cursor,
@@ -144,13 +142,6 @@ impl Template {
 
         let content = &input[start..end];
         if content.is_empty() {
-            return Err(TemplateError::EmptyAngles {
-                template: String::from_utf8_lossy(input).to_string(),
-                position: cursor,
-            });
-        }
-
-        if content.is_empty() {
             return Err(TemplateError::EmptyParameter {
                 template: String::from_utf8_lossy(input).to_string(),
                 start: cursor,
@@ -179,7 +170,7 @@ impl Template {
         }
 
         let name =
-            String::from_utf8(name.to_vec()).map_err(|_| TemplateError::InvalidParameter {
+            String::from_utf8(name.to_vec()).map_err(|_name| TemplateError::InvalidParameter {
                 template: String::from_utf8_lossy(input).to_string(),
                 name: String::from_utf8_lossy(name).to_string(),
                 start: cursor,
@@ -198,14 +189,14 @@ impl Template {
 
 #[cfg(test)]
 mod tests {
-    use alloc::borrow::ToOwned;
+    use alloc::borrow::ToOwned as _;
 
     use similar_asserts::assert_eq;
 
     use super::*;
 
     #[test]
-    fn test_parser_static_route() {
+    fn parser_static_route() {
         assert_eq!(
             Template::new(b"/abcd"),
             Ok(Template {
@@ -217,7 +208,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_dynamic_route() {
+    fn parser_dynamic_route() {
         assert_eq!(
             Template::new(b"/<name>"),
             Ok(Template {
@@ -234,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_wildcard_route() {
+    fn parser_wildcard_route() {
         assert_eq!(
             Template::new(b"/<*wildcard>"),
             Ok(Template {
@@ -251,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_route_with_wildcard_at_end() {
+    fn parser_route_with_wildcard_at_end() {
         assert_eq!(
             Template::new(b"/files/<*path>"),
             Ok(Template {
@@ -268,7 +259,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_empty() {
+    fn parser_error_empty() {
         let error = Template::new(b"").unwrap_err();
         assert_eq!(error, TemplateError::Empty);
 
@@ -276,18 +267,19 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_empty_angles() {
+    fn parser_error_empty_parameter() {
         let error = Template::new(b"/users/<>").unwrap_err();
         assert_eq!(
             error,
-            TemplateError::EmptyAngles {
+            TemplateError::EmptyParameter {
                 template: "/users/<>".to_owned(),
-                position: 7,
+                start: 7,
+                length: 2,
             }
         );
 
         insta::assert_snapshot!(error, @r"
-        empty angles
+        empty parameter name
 
             Template: /users/<>
                              ^^
@@ -295,7 +287,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_missing_leading_slash() {
+    fn parser_error_missing_leading_slash() {
         let error = Template::new(b"abc").unwrap_err();
         assert_eq!(
             error,
@@ -314,7 +306,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_unbalanced_angle_opening() {
+    fn parser_error_unbalanced_angle_opening() {
         let error = Template::new(b"/users/<id/profile").unwrap_err();
         assert_eq!(
             error,
@@ -338,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_unbalanced_angle_closing() {
+    fn parser_error_unbalanced_angle_closing() {
         let error = Template::new(b"/users/id>/profile").unwrap_err();
         assert_eq!(
             error,
@@ -362,7 +354,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_invalid_parameter() {
+    fn parser_error_invalid_parameter() {
         let error = Template::new(b"/users/<user*name>/profile").unwrap_err();
         assert_eq!(
             error,
@@ -385,7 +377,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_duplicate_parameter() {
+    fn parser_error_duplicate_parameter() {
         let error = Template::new(b"/users/<id>/posts/<id>").unwrap_err();
         assert_eq!(
             error,
@@ -413,7 +405,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_empty_wildcard() {
+    fn parser_error_empty_wildcard() {
         let error = Template::new(b"/files/<*>").unwrap_err();
         assert_eq!(
             error,
@@ -433,7 +425,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parser_error_touching_parameters() {
+    fn parser_error_touching_parameters() {
         let error = Template::new(b"/users/<id><*name>").unwrap_err();
         assert_eq!(
             error,

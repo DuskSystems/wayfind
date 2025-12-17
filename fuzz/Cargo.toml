@@ -19,10 +19,8 @@ workspace = true
 cargo-fuzz = true
 
 [dependencies]
+wayfind = { path = ".." }
 libfuzzer-sys = "0.4"
-
-[dependencies.wayfind]
-path = ".."
 
 [[bin]]
 name = "e2e"

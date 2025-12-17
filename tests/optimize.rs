@@ -1,9 +1,9 @@
-use std::error::Error;
+use core::error::Error;
 
 use wayfind::Router;
 
 #[test]
-fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
+fn optimize_removal() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users/<id>", 1)?;
     router.insert("/users/<id>/profile", 2)?;
@@ -36,7 +36,7 @@ fn test_optimize_removal() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_optimize_data() -> Result<(), Box<dyn Error>> {
+fn optimize_data() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users/<id>", 1)?;
     router.insert("/users/<id>/profile", 2)?;
@@ -64,7 +64,7 @@ fn test_optimize_data() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_optimize_compression() -> Result<(), Box<dyn Error>> {
+fn optimize_compression() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/abc", 1)?;
     router.insert("/a", 2)?;

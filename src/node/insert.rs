@@ -1,10 +1,10 @@
-use alloc::{boxed::Box, string::String, vec};
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec;
 
-use crate::{
-    node::{Node, NodeData},
-    parser::{Part, Template},
-    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
-};
+use crate::node::{Node, NodeData};
+use crate::parser::{Part, Template};
+use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 impl<S> Node<S> {
     /// Inserts a new route into the node tree with associated data.

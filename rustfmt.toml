@@ -1,5 +1,7 @@
 # https://rust-lang.github.io/rustfmt
 edition = "2024"
-reorder_imports = true
+
 group_imports = "StdExternalCrate"
-imports_granularity = "Crate"
+imports_granularity = "Module"
+reorder_impl_items = true
+reorder_imports = true

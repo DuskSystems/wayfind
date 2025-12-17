@@ -1,4 +1,5 @@
-use alloc::{fmt, string::String};
+use alloc::fmt;
+use alloc::string::String;
 use core::error::Error;
 
 #[derive(Eq, PartialEq, Debug)]
@@ -30,34 +31,6 @@ pub enum TemplateError {
     MissingLeadingSlash {
         /// The template missing a leading slash.
         template: String,
-    },
-
-    /// Empty angles were found in the template.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::errors::TemplateError;
-    ///
-    /// let error = TemplateError::EmptyAngles {
-    ///     template: "/<>".to_owned(),
-    ///     position: 1,
-    /// };
-    ///
-    /// let display = r"
-    /// empty angles
-    ///
-    ///     Template: /<>
-    ///                ^^
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
-    /// ```
-    EmptyAngles {
-        /// The template containing empty angles.
-        template: String,
-        /// The position of the first empty angle.
-        position: usize,
     },
 
     /// An unbalanced angle was found in the template.
@@ -101,16 +74,16 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::EmptyParameter {
-    ///     template: "/<:>".to_owned(),
+    ///     template: "/<>".to_owned(),
     ///     start: 1,
-    ///     length: 3,
+    ///     length: 2,
     /// };
     ///
     /// let display = r"
     /// empty parameter name
     ///
-    ///     Template: /<:>
-    ///                ^^^
+    ///     Template: /<>
+    ///                ^^
     /// ";
     ///
     /// assert_eq!(error.to_string(), display.trim());
@@ -277,6 +250,7 @@ pub enum TemplateError {
 impl Error for TemplateError {}
 
 impl fmt::Display for TemplateError {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty template"),
@@ -289,17 +263,6 @@ impl fmt::Display for TemplateError {
     Template: {template}
 
 help: Templates must begin with '/'"
-                )
-            }
-
-            Self::EmptyAngles { template, position } => {
-                let arrow = " ".repeat(*position) + "^^";
-                write!(
-                    f,
-                    r"empty angles
-
-    Template: {template}
-              {arrow}"
                 )
             }
 

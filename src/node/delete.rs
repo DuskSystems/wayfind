@@ -1,8 +1,6 @@
-use crate::{
-    node::{Node, NodeData},
-    parser::{Part, Template},
-    state::StaticState,
-};
+use crate::node::{Node, NodeData};
+use crate::parser::{Part, Template};
+use crate::state::StaticState;
 
 impl<S> Node<S> {
     /// Deletes a route from the node tree.

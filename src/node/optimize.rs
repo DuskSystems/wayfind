@@ -1,4 +1,5 @@
-use crate::{node::Node, priority::Priority};
+use crate::node::Node;
+use crate::priority::Priority;
 
 impl<S> Node<S> {
     /// Optimizes the tree structure.
@@ -44,23 +45,18 @@ impl<S> Node<S> {
         self.dynamic_segment_only = self
             .dynamic_children
             .iter()
-            .all(|node| Self::is_segment_only(node, &node.state.name));
+            .all(|node| Self::is_segment_only(node));
 
         self.wildcard_segment_only = self
             .wildcard_children
             .iter()
-            .all(|node| Self::is_segment_only(node, &node.state.name));
+            .all(|node| Self::is_segment_only(node));
 
         self.needs_optimization = false;
     }
 
     /// Check if this node is segment only.
-    fn is_segment_only<T>(node: &Node<T>, name: &str) -> bool {
-        // Parameter name starts with '/'
-        if name.as_bytes().first() == Some(&b'/') {
-            return true;
-        }
-
+    fn is_segment_only<T>(node: &Node<T>) -> bool {
         // Has no children
         if node.static_children.is_empty()
             && node.dynamic_children.is_empty()

@@ -43,7 +43,7 @@
     {
       devShells = perSystemPkgs (pkgs: {
         # nix develop
-        default = pkgs.mkShell {
+        default = (pkgs.mkShell.override { stdenv = pkgs.clangStdenv; }) {
           name = "wayfind-shell";
 
           env = {
@@ -52,7 +52,7 @@
 
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
+            RUSTFLAGS = "-C target-cpu=native -C linker=clang -C link-arg=--ld-path=wild";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -73,11 +73,14 @@
               ];
             })
             sccache
-            mold
+            wild
             taplo
             cargo-insta
             cargo-llvm-cov
-            cargo-semver-checks
+            cargo-llvm-lines
+            cargo-outdated
+            # cargo-semver-checks
+            cargo-shear
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
             # Spellchecking
@@ -95,17 +98,17 @@
         };
 
         # nix develop .#nightly
-        nightly = pkgs.mkShell {
+        nightly = (pkgs.mkShell.override { stdenv = pkgs.clangStdenv; }) {
           name = "wayfind-nightly-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
+            RUSTFLAGS = "-C target-cpu=native -C linker=clang -C link-arg=--ld-path=wild";
             CARGO_INCREMENTAL = "0";
 
             # C++
-            LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+            LD_LIBRARY_PATH = "${pkgs.clangStdenv.cc.cc.lib}/lib";
           };
 
           buildInputs = with pkgs; [
@@ -113,7 +116,7 @@
             (rust-bin.nightly.latest.minimal.override {
               extensions = [ "llvm-tools" ];
             })
-            mold
+            wild
             sccache
             cargo-fuzz
             cargo-llvm-cov
@@ -121,13 +124,13 @@
         };
 
         # nix develop .#msrv
-        msrv = pkgs.mkShell {
+        msrv = (pkgs.mkShell.override { stdenv = pkgs.clangStdenv; }) {
           name = "wayfind-msrv-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
+            RUSTFLAGS = "-C target-cpu=native -C linker=clang -C link-arg=--ld-path=wild";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -139,19 +142,19 @@
                 "thumbv6m-none-eabi"
               ];
             })
-            mold
+            wild
             sccache
           ];
         };
 
         # nix develop .#ci
-        ci = pkgs.mkShell {
+        ci = (pkgs.mkShell.override { stdenv = pkgs.clangStdenv; }) {
           name = "wayfind-ci-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native -C link-arg=-fuse-ld=mold";
+            RUSTFLAGS = "-C target-cpu=native -C linker=clang -C link-arg=--ld-path=wild";
             CARGO_INCREMENTAL = "0";
           };
 
@@ -163,7 +166,7 @@
                 "clippy"
               ];
             })
-            mold
+            wild
             sccache
           ];
         };

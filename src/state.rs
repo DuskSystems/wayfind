@@ -1,5 +1,7 @@
-use alloc::{string::String, vec::Vec};
-use core::{cmp::Ordering, fmt};
+use alloc::string::String;
+use alloc::vec::Vec;
+use core::cmp::Ordering;
+use core::fmt;
 
 /// Root node of the tree.
 #[derive(Clone, Eq, PartialEq, Debug)]

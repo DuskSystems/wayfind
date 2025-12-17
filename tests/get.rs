@@ -1,9 +1,9 @@
-use std::error::Error;
+use core::error::Error;
 
 use wayfind::Router;
 
 #[test]
-fn test_get() -> Result<(), Box<dyn Error>> {
+fn get() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hello", 42)?;
 
@@ -12,19 +12,19 @@ fn test_get() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_get_missing() {
+fn get_missing() {
     let router: Router<i32> = Router::new();
     assert_eq!(router.get("/missing"), None);
 }
 
 #[test]
-fn test_get_invalid() {
+fn get_invalid() {
     let router: Router<i32> = Router::new();
     assert_eq!(router.get("/<invalid"), None);
 }
 
 #[test]
-fn test_get_mut() -> Result<(), Box<dyn Error>> {
+fn get_mut() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/hello", 1)?;
 
@@ -37,13 +37,13 @@ fn test_get_mut() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_get_mut_missing() {
+fn get_mut_missing() {
     let mut router: Router<i32> = Router::new();
     assert_eq!(router.get_mut("/missing"), None);
 }
 
 #[test]
-fn test_get_mut_invalid() {
+fn get_mut_invalid() {
     let mut router: Router<i32> = Router::new();
     assert_eq!(router.get_mut("/<invalid"), None);
 }

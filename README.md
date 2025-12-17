@@ -32,7 +32,7 @@ wayfind = "0.9"
 ```
 
 ```rust
-use std::error::Error;
+use core::error::Error;
 
 use wayfind::Router;
 

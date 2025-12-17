@@ -16,7 +16,7 @@
 //! #### Example
 //!
 //! ```rust
-//! use std::error::Error;
+//! use core::error::Error;
 //!
 //! use wayfind::Router;
 //!
@@ -53,7 +53,7 @@
 //! #### Example
 //!
 //! ```rust
-//! use std::error::Error;
+//! use core::error::Error;
 //!
 //! use wayfind::Router;
 //!
@@ -92,7 +92,7 @@
 //! #### Example
 //!
 //! ```rust
-//! use std::error::Error;
+//! use core::error::Error;
 //!
 //! use wayfind::Router;
 //!

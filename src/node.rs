@@ -1,10 +1,10 @@
-use alloc::{boxed::Box, string::String, vec::Vec};
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::cmp::Ordering;
 
-use crate::{
-    priority::Priority,
-    state::{DynamicState, EndWildcardState, StaticState, WildcardState},
-};
+use crate::priority::Priority;
+use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;

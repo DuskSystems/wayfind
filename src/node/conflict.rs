@@ -1,7 +1,5 @@
-use crate::{
-    node::{Node, NodeData},
-    parser::{Part, Template},
-};
+use crate::node::{Node, NodeData};
+use crate::parser::{Part, Template};
 
 impl<S> Node<S> {
     /// Check if a template conflicts with a pre-existing template.

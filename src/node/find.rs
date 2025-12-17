@@ -1,7 +1,5 @@
-use crate::{
-    node::{Node, NodeData},
-    parser::{Part, Template},
-};
+use crate::node::{Node, NodeData};
+use crate::parser::{Part, Template};
 
 impl<S> Node<S> {
     /// Find an exact template match in the node tree.

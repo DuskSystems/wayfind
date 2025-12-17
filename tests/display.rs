@@ -1,9 +1,9 @@
-use std::error::Error;
+use core::error::Error;
 
 use wayfind::Router;
 
 #[test]
-fn test_display_router() -> Result<(), Box<dyn Error>> {
+fn display_router() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/", 1)?;
     router.insert("/users", 2)?;

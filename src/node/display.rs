@@ -1,9 +1,7 @@
-use alloc::{
-    borrow::ToOwned,
-    fmt, format,
-    string::{String, ToString},
-};
-use core::fmt::Write;
+use alloc::borrow::ToOwned as _;
+use alloc::string::{String, ToString as _};
+use alloc::{fmt, format};
+use core::fmt::Write as _;
 
 use crate::node::Node;
 

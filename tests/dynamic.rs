@@ -1,11 +1,11 @@
-use std::error::Error;
+use core::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use wayfind::{Match, Router};
 
 #[test]
-fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
+fn dynamic_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<id>", 1)?;
 
@@ -31,7 +31,7 @@ fn test_dynamic_simple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
+fn dynamic_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<year>", 1)?;
     router.insert("/<year>/<month>", 2)?;
@@ -80,7 +80,7 @@ fn test_dynamic_multiple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
+fn dynamic_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<year>", 1)?;
     router.insert("/<year>-<month>", 2)?;
@@ -129,7 +129,7 @@ fn test_dynamic_inline() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
+fn dynamic_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<file>.<extension>", 1)?;
 
@@ -167,7 +167,7 @@ fn test_dynamic_greedy() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_dynamic_priority() -> Result<(), Box<dyn Error>> {
+fn dynamic_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/robots.txt", 1)?;
     router.insert("/robots.<extension>", 2)?;

@@ -1,16 +1,15 @@
-use alloc::{borrow::ToOwned, string::ToString, vec};
+use alloc::borrow::ToOwned as _;
+use alloc::vec;
 use core::fmt;
 
 use slab::Slab;
 use smallvec::{SmallVec, smallvec};
 
-use crate::{
-    errors::{DeleteError, InsertError},
-    node::{Node, NodeData},
-    parser::Template,
-    priority::Priority,
-    state::RootState,
-};
+use crate::errors::{DeleteError, InsertError};
+use crate::node::{Node, NodeData};
+use crate::parser::Template;
+use crate::priority::Priority;
+use crate::state::RootState;
 
 /// Stores data from a successful router match.
 #[derive(Eq, PartialEq, Debug)]
@@ -84,7 +83,7 @@ impl<T> Router<T> {
         if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),
-                conflict: found.template.to_string(),
+                conflict: found.template.clone(),
             });
         }
 
@@ -211,6 +210,12 @@ impl<T> Router<T> {
             template: data.template.as_ref(),
             parameters,
         })
+    }
+}
+
+impl<T> Default for Router<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

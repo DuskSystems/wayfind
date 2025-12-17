@@ -1,11 +1,11 @@
-use std::error::Error;
+use core::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use wayfind::{Match, Router};
 
 #[test]
-fn test_static_simple() -> Result<(), Box<dyn Error>> {
+fn static_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users", 1)?;
 
@@ -28,7 +28,7 @@ fn test_static_simple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
+fn static_overlapping() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/user", 1)?;
     router.insert("/users", 2)?;
@@ -68,7 +68,7 @@ fn test_static_overlapping() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
+fn static_overlapping_slash() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/user_1", 1)?;
     router.insert("/user/1", 2)?;
@@ -109,7 +109,7 @@ fn test_static_overlapping_slash() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
+fn static_split_multibyte() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
 
     router.insert("/👨‍👩‍👧", 1)?; // Family: Man, Woman, Girl
@@ -169,7 +169,7 @@ fn test_static_split_multibyte() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
+fn static_case_sensitive() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users", 1)?;
     router.insert("/Users", 2)?;
@@ -204,7 +204,7 @@ fn test_static_case_sensitive() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
+fn static_whitespace() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users /items", 1)?;
 
@@ -227,7 +227,7 @@ fn test_static_whitespace() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
+fn static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users/items", 1)?;
     router.insert("/users//items", 2)?;
@@ -262,7 +262,7 @@ fn test_static_duplicate_slashes() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_static_empty_segments() -> Result<(), Box<dyn Error>> {
+fn static_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/users///items", 1)?;
 

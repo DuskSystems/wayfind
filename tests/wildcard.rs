@@ -1,11 +1,11 @@
-use std::error::Error;
+use core::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
 use wayfind::{Match, Router};
 
 #[test]
-fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
+fn wildcard_simple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>/delete", 1)?;
 
@@ -42,7 +42,7 @@ fn test_wildcard_simple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
+fn wildcard_multiple() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*prefix>/static/<*suffix>/file", 1)?;
 
@@ -78,7 +78,7 @@ fn test_wildcard_multiple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
+fn wildcard_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>.html", 1)?;
 
@@ -115,7 +115,7 @@ fn test_wildcard_inline() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
+fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*first>-<*second>", 1)?;
 
@@ -153,7 +153,7 @@ fn test_wildcard_greedy() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
+fn wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>/end", 1)?;
 
@@ -187,7 +187,7 @@ fn test_wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
+fn wildcard_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/static/path", 1)?;
     router.insert("/static/<*rest>", 2)?;
@@ -262,7 +262,7 @@ fn test_wildcard_priority() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn test_dynamic_wildcard_priority() -> Result<(), Box<dyn Error>> {
+fn dynamic_wildcard_priority() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/api/<version>/<*rest>", 1)?;
     router.insert("/api/<*path>/help", 2)?;
