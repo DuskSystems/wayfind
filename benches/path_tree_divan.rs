@@ -1,6 +1,3 @@
-//! Benches sourced from `path-tree` (MIT OR Apache-2.0):
-//! - <https://github.com/viz-rs/path-tree/blob/v0.8.1/benches/bench.rs>
-
 use core::hint::black_box;
 
 use divan::AllocProfiler;
@@ -56,9 +53,9 @@ mod actix_router {
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
-        let mut router = ::actix_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            router.path(route, true);
+        let mut router = ::actix_router::Router::<usize>::build();
+        for (index, route) in routes!(brackets).iter().enumerate() {
+            router.path(*route, index);
         }
         let router = router.finish();
 
@@ -72,9 +69,9 @@ mod actix_router {
 
     #[divan::bench]
     fn parameters(bencher: divan::Bencher<'_, '_>) {
-        let mut router = ::actix_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            router.path(route, true);
+        let mut router = ::actix_router::Router::<usize>::build();
+        for (index, route) in routes!(brackets).iter().enumerate() {
+            router.path(*route, index);
         }
         let router = router.finish();
 
@@ -130,32 +127,32 @@ mod ntex_router {
 
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
-        let mut router = ::ntex_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            router.path(route, true);
+        let mut router = ::ntex_router::Router::<usize>::build();
+        for (index, route) in routes!(brackets).iter().enumerate() {
+            router.path(*route, index);
         }
         let router = router.finish();
 
         bencher.bench(|| {
             for path in black_box(paths()) {
                 let mut path = ::ntex_router::Path::new(path);
-                let _output = router.recognize(&mut path).unwrap();
+                let _output = black_box(router.recognize(black_box(&mut path)).unwrap());
             }
         });
     }
 
     #[divan::bench]
     fn parameters(bencher: divan::Bencher<'_, '_>) {
-        let mut router = ::ntex_router::Router::<bool>::build();
-        for route in routes!(brackets) {
-            router.path(route, true);
+        let mut router = ::ntex_router::Router::<usize>::build();
+        for (index, route) in routes!(brackets).iter().enumerate() {
+            router.path(*route, index);
         }
         let router = router.finish();
 
         bencher.bench(|| {
             for path in black_box(paths()) {
                 let mut path = ::ntex_router::Path::new(path);
-                router.recognize(&mut path).unwrap();
+                let _output = black_box(router.recognize(black_box(&mut path)).unwrap());
                 let _parameters: Vec<(&str, &str)> =
                     black_box(path.iter().map(|p| (p.0, p.1)).collect());
             }
@@ -240,7 +237,7 @@ mod xitca_router {
     #[divan::bench]
     fn default(bencher: divan::Bencher<'_, '_>) {
         let mut router = ::xitca_router::Router::new();
-        for (index, route) in routes!(colon).iter().enumerate() {
+        for (index, route) in routes!(brackets).iter().enumerate() {
             router.insert(*route, index).unwrap();
         }
 
@@ -254,7 +251,7 @@ mod xitca_router {
     #[divan::bench]
     fn parameters(bencher: divan::Bencher<'_, '_>) {
         let mut router = ::xitca_router::Router::new();
-        for (index, route) in routes!(colon).iter().enumerate() {
+        for (index, route) in routes!(brackets).iter().enumerate() {
             router.insert(*route, index).unwrap();
         }
 

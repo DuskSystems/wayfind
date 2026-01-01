@@ -15,7 +15,7 @@ categories = ["network-programming", "web-programming"]
 
 # https://doc.rust-lang.org/rustc/lints/groups.html
 [workspace.lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 
 unused = { level = "deny", priority = -2 }
 future-incompatible = { level = "deny", priority = -1 }
@@ -91,19 +91,28 @@ similar-asserts = "1.7"
 
 # Benchmarking
 divan = "0.1"
+gungraun = "0.17"
 
 # Routers
 actix-router = "=0.5.3"
-matchit = "=0.9.0"
-ntex-router = "=0.5.3"
+matchit = "=0.9.1"
+ntex-router = "=1.0.0"
 path-tree = "=0.8.3"
 route-recognizer = "=0.3.1"
-xitca-router = "=0.3.0"
+xitca-router = "=0.4.0"
 
 [[bench]]
-name = "matchit"
+name = "matchit_divan"
 harness = false
 
 [[bench]]
-name = "path_tree"
+name = "matchit_gungraun"
+harness = false
+
+[[bench]]
+name = "path_tree_divan"
+harness = false
+
+[[bench]]
+name = "path_tree_gungraun"
 harness = false

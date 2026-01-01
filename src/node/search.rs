@@ -58,7 +58,12 @@ impl<S> Node<S> {
         path: &'p [u8],
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
+        let first = *path.first()?;
         for child in &self.static_children {
+            if child.state.prefix[0] != first {
+                continue;
+            }
+
             // This was previously a "starts_with" call, but turns out this is much faster.
             if path.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
@@ -80,12 +85,16 @@ impl<S> Node<S> {
         path: &'p [u8],
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
+        if self.dynamic_children.is_empty() {
+            return None;
+        }
+
         let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
-        let segment = &path[..segment_end];
+        let segment = core::str::from_utf8(&path[..segment_end]).ok()?;
         let path = &path[segment_end..];
 
         for child in &self.dynamic_children {
-            parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
+            parameters.push((&child.state.name, segment));
 
             if let Some(result) = child.search(path, parameters) {
                 return Some(result);

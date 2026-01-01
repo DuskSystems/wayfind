@@ -83,6 +83,9 @@
             cargo-shear
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
+            # Benchmarking
+            valgrind
+
             # Spellchecking
             typos
             typos-lsp
