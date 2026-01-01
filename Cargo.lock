@@ -680,6 +680,7 @@ dependencies = [
  "gungraun",
  "insta",
  "matchit",
+ "memchr",
  "ntex-router",
  "path-tree",
  "route-recognizer",

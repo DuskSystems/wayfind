@@ -77,6 +77,9 @@ categories.workspace = true
 workspace = true
 
 [dependencies]
+# SIMD
+memchr = { version = "2.7", default-features = false, features = ["alloc"] }
+
 # Data Structures
 slab = { version = "0.4", default-features = false }
 smallvec = { version = "1.15", default-features = false, features = [

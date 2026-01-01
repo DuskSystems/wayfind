@@ -89,7 +89,7 @@ impl<S> Node<S> {
             return None;
         }
 
-        let segment_end = path.iter().position(|&b| b == b'/').unwrap_or(path.len());
+        let segment_end = memchr::memchr(b'/', path).unwrap_or(path.len());
         let segment = core::str::from_utf8(&path[..segment_end]).ok()?;
         let path = &path[segment_end..];
 
@@ -168,10 +168,8 @@ impl<S> Node<S> {
                     consumed += 1;
                 }
 
-                let segment_end = remaining_path
-                    .iter()
-                    .position(|&b| b == b'/')
-                    .unwrap_or(remaining_path.len());
+                let segment_end =
+                    memchr::memchr(b'/', remaining_path).unwrap_or(remaining_path.len());
 
                 if segment_end == 0 {
                     consumed += 1;
