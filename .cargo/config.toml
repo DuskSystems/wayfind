@@ -1,0 +1,17 @@
+# https://doc.rust-lang.org/cargo/reference/config.html
+
+# https://doc.rust-lang.org/cargo/reference/profiles.html#dev
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
+
+# https://doc.rust-lang.org/cargo/reference/profiles.html#release
+[profile.release]
+lto = "fat"
+overflow-checks = true
+panic = "abort"
+codegen-units = 1
+
+[profile.profiling]
+inherits = "release"
+debug = true

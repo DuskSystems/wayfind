@@ -1,0 +1,46 @@
+# https://embarkstudios.github.io/cargo-deny
+
+[graph]
+all-features = true
+exclude-dev = true
+
+# https://embarkstudios.github.io/cargo-deny/checks/advisories/cfg.html
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+unmaintained = "all"
+yanked = "deny"
+
+# https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html
+[licenses]
+confidence-threshold = 0.9
+include-dev = true
+unused-allowed-license = "deny"
+allow = [
+  "Apache-2.0",
+  "MIT",
+]
+
+# https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html
+[bans]
+allow-wildcard-paths = true
+multiple-versions = "deny"
+wildcards = "deny"
+
+# https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html#the-workspace-dependencies-field-optional
+[bans.workspace-dependencies]
+include-path-dependencies = true
+duplicates = "deny"
+# Prefer `cargo-shear` instead
+unused = "allow"
+
+# https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html#the-build-field-optional
+[bans.build]
+allow-build-scripts = []
+
+# https://embarkstudios.github.io/cargo-deny/checks/sources/cfg.html
+[sources]
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+unknown-registry = "deny"
+unknown-git = "deny"
+unused-allowed-source = "deny"

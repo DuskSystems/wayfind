@@ -39,17 +39,32 @@ perf = { level = "deny", priority = -1 }
 style = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
-[profile.dev.package]
-insta.opt-level = 3
-similar.opt-level = 3
+[workspace.dependencies]
+# SIMD
+memchr = { version = "2.7", default-features = false }
 
-[profile.release]
-lto = "fat"
-codegen-units = 1
+# Collections
+slab = { version = "0.4", default-features = false }
+smallvec = { version = "1.15", default-features = false }
 
-[profile.profiling]
-inherits = "release"
-debug = true
+# Testing
+insta = { version = "1.46", default-features = false }
+similar-asserts = { version = "1.7", default-features = false }
+
+# Fuzzing
+libfuzzer-sys = { version = "0.4", default-features = false }
+
+# Benchmarking
+divan = { version = "0.1", default-features = false }
+gungraun = { version = "0.17", default-features = false }
+
+# Routers
+actix-router = { version = "=0.5.3", default-features = false }
+matchit = { version = "=0.9.1", default-features = false }
+ntex-router = { version = "=1.0.0", default-features = false }
+path-tree = { version = "=0.8.3", default-features = false }
+route-recognizer = { version = "=0.3.1", default-features = false }
+xitca-router = { version = "=0.4.0", default-features = false }
 
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
@@ -78,31 +93,28 @@ workspace = true
 
 [dependencies]
 # SIMD
-memchr = { version = "2.7", default-features = false, features = ["alloc"] }
+memchr = { workspace = true, features = ["alloc"] }
 
-# Data Structures
-slab = { version = "0.4", default-features = false }
-smallvec = { version = "1.15", default-features = false, features = [
-  "const_generics",
-  "union",
-] }
+# Collections
+slab = { workspace = true }
+smallvec = { workspace = true, features = ["const_generics", "union"] }
 
 [dev-dependencies]
 # Testing
-insta = "1.43"
-similar-asserts = "1.7"
+insta = { workspace = true }
+similar-asserts = { workspace = true }
 
 # Benchmarking
-divan = "0.1"
-gungraun = "0.17"
+divan = { workspace = true }
+gungraun = { workspace = true, features = ["default"] }
 
 # Routers
-actix-router = "=0.5.3"
-matchit = "=0.9.1"
-ntex-router = "=1.0.0"
-path-tree = "=0.8.3"
-route-recognizer = "=0.3.1"
-xitca-router = "=0.4.0"
+actix-router = { workspace = true }
+matchit = { workspace = true }
+ntex-router = { workspace = true }
+path-tree = { workspace = true }
+route-recognizer = { workspace = true }
+xitca-router = { workspace = true }
 
 [[bench]]
 name = "matchit_divan"

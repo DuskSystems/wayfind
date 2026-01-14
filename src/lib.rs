@@ -127,7 +127,7 @@
 //!
 //! ## Display
 //!
-//! The router can be printed as a tree, via a [`Display`](std::fmt::Display) implementation.
+//! The router can be printed as a tree, via a [`Display`](core::fmt::Display) implementation.
 //!
 //! ## Error Messages
 //!

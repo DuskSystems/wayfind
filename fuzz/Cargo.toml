@@ -1,6 +1,5 @@
 [package]
 name = "wayfind-fuzz"
-description = "Fuzzing for `wayfind`."
 publish = false
 
 version.workspace = true
@@ -12,15 +11,17 @@ license.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
-[lints]
-workspace = true
-
 [package.metadata]
 cargo-fuzz = true
 
+[lints]
+workspace = true
+
 [dependencies]
 wayfind = { path = ".." }
-libfuzzer-sys = "0.4"
+
+# Fuzzing
+libfuzzer-sys = { workspace = true, features = ["link_libfuzzer"] }
 
 [[bin]]
 name = "e2e"

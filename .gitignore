@@ -9,14 +9,10 @@ target
 *.data
 *.data.*
 
-# Coverage
-codecov.json
-lcov.info
-
 # Fuzz
 corpus
 artifacts
-coverage
+fuzz-*.log
 
 # Nix
 result

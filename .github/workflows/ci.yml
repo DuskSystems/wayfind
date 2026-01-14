@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   workflow_dispatch:
@@ -10,6 +10,8 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
+permissions: {}
+
 env:
   ACTIONS_CACHE_SERVICE_V2: "on"
   SCCACHE_GHA_ENABLED: "true"
@@ -17,120 +19,134 @@ env:
 
 jobs:
   checks:
+    name: Checks
     runs-on: ubuntu-24.04
     permissions:
-      actions: write
-    defaults:
-      run:
-        shell: nix develop .#ci --command bash {0}
+      actions: write # sccache
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Setup environment
+      - name: Setup
         uses: ./.github/actions/setup
         with:
           shell: ci
 
       - name: Run checks
-        run: |
-          set -eufo pipefail
-          cargo fmt --all --check
-          cargo clippy --workspace
-          cargo check --workspace
-          cargo build --workspace
-          cargo test --workspace
-          cargo test --workspace --doc
-
-  coverage:
-    runs-on: ubuntu-24.04
-    permissions:
-      actions: write
-    defaults:
-      run:
-        shell: nix develop .#nightly --command bash {0}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          shell: nightly
-
-      - name: Generate coverage
-        run: cargo llvm-cov --workspace --doctests --codecov --output-path codecov.json
-
-      - name: Upload coverage results to Codecov
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
-        with:
-          files: codecov.json
-          fail_ci_if_error: true
-          token: "${{ secrets.CODECOV_TOKEN }}"
+        run: ./scripts/checks.sh
 
   msrv:
+    name: MSRV
     runs-on: ubuntu-24.04
     permissions:
-      actions: write
-    defaults:
-      run:
-        shell: nix develop .#msrv --command bash {0}
+      actions: write # sccache
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Setup environment
+      - name: Setup
         uses: ./.github/actions/setup
         with:
-          shell: msrv
+          shell: ci-msrv
 
-      - name: Build wayfind
-        run: cargo build --lib --package wayfind
+      - name: Build
+        run: ./scripts/msrv.sh
 
-  wasm:
+  coverage:
+    name: Coverage
     runs-on: ubuntu-24.04
     permissions:
-      actions: write
-    defaults:
-      run:
-        shell: nix develop .#msrv --command bash {0}
+      actions: write # sccache
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Setup environment
+      - name: Setup
         uses: ./.github/actions/setup
         with:
-          shell: msrv
+          shell: ci-nightly
 
-      - name: Build wayfind
-        run: cargo build --lib --package wayfind --target wasm32-unknown-unknown
+      - name: Generate coverage
+        run: ./scripts/coverage.sh
 
-  no-std:
+      - name: Upload coverage
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage
+          path: target/llvm-cov/html
+
+  docs:
+    name: Docs
     runs-on: ubuntu-24.04
     permissions:
-      actions: write
-    defaults:
-      run:
-        shell: nix develop .#msrv --command bash {0}
+      actions: write # sccache
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Setup environment
+      - name: Setup
         uses: ./.github/actions/setup
         with:
-          shell: msrv
+          shell: ci-nightly
 
-      - name: Build wayfind
-        run: cargo build --lib --package wayfind --target thumbv6m-none-eabi
+      - name: Build docs
+        run: ./scripts/docs.sh
+
+      - name: Upload docs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: docs
+          path: target/doc
+
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write # sccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          shell: ci-nightly
+
+      - name: Run fuzzing
+        run: ./scripts/fuzz.sh
+
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts
+
+  benches:
+    name: Benchmarks
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write # sccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          shell: ci-nightly
+
+      - name: Run benchmarks
+        run: ./scripts/bench.sh
