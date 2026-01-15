@@ -18,8 +18,23 @@ env:
   SCCACHE_GHA_VERSION: "1"
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          save-cache: true
+
   checks:
     name: Checks
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -31,14 +46,13 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci
 
       - name: Run checks
         run: ./scripts/checks.sh
 
   msrv:
     name: MSRV
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -50,14 +64,13 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci-msrv
 
       - name: Build
         run: ./scripts/msrv.sh
 
   coverage:
     name: Coverage
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -69,8 +82,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci-nightly
 
       - name: Generate coverage
         run: ./scripts/coverage.sh
@@ -83,6 +94,7 @@ jobs:
 
   docs:
     name: Docs
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -94,8 +106,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci-nightly
 
       - name: Build docs
         run: ./scripts/docs.sh
@@ -108,6 +118,7 @@ jobs:
 
   fuzz:
     name: Fuzz
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -119,8 +130,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci-nightly
 
       - name: Run fuzzing
         run: ./scripts/fuzz.sh
@@ -134,6 +143,7 @@ jobs:
 
   benches:
     name: Benchmarks
+    needs: setup
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
@@ -145,8 +155,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          shell: ci-nightly
 
       - name: Run benchmarks
         run: ./scripts/bench.sh
