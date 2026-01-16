@@ -5,6 +5,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 0 1 * *" # monthly
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -86,17 +88,18 @@ jobs:
       - name: Generate coverage
         run: ./scripts/coverage.sh
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
-          name: coverage
-          path: target/llvm-cov/html
+          files: codecov.json
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   docs:
     name: Docs
     needs: setup
     runs-on: ubuntu-24.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     permissions:
       actions: write # sccache
       pages: write # pages

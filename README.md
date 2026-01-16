@@ -7,6 +7,8 @@
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 ![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)
 
+[![codecov](https://codecov.io/gh/DuskSystems/wayfind/graph/badge.svg)](https://codecov.io/gh/DuskSystems/wayfind)
+
 # `wayfind`
 
 A speedy, flexible router for Rust.

@@ -9,6 +9,9 @@ target
 *.data
 *.data.*
 
+# Coverage
+codecov.json
+
 # Fuzz
 corpus
 artifacts
