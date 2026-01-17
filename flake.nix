@@ -48,7 +48,7 @@
     {
       devShells = perSystemPkgs (pkgs: {
         # nix develop
-        default = pkgs.mkShell {
+        default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
           name = "wayfind-shell";
 
           env = {
@@ -57,8 +57,15 @@
 
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTFLAGS = "-C target-cpu=native";
-            RUSTDOCFLAGS = "-D warnings";
+            RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C target-cpu=native"
+              "-C linker=clang"
+              "-C link-arg=--ld-path=wild"
+              "-Z threads=0"
+            ];
+            RUSTDOCFLAGS = pkgs.lib.concatStringsSep " " [
+              "--deny warnings"
+            ];
             CARGO_INCREMENTAL = "0";
           };
 
@@ -79,6 +86,7 @@
             })
 
             # Rust
+            wild
             sccache
             taplo
             cargo-deny
@@ -86,8 +94,7 @@
             cargo-insta
             cargo-llvm-cov
             cargo-outdated
-            # FIXME: https://github.com/NixOS/nixpkgs/pull/480054
-            # cargo-semver-checks
+            cargo-semver-checks
             cargo-shear
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
@@ -109,13 +116,19 @@
         };
 
         # nix develop .#ci
-        ci = pkgs.mkShell {
+        ci = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
           name = "wayfind-ci-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
-            RUSTDOCFLAGS = "-D warnings";
+            RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C linker=clang"
+              "-C link-arg=--ld-path=wild"
+            ];
+            RUSTDOCFLAGS = pkgs.lib.concatStringsSep " " [
+              "--deny warnings"
+            ];
             CARGO_INCREMENTAL = "0";
           };
 
@@ -127,6 +140,7 @@
                 "clippy"
               ];
             })
+            wild
             sccache
             cargo-deny
 
@@ -139,12 +153,17 @@
         };
 
         # nix develop .#ci-nightly
-        ci-nightly = pkgs.mkShell {
+        ci-nightly = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
           name = "wayfind-ci-nightly-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C linker=clang"
+              "-C link-arg=--ld-path=wild"
+              "-Z threads=0"
+            ];
             CARGO_INCREMENTAL = "0";
           };
 
@@ -156,6 +175,7 @@
                 "rust-src"
               ];
             })
+            wild
             sccache
             cargo-fuzz
             cargo-llvm-cov
@@ -166,12 +186,16 @@
         };
 
         # nix develop .#ci-msrv
-        ci-msrv = pkgs.mkShell {
+        ci-msrv = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
           name = "wayfind-ci-msrv-shell";
 
           env = {
             # Rust
             RUSTC_WRAPPER = "sccache";
+            RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C linker=clang"
+              "-C link-arg=--ld-path=wild"
+            ];
             CARGO_INCREMENTAL = "0";
           };
 
@@ -183,6 +207,7 @@
                 "wasm32-unknown-unknown"
               ];
             })
+            wild
             sccache
           ];
         };

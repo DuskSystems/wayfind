@@ -13,7 +13,7 @@ runs:
       uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
 
     - name: Cache Nix
-      uses: CathalMullan/cache-nix-action@13164b2c8bb38208b4ea996b5f821f138ee4e954 # main
+      uses: nix-community/cache-nix-action@106bba72ed8e29c8357661199511ef07790175e9 # v7.0.1
       with:
         primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
         restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
