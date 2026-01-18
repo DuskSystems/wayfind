@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 use crate::priority::Priority;
-use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
+use crate::state::{DynamicState, EndWildcardState, RootState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;
@@ -13,6 +13,14 @@ mod find;
 mod insert;
 mod optimize;
 mod search;
+
+const _: () = {
+    assert!(core::mem::size_of::<Node<RootState>>() == 144);
+    assert!(core::mem::size_of::<Node<StaticState>>() == 168);
+    assert!(core::mem::size_of::<Node<DynamicState>>() == 168);
+    assert!(core::mem::size_of::<Node<WildcardState>>() == 168);
+    assert!(core::mem::size_of::<Node<EndWildcardState>>() == 168);
+};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct NodeData {
