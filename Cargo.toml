@@ -97,7 +97,7 @@ memchr = { workspace = true, features = ["alloc"] }
 
 # Collections
 slab = { workspace = true }
-smallvec = { workspace = true, features = ["const_generics", "union"] }
+smallvec = { workspace = true, features = ["const_new", "union"] }
 
 [dev-dependencies]
 # Testing

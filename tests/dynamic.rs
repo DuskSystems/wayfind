@@ -84,15 +84,12 @@ fn dynamic_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<year>", 1)?;
     router.insert("/<year>-<month>", 2)?;
-    router.insert("/<year>-<month>-<day>", 3)?;
 
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <year>
        ╰─ -
           ╰─ <month>
-             ╰─ -
-                ╰─ <day>
     ");
 
     let search = router.search("/2024");
@@ -119,9 +116,9 @@ fn dynamic_inline() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         search,
         Some(Match {
-            data: &3,
-            template: "/<year>-<month>-<day>",
-            parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
+            data: &2,
+            template: "/<year>-<month>",
+            parameters: smallvec![("year", "2024-12"), ("month", "01")],
         })
     );
 

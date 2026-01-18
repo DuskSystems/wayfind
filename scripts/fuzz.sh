@@ -2,6 +2,10 @@
 set -euxo pipefail
 
 TIME="${1:-60}"
+
+rm -rf fuzz/artifacts
+rm -rf fuzz/corpus
+
 for TARGET in $(cargo fuzz list); do
   cargo fuzz run "${TARGET}" \
     --sanitizer none \

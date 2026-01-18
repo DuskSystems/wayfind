@@ -1,5 +1,6 @@
 use alloc::fmt;
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::error::Error;
 
 #[derive(Eq, PartialEq, Debug)]
@@ -245,6 +246,70 @@ pub enum TemplateError {
         /// The combined length of both parameters (including angles).
         length: usize,
     },
+
+    /// Too many parameters were found in a single segment.
+    ///
+    /// At most 2 parameters are allowed per segment.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::TemplateError;
+    ///
+    /// let error = TemplateError::TooManyInline {
+    ///     template: "/<a>-<b>-<c>".to_owned(),
+    ///     parameters: vec![(1, 3), (5, 3), (9, 3)],
+    /// };
+    ///
+    /// let display = r"
+    /// too many parameters in segment
+    ///
+    ///     Template: /<a>-<b>-<c>
+    ///                ^^^ ^^^ ^^^
+    ///
+    /// help: At most 2 parameters are allowed per segment
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    TooManyInline {
+        /// The template containing too many parameters.
+        template: String,
+        /// Positions and lengths of each parameter (start, length).
+        parameters: Vec<(usize, usize)>,
+    },
+
+    /// Too many wildcards were found in the template.
+    ///
+    /// At most 2 wildcards are allowed per template.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::errors::TemplateError;
+    ///
+    /// let error = TemplateError::TooManyWildcards {
+    ///     template: "/<*a>/x/<*b>/y/<*c>".to_owned(),
+    ///     parameters: vec![(1, 4), (8, 4), (15, 4)],
+    /// };
+    ///
+    /// let display = r"
+    /// too many wildcards
+    ///
+    ///     Template: /<*a>/x/<*b>/y/<*c>
+    ///                ^^^^   ^^^^   ^^^^
+    ///
+    /// help: At most 2 wildcards are allowed per template
+    /// ";
+    ///
+    /// assert_eq!(error.to_string(), display.trim());
+    /// ```
+    TooManyWildcards {
+        /// The template containing too many wildcards.
+        template: String,
+        /// Positions and lengths of each wildcard (start, length).
+        parameters: Vec<(usize, usize)>,
+    },
 }
 
 impl Error for TemplateError {}
@@ -377,6 +442,46 @@ help: Parameters must be separated by at least one part
 try:
     - Add a part between the parameters
     - Combine the parameters if they represent a single value"
+                )
+            }
+
+            Self::TooManyInline {
+                template,
+                parameters,
+            } => {
+                let mut arrow = " ".repeat(template.len());
+                for (start, length) in parameters {
+                    arrow.replace_range(*start..(*start + *length), &"^".repeat(*length));
+                }
+
+                write!(
+                    f,
+                    r"too many parameters in segment
+
+    Template: {template}
+              {arrow}
+
+help: At most 2 parameters are allowed per segment"
+                )
+            }
+
+            Self::TooManyWildcards {
+                template,
+                parameters,
+            } => {
+                let mut arrow = " ".repeat(template.len());
+                for (start, length) in parameters {
+                    arrow.replace_range(*start..(*start + *length), &"^".repeat(*length));
+                }
+
+                write!(
+                    f,
+                    r"too many wildcards
+
+    Template: {template}
+              {arrow}
+
+help: At most 2 wildcards are allowed per template"
                 )
             }
         }

@@ -36,8 +36,9 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        // Parameters in order (name, start, length)
         let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
+        let mut wildcard_parameters: SmallVec<[(usize, usize); 4]> = smallvec![];
+        let mut segment_parameters: SmallVec<[(usize, usize); 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -74,6 +75,18 @@ impl Template {
                         seen_parameters.push((name.clone(), cursor, next_cursor - cursor));
                     }
 
+                    segment_parameters.push((cursor, next_cursor - cursor));
+
+                    if matches!(part, Part::Wildcard { .. }) {
+                        wildcard_parameters.push((cursor, next_cursor - cursor));
+                        if wildcard_parameters.len() > 2 {
+                            return Err(TemplateError::TooManyWildcards {
+                                template: String::from_utf8_lossy(input).to_string(),
+                                parameters: wildcard_parameters.to_vec(),
+                            });
+                        }
+                    }
+
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -85,10 +98,31 @@ impl Template {
                 }
                 _ => {
                     let (part, next_cursor) = Self::parse_static_part(input, cursor);
+
+                    if let Part::Static { prefix } = &part {
+                        if prefix.contains(&b'/') {
+                            if segment_parameters.len() > 2 {
+                                return Err(TemplateError::TooManyInline {
+                                    template: String::from_utf8_lossy(input).to_string(),
+                                    parameters: segment_parameters.to_vec(),
+                                });
+                            }
+
+                            segment_parameters.clear();
+                        }
+                    }
+
                     parts.push(part);
                     cursor = next_cursor;
                 }
             }
+        }
+
+        if segment_parameters.len() > 2 {
+            return Err(TemplateError::TooManyInline {
+                template: String::from_utf8_lossy(input).to_string(),
+                parameters: segment_parameters.to_vec(),
+            });
         }
 
         parts.reverse();
@@ -447,6 +481,48 @@ mod tests {
         try:
             - Add a part between the parameters
             - Combine the parameters if they represent a single value
+        ");
+    }
+
+    #[test]
+    fn parser_error_too_many_parameters() {
+        let error = Template::new(b"/<year>-<month>-<day>").unwrap_err();
+        assert_eq!(
+            error,
+            TemplateError::TooManyInline {
+                template: "/<year>-<month>-<day>".to_owned(),
+                parameters: vec![(1, 6), (8, 7), (16, 5)],
+            }
+        );
+
+        insta::assert_snapshot!(error, @"
+        too many parameters in segment
+
+            Template: /<year>-<month>-<day>
+                       ^^^^^^ ^^^^^^^ ^^^^^
+
+        help: At most 2 parameters are allowed per segment
+        ");
+    }
+
+    #[test]
+    fn parser_error_too_many_wildcards() {
+        let error = Template::new(b"/<*a>/x/<*b>/y/<*c>").unwrap_err();
+        assert_eq!(
+            error,
+            TemplateError::TooManyWildcards {
+                template: "/<*a>/x/<*b>/y/<*c>".to_owned(),
+                parameters: vec![(1, 4), (8, 4), (15, 4)],
+            }
+        );
+
+        insta::assert_snapshot!(error, @"
+        too many wildcards
+
+            Template: /<*a>/x/<*b>/y/<*c>
+                       ^^^^   ^^^^   ^^^^
+
+        help: At most 2 wildcards are allowed per template
         ");
     }
 }
