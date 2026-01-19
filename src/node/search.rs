@@ -14,22 +14,31 @@ impl<S> Node<S> {
     /// - end wildcards
     pub fn search<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        if path.is_empty() {
+        self.search_at(path, 0, parameters)
+    }
+
+    fn search_at<'r, 'p>(
+        &'r self,
+        path: &'p str,
+        offset: usize,
+        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
+    ) -> Option<&'r NodeData> {
+        if offset == path.len() {
             return self.data.as_ref();
         }
 
-        if let Some(search) = self.search_static(path, parameters) {
+        if let Some(search) = self.search_static(path, offset, parameters) {
             return Some(search);
         }
 
         if let Some(search) = {
             if self.dynamic_segment_only {
-                self.search_dynamic_segment(path, parameters)
+                self.search_dynamic_segment(path, offset, parameters)
             } else {
-                self.search_dynamic_inline(path, parameters)
+                self.search_dynamic_inline(path, offset, parameters)
             }
         } {
             return Some(search);
@@ -37,39 +46,44 @@ impl<S> Node<S> {
 
         if let Some(search) = {
             if self.wildcard_segment_only {
-                self.search_wildcard_segment(path, parameters)
+                self.search_wildcard_segment(path, offset, parameters)
             } else {
-                self.search_wildcard_inline(path, parameters)
+                self.search_wildcard_inline(path, offset, parameters)
             }
         } {
             return Some(search);
         }
 
-        if let Some(search) = self.search_end_wildcard(path, parameters) {
-            return Some(search);
-        }
-
-        None
+        self.search_end_wildcard(path, offset, parameters)
     }
 
     /// Simple byte comparison between the path and stored static prefixes.
     fn search_static<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let first = *path.first()?;
+        let path_bytes = path.as_bytes();
+        let remaining = &path_bytes[offset..];
+        let first = *remaining.first()?;
+
         for child in &self.static_children {
             if child.state.prefix[0] != first {
                 continue;
             }
 
             // This was previously a "starts_with" call, but turns out this is much faster.
-            if path.len() >= child.state.prefix.len()
-                && child.state.prefix.iter().zip(path).all(|(a, b)| a == b)
+            if remaining.len() >= child.state.prefix.len()
+                && child
+                    .state
+                    .prefix
+                    .iter()
+                    .zip(remaining)
+                    .all(|(a, b)| a == b)
             {
-                let remaining_path = &path[child.state.prefix.len()..];
-                if let Some(data) = child.search(remaining_path, parameters) {
+                let current = offset + child.state.prefix.len();
+                if let Some(data) = child.search_at(path, current, parameters) {
                     return Some(data);
                 }
             }
@@ -82,21 +96,22 @@ impl<S> Node<S> {
     /// This lets use skip ahead to the next `/` (or end of path), rather than walk byte by byte.
     fn search_dynamic_segment<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         if self.dynamic_children.is_empty() {
             return None;
         }
 
-        let segment_end = memchr::memchr(b'/', path).unwrap_or(path.len());
-        let segment = core::str::from_utf8(&path[..segment_end]).ok()?;
-        let path = &path[segment_end..];
+        let remaining = &path.as_bytes()[offset..];
+        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        let segment = &path[offset..offset + segment_end];
 
         for child in &self.dynamic_children {
             parameters.push((&child.state.name, segment));
 
-            if let Some(result) = child.search(path, parameters) {
+            if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
                 return Some(result);
             }
 
@@ -110,11 +125,13 @@ impl<S> Node<S> {
     /// Finds the last occurrence of the separator and splits there.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let segment_end = memchr::memchr(b'/', path).unwrap_or(path.len());
-        let segment = &path[..segment_end];
+        let remaining = &path.as_bytes()[offset..];
+        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        let segment = &remaining[..segment_end];
 
         for child in &self.dynamic_children {
             for suffix in &child.static_suffixes {
@@ -126,10 +143,10 @@ impl<S> Node<S> {
                     continue;
                 }
 
-                let parameter = core::str::from_utf8(&segment[..position]).ok()?;
+                let parameter = &path[offset..offset + position];
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search(&path[position..], parameters) {
+                if let Some(result) = child.search_at(path, offset + position, parameters) {
                     return Some(result);
                 }
 
@@ -137,10 +154,10 @@ impl<S> Node<S> {
             }
 
             if !segment.is_empty() {
-                let parameter = core::str::from_utf8(segment).ok()?;
+                let parameter = &path[offset..offset + segment_end];
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search(&path[segment_end..], parameters) {
+                if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
                     return Some(result);
                 }
 
@@ -155,21 +172,25 @@ impl<S> Node<S> {
     /// This lets us search segment by segment, rather than byte by byte.
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
+        let path_bytes = path.as_bytes();
+
         for child in &self.wildcard_children {
             let mut consumed = 0;
-            let mut remaining_path = path;
+            let mut current = offset;
             let mut section_end = false;
 
-            while !remaining_path.is_empty() {
+            while current < path_bytes.len() {
+                let remaining = &path_bytes[current..];
+
                 if section_end {
                     consumed += 1;
                 }
 
-                let segment_end =
-                    memchr::memchr(b'/', remaining_path).unwrap_or(remaining_path.len());
+                let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
                 if segment_end == 0 {
                     consumed += 1;
@@ -179,25 +200,25 @@ impl<S> Node<S> {
                     section_end = true;
                 }
 
-                let segment = if path[..consumed].ends_with(b"/") {
-                    &path[..consumed - 1]
+                let segment = if path_bytes[offset..offset + consumed].ends_with(b"/") {
+                    &path[offset..offset + consumed - 1]
                 } else {
-                    &path[..consumed]
+                    &path[offset..offset + consumed]
                 };
 
-                parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
+                parameters.push((&child.state.name, segment));
 
-                if let Some(result) = child.search(&remaining_path[segment_end..], parameters) {
+                if let Some(result) = child.search_at(path, current + segment_end, parameters) {
                     return Some(result);
                 }
 
                 parameters.pop();
 
-                if segment_end == remaining_path.len() {
+                if segment_end == remaining.len() {
                     break;
                 }
 
-                remaining_path = &remaining_path[segment_end + 1..];
+                current += segment_end + 1;
             }
         }
 
@@ -208,12 +229,15 @@ impl<S> Node<S> {
     /// Finds the last occurrence of the separator and splits there.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
+        let remaining = &path.as_bytes()[offset..];
+
         for child in &self.wildcard_children {
             for suffix in &child.static_suffixes {
-                let Some(position) = memchr::memmem::rfind(path, suffix) else {
+                let Some(position) = memchr::memmem::rfind(remaining, suffix) else {
                     continue;
                 };
 
@@ -221,21 +245,21 @@ impl<S> Node<S> {
                     continue;
                 }
 
-                let parameter = core::str::from_utf8(&path[..position]).ok()?;
+                let parameter = &path[offset..offset + position];
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search(&path[position..], parameters) {
+                if let Some(result) = child.search_at(path, offset + position, parameters) {
                     return Some(result);
                 }
 
                 parameters.pop();
             }
 
-            if !path.is_empty() {
-                let parameter = core::str::from_utf8(path).ok()?;
+            if !remaining.is_empty() {
+                let parameter = &path[offset..];
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search(&[], parameters) {
+                if let Some(result) = child.search_at(path, path.len(), parameters) {
                     return Some(result);
                 }
 
@@ -249,11 +273,12 @@ impl<S> Node<S> {
     /// If there's anything else, it matches.
     fn search_end_wildcard<'r, 'p>(
         &'r self,
-        path: &'p [u8],
+        path: &'p str,
+        offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         if let Some(child) = &self.end_wildcard {
-            parameters.push((&child.state.name, core::str::from_utf8(path).ok()?));
+            parameters.push((&child.state.name, &path[offset..]));
             return child.data.as_ref();
         }
 
