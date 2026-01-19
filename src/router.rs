@@ -204,7 +204,7 @@ impl<T> Router<T> {
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
-        let data = self.root.search(path.as_bytes(), &mut parameters)?;
+        let data = self.root.search(path, &mut parameters)?;
 
         Some(Match {
             data: self.storage.get(data.key)?,
