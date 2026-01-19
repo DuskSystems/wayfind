@@ -52,6 +52,7 @@ impl<T> Router<T> {
                 wildcard_children: vec![],
                 end_wildcard: None,
 
+                static_suffixes: vec![],
                 dynamic_segment_only: false,
                 wildcard_segment_only: false,
 

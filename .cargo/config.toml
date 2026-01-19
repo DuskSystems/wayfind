@@ -10,7 +10,6 @@ similar.opt-level = 3
 lto = "fat"
 overflow-checks = true
 panic = "abort"
-codegen-units = 1
 
 [profile.profiling]
 inherits = "release"

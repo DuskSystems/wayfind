@@ -36,8 +36,8 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        // Parameters in order (name, start, length)
         let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
+        let mut segment_parameters: SmallVec<[(usize, usize); 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -45,14 +45,14 @@ impl Template {
                     let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, start, length)) = seen_parameters.last() {
-                        if cursor == start + length {
-                            return Err(TemplateError::TouchingParameters {
-                                template: String::from_utf8_lossy(input).to_string(),
-                                start: *start,
-                                length: next_cursor - start,
-                            });
-                        }
+                    if let Some((_, start, length)) = seen_parameters.last()
+                        && cursor == start + length
+                    {
+                        return Err(TemplateError::TouchingParameters {
+                            template: String::from_utf8_lossy(input).to_string(),
+                            start: *start,
+                            length: next_cursor - start,
+                        });
                     }
 
                     // Check for duplicate names.
@@ -74,6 +74,8 @@ impl Template {
                         seen_parameters.push((name.clone(), cursor, next_cursor - cursor));
                     }
 
+                    segment_parameters.push((cursor, next_cursor - cursor));
+
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -85,10 +87,31 @@ impl Template {
                 }
                 _ => {
                     let (part, next_cursor) = Self::parse_static_part(input, cursor);
+
+                    if let Part::Static { prefix } = &part
+                        && prefix.contains(&b'/')
+                    {
+                        if segment_parameters.len() > 1 {
+                            return Err(TemplateError::TooManyInline {
+                                template: String::from_utf8_lossy(input).to_string(),
+                                parameters: segment_parameters.to_vec(),
+                            });
+                        }
+
+                        segment_parameters.clear();
+                    }
+
                     parts.push(part);
                     cursor = next_cursor;
                 }
             }
+        }
+
+        if segment_parameters.len() > 1 {
+            return Err(TemplateError::TooManyInline {
+                template: String::from_utf8_lossy(input).to_string(),
+                parameters: segment_parameters.to_vec(),
+            });
         }
 
         parts.reverse();
@@ -447,6 +470,27 @@ mod tests {
         try:
             - Add a part between the parameters
             - Combine the parameters if they represent a single value
+        ");
+    }
+
+    #[test]
+    fn parser_error_too_many_parameters() {
+        let error = Template::new(b"/<name>.<ext>").unwrap_err();
+        assert_eq!(
+            error,
+            TemplateError::TooManyInline {
+                template: "/<name>.<ext>".to_owned(),
+                parameters: vec![(1, 6), (8, 5)],
+            }
+        );
+
+        insta::assert_snapshot!(error, @"
+        too many parameters in segment
+
+            Template: /<name>.<ext>
+                       ^^^^^^ ^^^^^
+
+        help: Only 1 parameter is allowed per segment
         ");
     }
 }

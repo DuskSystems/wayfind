@@ -115,44 +115,6 @@ fn wildcard_inline() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*first>-<*second>", 1)?;
-
-    insta::assert_snapshot!(router, @r"
-    /
-    ╰─ <*first>
-       ╰─ -
-          ╰─ <*second>
-    ");
-
-    let search = router.search("/a-b-c");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*first>-<*second>",
-            parameters: smallvec![("first", "a-b"), ("second", "c")],
-        })
-    );
-
-    let search = router.search("/path/to/some-file/with-multiple-hyphens");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*first>-<*second>",
-            parameters: smallvec![
-                ("first", "path/to/some-file/with-multiple"),
-                ("second", "hyphens")
-            ],
-        })
-    );
-
-    Ok(())
-}
-
-#[test]
 fn wildcard_empty_segments() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>/end", 1)?;

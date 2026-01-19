@@ -60,6 +60,7 @@ impl<S> Node<S> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
+                static_suffixes: core::mem::take(&mut child.static_suffixes),
                 dynamic_segment_only: child.dynamic_segment_only,
                 wildcard_segment_only: child.wildcard_segment_only,
 
@@ -75,6 +76,7 @@ impl<S> Node<S> {
                 wildcard_children: vec![],
                 end_wildcard: None,
 
+                static_suffixes: vec![],
                 dynamic_segment_only: false,
                 wildcard_segment_only: false,
 
@@ -106,6 +108,7 @@ impl<S> Node<S> {
                 wildcard_children: vec![],
                 end_wildcard: None,
 
+                static_suffixes: vec![],
                 dynamic_segment_only: false,
                 wildcard_segment_only: false,
 
@@ -137,6 +140,7 @@ impl<S> Node<S> {
                     wildcard_children: vec![],
                     end_wildcard: None,
 
+                    static_suffixes: vec![],
                     dynamic_segment_only: false,
                     wildcard_segment_only: false,
 
@@ -169,6 +173,7 @@ impl<S> Node<S> {
                     wildcard_children: vec![],
                     end_wildcard: None,
 
+                    static_suffixes: vec![],
                     dynamic_segment_only: false,
                     wildcard_segment_only: false,
 
@@ -184,10 +189,10 @@ impl<S> Node<S> {
     }
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
-        if let Some(child) = &self.end_wildcard {
-            if child.state.name == name {
-                return;
-            }
+        if let Some(child) = &self.end_wildcard
+            && child.state.name == name
+        {
+            return;
         }
 
         self.end_wildcard = Some(Box::new(Node {
@@ -199,6 +204,7 @@ impl<S> Node<S> {
             wildcard_children: vec![],
             end_wildcard: None,
 
+            static_suffixes: vec![],
             dynamic_segment_only: false,
             wildcard_segment_only: false,
 
