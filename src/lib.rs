@@ -60,7 +60,7 @@
 //! fn main() -> Result<(), Box<dyn Error>> {
 //!     let mut router = Router::new();
 //!     router.insert("/users/<id>", 1)?;
-//!     router.insert("/users/<id>/files/<filename>.<extension>", 2)?;
+//!     router.insert("/users/<id>/files/<filename>.pdf", 2)?;
 //!
 //!     let search = router.search("/users/123").unwrap();
 //!     assert_eq!(search.data, &1);
@@ -69,10 +69,9 @@
 //!
 //!     let search = router.search("/users/123/files/my.document.pdf").unwrap();
 //!     assert_eq!(search.data, &2);
-//!     assert_eq!(search.template, "/users/<id>/files/<filename>.<extension>");
+//!     assert_eq!(search.template, "/users/<id>/files/<filename>.pdf");
 //!     assert_eq!(search.parameters[0], ("id", "123"));
 //!     assert_eq!(search.parameters[1], ("filename", "my.document"));
-//!     assert_eq!(search.parameters[2], ("extension", "pdf"));
 //!
 //!     Ok(())
 //! }

@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Raised MSRV from 1.85 to 1.88.
 - Utilize `memchr` for string searching.
+- Limit inline parameters to 1 per segment, preventing Avoid exponential searches.
 
 ### Removed
 
 - Unreachable `TemplateError::EmptyAngles` error variant has been removed.
+- Multi-parameter segments like `/<name>.<ext>` are no longer supported.
 
 ## [0.9.0] - 2025-08-27
 

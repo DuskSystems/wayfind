@@ -2,7 +2,7 @@
 [![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
 
-![rust: 1.85+](https://img.shields.io/badge/rust-1.85+-orange.svg)
+![rust: 1.88+](https://img.shields.io/badge/rust-1.88+-orange.svg)
 ![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 ![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)
@@ -77,7 +77,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Dynamic Inline
     router.insert("/images/<name>.png", 5)?;
-    router.insert("/images/<name>.<ext>", 6)?;
 
     {
         let search = router.search("/images/avatar.final.png").unwrap();
@@ -85,28 +84,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         assert_eq!(search.template, "/images/<name>.png");
         assert_eq!(search.parameters[0], ("name", "avatar.final"));
 
-        let search = router.search("/images/photo.jpg").unwrap();
-        assert_eq!(search.data, &6);
-        assert_eq!(search.template, "/images/<name>.<ext>");
-        assert_eq!(search.parameters[0], ("name", "photo"));
-        assert_eq!(search.parameters[1], ("ext", "jpg"));
-
         let search = router.search("/images/.png");
         assert_eq!(search, None);
     }
 
     // Wildcard
-    router.insert("/files/<*path>", 7)?;
-    router.insert("/files/<*path>/delete", 8)?;
+    router.insert("/files/<*path>", 6)?;
+    router.insert("/files/<*path>/delete", 7)?;
 
     {
         let search = router.search("/files/documents").unwrap();
-        assert_eq!(search.data, &7);
+        assert_eq!(search.data, &6);
         assert_eq!(search.template, "/files/<*path>");
         assert_eq!(search.parameters[0], ("path", "documents"));
 
         let search = router.search("/files/documents/my-project/delete").unwrap();
-        assert_eq!(search.data, &8);
+        assert_eq!(search.data, &7);
         assert_eq!(search.template, "/files/<*path>/delete");
         assert_eq!(search.parameters[0], ("path", "documents/my-project"));
 
@@ -115,22 +108,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // Wildcard Inline
-    router.insert("/backups/<*path>.tar.gz", 9)?;
-    router.insert("/backups/<*path>.<ext>", 10)?;
+    router.insert("/backups/<*path>.tar.gz", 8)?;
 
     {
         let search = router.search("/backups/production/database.tar.gz").unwrap();
-        assert_eq!(search.data, &9);
+        assert_eq!(search.data, &8);
         assert_eq!(search.template, "/backups/<*path>.tar.gz");
         assert_eq!(search.parameters[0], ("path", "production/database"));
 
-        let search = router.search("/backups/dev/application.log.bak").unwrap();
-        assert_eq!(search.data, &10);
-        assert_eq!(search.template, "/backups/<*path>.<ext>");
-        assert_eq!(search.parameters[0], ("path", "dev/application.log"));
-        assert_eq!(search.parameters[1], ("ext", "bak"));
-
-        let search = router.search("/backups/.bak");
+        let search = router.search("/backups/.tar.gz");
         assert_eq!(search, None);
     }
 
@@ -143,9 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 /
 ├─ backups/
 │  ╰─ <*path>
-│     ╰─ .
-│        ├─ tar.gz
-│        ╰─ <ext>
+│     ╰─ .tar.gz
 ├─ files/
 │  ├─ <*path>
 │  │  ╰─ /delete
@@ -153,9 +137,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 ├─ health
 ├─ images/
 │  ╰─ <name>
-│     ╰─ .
-│        ├─ png
-│        ╰─ <ext>
+│     ╰─ .png
 ╰─ users/
    ╰─ <id>
       ╰─ /message
@@ -171,8 +153,6 @@ Most routers either use "first match wins" or "best match wins" (via backtrackin
 
 - per segment: first match wins
 - within segment: best match wins
-
-You only pay the cost of backtracking if you make use of inline parameters, and only for that given segment.
 
 This can result in some matches which may be unexpected, but in practice it works well for real-world usage.
 

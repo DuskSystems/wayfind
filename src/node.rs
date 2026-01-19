@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::cmp::Ordering;
 
 use crate::priority::Priority;
-use crate::state::{DynamicState, EndWildcardState, RootState, StaticState, WildcardState};
+use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;
@@ -14,12 +14,13 @@ mod insert;
 mod optimize;
 mod search;
 
+#[cfg(target_pointer_width = "64")]
 const _: () = {
-    assert!(core::mem::size_of::<Node<RootState>>() == 144);
-    assert!(core::mem::size_of::<Node<StaticState>>() == 168);
-    assert!(core::mem::size_of::<Node<DynamicState>>() == 168);
-    assert!(core::mem::size_of::<Node<WildcardState>>() == 168);
-    assert!(core::mem::size_of::<Node<EndWildcardState>>() == 168);
+    assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 168);
+    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::EndWildcardState>>() == 192);
 };
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -48,6 +49,8 @@ pub struct Node<S> {
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub end_wildcard: Option<Box<Node<EndWildcardState>>>,
 
+    /// Precomputed static suffixes for inline parameter matching.
+    pub static_suffixes: Vec<Vec<u8>>,
     /// Whether all dynamic children are full segments, allowing for faster searching.
     pub dynamic_segment_only: bool,
     /// Whether all wildcard children are full segments, allowing for faster searching.

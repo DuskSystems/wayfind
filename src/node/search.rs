@@ -1,4 +1,4 @@
-use smallvec::{SmallVec, smallvec};
+use smallvec::SmallVec;
 
 use crate::node::{Node, NodeData};
 
@@ -106,45 +106,45 @@ impl<S> Node<S> {
         None
     }
 
-    /// Slower dynamic path for complex templates like `/<name>.<extension>`.
-    /// Must try each byte to consider all possible permutations.
-    /// Prefers the most specific match, via backtracking.
+    /// Greedy dynamic path for complex templates like `/<name>.txt`.
+    /// Finds the last occurrence of the separator and splits there.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
+        let segment_end = memchr::memchr(b'/', path).unwrap_or(path.len());
+        let segment = &path[..segment_end];
+
         for child in &self.dynamic_children {
-            let mut consumed = 0;
-
-            let mut best_match: Option<&'r NodeData> = None;
-            let mut best_match_parameters = smallvec![];
-
-            while consumed < path.len() {
-                if path[consumed] == b'/' {
-                    break;
-                }
-
-                consumed += 1;
-
-                let segment = &path[..consumed];
-
-                let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
-
-                let Some(data) = child.search(&path[consumed..], &mut current_parameters) else {
+            for suffix in &child.static_suffixes {
+                let Some(position) = memchr::memmem::rfind(segment, suffix) else {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| data.priority >= best.priority) {
-                    best_match = Some(data);
-                    best_match_parameters = current_parameters;
+                if position == 0 {
+                    continue;
                 }
+
+                let parameter = core::str::from_utf8(&segment[..position]).ok()?;
+                parameters.push((&child.state.name, parameter));
+
+                if let Some(result) = child.search(&path[position..], parameters) {
+                    return Some(result);
+                }
+
+                parameters.pop();
             }
 
-            if let Some(result) = best_match {
-                *parameters = best_match_parameters;
-                return Some(result);
+            if !segment.is_empty() {
+                let parameter = core::str::from_utf8(segment).ok()?;
+                parameters.push((&child.state.name, parameter));
+
+                if let Some(result) = child.search(&path[segment_end..], parameters) {
+                    return Some(result);
+                }
+
+                parameters.pop();
             }
         }
 
@@ -204,41 +204,42 @@ impl<S> Node<S> {
         None
     }
 
-    /// Slower wildcard path for complex templates like `/<*name>.txt`.
-    /// Must try each byte, since the wildcard ends mid-segment.
-    /// Prefers the most specific match, via backtracking.
+    /// Greedy wildcard path for complex templates like `/<*name>.txt`.
+    /// Finds the last occurrence of the separator and splits there.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p [u8],
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         for child in &self.wildcard_children {
-            let mut consumed = 0;
-
-            let mut best_match: Option<&'r NodeData> = None;
-            let mut best_match_parameters = smallvec![];
-
-            while consumed < path.len() {
-                consumed += 1;
-
-                let segment = &path[..consumed];
-
-                let mut current_parameters = parameters.clone();
-                current_parameters.push((&child.state.name, core::str::from_utf8(segment).ok()?));
-
-                let Some(data) = child.search(&path[consumed..], &mut current_parameters) else {
+            for suffix in &child.static_suffixes {
+                let Some(position) = memchr::memmem::rfind(path, suffix) else {
                     continue;
                 };
 
-                if best_match.is_none_or(|best| data.priority >= best.priority) {
-                    best_match = Some(data);
-                    best_match_parameters = current_parameters;
+                if position == 0 {
+                    continue;
                 }
+
+                let parameter = core::str::from_utf8(&path[..position]).ok()?;
+                parameters.push((&child.state.name, parameter));
+
+                if let Some(result) = child.search(&path[position..], parameters) {
+                    return Some(result);
+                }
+
+                parameters.pop();
             }
 
-            if let Some(result) = best_match {
-                *parameters = best_match_parameters;
-                return Some(result);
+            if !path.is_empty() {
+                let parameter = core::str::from_utf8(path).ok()?;
+                parameters.push((&child.state.name, parameter));
+
+                if let Some(result) = child.search(&[], parameters) {
+                    return Some(result);
+                }
+
+                parameters.pop();
             }
         }
 

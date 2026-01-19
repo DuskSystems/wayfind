@@ -108,7 +108,7 @@ impl<S> Node<S> {
         Some(data)
     }
 
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()
@@ -116,7 +116,7 @@ impl<S> Node<S> {
             && self.end_wildcard.is_none()
     }
 
-    fn is_compressible(&self) -> bool {
+    const fn is_compressible(&self) -> bool {
         self.data.is_none()
             && self.static_children.len() == 1
             && self.dynamic_children.is_empty()
