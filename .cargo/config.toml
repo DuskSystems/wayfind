@@ -7,7 +7,6 @@ similar.opt-level = 3
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html#release
 [profile.release]
-lto = "fat"
 overflow-checks = true
 panic = "abort"
 
