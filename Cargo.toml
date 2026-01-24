@@ -55,8 +55,7 @@ similar-asserts = { version = "1.7", default-features = false }
 libfuzzer-sys = { version = "0.4", default-features = false }
 
 # Benchmarking
-divan = { version = "0.1", default-features = false }
-gungraun = { version = "0.17", default-features = false }
+divan = { package = "codspeed-divan-compat", version = "4.3", default-features = false }
 
 # Routers
 actix-router = { version = "=0.5.3", default-features = false }
@@ -106,7 +105,6 @@ similar-asserts = { workspace = true }
 
 # Benchmarking
 divan = { workspace = true }
-gungraun = { workspace = true, features = ["default"] }
 
 # Routers
 actix-router = { workspace = true }
@@ -117,17 +115,9 @@ route-recognizer = { workspace = true }
 xitca-router = { workspace = true }
 
 [[bench]]
-name = "matchit_divan"
+name = "matchit"
 harness = false
 
 [[bench]]
-name = "matchit_gungraun"
-harness = false
-
-[[bench]]
-name = "path_tree_divan"
-harness = false
-
-[[bench]]
-name = "path_tree_gungraun"
+name = "path_tree"
 harness = false

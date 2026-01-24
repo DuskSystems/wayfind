@@ -1,4 +1,4 @@
 #!/usr/bin/env -S nix develop .#ci-nightly --command bash
 set -euxo pipefail
 
-cargo bench
+cargo codspeed build

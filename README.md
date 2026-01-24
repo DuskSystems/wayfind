@@ -8,6 +8,7 @@
 ![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)
 
 [![codecov](https://codecov.io/gh/DuskSystems/wayfind/graph/badge.svg)](https://codecov.io/gh/DuskSystems/wayfind)
+[![codspeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DuskSystems/wayfind)
 
 # `wayfind`
 
