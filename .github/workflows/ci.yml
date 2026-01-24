@@ -159,6 +159,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       actions: write # sccache
+      id-token: write # codspeed
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -168,5 +169,17 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Run benchmarks
-        run: ./scripts/bench.sh
+      - name: Build benchmarks
+        run: ./scripts/bench-build.sh
+
+      - name: Run benchmarks (CPU)
+        uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4.8.2
+        with:
+          mode: simulation
+          run: ./scripts/bench-run.sh
+
+      - name: Run benchmarks (Memory)
+        uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4.8.2
+        with:
+          mode: memory
+          run: ./scripts/bench-run.sh

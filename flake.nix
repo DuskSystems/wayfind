@@ -34,11 +34,6 @@
 
           overlays = [
             rust-overlay.overlays.default
-
-            (final: prev: {
-              # FIXME: https://github.com/NixOS/nixpkgs/pull/480112
-              gungraun-runner = final.callPackage ./pkgs/gungraun-runner { };
-            })
           ];
         }
       );
@@ -89,6 +84,7 @@
             wild
             sccache
             taplo
+            cargo-codspeed
             cargo-deny
             cargo-fuzz
             cargo-insta
@@ -97,9 +93,6 @@
             cargo-semver-checks
             cargo-shear
             vscode-extensions.vadimcn.vscode-lldb.adapter
-
-            # Benchmarking
-            gungraun-runner
 
             # GitHub
             zizmor
@@ -177,11 +170,9 @@
             })
             wild
             sccache
+            cargo-codspeed
             cargo-fuzz
             cargo-llvm-cov
-
-            # Benchmarking
-            gungraun-runner
           ];
         };
 
