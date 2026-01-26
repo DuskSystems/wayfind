@@ -83,7 +83,7 @@
             # Rust
             wild
             sccache
-            taplo
+            tombi
             cargo-codspeed
             cargo-deny
             cargo-fuzz
@@ -135,6 +135,7 @@
             })
             wild
             sccache
+            tombi
             cargo-deny
 
             # GitHub

@@ -4,6 +4,7 @@ set -euxo pipefail
 cargo fmt --all --check
 cargo clippy --workspace
 typos
+tombi lint --error-on-warnings
 zizmor --pedantic .github
 cargo deny check
 cargo check --workspace
