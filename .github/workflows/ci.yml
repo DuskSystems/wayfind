@@ -120,7 +120,7 @@ jobs:
         run: ./scripts/docs.sh
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: target/doc
 
@@ -148,7 +148,7 @@ jobs:
 
       - name: Upload artifacts
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: fuzz-artifacts
           path: fuzz/artifacts
@@ -173,13 +173,13 @@ jobs:
         run: ./scripts/bench-build.sh
 
       - name: Run benchmarks (CPU)
-        uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4.8.2
+        uses: CodSpeedHQ/action@efce601fed058209a5b98d4681771cc176692038 # v4.10.0
         with:
           mode: simulation
           run: ./scripts/bench-run.sh
 
       - name: Run benchmarks (Memory)
-        uses: CodSpeedHQ/action@e736f0d2aeb36da38e9f08eca4dff7967408d154 # v4.8.2
+        uses: CodSpeedHQ/action@efce601fed058209a5b98d4681771cc176692038 # v4.10.0
         with:
           mode: memory
           run: ./scripts/bench-run.sh
