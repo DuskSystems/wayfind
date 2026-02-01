@@ -7,15 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `TemplateError::TooManyParameters` error variant for segments with multiple parameters.
+- `Router<T>` now implements `Default`.
+
 ### Changed
 
 - Raised MSRV from 1.85 to 1.88.
 - Utilize `memchr` for string searching.
-- Limit inline parameters to 1 per segment, preventing Avoid exponential searches.
+- Limit inline parameters to 1 per segment, preventing exponential searches.
+- `InsertError::Conflict` field renamed from `conflict` to `existing`.
+- `DuplicateParameter` fields renamed from `first` / `second` to `original` / `duplicate`.
+- Error struct fields changed from `start` / `length` to ranges.
+- Error types now derive `Clone`.
+- Debug output uses unicode characters now.
 
 ### Removed
 
-- Unreachable `TemplateError::EmptyAngles` error variant has been removed.
+- `TemplateError::EmptyAngles` error variant.
 - Multi-parameter segments like `/<name>.<ext>` are no longer supported.
 
 ## [0.9.0] - 2025-08-27

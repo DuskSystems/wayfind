@@ -1,6 +1,7 @@
 use alloc::string::{String, ToString as _};
 use alloc::vec;
 use alloc::vec::Vec;
+use core::ops::Range;
 
 use smallvec::{SmallVec, smallvec};
 
@@ -36,8 +37,8 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: SmallVec<[(String, usize, usize); 4]> = smallvec![];
-        let mut segment_parameters: SmallVec<[(usize, usize); 4]> = smallvec![];
+        let mut seen_parameters: SmallVec<[(String, Range<usize>); 4]> = smallvec![];
+        let mut segment_parameters: SmallVec<[Range<usize>; 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -45,36 +46,37 @@ impl Template {
                     let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, start, length)) = seen_parameters.last()
-                        && cursor == start + length
+                    if let Some((first, last)) = seen_parameters.last()
+                        && cursor == last.end
+                        && let Part::Dynamic { name: second } | Part::Wildcard { name: second } =
+                            &part
                     {
                         return Err(TemplateError::TouchingParameters {
                             template: String::from_utf8_lossy(input).to_string(),
-                            start: *start,
-                            length: next_cursor - start,
+                            first: first.clone(),
+                            second: second.clone(),
+                            position: last.start..next_cursor,
                         });
                     }
 
                     // Check for duplicate names.
                     if let Part::Dynamic { name } | Part::Wildcard { name } = &part {
-                        if let Some((_, start, length)) = seen_parameters
+                        if let Some((_, original)) = seen_parameters
                             .iter()
-                            .find(|(existing, _, _)| existing == name)
+                            .find(|(existing, _)| existing == name)
                         {
                             return Err(TemplateError::DuplicateParameter {
                                 template: String::from_utf8_lossy(input).to_string(),
                                 name: name.clone(),
-                                first: *start,
-                                first_length: *length,
-                                second: cursor,
-                                second_length: next_cursor - cursor,
+                                original: original.clone(),
+                                duplicate: cursor..next_cursor,
                             });
                         }
 
-                        seen_parameters.push((name.clone(), cursor, next_cursor - cursor));
+                        seen_parameters.push((name.clone(), cursor..next_cursor));
                     }
 
-                    segment_parameters.push((cursor, next_cursor - cursor));
+                    segment_parameters.push(cursor..next_cursor);
 
                     parts.push(part);
                     cursor = next_cursor;
@@ -82,7 +84,7 @@ impl Template {
                 b'>' => {
                     return Err(TemplateError::UnbalancedAngle {
                         template: String::from_utf8_lossy(input).to_string(),
-                        position: cursor,
+                        position: cursor..cursor + 1,
                     });
                 }
                 _ => {
@@ -92,9 +94,9 @@ impl Template {
                         && prefix.contains(&b'/')
                     {
                         if segment_parameters.len() > 1 {
-                            return Err(TemplateError::TooManyInline {
+                            return Err(TemplateError::TooManyParameters {
                                 template: String::from_utf8_lossy(input).to_string(),
-                                parameters: segment_parameters.to_vec(),
+                                positions: segment_parameters.to_vec(),
                             });
                         }
 
@@ -108,9 +110,9 @@ impl Template {
         }
 
         if segment_parameters.len() > 1 {
-            return Err(TemplateError::TooManyInline {
+            return Err(TemplateError::TooManyParameters {
                 template: String::from_utf8_lossy(input).to_string(),
-                parameters: segment_parameters.to_vec(),
+                positions: segment_parameters.to_vec(),
             });
         }
 
@@ -159,7 +161,7 @@ impl Template {
         if angle_count != 0 {
             return Err(TemplateError::UnbalancedAngle {
                 template: String::from_utf8_lossy(input).to_string(),
-                position: cursor,
+                position: cursor..cursor + 1,
             });
         }
 
@@ -167,8 +169,7 @@ impl Template {
         if content.is_empty() {
             return Err(TemplateError::EmptyParameter {
                 template: String::from_utf8_lossy(input).to_string(),
-                start: cursor,
-                length: end - cursor + 1,
+                position: cursor..end + 1,
             });
         }
 
@@ -178,8 +179,7 @@ impl Template {
         if is_wildcard && name.is_empty() {
             return Err(TemplateError::EmptyWildcard {
                 template: String::from_utf8_lossy(input).to_string(),
-                start: cursor,
-                length: end - cursor + 1,
+                position: cursor..end + 1,
             });
         }
 
@@ -187,8 +187,7 @@ impl Template {
             return Err(TemplateError::InvalidParameter {
                 template: String::from_utf8_lossy(input).to_string(),
                 name: String::from_utf8_lossy(name).to_string(),
-                start: cursor,
-                length: end - cursor + 1,
+                position: cursor..end + 1,
             });
         }
 
@@ -196,8 +195,7 @@ impl Template {
             String::from_utf8(name.to_vec()).map_err(|_name| TemplateError::InvalidParameter {
                 template: String::from_utf8_lossy(input).to_string(),
                 name: String::from_utf8_lossy(name).to_string(),
-                start: cursor,
-                length: end - cursor + 1,
+                position: cursor..end + 1,
             })?;
 
         let part = if is_wildcard {
@@ -284,213 +282,137 @@ mod tests {
     #[test]
     fn parser_error_empty() {
         let error = Template::new(b"").unwrap_err();
-        assert_eq!(error, TemplateError::Empty);
-
         insta::assert_snapshot!(error, @"empty template");
+        insta::assert_debug_snapshot!(error, @r"
+        error: empty template
+
+        help: templates must not be empty
+        ");
     }
 
     #[test]
     fn parser_error_empty_parameter() {
         let error = Template::new(b"/users/<>").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::EmptyParameter {
-                template: "/users/<>".to_owned(),
-                start: 7,
-                length: 2,
-            }
-        );
+        insta::assert_snapshot!(error, @"empty parameter name in `/users/<>`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: empty parameter name
 
-        insta::assert_snapshot!(error, @r"
-        empty parameter name
+            /users/<>
+                   ━━
 
-            Template: /users/<>
-                             ^^
+        help: provide a name between `<` and `>`
         ");
     }
 
     #[test]
     fn parser_error_missing_leading_slash() {
         let error = Template::new(b"abc").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::MissingLeadingSlash {
-                template: "abc".to_owned(),
-            }
-        );
+        insta::assert_snapshot!(error, @"missing leading slash in `abc`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: missing leading slash
 
-        insta::assert_snapshot!(error, @r"
-        missing leading slash
+            abc
+            ━━━
 
-            Template: abc
-
-        help: Templates must begin with '/'
+        help: templates must begin with `/`
         ");
     }
 
     #[test]
     fn parser_error_unbalanced_angle_opening() {
         let error = Template::new(b"/users/<id/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::UnbalancedAngle {
-                template: "/users/<id/profile".to_owned(),
-                position: 7,
-            }
-        );
+        insta::assert_snapshot!(error, @"unbalanced angle bracket in `/users/<id/profile`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: unbalanced angle bracket
 
-        insta::assert_snapshot!(error, @r"
-        unbalanced angle
+            /users/<id/profile
+                   ━
 
-            Template: /users/<id/profile
-                             ^
-
-        help: Each '<' must have a matching '>'
-
-        try:
-            - Add the missing closing angle
+        help: each `<` must have a matching `>`
         ");
     }
 
     #[test]
     fn parser_error_unbalanced_angle_closing() {
         let error = Template::new(b"/users/id>/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::UnbalancedAngle {
-                template: "/users/id>/profile".to_owned(),
-                position: 9,
-            }
-        );
+        insta::assert_snapshot!(error, @"unbalanced angle bracket in `/users/id>/profile`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: unbalanced angle bracket
 
-        insta::assert_snapshot!(error, @r"
-        unbalanced angle
+            /users/id>/profile
+                     ━
 
-            Template: /users/id>/profile
-                               ^
-
-        help: Each '<' must have a matching '>'
-
-        try:
-            - Add the missing closing angle
+        help: each `<` must have a matching `>`
         ");
     }
 
     #[test]
     fn parser_error_invalid_parameter() {
         let error = Template::new(b"/users/<user*name>/profile").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::InvalidParameter {
-                template: "/users/<user*name>/profile".to_owned(),
-                name: "user*name".to_owned(),
-                start: 7,
-                length: 11,
-            }
-        );
+        insta::assert_snapshot!(error, @"invalid parameter name `user*name` in `/users/<user*name>/profile`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: invalid parameter name: `user*name`
 
-        insta::assert_snapshot!(error, @r"
-        invalid parameter name: 'user*name'
+            /users/<user*name>/profile
+                   ━━━━━━━━━━━
 
-            Template: /users/<user*name>/profile
-                             ^^^^^^^^^^^
-
-        help: Parameter names must not contain the characters: '*', '<', '>', '/'
+        help: parameter names must not contain `*`, `<`, `>`, or `/`
         ");
     }
 
     #[test]
     fn parser_error_duplicate_parameter() {
         let error = Template::new(b"/users/<id>/posts/<id>").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::DuplicateParameter {
-                template: "/users/<id>/posts/<id>".to_owned(),
-                name: "id".to_owned(),
-                first: 7,
-                first_length: 4,
-                second: 18,
-                second_length: 4,
-            }
-        );
+        insta::assert_snapshot!(error, @"duplicate parameter name `id` in `/users/<id>/posts/<id>`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: duplicate parameter name: `id`
 
-        insta::assert_snapshot!(error, @r"
-        duplicate parameter name: 'id'
+            /users/<id>/posts/<id>
+                   ━━━━       ━━━━
 
-            Template: /users/<id>/posts/<id>
-                             ^^^^       ^^^^
-
-        help: Parameter names must be unique within a template
-
-        try:
-            - Rename one of the parameters to be unique
+        help: rename one of the parameters
         ");
     }
 
     #[test]
     fn parser_error_empty_wildcard() {
         let error = Template::new(b"/files/<*>").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::EmptyWildcard {
-                template: "/files/<*>".to_owned(),
-                start: 7,
-                length: 3,
-            }
-        );
+        insta::assert_snapshot!(error, @"empty wildcard name in `/files/<*>`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: empty wildcard name
 
-        insta::assert_snapshot!(error, @r"
-        empty wildcard name
+            /files/<*>
+                   ━━━
 
-            Template: /files/<*>
-                             ^^^
+        help: provide a name after `*`
         ");
     }
 
     #[test]
     fn parser_error_touching_parameters() {
         let error = Template::new(b"/users/<id><*name>").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::TouchingParameters {
-                template: "/users/<id><*name>".to_owned(),
-                start: 7,
-                length: 11,
-            }
-        );
+        insta::assert_snapshot!(error, @"touching parameters in `/users/<id><*name>`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: touching parameters `id` and `name`
 
-        insta::assert_snapshot!(error, @r"
-        touching parameters
+            /users/<id><*name>
+                   ━━━━━━━━━━━
 
-            Template: /users/<id><*name>
-                             ^^^^^^^^^^^
-
-        help: Parameters must be separated by at least one part
-
-        try:
-            - Add a part between the parameters
-            - Combine the parameters if they represent a single value
+        help: parameters must be separated by at least one static segment
         ");
     }
 
     #[test]
     fn parser_error_too_many_parameters() {
         let error = Template::new(b"/<name>.<ext>").unwrap_err();
-        assert_eq!(
-            error,
-            TemplateError::TooManyInline {
-                template: "/<name>.<ext>".to_owned(),
-                parameters: vec![(1, 6), (8, 5)],
-            }
-        );
+        insta::assert_snapshot!(error, @"too many parameters in segment in `/<name>.<ext>`");
+        insta::assert_debug_snapshot!(error, @r"
+        error: too many parameters in segment
 
-        insta::assert_snapshot!(error, @"
-        too many parameters in segment
+            /<name>.<ext>
+             ━━━━━━ ━━━━━
 
-            Template: /<name>.<ext>
-                       ^^^^^^ ^^^^^
-
-        help: Only 1 parameter is allowed per segment
+        help: only one parameter is allowed per segment
         ");
     }
 }

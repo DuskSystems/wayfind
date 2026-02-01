@@ -4,12 +4,13 @@ use core::error::Error;
 
 use crate::errors::TemplateError;
 
-#[derive(Eq, PartialEq, Debug)]
+/// Errors relating to template insertion.
+#[derive(Clone, Eq, PartialEq)]
 pub enum InsertError {
     /// A [`TemplateError`] that occurred during the insert.
     Template(TemplateError),
 
-    /// A conflicting template found during the insert.
+    /// A conflicting template already exists in the router.
     ///
     /// # Examples
     ///
@@ -18,29 +19,27 @@ pub enum InsertError {
     ///
     /// let error = InsertError::Conflict {
     ///     template: "/users/<id>".to_owned(),
-    ///     conflict: "/users/<user>".to_owned(),
+    ///     existing: "/users/<user>".to_owned(),
     /// };
     ///
-    /// let display = r"
-    /// conflict detected
+    /// let display = "conflict: `/users/<id>` conflicts with `/users/<user>`";
+    /// let debug = r"
+    /// error: conflict detected
     ///
-    ///     Template: /users/<id>
-    ///     Conflict: /users/<user>
+    ///     /users/<id>
+    ///     ━━━━━━━━━━━ conflicts with `/users/<user>`
     ///
-    /// help: Templates cannot overlap with existing templates
-    ///
-    /// try:
-    ///     - Modify the template to be more specific
-    ///     - Remove the conflicting template
+    /// help: templates cannot overlap with existing routes
     /// ";
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(format!("{error}"), display);
+    /// assert_eq!(format!("{error:?}"), debug.trim());
     /// ```
     Conflict {
         /// The template being inserted.
         template: String,
         /// The existing template that conflicts.
-        conflict: String,
+        existing: String,
     },
 }
 
@@ -50,19 +49,27 @@ impl fmt::Display for InsertError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Template(error) => error.fmt(f),
-            Self::Conflict { template, conflict } => {
+            Self::Conflict { template, existing } => {
+                write!(f, "conflict: `{template}` conflicts with `{existing}`")
+            }
+        }
+    }
+}
+
+impl fmt::Debug for InsertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Template(error) => error.fmt(f),
+            Self::Conflict { template, existing } => {
+                let underline = "━".repeat(template.len());
                 write!(
                     f,
-                    r"conflict detected
+                    "error: conflict detected
 
-    Template: {template}
-    Conflict: {conflict}
+    {template}
+    {underline} conflicts with `{existing}`
 
-help: Templates cannot overlap with existing templates
-
-try:
-    - Modify the template to be more specific
-    - Remove the conflicting template"
+help: templates cannot overlap with existing routes"
                 )
             }
         }
