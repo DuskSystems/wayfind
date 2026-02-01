@@ -4,7 +4,8 @@ use core::error::Error;
 
 use crate::errors::TemplateError;
 
-#[derive(Eq, PartialEq, Debug)]
+/// Errors relating to template deletion.
+#[derive(Clone, Eq, PartialEq)]
 pub enum DeleteError {
     /// A [`TemplateError`] that occurred during the delete.
     Template(TemplateError),
@@ -20,19 +21,16 @@ pub enum DeleteError {
     ///     template: "/not_found".to_owned(),
     /// };
     ///
-    /// let display = r"
-    /// not found
+    /// let display = "template not found: `/not_found`";
+    /// let debug = r"error: template not found
     ///
-    ///     Template: /not_found
+    ///     /not_found
+    ///     ━━━━━━━━━━
     ///
-    /// help: The specified template does not exist in the router
+    /// help: template does not exist in the router";
     ///
-    /// try:
-    ///     - Check if the template is correct
-    ///     - Verify that the template was previously inserted
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     NotFound {
         /// The template that was not found in the router.
@@ -46,18 +44,29 @@ impl fmt::Display for DeleteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Template(error) => error.fmt(f),
-            Self::NotFound { template } => write!(
-                f,
-                r"not found
+            Self::NotFound { template } => {
+                write!(f, "template not found: `{template}`")
+            }
+        }
+    }
+}
 
-    Template: {template}
+impl fmt::Debug for DeleteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Template(error) => error.fmt(f),
+            Self::NotFound { template } => {
+                let underline = "━".repeat(template.len());
+                write!(
+                    f,
+                    "error: template not found
 
-help: The specified template does not exist in the router
+    {template}
+    {underline}
 
-try:
-    - Check if the template is correct
-    - Verify that the template was previously inserted"
-            ),
+help: template does not exist in the router"
+                )
+            }
         }
     }
 }

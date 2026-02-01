@@ -84,7 +84,7 @@ impl<T> Router<T> {
         if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
                 template: template.to_owned(),
-                conflict: found.template.clone(),
+                existing: found.template.clone(),
             });
         }
 

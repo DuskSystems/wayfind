@@ -2,13 +2,15 @@ use alloc::fmt;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::error::Error;
+use core::ops::Range;
 
-#[derive(Eq, PartialEq, Debug)]
+/// Errors relating to template parsing.
+#[derive(Clone, Eq, PartialEq)]
 pub enum TemplateError {
     /// The template is empty.
     Empty,
 
-    /// The template must start with '/'.
+    /// The template must start with `/`.
     ///
     /// # Examples
     ///
@@ -19,22 +21,23 @@ pub enum TemplateError {
     ///     template: "abc".to_owned(),
     /// };
     ///
-    /// let display = r"
-    /// missing leading slash
+    /// let display = "missing leading slash in `abc`";
+    /// let debug = r"error: missing leading slash
     ///
-    ///     Template: abc
+    ///     abc
+    ///     ━━━
     ///
-    /// help: Templates must begin with '/'
-    /// ";
+    /// help: templates must begin with `/`";
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     MissingLeadingSlash {
         /// The template missing a leading slash.
         template: String,
     },
 
-    /// An unbalanced angle was found in the template.
+    /// An unbalanced angle bracket was found in the template.
     ///
     /// # Examples
     ///
@@ -42,29 +45,26 @@ pub enum TemplateError {
     /// use wayfind::errors::TemplateError;
     ///
     /// let error = TemplateError::UnbalancedAngle {
-    ///     template: "/<".to_owned(),
-    ///     position: 1,
+    ///     template: "/<id".to_owned(),
+    ///     position: 1..2,
     /// };
     ///
-    /// let display = r"
-    /// unbalanced angle
+    /// let display = "unbalanced angle bracket in `/<id`";
+    /// let debug = r"error: unbalanced angle bracket
     ///
-    ///     Template: /<
-    ///                ^
+    ///     /<id
+    ///      ━
     ///
-    /// help: Each '<' must have a matching '>'
+    /// help: each `<` must have a matching `>`";
     ///
-    /// try:
-    ///     - Add the missing closing angle
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     UnbalancedAngle {
-        /// The template containing an unbalanced angle.
+        /// The template containing an unbalanced angle bracket.
         template: String,
-        /// The position of the unbalanced angle.
-        position: usize,
+        /// The position of the unbalanced angle bracket.
+        position: Range<usize>,
     },
 
     /// An empty parameter name was found in the template.
@@ -76,26 +76,25 @@ pub enum TemplateError {
     ///
     /// let error = TemplateError::EmptyParameter {
     ///     template: "/<>".to_owned(),
-    ///     start: 1,
-    ///     length: 2,
+    ///     position: 1..3,
     /// };
     ///
-    /// let display = r"
-    /// empty parameter name
+    /// let display = "empty parameter name in `/<>`";
+    /// let debug = r"error: empty parameter name
     ///
-    ///     Template: /<>
-    ///                ^^
-    /// ";
+    ///     /<>
+    ///      ━━
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// help: provide a name between `<` and `>`";
+    ///
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     EmptyParameter {
         /// The template containing an empty parameter.
         template: String,
-        /// The position of the opening angle of the empty name parameter.
-        start: usize,
-        /// The length of the parameter (including angles).
-        length: usize,
+        /// The position of the empty parameter.
+        position: Range<usize>,
     },
 
     /// An invalid parameter name was found in the template.
@@ -108,30 +107,27 @@ pub enum TemplateError {
     /// let error = TemplateError::InvalidParameter {
     ///     template: "/<a/b>".to_owned(),
     ///     name: "a/b".to_owned(),
-    ///     start: 1,
-    ///     length: 5,
+    ///     position: 1..6,
     /// };
     ///
-    /// let display = r"
-    /// invalid parameter name: 'a/b'
+    /// let display = "invalid parameter name `a/b` in `/<a/b>`";
+    /// let debug = r"error: invalid parameter name: `a/b`
     ///
-    ///     Template: /<a/b>
-    ///                ^^^^^
+    ///     /<a/b>
+    ///      ━━━━━
     ///
-    /// help: Parameter names must not contain the characters: '*', '<', '>', '/'
-    /// ";
+    /// help: parameter names must not contain `*`, `<`, `>`, or `/`";
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     InvalidParameter {
         /// The template containing an invalid parameter.
         template: String,
         /// The invalid parameter name.
         name: String,
-        /// The position of the opening angle of the invalid name parameter.
-        start: usize,
-        /// The length of the parameter (including angles).
-        length: usize,
+        /// The position of the invalid parameter.
+        position: Range<usize>,
     },
 
     /// A duplicate parameter name was found in the template.
@@ -144,42 +140,33 @@ pub enum TemplateError {
     /// let error = TemplateError::DuplicateParameter {
     ///     template: "/<id>/<id>".to_owned(),
     ///     name: "id".to_owned(),
-    ///     first: 1,
-    ///     first_length: 4,
-    ///     second: 6,
-    ///     second_length: 4,
+    ///     original: 1..5,
+    ///     duplicate: 6..10,
     /// };
     ///
-    /// let display = r"
-    /// duplicate parameter name: 'id'
+    /// let display = "duplicate parameter name `id` in `/<id>/<id>`";
+    /// let debug = r"error: duplicate parameter name: `id`
     ///
-    ///     Template: /<id>/<id>
-    ///                ^^^^ ^^^^
+    ///     /<id>/<id>
+    ///      ━━━━ ━━━━
     ///
-    /// help: Parameter names must be unique within a template
+    /// help: rename one of the parameters";
     ///
-    /// try:
-    ///     - Rename one of the parameters to be unique
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     DuplicateParameter {
         /// The template containing duplicate parameters.
         template: String,
         /// The duplicated parameter name.
         name: String,
-        /// The position of the opening angle of the first occurrence.
-        first: usize,
-        /// The length of the first parameter (including angles).
-        first_length: usize,
-        /// The position of the opening angle of the second occurrence.
-        second: usize,
-        /// The length of the second parameter (including angles).
-        second_length: usize,
+        /// The position of the original parameter.
+        original: Range<usize>,
+        /// The position of the duplicate parameter.
+        duplicate: Range<usize>,
     },
 
-    /// A wildcard parameter with no name was found in the template.
+    /// An empty wildcard name was found in the template.
     ///
     /// # Examples
     ///
@@ -188,29 +175,28 @@ pub enum TemplateError {
     ///
     /// let error = TemplateError::EmptyWildcard {
     ///     template: "/<*>".to_owned(),
-    ///     start: 1,
-    ///     length: 3,
+    ///     position: 1..4,
     /// };
     ///
-    /// let display = r"
-    /// empty wildcard name
+    /// let display = "empty wildcard name in `/<*>`";
+    /// let debug = r"error: empty wildcard name
     ///
-    ///     Template: /<*>
-    ///                ^^^
-    /// ";
+    ///     /<*>
+    ///      ━━━
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// help: provide a name after `*`";
+    ///
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     EmptyWildcard {
-        /// The template containing an empty wildcard parameter.
+        /// The template containing an empty wildcard.
         template: String,
-        /// The position of the opening angle of the empty wildcard parameter.
-        start: usize,
-        /// The length of the parameter (including angles).
-        length: usize,
+        /// The position of the empty wildcard.
+        position: Range<usize>,
     },
 
-    /// Two parameters side by side were found in the template.
+    /// Two parameters are directly adjacent without a separator.
     ///
     /// # Examples
     ///
@@ -219,217 +205,245 @@ pub enum TemplateError {
     ///
     /// let error = TemplateError::TouchingParameters {
     ///     template: "/<a><b>".to_owned(),
-    ///     start: 1,
-    ///     length: 6,
+    ///     first: "a".to_owned(),
+    ///     second: "b".to_owned(),
+    ///     position: 1..7,
     /// };
     ///
-    /// let display = r"
-    /// touching parameters
+    /// let display = "touching parameters in `/<a><b>`";
+    /// let debug = r"error: touching parameters `a` and `b`
     ///
-    ///     Template: /<a><b>
-    ///                ^^^^^^
+    ///     /<a><b>
+    ///      ━━━━━━
     ///
-    /// help: Parameters must be separated by at least one part
+    /// help: parameters must be separated by at least one static segment";
     ///
-    /// try:
-    ///     - Add a part between the parameters
-    ///     - Combine the parameters if they represent a single value
-    /// ";
-    ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
     TouchingParameters {
         /// The template containing touching parameters.
         template: String,
-        /// The position of the first opening angle.
-        start: usize,
-        /// The combined length of both parameters (including angles).
-        length: usize,
+        /// The name of the first parameter.
+        first: String,
+        /// The name of the second parameter.
+        second: String,
+        /// The combined position of both parameters.
+        position: Range<usize>,
     },
 
     /// Too many parameters were found in a single segment.
-    ///
-    /// Only 1 parameter is allowed per segment.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use wayfind::errors::TemplateError;
     ///
-    /// let error = TemplateError::TooManyInline {
+    /// let error = TemplateError::TooManyParameters {
     ///     template: "/<a>-<b>".to_owned(),
-    ///     parameters: vec![(1, 3), (5, 3)],
+    ///     positions: vec![1..4, 5..8],
     /// };
     ///
-    /// let display = r"
-    /// too many parameters in segment
+    /// let display = "too many parameters in segment in `/<a>-<b>`";
+    /// let debug = r"error: too many parameters in segment
     ///
-    ///     Template: /<a>-<b>
-    ///                ^^^ ^^^
+    ///     /<a>-<b>
+    ///      ━━━ ━━━
     ///
-    /// help: Only 1 parameter is allowed per segment
-    /// ";
+    /// help: only one parameter is allowed per segment";
     ///
-    /// assert_eq!(error.to_string(), display.trim());
+    /// assert_eq!(error.to_string(), display);
+    /// assert_eq!(format!("{error:?}"), debug);
     /// ```
-    TooManyInline {
+    TooManyParameters {
         /// The template containing too many parameters.
         template: String,
-        /// Positions and lengths of each parameter (start, length).
-        parameters: Vec<(usize, usize)>,
+        /// The positions of each parameter in the segment.
+        positions: Vec<Range<usize>>,
     },
 }
 
 impl Error for TemplateError {}
 
 impl fmt::Display for TemplateError {
-    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Empty => write!(f, "empty template"),
+            Self::MissingLeadingSlash { template } => {
+                write!(f, "missing leading slash in `{template}`")
+            }
+            Self::UnbalancedAngle { template, .. } => {
+                write!(f, "unbalanced angle bracket in `{template}`")
+            }
+            Self::EmptyParameter { template, .. } => {
+                write!(f, "empty parameter name in `{template}`")
+            }
+            Self::InvalidParameter { template, name, .. } => {
+                write!(f, "invalid parameter name `{name}` in `{template}`")
+            }
+            Self::DuplicateParameter { template, name, .. } => {
+                write!(f, "duplicate parameter name `{name}` in `{template}`")
+            }
+            Self::EmptyWildcard { template, .. } => {
+                write!(f, "empty wildcard name in `{template}`")
+            }
+            Self::TouchingParameters { template, .. } => {
+                write!(f, "touching parameters in `{template}`")
+            }
+            Self::TooManyParameters { template, .. } => {
+                write!(f, "too many parameters in segment in `{template}`")
+            }
+        }
+    }
+}
+
+impl fmt::Debug for TemplateError {
+    #[allow(clippy::too_many_lines)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(
+                f,
+                "error: empty template
+
+help: templates must not be empty"
+            ),
 
             Self::MissingLeadingSlash { template } => {
+                let underline = "━".repeat(template.len());
                 write!(
                     f,
-                    r"missing leading slash
+                    "error: missing leading slash
 
-    Template: {template}
+    {template}
+    {underline}
 
-help: Templates must begin with '/'"
+help: templates must begin with `/`"
                 )
             }
 
             Self::UnbalancedAngle { template, position } => {
-                let arrow = " ".repeat(*position) + "^";
+                let underline = " ".repeat(position.start) + &"━".repeat(position.len());
                 write!(
                     f,
-                    r"unbalanced angle
+                    "error: unbalanced angle bracket
 
-    Template: {template}
-              {arrow}
+    {template}
+    {underline}
 
-help: Each '<' must have a matching '>'
-
-try:
-    - Add the missing closing angle"
+help: each `<` must have a matching `>`"
                 )
             }
 
-            Self::EmptyParameter {
-                template,
-                start,
-                length,
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+            Self::EmptyParameter { template, position } => {
+                let underline = " ".repeat(position.start) + &"━".repeat(position.len());
                 write!(
                     f,
-                    r"empty parameter name
+                    "error: empty parameter name
 
-    Template: {template}
-              {arrow}"
+    {template}
+    {underline}
+
+help: provide a name between `<` and `>`"
                 )
             }
 
             Self::InvalidParameter {
                 template,
                 name,
-                start,
-                length,
+                position,
             } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+                let underline = " ".repeat(position.start) + &"━".repeat(position.len());
                 write!(
                     f,
-                    r"invalid parameter name: '{name}'
+                    "error: invalid parameter name: `{name}`
 
-    Template: {template}
-              {arrow}
+    {template}
+    {underline}
 
-help: Parameter names must not contain the characters: '*', '<', '>', '/'"
+help: parameter names must not contain `*`, `<`, `>`, or `/`"
                 )
             }
 
             Self::DuplicateParameter {
                 template,
                 name,
-                first,
-                first_length,
-                second,
-                second_length,
+                original,
+                duplicate,
             } => {
-                let mut arrow = " ".repeat(template.len());
-                arrow.replace_range(*first..(*first + *first_length), &"^".repeat(*first_length));
-                arrow.replace_range(
-                    *second..(*second + *second_length),
-                    &"^".repeat(*second_length),
-                );
+                let underline: String = (0..template.len())
+                    .map(|index| {
+                        if original.contains(&index) || duplicate.contains(&index) {
+                            '━'
+                        } else {
+                            ' '
+                        }
+                    })
+                    .collect();
 
                 write!(
                     f,
-                    r"duplicate parameter name: '{name}'
+                    "error: duplicate parameter name: `{name}`
 
-    Template: {template}
-              {arrow}
+    {template}
+    {underline}
 
-help: Parameter names must be unique within a template
-
-try:
-    - Rename one of the parameters to be unique"
+help: rename one of the parameters"
                 )
             }
 
-            Self::EmptyWildcard {
-                template,
-                start,
-                length,
-            } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+            Self::EmptyWildcard { template, position } => {
+                let underline = " ".repeat(position.start) + &"━".repeat(position.len());
                 write!(
                     f,
-                    r"empty wildcard name
+                    "error: empty wildcard name
 
-    Template: {template}
-              {arrow}"
+    {template}
+    {underline}
+
+help: provide a name after `*`"
                 )
             }
 
             Self::TouchingParameters {
                 template,
-                start,
-                length,
+                first,
+                second,
+                position,
             } => {
-                let arrow = " ".repeat(*start) + &"^".repeat(*length);
+                let underline = " ".repeat(position.start) + &"━".repeat(position.len());
                 write!(
                     f,
-                    r"touching parameters
+                    "error: touching parameters `{first}` and `{second}`
 
-    Template: {template}
-              {arrow}
+    {template}
+    {underline}
 
-help: Parameters must be separated by at least one part
-
-try:
-    - Add a part between the parameters
-    - Combine the parameters if they represent a single value"
+help: parameters must be separated by at least one static segment"
                 )
             }
 
-            Self::TooManyInline {
+            Self::TooManyParameters {
                 template,
-                parameters,
+                positions,
             } => {
-                let mut arrow = " ".repeat(template.len());
-                for (start, length) in parameters {
-                    arrow.replace_range(*start..(*start + *length), &"^".repeat(*length));
-                }
+                let underline: String = (0..template.len())
+                    .map(|index| {
+                        if positions.iter().any(|p| p.contains(&index)) {
+                            '━'
+                        } else {
+                            ' '
+                        }
+                    })
+                    .collect();
 
                 write!(
                     f,
-                    r"too many parameters in segment
+                    "error: too many parameters in segment
 
-    Template: {template}
-              {arrow}
+    {template}
+    {underline}
 
-help: Only 1 parameter is allowed per segment"
+help: only one parameter is allowed per segment"
                 )
             }
         }
