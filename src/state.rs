@@ -36,13 +36,17 @@ impl PartialOrd for RootState {
 /// May not be valid UTF-8 due to multibyte splitting.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct StaticState {
+    pub first: u8,
     pub prefix: Vec<u8>,
 }
 
 impl StaticState {
     #[must_use]
-    pub const fn new(prefix: Vec<u8>) -> Self {
-        Self { prefix }
+    pub fn new(prefix: Vec<u8>) -> Self {
+        Self {
+            first: prefix.first().copied().unwrap_or(0),
+            prefix,
+        }
     }
 }
 

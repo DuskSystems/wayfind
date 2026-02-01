@@ -69,7 +69,7 @@ impl<S> Node<S> {
         let first = *remaining.first()?;
 
         for child in &self.static_children {
-            if child.state.prefix[0] != first {
+            if child.state.first != first {
                 continue;
             }
 
