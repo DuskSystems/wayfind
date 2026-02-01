@@ -12,6 +12,41 @@ fn get() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn get_dynamic() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/users/<id>", 1)?;
+    router.insert("/users/<id>/posts", 2)?;
+
+    assert_eq!(router.get("/users/<id>"), Some(&1));
+    assert_eq!(router.get("/users/<id>/posts"), Some(&2));
+    assert_eq!(router.get("/users/<other>"), None);
+    Ok(())
+}
+
+#[test]
+fn get_wildcard() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>/edit", 1)?;
+    router.insert("/files/<*rest>", 2)?;
+
+    assert_eq!(router.get("/<*path>/edit"), Some(&1));
+    assert_eq!(router.get("/files/<*rest>"), Some(&2));
+    assert_eq!(router.get("/<*other>/edit"), None);
+    assert_eq!(router.get("/files/<*other>"), None);
+    Ok(())
+}
+
+#[test]
+fn get_end_wildcard() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*catch_all>", 1)?;
+
+    assert_eq!(router.get("/<*catch_all>"), Some(&1));
+    assert_eq!(router.get("/<*other>"), None);
+    Ok(())
+}
+
+#[test]
 fn get_missing() {
     let router: Router<i32> = Router::new();
     assert_eq!(router.get("/missing"), None);
