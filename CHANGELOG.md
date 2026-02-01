@@ -17,11 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised MSRV from 1.85 to 1.88.
 - Utilize `memchr` for string searching.
 - Limit inline parameters to 1 per segment, preventing exponential searches.
-- `InsertError::Conflict` field renamed from `conflict` to `existing`.
-- `DuplicateParameter` fields renamed from `first` / `second` to `original` / `duplicate`.
-- Error struct fields changed from `start` / `length` to ranges.
+- Error types are now simplified to include minimal info.
 - Error types now derive `Clone`.
-- Debug output uses unicode characters now.
 
 ### Removed
 

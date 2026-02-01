@@ -13,21 +13,11 @@ fn insert_conflict_static() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/test".to_owned(),
             existing: "/test".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/test` conflicts with `/test`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /test
-        ━━━━━ conflicts with `/test`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/test`");
     insta::assert_snapshot!(router, @"/test");
 
     Ok(())
@@ -42,21 +32,11 @@ fn insert_conflict_dynamic() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<id>".to_owned(),
             existing: "/<id>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<id>` conflicts with `/<id>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<id>
-        ━━━━━ conflicts with `/<id>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<id>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -74,21 +54,11 @@ fn insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<user>".to_owned(),
             existing: "/<id>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<user>` conflicts with `/<id>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<user>
-        ━━━━━━━ conflicts with `/<id>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<id>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -106,21 +76,11 @@ fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<*catch_all>".to_owned(),
             existing: "/<*catch_all>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<*catch_all>` conflicts with `/<*catch_all>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<*catch_all>
-        ━━━━━━━━━━━━━ conflicts with `/<*catch_all>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -138,21 +98,11 @@ fn insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<*files>".to_owned(),
             existing: "/<*catch_all>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<*files>` conflicts with `/<*catch_all>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<*files>
-        ━━━━━━━━━ conflicts with `/<*catch_all>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -170,21 +120,11 @@ fn insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<*catch_all>".to_owned(),
             existing: "/<*catch_all>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<*catch_all>` conflicts with `/<*catch_all>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<*catch_all>
-        ━━━━━━━━━━━━━ conflicts with `/<*catch_all>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -202,21 +142,11 @@ fn insert_conflict_end_wildcard_structural() -> Result<(), Box<dyn Error>> {
     assert_eq!(
         error,
         InsertError::Conflict {
-            template: "/<*files>".to_owned(),
             existing: "/<*catch_all>".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict: `/<*files>` conflicts with `/<*catch_all>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: conflict detected
-
-        /<*files>
-        ━━━━━━━━━ conflicts with `/<*catch_all>`
-
-    help: templates cannot overlap with existing routes
-    ");
-
+    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -232,22 +162,10 @@ fn insert_duplicate_parameter() {
     assert_eq!(
         error,
         InsertError::Template(TemplateError::DuplicateParameter {
-            template: "/<*id>/users/<id>".to_owned(),
             name: "id".to_owned(),
-            original: 1..6,
-            duplicate: 13..17,
         })
     );
 
-    insta::assert_snapshot!(error, @"duplicate parameter name `id` in `/<*id>/users/<id>`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: duplicate parameter name: `id`
-
-        /<*id>/users/<id>
-         ━━━━━       ━━━━
-
-    help: rename one of the parameters
-    ");
-
+    insta::assert_snapshot!(error, @"duplicate parameter name `id`");
     insta::assert_snapshot!(router, @"");
 }

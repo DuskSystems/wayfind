@@ -83,7 +83,6 @@ impl<T> Router<T> {
         // Prevent partial inserts.
         if let Some(found) = self.root.conflict(&mut parsed.clone()) {
             return Err(InsertError::Conflict {
-                template: template.to_owned(),
                 existing: found.template.clone(),
             });
         }
@@ -125,9 +124,7 @@ impl<T> Router<T> {
         let mut parsed = Template::new(template.as_bytes())?;
 
         let Some(data) = self.root.delete(&mut parsed) else {
-            return Err(DeleteError::NotFound {
-                template: template.to_owned(),
-            });
+            return Err(DeleteError::NotFound);
         };
 
         let entry = self.storage.remove(data.key);

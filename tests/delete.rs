@@ -12,23 +12,9 @@ fn delete_static() -> Result<(), Box<dyn Error>> {
     insta::assert_snapshot!(router, @"/test");
 
     let error = router.delete("/tests").unwrap_err();
-    assert_eq!(
-        error,
-        DeleteError::NotFound {
-            template: "/tests".to_owned()
-        }
-    );
+    assert_eq!(error, DeleteError::NotFound);
 
-    insta::assert_snapshot!(error, @"template not found: `/tests`");
-    insta::assert_debug_snapshot!(error, @r"
-    error: template not found
-
-        /tests
-        ━━━━━━
-
-    help: template does not exist in the router
-    ");
-
+    insta::assert_snapshot!(error, @"not found");
     insta::assert_snapshot!(router, @"/test");
 
     let delete = router.delete("/test")?;

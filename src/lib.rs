@@ -127,12 +127,6 @@
 //! ## Display
 //!
 //! The router can be printed as a tree, via a [`Display`](core::fmt::Display) implementation.
-//!
-//! ## Error Messages
-//!
-//! Where possible, we try to provide user-friendly error messages for all of our error enums.
-//!
-//! See [`Errors`](errors) for examples.
 
 #![no_std]
 extern crate alloc;
