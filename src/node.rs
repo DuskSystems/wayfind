@@ -17,7 +17,7 @@ mod search;
 #[cfg(target_pointer_width = "64")]
 const _: () = {
     assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 168);
-    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 200);
     assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
     assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
     assert!(core::mem::size_of::<Node<crate::state::EndWildcardState>>() == 192);
