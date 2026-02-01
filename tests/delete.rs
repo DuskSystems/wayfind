@@ -5,7 +5,7 @@ use wayfind::Router;
 use wayfind::errors::DeleteError;
 
 #[test]
-fn delete() -> Result<(), Box<dyn Error>> {
+fn delete_static() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/test", 1)?;
 
@@ -25,6 +25,87 @@ fn delete() -> Result<(), Box<dyn Error>> {
     assert_eq!(delete, 1);
 
     insta::assert_snapshot!(router, @"");
+
+    Ok(())
+}
+
+#[test]
+fn delete_dynamic() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/users/<id>", 1)?;
+    router.insert("/users/<id>/posts", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /users/
+    ╰─ <id>
+       ╰─ /posts
+    ");
+
+    let delete = router.delete("/users/<id>")?;
+    assert_eq!(delete, 1);
+
+    insta::assert_snapshot!(router, @r"
+    /users/
+    ╰─ <id>
+       ╰─ /posts
+    ");
+
+    let delete = router.delete("/users/<id>/posts")?;
+    assert_eq!(delete, 2);
+
+    insta::assert_snapshot!(router, @"");
+
+    Ok(())
+}
+
+#[test]
+fn delete_wildcard() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>/edit", 1)?;
+    router.insert("/<*path>/delete", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ╰─ <*path>
+       ╰─ /
+          ├─ delete
+          ╰─ edit
+    ");
+
+    let delete = router.delete("/<*path>/edit")?;
+    assert_eq!(delete, 1);
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ╰─ <*path>
+       ╰─ /delete
+    ");
+
+    let delete = router.delete("/<*path>/delete")?;
+    assert_eq!(delete, 2);
+
+    insta::assert_snapshot!(router, @"");
+
+    Ok(())
+}
+
+#[test]
+fn delete_end_wildcard() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/files/<*path>", 1)?;
+    router.insert("/static", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ├─ files/
+    │  ╰─ <*path>
+    ╰─ static
+    ");
+
+    let delete = router.delete("/files/<*path>")?;
+    assert_eq!(delete, 1);
+
+    insta::assert_snapshot!(router, @"/static");
 
     Ok(())
 }

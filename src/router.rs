@@ -21,8 +21,8 @@ pub struct Match<'r, 'p, T> {
     pub template: &'r str,
 
     /// Key-value pairs of parameters.
-    /// The key of the parameter is tied to the lifetime of the.
-    /// The value is extracted from the path.
+    /// The key is tied to the lifetime of the router.
+    /// The value is tied to the lifetime of the path.
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
