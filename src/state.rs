@@ -68,7 +68,7 @@ impl PartialOrd for StaticState {
     }
 }
 
-/// Dynamic parameter with it's name.
+/// Dynamic parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct DynamicState {
     pub name: String,
@@ -99,7 +99,7 @@ impl PartialOrd for DynamicState {
     }
 }
 
-/// Wildcard parameter with it's name.
+/// Wildcard parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct WildcardState {
     pub name: String,
@@ -130,7 +130,7 @@ impl PartialOrd for WildcardState {
     }
 }
 
-/// End wildcard parameter with it's name.
+/// End wildcard parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct EndWildcardState {
     pub name: String,

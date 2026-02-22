@@ -39,19 +39,21 @@ style = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
 [workspace.dependencies]
+wayfind = { path = "." }
+
 # SIMD
-memchr = { version = "2.7", default-features = false }
+memchr = { version = "2.7", default-features = false, features = ["alloc"] }
 
 # Collections
 slab = { version = "0.4", default-features = false }
-smallvec = { version = "1.15", default-features = false }
+smallvec = { version = "1.15", default-features = false, features = ["const_new", "union"] }
 
 # Testing
 insta = { version = "1.46", default-features = false }
 similar-asserts = { version = "1.7", default-features = false }
 
 # Fuzzing
-libfuzzer-sys = { version = "0.4", default-features = false }
+libfuzzer-sys = { version = "0.4", default-features = false, features = ["link_libfuzzer"] }
 
 # Benchmarking
 divan = { package = "codspeed-divan-compat", version = "4.3", default-features = false }
@@ -90,27 +92,27 @@ workspace = true
 
 [dependencies]
 # SIMD
-memchr = { workspace = true, features = ["alloc"] }
+memchr.workspace = true
 
 # Collections
-slab = { workspace = true }
-smallvec = { workspace = true, features = ["const_new", "union"] }
+slab.workspace = true
+smallvec.workspace = true
 
 [dev-dependencies]
 # Testing
-insta = { workspace = true }
-similar-asserts = { workspace = true }
+insta.workspace = true
+similar-asserts.workspace = true
 
 # Benchmarking
-divan = { workspace = true }
+divan.workspace = true
 
 # Routers
-actix-router = { workspace = true }
-matchit = { workspace = true }
-ntex-router = { workspace = true }
-path-tree = { workspace = true }
-route-recognizer = { workspace = true }
-xitca-router = { workspace = true }
+actix-router.workspace = true
+matchit.workspace = true
+ntex-router.workspace = true
+path-tree.workspace = true
+route-recognizer.workspace = true
+xitca-router.workspace = true
 
 [[bench]]
 name = "matchit"

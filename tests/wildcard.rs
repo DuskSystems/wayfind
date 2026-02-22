@@ -42,42 +42,6 @@ fn wildcard_simple() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn wildcard_multiple() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*prefix>/static/<*suffix>/file", 1)?;
-
-    insta::assert_snapshot!(router, @r"
-    /
-    ╰─ <*prefix>
-       ╰─ /static/
-          ╰─ <*suffix>
-             ╰─ /file
-    ");
-
-    let search = router.search("/a/static/b/file");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*prefix>/static/<*suffix>/file",
-            parameters: smallvec![("prefix", "a"), ("suffix", "b")],
-        })
-    );
-
-    let search = router.search("/a/b/c/static/d/e/f/file");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*prefix>/static/<*suffix>/file",
-            parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
-        })
-    );
-
-    Ok(())
-}
-
-#[test]
 fn wildcard_inline() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>.html", 1)?;
@@ -217,6 +181,54 @@ fn wildcard_priority() -> Result<(), Box<dyn Error>> {
             data: &5,
             template: "/<*prefix>.suffix",
             parameters: smallvec![("prefix", "some/nested/path")],
+        })
+    );
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>/edit/<*rest>", 1)?;
+    router.insert("/<*path>/delete", 2)?;
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ╰─ <*path>
+       ╰─ /
+          ├─ delete
+          ╰─ edit/
+             ╰─ <*rest>
+    ");
+
+    let search = router.search("/documents/delete");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<*path>/delete",
+            parameters: smallvec![("path", "documents")],
+        })
+    );
+
+    let search = router.search("/documents/edit/summary");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*path>/edit/<*rest>",
+            parameters: smallvec![("path", "documents"), ("rest", "summary")],
+        })
+    );
+
+    let search = router.search("/docs/edit/readme/delete");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<*path>/delete",
+            parameters: smallvec![("path", "docs/edit/readme")],
         })
     );
 

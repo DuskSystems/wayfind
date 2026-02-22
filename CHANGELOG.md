@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `TemplateError::TooManyParameters` error variant for segments with multiple parameters.
+- `TemplateError::TooManyWildcards` error variant for templates with multiple  wildcards.
 - `Router<T>` now implements `Default`.
 
 ### Changed
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised MSRV from 1.85 to 1.88.
 - Utilize `memchr` for string searching.
 - Limit inline parameters to 1 per segment, preventing exponential searches.
+- Limit wildcards to 1 per template, preventing exponential searches.
 - Error types are now simplified to include minimal info.
 - Error types now derive `Clone`.
 

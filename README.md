@@ -23,7 +23,7 @@ A speedy, flexible router for Rust.
 
 Real-world projects often need fancy routing capabilities, such as projects ported from frameworks like [Ruby on Rails](https://guides.rubyonrails.org/routing.html), or those adhering to specifications like the [Open Container Initiative (OCI) Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md).
 
-The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
+The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed.
 
 ## Showcase
 
@@ -144,12 +144,10 @@ fn main() -> Result<(), Box<dyn Error>> {
       ╰─ /message
 ```
 
-## Implementation details
+## Implementation Details
 
 `wayfind` uses a compressed radix trie for its data storage.
-This is the common backbone of almost all routers implemented in Rust.
 
-What sets `wayfind` apart is its search strategy.
 Most routers either use "first match wins" or "best match wins" (via backtracking), `wayfind` uses a hybrid approach:
 
 - per segment: first match wins
@@ -157,9 +155,17 @@ Most routers either use "first match wins" or "best match wins" (via backtrackin
 
 This can result in some matches which may be unexpected, but in practice it works well for real-world usage.
 
+## Restrictions
+
+Templates are restricted in the following ways to limit worst-case search performance:
+
+- Only one parameter per segment: `/files/<name>.<ext>` is not allowed.
+- Parameters must have separators: `/archive/<year><month>` is not allowed.
+- Only one wildcard per template (excluding end wildcards): `/<*group>/image/<*image>/delete` is not allowed.
+
 ## Performance
 
-`wayfind` is fast, and appears to be competitive against other top performers in all benchmarks we currently run.
+`wayfind` is fast, and competitive with other top performers in the benchmarks we run.
 
 See [BENCHMARKING.md](BENCHMARKING.md) for the results.
 

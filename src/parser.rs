@@ -28,7 +28,7 @@ impl Template {
             return Err(TemplateError::Empty);
         }
 
-        if !input.is_empty() && input[0] != b'/' {
+        if input[0] != b'/' {
             return Err(TemplateError::MissingLeadingSlash);
         }
 
@@ -90,6 +90,21 @@ impl Template {
             return Err(TemplateError::TooManyParameters);
         }
 
+        let wildcard_count = parts
+            .iter()
+            .filter(|part| matches!(part, Part::Wildcard { .. }))
+            .count();
+
+        let non_end_wildcards = if matches!(parts.last(), Some(Part::Wildcard { .. })) {
+            wildcard_count - 1
+        } else {
+            wildcard_count
+        };
+
+        if non_end_wildcards > 1 {
+            return Err(TemplateError::TooManyWildcards);
+        }
+
         parts.reverse();
 
         Ok(Self { parts })
@@ -100,10 +115,10 @@ impl Template {
 
         let mut end = cursor;
         while end < input.len() {
-            match (input[end], input.get(end + 1)) {
-                (b'<' | b'>', _) => break,
-                (char, _) => {
-                    prefix.push(char);
+            match input[end] {
+                b'<' | b'>' => break,
+                byte => {
+                    prefix.push(byte);
                     end += 1;
                 }
             }
@@ -155,7 +170,7 @@ impl Template {
         }
 
         let name =
-            String::from_utf8(name.to_vec()).map_err(|_| TemplateError::InvalidParameter {
+            String::from_utf8(name.to_vec()).map_err(|_err| TemplateError::InvalidParameter {
                 name: String::from_utf8_lossy(name).to_string(),
             })?;
 
@@ -291,12 +306,18 @@ mod tests {
     #[test]
     fn parser_error_touching_parameters() {
         let error = Template::new(b"/users/<id><*name>").unwrap_err();
-        insta::assert_snapshot!(error, @"touching parameters");
+        insta::assert_snapshot!(error, @"parameters must be separated by a static segment");
     }
 
     #[test]
     fn parser_error_too_many_parameters() {
         let error = Template::new(b"/<name>.<ext>").unwrap_err();
-        insta::assert_snapshot!(error, @"too many parameters in segment");
+        insta::assert_snapshot!(error, @"only one parameter is allowed per segment");
+    }
+
+    #[test]
+    fn parser_error_too_many_wildcards() {
+        let error = Template::new(b"/<*group>/static/<*path>/file").unwrap_err();
+        insta::assert_snapshot!(error, @"only one wildcard is allowed per template");
     }
 }

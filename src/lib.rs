@@ -40,15 +40,13 @@
 //! }
 //!```
 //!
-//! ### Dynamic Routing
+//! ### Dynamic
 //!
 //! Dynamic parameters can match any byte, **excluding** the path delimiter `/`.
 //!
-//! We support both:
+//! We support:
 //! - whole segment parameters: `/<name>/`
-//! - inline parameters: `/<year>-<month>-<day>/`
-//!
-//! Dynamic parameters are greedy in nature, similar to a regex `.*`, and will attempt to match as many bytes as possible.
+//! - inline parameters: `/<name>.txt`
 //!
 //! #### Example
 //!
@@ -77,16 +75,16 @@
 //! }
 //!```
 //!
-//! ### Wildcard Routing
+//! ### Wildcard
 //!
 //! Wildcard parameters can match any byte, **including** the path delimiter `/`.
 //!
-//! We support both:
+//! We support:
 //! - inline wildcards: `/<*path>.html`
 //! - mid-route wildcards: `/api/<*path>/help`
 //! - end-route catch-all: `/<*catch_all>`
 //!
-//! Like dynamic parameters, wildcard parameters are also greedy in nature.
+//! Only one wildcard is allowed per template, excluding any end wildcards.
 //!
 //! #### Example
 //!
@@ -118,7 +116,7 @@
 //!
 //! Templates are matched using a hierarchical priority system.
 //!
-//! From highest priority to lowest, we walk the current nodes children in this order:
+//! From highest priority to lowest, we walk the current node's children in this order:
 //! - statics
 //! - dynamics
 //! - wildcards

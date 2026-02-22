@@ -1,9 +1,9 @@
-use alloc::fmt;
 use alloc::string::String;
 use core::error::Error;
+use core::fmt;
 
 /// Errors relating to template parsing.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum TemplateError {
     /// The template is empty.
     Empty,
@@ -37,6 +37,9 @@ pub enum TemplateError {
 
     /// Too many parameters were found in a single segment.
     TooManyParameters,
+
+    /// Too many non-trailing wildcards were found in the template.
+    TooManyWildcards,
 }
 
 impl Error for TemplateError {}
@@ -51,8 +54,11 @@ impl fmt::Display for TemplateError {
             Self::InvalidParameter { name } => write!(f, "invalid parameter name `{name}`"),
             Self::DuplicateParameter { name } => write!(f, "duplicate parameter name `{name}`"),
             Self::EmptyWildcard => write!(f, "empty wildcard name"),
-            Self::TouchingParameters => write!(f, "touching parameters"),
-            Self::TooManyParameters => write!(f, "too many parameters in segment"),
+            Self::TouchingParameters => {
+                write!(f, "parameters must be separated by a static segment")
+            }
+            Self::TooManyParameters => write!(f, "only one parameter is allowed per segment"),
+            Self::TooManyWildcards => write!(f, "only one wildcard is allowed per template"),
         }
     }
 }
