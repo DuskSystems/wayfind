@@ -40,9 +40,7 @@ fn dynamic_depth<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
-// TODO
-// #[divan::bench(consts = [1, 10, 100, 1000])]
-#[divan::bench(consts = [1, 10])]
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
 
@@ -51,6 +49,7 @@ fn dynamic_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
         if index > 0 {
             template.push('.');
         }
+
         let _ = write!(template, "<x{index}>");
     }
 
@@ -111,9 +110,7 @@ fn wildcard_competing<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
-// TODO
-// #[divan::bench(consts = [1, 10, 100, 1000])]
-#[divan::bench(consts = [1, 10])]
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_chain<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
 
