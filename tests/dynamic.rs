@@ -428,3 +428,60 @@ fn dynamic_inline_coexistence() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<name>.txt", 1)?;
+    router.insert("/<name>", 2)?;
+
+    let search = router.search("/a.txt.txt.txt.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<name>.txt",
+            parameters: smallvec![("name", "a.txt.txt.txt")],
+        })
+    );
+
+    let search = router.search("/.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<name>",
+            parameters: smallvec![("name", ".txt")],
+        })
+    );
+
+    Ok(())
+}
+
+#[test]
+fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<name>.txt", 1)?;
+
+    let search = router.search("/café.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<name>.txt",
+            parameters: smallvec![("name", "café")],
+        })
+    );
+
+    let search = router.search("/日本語.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<name>.txt",
+            parameters: smallvec![("name", "日本語")],
+        })
+    );
+
+    Ok(())
+}

@@ -13,13 +13,19 @@ impl<S> Node<S> {
         match part {
             Part::Static { prefix } => self.conflict_static(remaining, prefix),
             Part::Dynamic { .. } => self.conflict_dynamic(remaining),
-            Part::Wildcard { .. } if remaining.is_empty() => self.conflict_end_wildcard(remaining),
+            Part::Wildcard { .. } if remaining.is_empty() => self.conflict_end_wildcard(),
             Part::Wildcard { .. } => self.conflict_wildcard(remaining),
         }
     }
 
     fn conflict_static(&self, parts: &[Part], prefix: &[u8]) -> Option<&NodeData> {
+        let first = *prefix.first()?;
+
         for child in &self.static_children {
+            if child.state.first != first {
+                continue;
+            }
+
             if prefix.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             {
@@ -57,7 +63,7 @@ impl<S> Node<S> {
         None
     }
 
-    fn conflict_end_wildcard(&self, parts: &[Part]) -> Option<&NodeData> {
-        self.end_wildcard.as_ref()?.conflict(parts)
+    fn conflict_end_wildcard(&self) -> Option<&NodeData> {
+        Some(&self.end_wildcard.as_ref()?.data)
     }
 }

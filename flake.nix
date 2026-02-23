@@ -84,6 +84,7 @@
             wild
             sccache
             tombi
+            cargo-binutils
             cargo-codspeed
             cargo-deny
             cargo-fuzz

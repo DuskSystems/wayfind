@@ -1,6 +1,9 @@
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
+
+use crate::node::NodeData;
 
 /// Root node of the tree.
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -47,12 +50,16 @@ impl fmt::Display for StaticState {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct DynamicState {
     pub name: String,
+    pub suffixes: Vec<Box<[u8]>>,
 }
 
 impl DynamicState {
     #[must_use]
     pub const fn new(name: String) -> Self {
-        Self { name }
+        Self {
+            name,
+            suffixes: Vec::new(),
+        }
     }
 }
 
@@ -66,12 +73,16 @@ impl fmt::Display for DynamicState {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct WildcardState {
     pub name: String,
+    pub suffixes: Vec<Box<[u8]>>,
 }
 
 impl WildcardState {
     #[must_use]
     pub const fn new(name: String) -> Self {
-        Self { name }
+        Self {
+            name,
+            suffixes: Vec::new(),
+        }
     }
 }
 
@@ -81,17 +92,11 @@ impl fmt::Display for WildcardState {
     }
 }
 
-/// End wildcard parameter with its name.
+/// End wildcard leaf node.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct EndWildcardState {
     pub name: String,
-}
-
-impl EndWildcardState {
-    #[must_use]
-    pub const fn new(name: String) -> Self {
-        Self { name }
-    }
+    pub data: NodeData,
 }
 
 impl fmt::Display for EndWildcardState {

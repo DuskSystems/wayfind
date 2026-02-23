@@ -39,7 +39,7 @@ pub struct Router<T> {
 impl<T> Router<T> {
     /// Creates a new Router.
     #[must_use]
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             root: Node::new(RootState::new()),
             storage: Slab::new(),

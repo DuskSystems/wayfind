@@ -13,32 +13,31 @@ impl<S> Node<S> {
         match part {
             Part::Static { prefix } => self.find_static(remaining, prefix),
             Part::Dynamic { name } => self.find_dynamic(remaining, name),
-            Part::Wildcard { name } if remaining.is_empty() => {
-                self.find_end_wildcard(remaining, name)
-            }
+            Part::Wildcard { name } if remaining.is_empty() => self.find_end_wildcard(name),
             Part::Wildcard { name } => self.find_wildcard(remaining, name),
         }
     }
 
     fn find_static(&self, parts: &[Part], prefix: &[u8]) -> Option<&NodeData> {
+        let first = *prefix.first()?;
+
         for child in &self.static_children {
-            if !child.state.prefix.is_empty() && child.state.prefix[0] == prefix[0] {
-                let common_prefix = prefix
-                    .iter()
-                    .zip(&child.state.prefix)
-                    .take_while(|&(x, y)| x == y)
-                    .count();
+            if child.state.first != first {
+                continue;
+            }
 
-                if common_prefix >= child.state.prefix.len() {
-                    if common_prefix >= prefix.len() {
-                        return child.find(parts);
-                    }
+            let common_prefix = prefix
+                .iter()
+                .zip(&child.state.prefix)
+                .take_while(|&(x, y)| x == y)
+                .count();
 
-                    let remaining_prefix = &prefix[common_prefix..];
-                    if !remaining_prefix.is_empty() {
-                        return child.find_static(parts, remaining_prefix);
-                    }
+            if common_prefix >= child.state.prefix.len() {
+                if common_prefix >= prefix.len() {
+                    return child.find(parts);
                 }
+
+                return child.find_static(parts, &prefix[common_prefix..]);
             }
         }
 
@@ -55,11 +54,11 @@ impl<S> Node<S> {
         None
     }
 
-    fn find_end_wildcard(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
+    fn find_end_wildcard(&self, name: &str) -> Option<&NodeData> {
         if let Some(child) = &self.end_wildcard
-            && child.state.name == name
+            && child.name == name
         {
-            return child.find(parts);
+            return Some(&child.data);
         }
 
         None

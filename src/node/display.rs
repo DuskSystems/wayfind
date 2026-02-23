@@ -56,7 +56,8 @@ impl<S: fmt::Display> fmt::Display for Node<S> {
             }
 
             if let Some(child) = &node.end_wildcard {
-                display_node(output, child, &padding, key.is_empty(), true)?;
+                let branch = if key.is_empty() { "" } else { "╰─ " };
+                writeln!(output, "{padding}{branch}{child}")?;
             }
 
             Ok(())
