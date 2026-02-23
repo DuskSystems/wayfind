@@ -7,7 +7,7 @@ use crate::priority::Priority;
 use crate::state::StaticState;
 
 impl<S> Node<S> {
-    pub(crate) fn optimize(&mut self) {
+    pub fn optimize(&mut self) {
         self.optimize_inner(Priority::default());
     }
 
@@ -17,22 +17,22 @@ impl<S> Node<S> {
         }
 
         if let Some(data) = &mut self.data {
-            data.priority = parent.clone();
+            data.priority = parent;
         }
 
         for child in &mut self.static_children {
-            let child_priority = parent.clone().with_static(child.state.prefix.len());
+            let child_priority = parent.with_static(child.state.prefix.len());
             child.optimize_inner(child_priority);
         }
 
         for child in &mut self.dynamic_children {
-            let child_priority = parent.clone().with_dynamic();
+            let child_priority = parent.with_dynamic();
             child.optimize_inner(child_priority);
             child.static_suffixes = Self::collect_static_suffixes(&child.static_children);
         }
 
         for child in &mut self.wildcard_children {
-            let child_priority = parent.clone().with_wildcard();
+            let child_priority = parent.with_wildcard();
             child.optimize_inner(child_priority);
             child.static_suffixes = Self::collect_static_suffixes(&child.static_children);
         }
@@ -59,7 +59,7 @@ impl<S> Node<S> {
         self.needs_optimization = false;
     }
 
-    /// True if all static children start with '/' (no inline parameters).
+    /// Returns `true` if all static children start with `/` (no inline parameters).
     fn is_segment_only<T>(node: &Node<T>) -> bool {
         node.dynamic_children.is_empty()
             && node.wildcard_children.is_empty()
@@ -70,7 +70,7 @@ impl<S> Node<S> {
                 .all(|child| child.state.prefix.first() == Some(&b'/'))
     }
 
-    /// Collect static suffixes for inline matching, sorted longest first.
+    /// Collects static suffixes for inline matching, sorted longest first.
     fn collect_static_suffixes(children: &[Node<StaticState>]) -> Vec<Vec<u8>> {
         let mut seen = BTreeSet::new();
         Self::collect_static_suffixes_recursive(children, &mut Vec::new(), &mut seen);

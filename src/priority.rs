@@ -4,9 +4,9 @@ use core::cmp::Ordering;
 ///
 /// The priority is as follows:
 /// 1. Static prefix length: more static segments, more specific
-/// 2. Dynamic parameter count: less dynamics, more specific
-/// 3. Wildcard parameter count: less wildcards, more specific
-#[derive(Clone, Eq, PartialEq, Debug, Default)]
+/// 2. Dynamic parameter count: fewer dynamics, more specific
+/// 3. Wildcard parameter count: fewer wildcards, more specific
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Default)]
 pub struct Priority {
     pub static_length: usize,
     pub dynamics_count: usize,

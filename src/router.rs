@@ -1,5 +1,4 @@
 use alloc::borrow::ToOwned as _;
-use alloc::vec;
 use core::fmt;
 
 use slab::Slab;
@@ -43,21 +42,7 @@ impl<T> Router<T> {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            root: Node {
-                state: RootState::new(),
-                data: None,
-
-                static_children: vec![],
-                dynamic_children: vec![],
-                wildcard_children: vec![],
-                end_wildcard: None,
-
-                static_suffixes: vec![],
-                dynamic_segment_only: false,
-                wildcard_segment_only: false,
-
-                needs_optimization: false,
-            },
+            root: Node::new(RootState::new()),
             storage: Slab::new(),
         }
     }
@@ -81,7 +66,7 @@ impl<T> Router<T> {
 
         // Check for conflicts up front.
         // Prevent partial inserts.
-        if let Some(found) = self.root.conflict(&mut parsed.clone()) {
+        if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
                 existing: found.template.clone(),
             });
@@ -146,11 +131,11 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(mut parsed) = Template::new(template.as_bytes()) else {
+        let Ok(parsed) = Template::new(template.as_bytes()) else {
             return None;
         };
 
-        let found = self.root.find(&mut parsed)?;
+        let found = self.root.find(&parsed.parts)?;
         if found.template == template {
             self.storage.get(found.key)
         } else {
@@ -175,11 +160,11 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(mut parsed) = Template::new(template.as_bytes()) else {
+        let Ok(parsed) = Template::new(template.as_bytes()) else {
             return None;
         };
 
-        let found = self.root.find(&mut parsed)?;
+        let found = self.root.find(&parsed.parts)?;
         if found.template == template {
             self.storage.get_mut(found.key)
         } else {

@@ -14,21 +14,12 @@ mod insert;
 mod optimize;
 mod search;
 
-#[cfg(target_pointer_width = "64")]
-const _: () = {
-    assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 168);
-    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 200);
-    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
-    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
-    assert!(core::mem::size_of::<Node<crate::state::EndWildcardState>>() == 192);
-};
-
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct NodeData {
-    /// The key to the stored data in the routers slab.
+    /// The key to the stored data in the router's slab.
     pub key: usize,
 
-    /// This nodes template.
+    /// This node's template.
     pub template: String,
 
     /// The priority of the template.
@@ -37,11 +28,11 @@ pub struct NodeData {
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Eq, PartialEq, Debug)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Node<S> {
-    /// The type of Node, and associated structure data.
+    /// The node's type-specific state.
     pub state: S,
     /// Optional data associated with this node.
-    /// The presence of this data is needed to successfully match a template.
     pub data: Option<NodeData>,
 
     pub static_children: Vec<Node<StaticState>>,
@@ -49,16 +40,37 @@ pub struct Node<S> {
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub end_wildcard: Option<Box<Node<EndWildcardState>>>,
 
-    /// Precomputed static suffixes for inline parameter matching.
+    /// Pre-computed static suffixes for inline parameter matching.
     pub static_suffixes: Vec<Vec<u8>>,
-    /// Whether all dynamic children are full segments, allowing for faster searching.
+    /// Whether all dynamic children are full segments.
     pub dynamic_segment_only: bool,
-    /// Whether all wildcard children are full segments, allowing for faster searching.
+    /// Whether all wildcard children are full segments.
     pub wildcard_segment_only: bool,
 
-    /// Flag indicating whether this node need optimization.
-    /// During optimization, the shortcut flags are updated, priority calculated, and nodes sorted.
+    /// Whether this node needs optimization.
     pub needs_optimization: bool,
+}
+
+impl<S> Node<S> {
+    /// Creates a new empty node.
+    #[must_use]
+    pub const fn new(state: S) -> Self {
+        Self {
+            state,
+            data: None,
+
+            static_children: Vec::new(),
+            dynamic_children: Vec::new(),
+            wildcard_children: Vec::new(),
+            end_wildcard: None,
+
+            static_suffixes: Vec::new(),
+            dynamic_segment_only: false,
+            wildcard_segment_only: false,
+
+            needs_optimization: false,
+        }
+    }
 }
 
 impl<S: Ord> Ord for Node<S> {

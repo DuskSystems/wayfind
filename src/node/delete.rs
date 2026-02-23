@@ -4,11 +4,7 @@ use crate::state::StaticState;
 
 impl<S> Node<S> {
     /// Deletes a route from the node tree.
-    ///
-    /// This method recursively traverses the tree to find and remove the specified template.
-    /// Logic should match that used by the insert method.
-    ///
-    /// If the route is found and deleted, we re-optimize the tree structure.
+    /// Recursively traverses the tree to find and remove the specified template.
     pub fn delete(&mut self, template: &mut Template) -> Option<NodeData> {
         if let Some(part) = template.parts.pop() {
             match part {
