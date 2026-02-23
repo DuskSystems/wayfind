@@ -70,20 +70,21 @@ fn insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
 #[test]
 fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<*catch_all>", 1)?;
+    router.insert("/<*path>/edit", 1)?;
 
-    let error = router.insert("/<*catch_all>", 2).unwrap_err();
+    let error = router.insert("/<*path>/edit", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
-            existing: "/<*catch_all>".to_owned()
+            existing: "/<*path>/edit".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
+    insta::assert_snapshot!(error, @"conflict with `/<*path>/edit`");
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <*catch_all>
+    ╰─ <*path>
+       ╰─ /edit
     ");
 
     Ok(())
@@ -92,20 +93,21 @@ fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
 #[test]
 fn insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
-    router.insert("/<*catch_all>", 1)?;
+    router.insert("/<*path>/edit", 1)?;
 
-    let error = router.insert("/<*files>", 2).unwrap_err();
+    let error = router.insert("/<*slug>/edit", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
-            existing: "/<*catch_all>".to_owned()
+            existing: "/<*path>/edit".to_owned()
         }
     );
 
-    insta::assert_snapshot!(error, @"conflict with `/<*catch_all>`");
+    insta::assert_snapshot!(error, @"conflict with `/<*path>/edit`");
     insta::assert_snapshot!(router, @r"
     /
-    ╰─ <*catch_all>
+    ╰─ <*path>
+       ╰─ /edit
     ");
 
     Ok(())

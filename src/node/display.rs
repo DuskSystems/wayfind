@@ -1,13 +1,14 @@
 use alloc::borrow::ToOwned as _;
+use alloc::format;
 use alloc::string::{String, ToString as _};
-use alloc::{fmt, format};
+use core::fmt;
 use core::fmt::Write as _;
 
 use crate::node::Node;
 
 impl<S: fmt::Display> fmt::Display for Node<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn debug_node<S: fmt::Display>(
+        fn display_node<S: fmt::Display>(
             output: &mut String,
             node: &Node<S>,
             padding: &str,
@@ -41,29 +42,28 @@ impl<S: fmt::Display> fmt::Display for Node<S> {
 
             for child in &node.static_children {
                 count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
 
             for child in &node.dynamic_children {
                 count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
 
             for child in &node.wildcard_children {
                 count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(output, child, &padding, key.is_empty(), count == 0)?;
             }
 
             if let Some(child) = &node.end_wildcard {
-                count -= 1;
-                debug_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(output, child, &padding, key.is_empty(), true)?;
             }
 
             Ok(())
         }
 
         let mut output = String::new();
-        debug_node(&mut output, self, "", true, true)?;
+        display_node(&mut output, self, "", true, true)?;
         write!(f, "{}", output.trim_end())
     }
 }

@@ -67,21 +67,7 @@ impl<S> Node<S> {
                 needs_optimization: child.needs_optimization,
             };
 
-            let new_child_b = Node {
-                state: StaticState::new(prefix[common_prefix..].to_vec()),
-                data: None,
-
-                static_children: vec![],
-                dynamic_children: vec![],
-                wildcard_children: vec![],
-                end_wildcard: None,
-
-                static_suffixes: vec![],
-                dynamic_segment_only: false,
-                wildcard_segment_only: false,
-
-                needs_optimization: false,
-            };
+            let new_child_b = Node::new(StaticState::new(prefix[common_prefix..].to_vec()));
 
             child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
             child.needs_optimization = true;
@@ -99,22 +85,7 @@ impl<S> Node<S> {
         }
 
         self.static_children.push({
-            let mut new_child = Node {
-                state: StaticState::new(prefix.to_vec()),
-                data: None,
-
-                static_children: vec![],
-                dynamic_children: vec![],
-                wildcard_children: vec![],
-                end_wildcard: None,
-
-                static_suffixes: vec![],
-                dynamic_segment_only: false,
-                wildcard_segment_only: false,
-
-                needs_optimization: false,
-            };
-
+            let mut new_child = Node::new(StaticState::new(prefix.to_vec()));
             new_child.insert(template, data);
             new_child
         });
@@ -131,22 +102,7 @@ impl<S> Node<S> {
             child.insert(template, data);
         } else {
             self.dynamic_children.push({
-                let mut new_child = Node {
-                    state: DynamicState::new(name),
-                    data: None,
-
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard: None,
-
-                    static_suffixes: vec![],
-                    dynamic_segment_only: false,
-                    wildcard_segment_only: false,
-
-                    needs_optimization: false,
-                };
-
+                let mut new_child = Node::new(DynamicState::new(name));
                 new_child.insert(template, data);
                 new_child
             });
@@ -164,22 +120,7 @@ impl<S> Node<S> {
             child.insert(template, data);
         } else {
             self.wildcard_children.push({
-                let mut new_child = Node {
-                    state: WildcardState::new(name),
-                    data: None,
-
-                    static_children: vec![],
-                    dynamic_children: vec![],
-                    wildcard_children: vec![],
-                    end_wildcard: None,
-
-                    static_suffixes: vec![],
-                    dynamic_segment_only: false,
-                    wildcard_segment_only: false,
-
-                    needs_optimization: false,
-                };
-
+                let mut new_child = Node::new(WildcardState::new(name));
                 new_child.insert(template, data);
                 new_child
             });
@@ -189,28 +130,9 @@ impl<S> Node<S> {
     }
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
-        if let Some(child) = &self.end_wildcard
-            && child.state.name == name
-        {
-            return;
-        }
-
-        self.end_wildcard = Some(Box::new(Node {
-            state: EndWildcardState::new(name),
-            data: Some(data),
-
-            static_children: vec![],
-            dynamic_children: vec![],
-            wildcard_children: vec![],
-            end_wildcard: None,
-
-            static_suffixes: vec![],
-            dynamic_segment_only: false,
-            wildcard_segment_only: false,
-
-            needs_optimization: false,
-        }));
-
+        let mut node = Node::new(EndWildcardState::new(name));
+        node.data = Some(data);
+        self.end_wildcard = Some(Box::new(node));
         self.needs_optimization = true;
     }
 }

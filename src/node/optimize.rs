@@ -3,48 +3,50 @@ use alloc::vec::Vec;
 use core::cmp::Reverse;
 
 use crate::node::Node;
-use crate::priority::Priority;
 use crate::state::StaticState;
 
 impl<S> Node<S> {
-    pub(crate) fn optimize(&mut self) {
-        self.optimize_inner(Priority::default());
-    }
-
-    fn optimize_inner(&mut self, parent: Priority) {
+    pub fn optimize(&mut self) {
         if !self.needs_optimization {
             return;
         }
 
-        if let Some(data) = &mut self.data {
-            data.priority = parent.clone();
-        }
-
         for child in &mut self.static_children {
-            let child_priority = parent.clone().with_static(child.state.prefix.len());
-            child.optimize_inner(child_priority);
+            child.optimize();
         }
 
         for child in &mut self.dynamic_children {
-            let child_priority = parent.clone().with_dynamic();
-            child.optimize_inner(child_priority);
+            child.optimize();
             child.static_suffixes = Self::collect_static_suffixes(&child.static_children);
         }
 
         for child in &mut self.wildcard_children {
-            let child_priority = parent.clone().with_wildcard();
-            child.optimize_inner(child_priority);
+            child.optimize();
             child.static_suffixes = Self::collect_static_suffixes(&child.static_children);
         }
 
         if let Some(child) = &mut self.end_wildcard {
-            let child_priority = parent.with_wildcard();
-            child.optimize_inner(child_priority);
+            child.optimize();
         }
 
-        self.static_children.sort();
-        self.dynamic_children.sort();
-        self.wildcard_children.sort();
+        self.static_children
+            .sort_by(|a, b| a.state.prefix.cmp(&b.state.prefix));
+
+        self.dynamic_children.sort_by(|a, b| {
+            let a_len = a.static_suffixes.first().map_or(0, Vec::len);
+            let b_len = b.static_suffixes.first().map_or(0, Vec::len);
+            b_len
+                .cmp(&a_len)
+                .then_with(|| a.state.name.cmp(&b.state.name))
+        });
+
+        self.wildcard_children.sort_by(|a, b| {
+            let a_len = a.static_suffixes.first().map_or(0, Vec::len);
+            let b_len = b.static_suffixes.first().map_or(0, Vec::len);
+            b_len
+                .cmp(&a_len)
+                .then_with(|| a.state.name.cmp(&b.state.name))
+        });
 
         self.dynamic_segment_only = self
             .dynamic_children
@@ -59,7 +61,7 @@ impl<S> Node<S> {
         self.needs_optimization = false;
     }
 
-    /// True if all static children start with '/' (no inline parameters).
+    /// Returns `true` if all static children start with `/` (no inline parameters).
     fn is_segment_only<T>(node: &Node<T>) -> bool {
         node.dynamic_children.is_empty()
             && node.wildcard_children.is_empty()
@@ -70,7 +72,7 @@ impl<S> Node<S> {
                 .all(|child| child.state.prefix.first() == Some(&b'/'))
     }
 
-    /// Collect static suffixes for inline matching, sorted longest first.
+    /// Collects static suffixes for inline matching, sorted longest first.
     fn collect_static_suffixes(children: &[Node<StaticState>]) -> Vec<Vec<u8>> {
         let mut seen = BTreeSet::new();
         Self::collect_static_suffixes_recursive(children, &mut Vec::new(), &mut seen);

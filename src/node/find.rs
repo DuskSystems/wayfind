@@ -1,29 +1,26 @@
 use crate::node::{Node, NodeData};
-use crate::parser::{Part, Template};
+use crate::parser::Part;
 
 impl<S> Node<S> {
-    /// Find an exact template match in the node tree.
+    /// Finds an exact template match in the node tree.
     /// Essentially the same as the `Node::insert` logic, without any tree modifications.
-    pub(crate) fn find(&self, template: &mut Template) -> Option<&NodeData> {
-        if template.parts.is_empty() {
+    pub fn find(&self, parts: &[Part]) -> Option<&NodeData> {
+        let Some(part) = parts.last() else {
             return self.data.as_ref();
-        }
+        };
 
-        if let Some(part) = template.parts.pop() {
-            return match part {
-                Part::Static { prefix } => self.find_static(template, &prefix),
-                Part::Dynamic { name } => self.find_dynamic(template, &name),
-                Part::Wildcard { name } if template.parts.is_empty() => {
-                    self.find_end_wildcard(template, &name)
-                }
-                Part::Wildcard { name } => self.find_wildcard(template, &name),
-            };
+        let remaining = &parts[..parts.len() - 1];
+        match part {
+            Part::Static { prefix } => self.find_static(remaining, prefix),
+            Part::Dynamic { name } => self.find_dynamic(remaining, name),
+            Part::Wildcard { name } if remaining.is_empty() => {
+                self.find_end_wildcard(remaining, name)
+            }
+            Part::Wildcard { name } => self.find_wildcard(remaining, name),
         }
-
-        None
     }
 
-    fn find_static(&self, template: &mut Template, prefix: &[u8]) -> Option<&NodeData> {
+    fn find_static(&self, parts: &[Part], prefix: &[u8]) -> Option<&NodeData> {
         for child in &self.static_children {
             if !child.state.prefix.is_empty() && child.state.prefix[0] == prefix[0] {
                 let common_prefix = prefix
@@ -34,17 +31,12 @@ impl<S> Node<S> {
 
                 if common_prefix >= child.state.prefix.len() {
                     if common_prefix >= prefix.len() {
-                        return child.find(template);
+                        return child.find(parts);
                     }
 
-                    let remaining = prefix[common_prefix..].to_vec();
-                    if !remaining.is_empty() {
-                        let mut new_template = Template {
-                            parts: template.parts.clone(),
-                        };
-
-                        new_template.parts.push(Part::Static { prefix: remaining });
-                        return child.find(&mut new_template);
+                    let remaining_prefix = &prefix[common_prefix..];
+                    if !remaining_prefix.is_empty() {
+                        return child.find_static(parts, remaining_prefix);
                     }
                 }
             }
@@ -53,30 +45,30 @@ impl<S> Node<S> {
         None
     }
 
-    fn find_dynamic(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
+    fn find_dynamic(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
         for child in &self.dynamic_children {
             if child.state.name == name {
-                return child.find(template);
+                return child.find(parts);
             }
         }
 
         None
     }
 
-    fn find_end_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
+    fn find_end_wildcard(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
         if let Some(child) = &self.end_wildcard
             && child.state.name == name
         {
-            return child.find(template);
+            return child.find(parts);
         }
 
         None
     }
 
-    fn find_wildcard(&self, template: &mut Template, name: &str) -> Option<&NodeData> {
+    fn find_wildcard(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
         for child in &self.wildcard_children {
             if child.state.name == name {
-                return child.find(template);
+                return child.find(parts);
             }
         }
 

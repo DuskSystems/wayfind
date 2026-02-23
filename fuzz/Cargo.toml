@@ -17,10 +17,10 @@ cargo-fuzz = true
 workspace = true
 
 [dependencies]
-wayfind = { path = ".." }
+wayfind.workspace = true
 
 # Fuzzing
-libfuzzer-sys = { workspace = true, features = ["link_libfuzzer"] }
+libfuzzer-sys.workspace = true
 
 [[bin]]
 name = "e2e"

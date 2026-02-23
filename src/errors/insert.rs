@@ -1,11 +1,11 @@
-use alloc::fmt;
 use alloc::string::String;
 use core::error::Error;
+use core::fmt;
 
 use crate::errors::TemplateError;
 
 /// Errors relating to template insertion.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum InsertError {
     /// A [`TemplateError`] that occurred during the insert.
     Template(TemplateError),

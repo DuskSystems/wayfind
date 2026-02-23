@@ -9,21 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `TemplateError::TooManyParameters` error variant for segments with multiple parameters.
 - `Router<T>` now implements `Default`.
 
 ### Changed
 
 - Raised MSRV from 1.85 to 1.88.
 - Utilize `memchr` for string searching.
-- Limit inline parameters to 1 per segment, preventing exponential searches.
 - Error types are now simplified to include minimal info.
 - Error types now derive `Clone`.
 
 ### Removed
 
 - `TemplateError::EmptyAngles` error variant.
-- Multi-parameter segments like `/<name>.<ext>` are no longer supported.
 
 ## [0.9.0] - 2025-08-27
 

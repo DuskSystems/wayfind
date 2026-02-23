@@ -1,6 +1,5 @@
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::cmp::Ordering;
 use core::fmt;
 
 /// Root node of the tree.
@@ -17,18 +16,6 @@ impl RootState {
 impl fmt::Display for RootState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "")
-    }
-}
-
-impl Ord for RootState {
-    fn cmp(&self, _: &Self) -> Ordering {
-        Ordering::Equal
-    }
-}
-
-impl PartialOrd for RootState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }
 
@@ -56,19 +43,7 @@ impl fmt::Display for StaticState {
     }
 }
 
-impl Ord for StaticState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.prefix.cmp(&other.prefix)
-    }
-}
-
-impl PartialOrd for StaticState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Dynamic parameter with it's name.
+/// Dynamic parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct DynamicState {
     pub name: String,
@@ -87,19 +62,7 @@ impl fmt::Display for DynamicState {
     }
 }
 
-impl Ord for DynamicState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name.cmp(&other.name)
-    }
-}
-
-impl PartialOrd for DynamicState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Wildcard parameter with it's name.
+/// Wildcard parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct WildcardState {
     pub name: String,
@@ -118,19 +81,7 @@ impl fmt::Display for WildcardState {
     }
 }
 
-impl Ord for WildcardState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name.cmp(&other.name)
-    }
-}
-
-impl PartialOrd for WildcardState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// End wildcard parameter with it's name.
+/// End wildcard parameter with its name.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct EndWildcardState {
     pub name: String,
@@ -146,17 +97,5 @@ impl EndWildcardState {
 impl fmt::Display for EndWildcardState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<*{}>", self.name)
-    }
-}
-
-impl Ord for EndWildcardState {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name.cmp(&other.name)
-    }
-}
-
-impl PartialOrd for EndWildcardState {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
     }
 }

@@ -28,7 +28,7 @@ impl Template {
             return Err(TemplateError::Empty);
         }
 
-        if !input.is_empty() && input[0] != b'/' {
+        if input[0] != b'/' {
             return Err(TemplateError::MissingLeadingSlash);
         }
 
@@ -36,7 +36,6 @@ impl Template {
         let mut cursor = 0;
 
         let mut seen_parameters: SmallVec<[(String, Range<usize>); 4]> = smallvec![];
-        let mut segment_parameters: SmallVec<[Range<usize>; 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -59,8 +58,6 @@ impl Template {
                         seen_parameters.push((name.clone(), cursor..next_cursor));
                     }
 
-                    segment_parameters.push(cursor..next_cursor);
-
                     parts.push(part);
                     cursor = next_cursor;
                 }
@@ -70,24 +67,10 @@ impl Template {
                 _ => {
                     let (part, next_cursor) = Self::parse_static_part(input, cursor);
 
-                    if let Part::Static { prefix } = &part
-                        && prefix.contains(&b'/')
-                    {
-                        if segment_parameters.len() > 1 {
-                            return Err(TemplateError::TooManyParameters);
-                        }
-
-                        segment_parameters.clear();
-                    }
-
                     parts.push(part);
                     cursor = next_cursor;
                 }
             }
-        }
-
-        if segment_parameters.len() > 1 {
-            return Err(TemplateError::TooManyParameters);
         }
 
         parts.reverse();
@@ -100,10 +83,10 @@ impl Template {
 
         let mut end = cursor;
         while end < input.len() {
-            match (input[end], input.get(end + 1)) {
-                (b'<' | b'>', _) => break,
-                (char, _) => {
-                    prefix.push(char);
+            match input[end] {
+                b'<' | b'>' => break,
+                byte => {
+                    prefix.push(byte);
                     end += 1;
                 }
             }
@@ -155,7 +138,7 @@ impl Template {
         }
 
         let name =
-            String::from_utf8(name.to_vec()).map_err(|_| TemplateError::InvalidParameter {
+            String::from_utf8(name.to_vec()).map_err(|_err| TemplateError::InvalidParameter {
                 name: String::from_utf8_lossy(name).to_string(),
             })?;
 
@@ -291,12 +274,6 @@ mod tests {
     #[test]
     fn parser_error_touching_parameters() {
         let error = Template::new(b"/users/<id><*name>").unwrap_err();
-        insta::assert_snapshot!(error, @"touching parameters");
-    }
-
-    #[test]
-    fn parser_error_too_many_parameters() {
-        let error = Template::new(b"/<name>.<ext>").unwrap_err();
-        insta::assert_snapshot!(error, @"too many parameters in segment");
+        insta::assert_snapshot!(error, @"parameters must be separated by a static segment");
     }
 }
