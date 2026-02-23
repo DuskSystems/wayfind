@@ -60,9 +60,10 @@ impl<S> Node<S> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
-                static_suffixes: core::mem::take(&mut child.static_suffixes),
                 dynamic_segment_only: child.dynamic_segment_only,
                 wildcard_segment_only: child.wildcard_segment_only,
+                shortest: child.shortest,
+                tail: core::mem::take(&mut child.tail),
 
                 needs_optimization: child.needs_optimization,
             };
@@ -130,9 +131,7 @@ impl<S> Node<S> {
     }
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
-        let mut node = Node::new(EndWildcardState::new(name));
-        node.data = Some(data);
-        self.end_wildcard = Some(Box::new(node));
+        self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
         self.needs_optimization = true;
     }
 }

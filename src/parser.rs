@@ -1,7 +1,6 @@
 use alloc::string::{String, ToString as _};
 use alloc::vec;
 use alloc::vec::Vec;
-use core::ops::Range;
 
 use smallvec::{SmallVec, smallvec};
 
@@ -35,16 +34,16 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: SmallVec<[(String, Range<usize>); 4]> = smallvec![];
+        let mut seen_parameters: SmallVec<[(String, usize); 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
                 b'<' => {
-                    let (part, next_cursor) = Self::parse_parameter_part(input, cursor)?;
+                    let (part, next) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
                     if let Some((_, last)) = seen_parameters.last()
-                        && cursor == last.end
+                        && cursor == *last
                     {
                         return Err(TemplateError::TouchingParameters);
                     }
@@ -55,11 +54,11 @@ impl Template {
                             return Err(TemplateError::DuplicateParameter { name: name.clone() });
                         }
 
-                        seen_parameters.push((name.clone(), cursor..next_cursor));
+                        seen_parameters.push((name.clone(), next));
                     }
 
                     parts.push(part);
-                    cursor = next_cursor;
+                    cursor = next;
                 }
                 b'>' => {
                     return Err(TemplateError::UnbalancedAngle);
@@ -97,27 +96,9 @@ impl Template {
 
     fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), TemplateError> {
         let start = cursor + 1;
-        let mut end = start;
-
-        let mut angle_count = 1;
-        while end < input.len() {
-            match input[end] {
-                b'<' => angle_count += 1,
-                b'>' => {
-                    angle_count -= 1;
-                    if angle_count == 0 {
-                        break;
-                    }
-                }
-                _ => {}
-            }
-
-            end += 1;
-        }
-
-        if angle_count != 0 {
-            return Err(TemplateError::UnbalancedAngle);
-        }
+        let end = memchr::memchr(b'>', &input[start..])
+            .map(|position| start + position)
+            .ok_or(TemplateError::UnbalancedAngle)?;
 
         let content = &input[start..end];
         if content.is_empty() {

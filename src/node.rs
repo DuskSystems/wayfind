@@ -33,23 +33,34 @@ pub struct Node<S> {
     pub static_children: Vec<Node<StaticState>>,
     pub dynamic_children: Vec<Node<DynamicState>>,
     pub wildcard_children: Vec<Node<WildcardState>>,
-    pub end_wildcard: Option<Box<Node<EndWildcardState>>>,
+    pub end_wildcard: Option<Box<EndWildcardState>>,
 
-    /// Pre-computed static suffixes for inline parameter matching.
-    pub static_suffixes: Vec<Vec<u8>>,
     /// Whether all dynamic children are full segments.
     pub dynamic_segment_only: bool,
     /// Whether all wildcard children are full segments.
     pub wildcard_segment_only: bool,
+    /// Minimum bytes of remaining path needed for any match through this node.
+    pub shortest: usize,
+    /// Longest fixed suffix the path must end with for any match through this node.
+    pub tail: Box<[u8]>,
 
     /// Whether this node needs optimization.
     pub needs_optimization: bool,
 }
 
+#[cfg(target_pointer_width = "64")]
+const _: () = {
+    assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 144);
+    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 176);
+    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
+    assert!(core::mem::size_of::<crate::state::EndWildcardState>() == 56);
+};
+
 impl<S> Node<S> {
     /// Creates a new empty node.
     #[must_use]
-    pub const fn new(state: S) -> Self {
+    pub fn new(state: S) -> Self {
         Self {
             state,
             data: None,
@@ -59,9 +70,10 @@ impl<S> Node<S> {
             wildcard_children: Vec::new(),
             end_wildcard: None,
 
-            static_suffixes: Vec::new(),
             dynamic_segment_only: false,
             wildcard_segment_only: false,
+            shortest: usize::MAX,
+            tail: Box::default(),
 
             needs_optimization: false,
         }

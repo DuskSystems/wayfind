@@ -531,3 +531,81 @@ fn wildcard_chain() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn wildcard_multibyte() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>.html", 1)?;
+
+    let search = router.search("/docs/café.html");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*path>.html",
+            parameters: smallvec![("path", "docs/café")],
+        })
+    );
+
+    let search = router.search("/日本語/ページ.html");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*path>.html",
+            parameters: smallvec![("path", "日本語/ページ")],
+        })
+    );
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_repeated_anchor() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*x>/-/<*y>/end", 1)?;
+
+    let search = router.search("/a/-/b/-/c/-/d/-/end");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*x>/-/<*y>/end",
+            parameters: smallvec![("x", "a/-/b/-/c"), ("y", "d/-")],
+        })
+    );
+
+    let search = router.search("/a/-/b/-/c/-/d/-/miss");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>.txt", 1)?;
+    router.insert("/<*path>", 2)?;
+
+    let search = router.search("/a.txt.txt.txt.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*path>.txt",
+            parameters: smallvec![("path", "a.txt.txt.txt")],
+        })
+    );
+
+    let search = router.search("/.txt");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<*path>",
+            parameters: smallvec![("path", ".txt")],
+        })
+    );
+
+    Ok(())
+}

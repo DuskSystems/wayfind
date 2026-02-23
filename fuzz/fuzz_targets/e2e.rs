@@ -20,6 +20,10 @@ fuzz_target!(|inputs: Vec<&str>| {
         assert!(router.search(input).is_some());
     }
 
+    for input in &inputs {
+        let _search = router.search(input);
+    }
+
     let mut display = String::new();
     let _display = write!(display, "{router}");
 
