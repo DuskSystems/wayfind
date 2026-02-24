@@ -3,10 +3,12 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
+use memchr::memmem::FinderRev;
+
 use crate::node::NodeData;
 
 /// Root node of the tree.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct RootState;
 
 impl RootState {
@@ -24,7 +26,7 @@ impl fmt::Display for RootState {
 
 /// Static path segment bytes.
 /// May not be valid UTF-8 due to multibyte splitting.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct StaticState {
     pub first: u8,
     pub prefix: Box<[u8]>,
@@ -47,10 +49,10 @@ impl fmt::Display for StaticState {
 }
 
 /// Dynamic parameter with its name.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct DynamicState {
     pub name: String,
-    pub suffixes: Box<[Box<[u8]>]>,
+    pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl DynamicState {
@@ -70,10 +72,10 @@ impl fmt::Display for DynamicState {
 }
 
 /// Wildcard parameter with its name.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct WildcardState {
     pub name: String,
-    pub suffixes: Box<[Box<[u8]>]>,
+    pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl WildcardState {
@@ -93,7 +95,7 @@ impl fmt::Display for WildcardState {
 }
 
 /// End wildcard leaf node.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct EndWildcardState {
     pub name: String,
     pub data: NodeData,
