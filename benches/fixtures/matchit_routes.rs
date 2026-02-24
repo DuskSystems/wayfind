@@ -1,5 +1,5 @@
 //! Benches sourced from `matchit` (MIT AND BSD-3-Clause):
-//! - <https://github.com/ibraheemdev/matchit/blob/v0.9.0/benches/bench.rs>
+//! - <https://github.com/ibraheemdev/matchit/blob/v0.9.0/benches/bench.rs>.
 
 #[macro_export]
 macro_rules! routes {

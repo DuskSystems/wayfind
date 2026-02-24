@@ -61,12 +61,17 @@ impl<T> Router<T> {
     /// router.insert("/hello", 1).unwrap();
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
-        let mut parsed = Template::new(template.as_bytes())?;
+        let mut parsed =
+            Template::new(template.as_bytes()).map_err(|error| InsertError::Template {
+                template: template.to_owned(),
+                error,
+            })?;
 
         // Check for conflicts up front.
         // Prevent partial inserts.
         if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
+                new: template.to_owned(),
                 existing: found.template.clone(),
             });
         }
@@ -104,10 +109,16 @@ impl<T> Router<T> {
     /// router.delete("/hello").unwrap();
     /// ```
     pub fn delete(&mut self, template: &str) -> Result<T, DeleteError> {
-        let mut parsed = Template::new(template.as_bytes())?;
+        let mut parsed =
+            Template::new(template.as_bytes()).map_err(|error| DeleteError::Template {
+                template: template.to_owned(),
+                error,
+            })?;
 
         let Some(data) = self.root.delete(&mut parsed) else {
-            return Err(DeleteError::NotFound);
+            return Err(DeleteError::NotFound {
+                template: template.to_owned(),
+            });
         };
 
         let entry = self.storage.remove(data.key);
