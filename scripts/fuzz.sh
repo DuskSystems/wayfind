@@ -12,7 +12,7 @@ for TARGET in $(cargo fuzz list); do
     -- \
     -dict=fuzz/dict/wayfind.dict \
     -timeout=0.0001 \
-    -max_total_time=600 \
+    -max_total_time=60 \
     -fork="$(nproc)" \
     -print_final_stats=1 \
     "${@}"

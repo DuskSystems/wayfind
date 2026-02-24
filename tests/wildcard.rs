@@ -582,6 +582,94 @@ fn wildcard_repeated_anchor() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn wildcard_endings() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*a>/x", 1)?;
+    router.insert("/<*a>/y", 2)?;
+    router.insert("/<*a>/z", 3)?;
+
+    insta::assert_snapshot!(router, @r"
+    /
+    ╰─ <*a>
+       ╰─ /
+          ├─ x
+          ├─ y
+          ╰─ z
+    ");
+
+    let search = router.search("/one/x");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*a>/x",
+            parameters: smallvec![("a", "one")],
+        })
+    );
+
+    let search = router.search("/one/two/three/y");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<*a>/y",
+            parameters: smallvec![("a", "one/two/three")],
+        })
+    );
+
+    let search = router.search("/one/z");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &3,
+            template: "/<*a>/z",
+            parameters: smallvec![("a", "one")],
+        })
+    );
+
+    let search = router.search("/one/miss");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_anchored() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*a>/-/<*b>/x", 1)?;
+    router.insert("/<*a>/-/<*b>/y", 2)?;
+    router.insert("/<*a>/-/<*b>/z", 3)?;
+
+    let search = router.search("/one/two/-/three/x");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &1,
+            template: "/<*a>/-/<*b>/x",
+            parameters: smallvec![("a", "one/two"), ("b", "three")],
+        })
+    );
+
+    let search = router.search("/one/-/two/y");
+    assert_eq!(
+        search,
+        Some(Match {
+            data: &2,
+            template: "/<*a>/-/<*b>/y",
+            parameters: smallvec![("a", "one"), ("b", "two")],
+        })
+    );
+
+    let search = router.search("/one/-/two/miss");
+    assert_eq!(search, None);
+
+    let search = router.search("/-/x/-/x/-/x/miss");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
 fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     router.insert("/<*path>.txt", 1)?;

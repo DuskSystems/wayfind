@@ -129,3 +129,35 @@ fn wildcard_chain<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let path = anchors(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_endings<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>/x", 1).unwrap();
+    router.insert("/<*a>/y", 2).unwrap();
+    router.insert("/<*a>/z", 3).unwrap();
+
+    let path = format!("{}/miss", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_anchored<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>/-/<*b>/x", 1).unwrap();
+    router.insert("/<*a>/-/<*b>/y", 2).unwrap();
+    router.insert("/<*a>/-/<*b>/z", 3).unwrap();
+
+    let path = format!("{}/miss", "/-/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_open<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>/x", 1).unwrap();
+    router.insert("/<*a>/y/<*b>", 2).unwrap();
+
+    let path = format!("{}/miss", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
