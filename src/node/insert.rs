@@ -63,7 +63,7 @@ impl<S> Node<S> {
                 dynamic_segment_only: child.dynamic_segment_only,
                 wildcard_segment_only: child.wildcard_segment_only,
                 shortest: child.shortest,
-                tail: core::mem::take(&mut child.tail),
+                tails: core::mem::take(&mut child.tails),
 
                 needs_optimization: child.needs_optimization,
             };

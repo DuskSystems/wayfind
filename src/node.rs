@@ -41,8 +41,8 @@ pub struct Node<S> {
     pub wildcard_segment_only: bool,
     /// Minimum bytes of remaining path needed for any match through this node.
     pub shortest: usize,
-    /// Longest fixed suffix the path must end with for any match through this node.
-    pub tail: Box<[u8]>,
+    /// Possible fixed suffixes the path must end with for any match through this node.
+    pub tails: Box<[Box<[u8]>]>,
 
     /// Whether this node needs optimization.
     pub needs_optimization: bool,
@@ -52,8 +52,8 @@ pub struct Node<S> {
 const _: () = {
     assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 144);
     assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 176);
-    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
-    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
+    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 184);
+    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 184);
     assert!(core::mem::size_of::<crate::state::EndWildcardState>() == 56);
 };
 
@@ -73,7 +73,7 @@ impl<S> Node<S> {
             dynamic_segment_only: false,
             wildcard_segment_only: false,
             shortest: usize::MAX,
-            tail: Box::default(),
+            tails: Box::default(),
 
             needs_optimization: false,
         }

@@ -190,7 +190,8 @@ impl<S> Node<S> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tail.is_empty() && !remaining.ends_with(&child.tail) {
+            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            {
                 continue;
             }
 
@@ -237,7 +238,8 @@ impl<S> Node<S> {
         let remaining = &path_bytes[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tail.is_empty() && !remaining.ends_with(&child.tail) {
+            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            {
                 continue;
             }
 

@@ -56,7 +56,7 @@ impl<S> Node<S> {
             .all(|node| Self::is_segment_only(node));
 
         self.shortest = self.compute_shortest();
-        self.tail = self.compute_tail().into_boxed_slice();
+        self.tails = self.compute_tails();
 
         self.needs_optimization = false;
     }
@@ -73,13 +73,13 @@ impl<S> Node<S> {
     }
 
     /// Collects static suffixes from children for parameter matching.
-    fn collect_suffixes(children: &[Node<StaticState>]) -> Vec<Box<[u8]>> {
+    fn collect_suffixes(children: &[Node<StaticState>]) -> Box<[Box<[u8]>]> {
         let mut seen = BTreeSet::new();
         Self::collect_suffixes_recursive(children, &mut Vec::new(), &mut seen);
 
         let mut suffixes: Vec<Box<[u8]>> = seen.into_iter().map(Vec::into_boxed_slice).collect();
         suffixes.sort_by_key(|suffix| Reverse(suffix.len()));
-        suffixes
+        suffixes.into_boxed_slice()
     }
 
     /// Minimum bytes of remaining path needed for any match through this node.
@@ -134,64 +134,63 @@ impl<S> Node<S> {
             .fold(base, usize::max)
     }
 
-    /// Computes the longest fixed suffix the path must end with for any match through this node.
-    fn compute_tail(&self) -> Vec<u8> {
-        let mut candidates: Vec<Vec<u8>> = Vec::new();
-
+    /// Computes all possible fixed suffixes the path must end with for any match through this node.
+    fn compute_tails(&self) -> Box<[Box<[u8]>]> {
+        // If this node can match directly or has an end wildcard, any ending is valid.
         if self.data.is_some() || self.end_wildcard.is_some() {
-            candidates.push(Vec::new());
+            return Box::default();
         }
 
+        let mut tails: Vec<Vec<u8>> = Vec::new();
+
         for child in &self.static_children {
-            let is_pure =
-                child.shortest == child.compute_longest() && child.tail.len() == child.shortest;
+            let is_pure = child.shortest == child.compute_longest();
 
             if is_pure {
-                let mut tail = child.state.prefix.clone();
-                tail.extend_from_slice(&child.tail);
-                candidates.push(tail);
+                if child.tails.is_empty() {
+                    tails.push(child.state.prefix.clone());
+                } else {
+                    for child_tail in &child.tails {
+                        let mut tail = child.state.prefix.clone();
+                        tail.extend_from_slice(child_tail);
+                        tails.push(tail);
+                    }
+                }
+            } else if child.tails.is_empty() {
+                return Box::default();
             } else {
-                candidates.push(child.tail.to_vec());
+                tails.extend(child.tails.iter().map(|t| t.to_vec()));
             }
         }
 
         for child in &self.dynamic_children {
-            candidates.push(child.tail.to_vec());
+            if child.tails.is_empty() {
+                return Box::default();
+            }
+
+            tails.extend(child.tails.iter().map(|t| t.to_vec()));
         }
 
         for child in &self.wildcard_children {
-            candidates.push(child.tail.to_vec());
-        }
-
-        match candidates.len() {
-            0 => Vec::new(),
-            1 => candidates.into_iter().next().unwrap_or_default(),
-            _ => Self::longest_common_suffix(&candidates),
-        }
-    }
-
-    /// Returns the longest byte sequence that is a suffix of every candidate.
-    fn longest_common_suffix(candidates: &[Vec<u8>]) -> Vec<u8> {
-        let first = &candidates[0];
-        let mut length = first.len();
-
-        for other in &candidates[1..] {
-            length = length.min(other.len());
-
-            while length > 0 {
-                if first[first.len() - length..] == other[other.len() - length..] {
-                    break;
-                }
-
-                length -= 1;
+            if child.tails.is_empty() {
+                return Box::default();
             }
 
-            if length == 0 {
-                return Vec::new();
-            }
+            tails.extend(child.tails.iter().map(|t| t.to_vec()));
         }
 
-        first[first.len() - length..].to_vec()
+        if tails.is_empty() {
+            return Box::default();
+        }
+
+        tails.sort();
+        tails.dedup();
+
+        tails
+            .into_iter()
+            .map(Vec::into_boxed_slice)
+            .collect::<Vec<_>>()
+            .into_boxed_slice()
     }
 
     fn collect_suffixes_recursive(
