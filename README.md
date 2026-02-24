@@ -16,14 +16,9 @@ A speedy, flexible router for Rust.
 
 ## Why another router?
 
-`wayfind` attempts to bridge the gap between existing Rust router options:
+Real-world projects often need advanced routing: inline parameters, mid-route wildcards, or compatibility with frameworks like [Ruby on Rails](https://guides.rubyonrails.org/routing.html) and specifications like the [OCI Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md).
 
-- fast routers, lacking in flexibility
-- flexible routers, lacking in speed
-
-Real-world projects often need fancy routing capabilities, such as projects ported from frameworks like [Ruby on Rails](https://guides.rubyonrails.org/routing.html), or those adhering to specifications like the [Open Container Initiative (OCI) Distribution Specification](https://github.com/opencontainers/distribution-spec/blob/main/spec.md).
-
-The goal of `wayfind` is to remain competitive with the fastest libraries, while offering advanced routing features when needed. Unused features shouldn't impact performance - you only pay for what you use.
+`wayfind` aims to be competitive with the fastest routers while supporting these features. Unused features don't impact performance.
 
 ## Showcase
 
@@ -144,24 +139,42 @@ fn main() -> Result<(), Box<dyn Error>> {
       ╰─ /message
 ```
 
-## Implementation details
+## Implementation Details
 
-`wayfind` uses a compressed radix trie for its data storage.
-This is the common backbone of almost all routers implemented in Rust.
+`wayfind` stores routes in a compressed radix trie, like most performant routers.
 
-What sets `wayfind` apart is its search strategy.
-Most routers either use "first match wins" or "best match wins" (via backtracking), `wayfind` uses a hybrid approach:
+The difference is in the search strategy. Most routers use either "first match wins" or "best match wins" (via backtracking).
+
+We use a hybrid approach:
 
 - per segment: first match wins
-- within segment: best match wins
+- within a segment: best match wins
 
 This can result in some matches which may be unexpected, but in practice it works well for real-world usage.
 
 ## Performance
 
-`wayfind` is fast, and appears to be competitive against other top performers in all benchmarks we currently run.
+`wayfind` is competitive with the fastest Rust routers across all benchmarks we run.
 
-See [BENCHMARKING.md](BENCHMARKING.md) for the results.
+For all benchmarks, we convert any extracted parameters to strings.
+
+All routers provide a way to return parameters as strings, but some delay the actual UTF-8 decoding until post-search.
+
+| Library          | Percent Decoding | String Parameters |
+|:-----------------|:----------------:|:-----------------:|
+| wayfind          | no               | yes               |
+| actix-router     | partial          | yes               |
+| matchit          | no               | delayed           |
+| ntex-router      | partial          | yes               |
+| path-tree        | no               | delayed           |
+| route-recognizer | no               | yes               |
+| xitca-router     | no               | yes               |
+
+As such, we provide 2 sets of results per benchmark:
+- one with the default behaviour of the router.
+- one with the parameters extracted to `Vec<(&str, &str)>`.
+
+See the results at: https://codspeed.io/DuskSystems/wayfind/benchmarks
 
 ## License
 

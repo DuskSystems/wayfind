@@ -112,13 +112,11 @@
 //!
 //! ## Priority
 //!
-//! Templates are matched using a hierarchical priority system.
-//!
-//! From highest priority to lowest, we walk the current node's children in this order:
-//! - statics
-//! - dynamics
-//! - wildcards
-//! - end wildcards
+//! Templates are matched using a hierarchical priority system:
+//! 1. Static: `/users`
+//! 2. Dynamic: `/<id>`
+//! 3. Wildcard: `/<*path>/rest`
+//! 4. End wildcard: `/<*path>`
 //!
 //! ## Display
 //!
