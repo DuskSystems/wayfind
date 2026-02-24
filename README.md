@@ -141,16 +141,33 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ## Implementation Details
 
-`wayfind` stores routes in a compressed radix trie, like most performant routers.
+`wayfind` stores routes in a compressed radix trie.
 
-The difference is in the search strategy. Most routers use either "first match wins" or "best match wins" (via backtracking).
+When searching, each node tries its children in priority order:
+1. static
+2. dynamic
+3. wildcard
 
-We use a hybrid approach:
+All parameters are greedy, consuming as much of the path as possible.
 
-- per segment: first match wins
-- within a segment: best match wins
+### Limitations
 
-This can result in some matches which may be unexpected, but in practice it works well for real-world usage.
+There is no backtracking across priority levels.
+This can result in some matches which may be unexpected.
+
+In the following router:
+
+```text
+/api/
+├─ <version>
+│  ╰─ /
+│     ╰─ <*rest>
+╰─ <*path>
+   ╰─ /help
+```
+
+The path `/api/docs/help` would match the first route, not the second.
+Even though the second is arguably more specific.
 
 ## Performance
 

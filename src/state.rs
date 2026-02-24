@@ -27,7 +27,7 @@ impl fmt::Display for RootState {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct StaticState {
     pub first: u8,
-    pub prefix: Vec<u8>,
+    pub prefix: Box<[u8]>,
 }
 
 impl StaticState {
@@ -35,7 +35,7 @@ impl StaticState {
     pub fn new(prefix: Vec<u8>) -> Self {
         Self {
             first: prefix.first().copied().unwrap_or(0),
-            prefix,
+            prefix: prefix.into_boxed_slice(),
         }
     }
 }

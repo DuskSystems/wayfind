@@ -16,14 +16,19 @@ impl<S> Node<S> {
             child.optimize();
         }
 
+        let mut seen = BTreeSet::new();
+        let mut current = Vec::new();
+
         for child in &mut self.dynamic_children {
             child.optimize();
-            child.state.suffixes = Self::collect_suffixes(&child.static_children);
+            child.state.suffixes =
+                Self::collect_suffixes(&child.static_children, &mut current, &mut seen);
         }
 
         for child in &mut self.wildcard_children {
             child.optimize();
-            child.state.suffixes = Self::collect_suffixes(&child.static_children);
+            child.state.suffixes =
+                Self::collect_suffixes(&child.static_children, &mut current, &mut seen);
         }
 
         self.static_children
@@ -56,6 +61,7 @@ impl<S> Node<S> {
             .all(|node| Self::is_segment_only(node));
 
         self.shortest = self.compute_shortest();
+        self.longest = self.compute_longest();
         self.tails = self.compute_tails();
 
         self.needs_optimization = false;
@@ -73,11 +79,17 @@ impl<S> Node<S> {
     }
 
     /// Collects static suffixes from children for parameter matching.
-    fn collect_suffixes(children: &[Node<StaticState>]) -> Box<[Box<[u8]>]> {
-        let mut seen = BTreeSet::new();
-        Self::collect_suffixes_recursive(children, &mut Vec::new(), &mut seen);
+    fn collect_suffixes(
+        children: &[Node<StaticState>],
+        current: &mut Vec<u8>,
+        seen: &mut BTreeSet<Vec<u8>>,
+    ) -> Box<[Box<[u8]>]> {
+        seen.clear();
+        Self::collect_suffixes_recursive(children, current, seen);
 
-        let mut suffixes: Vec<Box<[u8]>> = seen.into_iter().map(Vec::into_boxed_slice).collect();
+        let mut suffixes: Vec<Box<[u8]>> =
+            seen.iter().cloned().map(Vec::into_boxed_slice).collect();
+
         suffixes.sort_by_key(|suffix| Reverse(suffix.len()));
         suffixes.into_boxed_slice()
     }
@@ -124,19 +136,12 @@ impl<S> Node<S> {
 
         self.static_children
             .iter()
-            .map(|child| {
-                child
-                    .state
-                    .prefix
-                    .len()
-                    .saturating_add(child.compute_longest())
-            })
+            .map(|child| child.state.prefix.len().saturating_add(child.longest))
             .fold(base, usize::max)
     }
 
     /// Computes all possible fixed suffixes the path must end with for any match through this node.
     fn compute_tails(&self) -> Box<[Box<[u8]>]> {
-        // If this node can match directly or has an end wildcard, any ending is valid.
         if self.data.is_some() || self.end_wildcard.is_some() {
             return Box::default();
         }
@@ -144,14 +149,14 @@ impl<S> Node<S> {
         let mut tails: Vec<Vec<u8>> = Vec::new();
 
         for child in &self.static_children {
-            let is_pure = child.shortest == child.compute_longest();
+            let is_pure = child.shortest == child.longest;
 
             if is_pure {
                 if child.tails.is_empty() {
-                    tails.push(child.state.prefix.clone());
+                    tails.push(child.state.prefix.to_vec());
                 } else {
                     for child_tail in &child.tails {
-                        let mut tail = child.state.prefix.clone();
+                        let mut tail = child.state.prefix.to_vec();
                         tail.extend_from_slice(child_tail);
                         tails.push(tail);
                     }
@@ -163,20 +168,17 @@ impl<S> Node<S> {
             }
         }
 
-        for child in &self.dynamic_children {
-            if child.tails.is_empty() {
+        for child_tails in self
+            .dynamic_children
+            .iter()
+            .map(|child| &child.tails)
+            .chain(self.wildcard_children.iter().map(|child| &child.tails))
+        {
+            if child_tails.is_empty() {
                 return Box::default();
             }
 
-            tails.extend(child.tails.iter().map(|t| t.to_vec()));
-        }
-
-        for child in &self.wildcard_children {
-            if child.tails.is_empty() {
-                return Box::default();
-            }
-
-            tails.extend(child.tails.iter().map(|t| t.to_vec()));
+            tails.extend(child_tails.iter().map(|t| t.to_vec()));
         }
 
         if tails.is_empty() {
@@ -211,7 +213,6 @@ impl<S> Node<S> {
             }
 
             Self::collect_suffixes_recursive(&child.static_children, current, seen);
-
             current.truncate(current.len() - child.state.prefix.len());
         }
     }

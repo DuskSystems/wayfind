@@ -697,3 +697,25 @@ fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn wildcard_segment_empty() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*a>/<b>", 1)?;
+
+    let search = router.search("//foo");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_inline_empty() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<*path>.x/<*rest>", 1)?;
+
+    let search = router.search("/.x/y");
+    assert_eq!(search, None);
+
+    Ok(())
+}

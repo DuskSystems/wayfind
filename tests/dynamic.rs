@@ -485,3 +485,37 @@ fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn dynamic_segment_slash() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<a>/<b>", 1)?;
+
+    let search = router.search("//foo");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
+fn dynamic_segment_tails() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<name>/edit", 1)?;
+
+    let search = router.search("/foo/view");
+    assert_eq!(search, None);
+
+    Ok(())
+}
+
+#[test]
+fn dynamic_inline_tails() -> Result<(), Box<dyn Error>> {
+    let mut router = Router::new();
+    router.insert("/<a>.txt", 1)?;
+    router.insert("/<b>/edit", 2)?;
+
+    let search = router.search("/foo/view");
+    assert_eq!(search, None);
+
+    Ok(())
+}

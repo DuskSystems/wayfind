@@ -112,11 +112,12 @@
 //!
 //! ## Priority
 //!
-//! Templates are matched using a hierarchical priority system:
+//! When searching, each node tries its children in priority order:
 //! 1. Static: `/users`
 //! 2. Dynamic: `/<id>`
-//! 3. Wildcard: `/<*path>/rest`
-//! 4. End wildcard: `/<*path>`
+//! 3. Wildcard: `/<*path>`
+//!
+//! All parameters are greedy, consuming as much of the path as possible.
 //!
 //! ## Display
 //!
