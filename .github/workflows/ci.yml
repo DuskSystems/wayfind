@@ -34,20 +34,6 @@ jobs:
         with:
           save-cache: true
 
-  setup-codspeed:
-    name: Setup (Codspeed)
-    runs-on: codspeed-macro
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./.github/actions/setup
-        with:
-          save-cache: true
-
   checks:
     name: Checks
     needs: setup
@@ -169,7 +155,6 @@ jobs:
 
   benches-cpu:
     name: Benchmarks (CPU)
-    needs: setup-codspeed
     runs-on: codspeed-macro
     permissions:
       actions: write # sccache
@@ -182,6 +167,8 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
+        with:
+          save-cache: true
 
       - name: Build benchmarks
         run: ./scripts/bench-build.sh

@@ -26,7 +26,6 @@ impl<S> Node<S> {
     }
 
     fn insert_static(&mut self, template: &mut Template, data: NodeData, prefix: &[u8]) {
-        // Check if the first byte is already a child here.
         if let Some(child) = self
             .static_children
             .iter_mut()
@@ -35,7 +34,7 @@ impl<S> Node<S> {
             let common_prefix = prefix
                 .iter()
                 .zip(&child.state.prefix)
-                .take_while(|&(x, y)| x == y)
+                .take_while(|&(a, b)| a == b)
                 .count();
 
             // If the new prefix matches or extends the existing prefix, we can just insert it directly.
@@ -133,6 +132,7 @@ impl<S> Node<S> {
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
         self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
+
         self.needs_optimization = true;
     }
 }
