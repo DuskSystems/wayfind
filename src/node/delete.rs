@@ -44,8 +44,8 @@ impl<S> Node<S> {
         } else if child.is_compressible() {
             let merge = child.static_children.remove(0);
 
-            let mut prefix = core::mem::take(&mut child.state.prefix);
-            prefix.extend(&merge.state.prefix);
+            let mut prefix = core::mem::take(&mut child.state.prefix).into_vec();
+            prefix.extend_from_slice(&merge.state.prefix);
 
             *child = Node {
                 state: StaticState::new(prefix),

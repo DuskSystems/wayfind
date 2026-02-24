@@ -1,3 +1,4 @@
+use memchr::memmem::FinderRev;
 use smallvec::SmallVec;
 
 use crate::node::{Node, NodeData};
@@ -20,6 +21,10 @@ impl<S> Node<S> {
     ) -> Option<&'r NodeData> {
         if offset == path.len() {
             return self.data.as_ref();
+        }
+
+        if path.len() - offset < self.shortest {
+            return None;
         }
 
         if let Some(search) = self.search_static(path, offset, parameters) {
@@ -107,6 +112,18 @@ impl<S> Node<S> {
                 continue;
             }
 
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && remaining[remaining.len() - tail.len()..]
+                            .iter()
+                            .zip(tail.iter())
+                            .all(|(a, b)| a == b)
+                })
+            {
+                continue;
+            }
+
             parameters.push((&child.state.name, segment));
 
             if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
@@ -120,7 +137,6 @@ impl<S> Node<S> {
     }
 
     /// Matches inline dynamic parameters like `/<name>.txt`.
-    #[inline(never)]
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         path: &'p str,
@@ -131,15 +147,28 @@ impl<S> Node<S> {
         let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
         for child in &self.dynamic_children {
-            let max_position = remaining.len().saturating_sub(child.shortest);
-            if max_position == 0 {
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && remaining[remaining.len() - tail.len()..]
+                            .iter()
+                            .zip(tail.iter())
+                            .all(|(a, b)| a == b)
+                })
+            {
+                continue;
+            }
+
+            let max = remaining.len().saturating_sub(child.shortest);
+            if max == 0 {
                 continue;
             }
 
             for suffix in &child.state.suffixes {
-                let mut search_end =
-                    (segment_end.min(max_position) + suffix.len()).min(remaining.len());
-                while let Some(position) = memchr::memmem::rfind(&remaining[..search_end], suffix) {
+                let finder = FinderRev::new(suffix);
+
+                let mut end = (segment_end.min(max) + suffix.len()).min(remaining.len());
+                while let Some(position) = finder.rfind(&remaining[..end]) {
                     if position == 0 {
                         break;
                     }
@@ -155,7 +184,7 @@ impl<S> Node<S> {
                         parameters.pop();
                     }
 
-                    search_end = position;
+                    end = position;
                 }
             }
         }
@@ -163,6 +192,18 @@ impl<S> Node<S> {
         if segment_end > 0 {
             for child in &self.dynamic_children {
                 if remaining.len() - segment_end < child.shortest {
+                    continue;
+                }
+
+                if !child.tails.is_empty()
+                    && !child.tails.iter().any(|tail| {
+                        remaining.len() >= tail.len()
+                            && remaining[remaining.len() - tail.len()..]
+                                .iter()
+                                .zip(tail.iter())
+                                .all(|(a, b)| a == b)
+                    })
+                {
                     continue;
                 }
 
@@ -190,25 +231,30 @@ impl<S> Node<S> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && remaining[remaining.len() - tail.len()..]
+                            .iter()
+                            .zip(tail.iter())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
-            let max_position = remaining.len().saturating_sub(child.shortest);
-            let mut end = Some(max_position);
+            let max = remaining.len().saturating_sub(child.shortest);
+
+            let mut end = Some(max);
             while let Some(position) = end {
                 if position == 0 {
                     break;
                 }
 
                 let after = &remaining[position..];
-                if child
-                    .state
-                    .suffixes
-                    .iter()
-                    .any(|suffix| after.starts_with(suffix))
-                {
+                if child.state.suffixes.iter().any(|suffix| {
+                    after.len() >= suffix.len() && suffix.iter().zip(after).all(|(a, b)| a == b)
+                }) {
                     let parameter = &path[offset..offset + position];
                     parameters.push((&child.state.name, parameter));
 
@@ -227,7 +273,6 @@ impl<S> Node<S> {
     }
 
     /// Matches inline wildcard parameters like `/<*path>.html`.
-    #[inline(never)]
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         path: &'p str,
@@ -238,19 +283,28 @@ impl<S> Node<S> {
         let remaining = &path_bytes[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && remaining[remaining.len() - tail.len()..]
+                            .iter()
+                            .zip(tail.iter())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
-            let max_position = remaining.len().saturating_sub(child.shortest);
-            if max_position == 0 {
+            let max = remaining.len().saturating_sub(child.shortest);
+            if max == 0 {
                 continue;
             }
 
             for suffix in &child.state.suffixes {
-                let mut search_end = (max_position + suffix.len()).min(remaining.len());
-                while let Some(position) = memchr::memmem::rfind(&remaining[..search_end], suffix) {
+                let finder = FinderRev::new(suffix);
+
+                let mut end = (max + suffix.len()).min(remaining.len());
+                while let Some(position) = finder.rfind(&remaining[..end]) {
                     if position == 0 {
                         break;
                     }
@@ -266,7 +320,7 @@ impl<S> Node<S> {
                         parameters.pop();
                     }
 
-                    search_end = position;
+                    end = position;
                 }
             }
         }
