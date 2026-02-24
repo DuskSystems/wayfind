@@ -50,15 +50,15 @@ impl fmt::Display for StaticState {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct DynamicState {
     pub name: String,
-    pub suffixes: Vec<Box<[u8]>>,
+    pub suffixes: Box<[Box<[u8]>]>,
 }
 
 impl DynamicState {
     #[must_use]
-    pub const fn new(name: String) -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             name,
-            suffixes: Vec::new(),
+            suffixes: Box::default(),
         }
     }
 }
@@ -73,15 +73,15 @@ impl fmt::Display for DynamicState {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct WildcardState {
     pub name: String,
-    pub suffixes: Vec<Box<[u8]>>,
+    pub suffixes: Box<[Box<[u8]>]>,
 }
 
 impl WildcardState {
     #[must_use]
-    pub const fn new(name: String) -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             name,
-            suffixes: Vec::new(),
+            suffixes: Box::default(),
         }
     }
 }
