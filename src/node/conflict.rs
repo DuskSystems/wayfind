@@ -26,15 +26,20 @@ impl<S> Node<S> {
                 continue;
             }
 
-            if prefix.len() >= child.state.prefix.len()
-                && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
-            {
-                let remaining_prefix = &prefix[child.state.prefix.len()..];
-                if remaining_prefix.is_empty() {
+            let common_prefix = child
+                .state
+                .prefix
+                .iter()
+                .zip(prefix)
+                .take_while(|&(a, b)| a == b)
+                .count();
+
+            if common_prefix >= child.state.prefix.len() {
+                if common_prefix >= prefix.len() {
                     if let Some(data) = child.conflict(parts) {
                         return Some(data);
                     }
-                } else if let Some(data) = child.conflict_static(parts, remaining_prefix) {
+                } else if let Some(data) = child.conflict_static(parts, &prefix[common_prefix..]) {
                     return Some(data);
                 }
             }

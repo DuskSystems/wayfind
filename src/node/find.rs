@@ -26,10 +26,12 @@ impl<S> Node<S> {
                 continue;
             }
 
-            let common_prefix = prefix
+            let common_prefix = child
+                .state
+                .prefix
                 .iter()
-                .zip(&child.state.prefix)
-                .take_while(|&(x, y)| x == y)
+                .zip(prefix)
+                .take_while(|&(a, b)| a == b)
                 .count();
 
             if common_prefix >= child.state.prefix.len() {

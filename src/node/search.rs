@@ -1,4 +1,3 @@
-use memchr::memmem::FinderRev;
 use smallvec::SmallVec;
 
 use crate::node::{Node, NodeData};
@@ -23,32 +22,28 @@ impl<S> Node<S> {
             return self.data.as_ref();
         }
 
-        if path.len() - offset < self.shortest {
+        if path.len().checked_sub(offset)? < self.shortest {
             return None;
         }
 
-        if let Some(search) = self.search_static(path, offset, parameters) {
-            return Some(search);
+        if let Some(result) = self.search_static(path, offset, parameters) {
+            return Some(result);
         }
 
-        if let Some(search) = {
-            if self.dynamic_segment_only {
-                self.search_dynamic_segment(path, offset, parameters)
-            } else {
-                self.search_dynamic_inline(path, offset, parameters)
-            }
+        if let Some(result) = if self.dynamic_segment_only {
+            self.search_dynamic_segment(path, offset, parameters)
+        } else {
+            self.search_dynamic_inline(path, offset, parameters)
         } {
-            return Some(search);
+            return Some(result);
         }
 
-        if let Some(search) = {
-            if self.wildcard_segment_only {
-                self.search_wildcard_segment(path, offset, parameters)
-            } else {
-                self.search_wildcard_inline(path, offset, parameters)
-            }
+        if let Some(result) = if self.wildcard_segment_only {
+            self.search_wildcard_segment(path, offset, parameters)
+        } else {
+            self.search_wildcard_inline(path, offset, parameters)
         } {
-            return Some(search);
+            return Some(result);
         }
 
         self.search_end_wildcard(path, offset, parameters)
@@ -61,20 +56,17 @@ impl<S> Node<S> {
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let remaining = &path.as_bytes()[offset..];
+        let remaining = path.as_bytes().get(offset..)?;
         let first = *remaining.first()?;
 
-        for child in &self.static_children {
-            if child.state.first != first {
-                continue;
-            }
+        let child = self
+            .static_children
+            .iter()
+            .find(|child| child.state.first == first)?;
 
-            if remaining.starts_with(&child.state.prefix) {
-                let current = offset + child.state.prefix.len();
-                if let Some(data) = child.search_at(path, current, parameters) {
-                    return Some(data);
-                }
-            }
+        if remaining.starts_with(&child.state.prefix) {
+            let end = offset.checked_add(child.state.prefix.len())?;
+            return child.search_at(path, end, parameters);
         }
 
         None
@@ -91,16 +83,18 @@ impl<S> Node<S> {
             return None;
         }
 
-        let remaining = &path.as_bytes()[offset..];
-        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
-        if segment_end == 0 {
+        let remaining = path.as_bytes().get(offset..)?;
+
+        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        if limit == 0 {
             return None;
         }
 
-        let segment = &path[offset..offset + segment_end];
+        let end = offset.checked_add(limit)?;
+        let segment = path.get(offset..end)?;
 
         for child in &self.dynamic_children {
-            if remaining.len() - segment_end < child.shortest {
+            if remaining.len().saturating_sub(limit) < child.shortest {
                 continue;
             }
 
@@ -111,7 +105,7 @@ impl<S> Node<S> {
 
             parameters.push((&child.state.name, segment));
 
-            if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
+            if let Some(result) = child.search_at(path, end, parameters) {
                 return Some(result);
             }
 
@@ -128,8 +122,8 @@ impl<S> Node<S> {
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let remaining = &path.as_bytes()[offset..];
-        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        let remaining = path.as_bytes().get(offset..)?;
+        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
         for child in &self.dynamic_children {
             if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
@@ -143,19 +137,22 @@ impl<S> Node<S> {
             }
 
             for suffix in &child.state.suffixes {
-                let finder = FinderRev::new(suffix);
+                let mut end = limit
+                    .min(max)
+                    .saturating_add(suffix.needle().len())
+                    .min(remaining.len());
 
-                let mut end = (segment_end.min(max) + suffix.len()).min(remaining.len());
-                while let Some(position) = finder.rfind(&remaining[..end]) {
+                while let Some(position) = suffix.rfind(remaining.get(..end)?) {
                     if position == 0 {
                         break;
                     }
 
-                    if path.is_char_boundary(offset + position) {
-                        let parameter = &path[offset..offset + position];
+                    let path_end = offset.checked_add(position)?;
+                    if path.is_char_boundary(path_end) {
+                        let parameter = path.get(offset..path_end)?;
                         parameters.push((&child.state.name, parameter));
 
-                        if let Some(result) = child.search_at(path, offset + position, parameters) {
+                        if let Some(result) = child.search_at(path, path_end, parameters) {
                             return Some(result);
                         }
 
@@ -167,9 +164,12 @@ impl<S> Node<S> {
             }
         }
 
-        if segment_end > 0 {
+        if limit != 0 {
+            let segment_end = offset.checked_add(limit)?;
+            let segment = path.get(offset..segment_end)?;
+
             for child in &self.dynamic_children {
-                if remaining.len() - segment_end < child.shortest {
+                if remaining.len().saturating_sub(limit) < child.shortest {
                     continue;
                 }
 
@@ -179,10 +179,9 @@ impl<S> Node<S> {
                     continue;
                 }
 
-                let parameter = &path[offset..offset + segment_end];
-                parameters.push((&child.state.name, parameter));
+                parameters.push((&child.state.name, segment));
 
-                if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
+                if let Some(result) = child.search_at(path, segment_end, parameters) {
                     return Some(result);
                 }
 
@@ -200,7 +199,7 @@ impl<S> Node<S> {
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let remaining = &path.as_bytes()[offset..];
+        let remaining = path.as_bytes().get(offset..)?;
 
         for child in &self.wildcard_children {
             if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
@@ -211,24 +210,26 @@ impl<S> Node<S> {
             let max = remaining.len().saturating_sub(child.shortest);
 
             let positions = core::iter::successors(Some(max), |&position| {
-                memchr::memrchr(b'/', &remaining[..position])
+                memchr::memrchr(b'/', remaining.get(..position)?)
             });
 
             for position in positions.take_while(|&position| position > 0) {
-                let after = &remaining[position..];
+                let after = remaining.get(position..)?;
                 if !child
                     .state
                     .suffixes
                     .iter()
-                    .any(|suffix| after.starts_with(suffix))
+                    .any(|finder| after.starts_with(finder.needle()))
                 {
                     continue;
                 }
 
-                let parameter = &path[offset..offset + position];
+                let end = offset.checked_add(position)?;
+
+                let parameter = path.get(offset..end)?;
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search_at(path, offset + position, parameters) {
+                if let Some(result) = child.search_at(path, end, parameters) {
                     return Some(result);
                 }
 
@@ -246,7 +247,7 @@ impl<S> Node<S> {
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        let remaining = &path.as_bytes()[offset..];
+        let remaining = path.as_bytes().get(offset..)?;
 
         for child in &self.wildcard_children {
             if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
@@ -260,19 +261,21 @@ impl<S> Node<S> {
             }
 
             for suffix in &child.state.suffixes {
-                let finder = FinderRev::new(suffix);
+                let mut end = max
+                    .saturating_add(suffix.needle().len())
+                    .min(remaining.len());
 
-                let mut end = (max + suffix.len()).min(remaining.len());
-                while let Some(position) = finder.rfind(&remaining[..end]) {
+                while let Some(position) = suffix.rfind(remaining.get(..end)?) {
                     if position == 0 {
                         break;
                     }
 
-                    if path.is_char_boundary(offset + position) {
-                        let parameter = &path[offset..offset + position];
+                    let path_end = offset.checked_add(position)?;
+                    if path.is_char_boundary(path_end) {
+                        let parameter = path.get(offset..path_end)?;
                         parameters.push((&child.state.name, parameter));
 
-                        if let Some(result) = child.search_at(path, offset + position, parameters) {
+                        if let Some(result) = child.search_at(path, path_end, parameters) {
                             return Some(result);
                         }
 
@@ -295,7 +298,7 @@ impl<S> Node<S> {
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         if let Some(child) = &self.end_wildcard {
-            parameters.push((&child.name, &path[offset..]));
+            parameters.push((&child.name, path.get(offset..)?));
             return Some(&child.data);
         }
 
