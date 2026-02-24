@@ -28,3 +28,10 @@ path = "fuzz_targets/e2e.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "gitlab"
+path = "fuzz_targets/gitlab.rs"
+test = false
+doc = false
+bench = false
