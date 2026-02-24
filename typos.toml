@@ -1,0 +1,7 @@
+# https://github.com/crate-ci/typos/blob/master/docs/reference.md
+
+[files]
+extend-exclude = [
+  "benches/fixtures/gitlab_routes.rs",
+  "tests/gitlab.rs",
+]

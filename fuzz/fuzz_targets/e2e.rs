@@ -28,7 +28,7 @@ fuzz_target!(|inputs: Vec<&str>| {
     let _display = write!(display, "{router}");
 
     for (_, input) in &inserted {
-        let _delete = router.delete(input);
+        assert!(router.delete(input).is_ok());
     }
 
     for (_, input) in &inserted {
