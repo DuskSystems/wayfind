@@ -26,7 +26,6 @@ impl<S> Node<S> {
     }
 
     fn insert_static(&mut self, template: &mut Template, data: NodeData, prefix: &[u8]) {
-        // Check if the first byte is already a child here.
         if let Some(child) = self
             .static_children
             .iter_mut()
@@ -133,6 +132,7 @@ impl<S> Node<S> {
 
     fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
         self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
+
         self.needs_optimization = true;
     }
 }

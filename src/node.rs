@@ -12,7 +12,7 @@ mod insert;
 mod optimize;
 mod search;
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct NodeData {
     /// The key to the stored data in the router's slab.
     pub key: usize,
@@ -22,7 +22,7 @@ pub struct NodeData {
 }
 
 /// Represents a node in the tree structure.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct Node<S> {
     /// The node's type-specific state.
@@ -49,15 +49,6 @@ pub struct Node<S> {
     /// Whether this node needs optimization.
     pub needs_optimization: bool,
 }
-
-#[cfg(target_pointer_width = "64")]
-const _: () = {
-    assert!(core::mem::size_of::<Node<crate::state::RootState>>() == 152);
-    assert!(core::mem::size_of::<Node<crate::state::StaticState>>() == 176);
-    assert!(core::mem::size_of::<Node<crate::state::DynamicState>>() == 192);
-    assert!(core::mem::size_of::<Node<crate::state::WildcardState>>() == 192);
-    assert!(core::mem::size_of::<crate::state::EndWildcardState>() == 56);
-};
 
 impl<S> Node<S> {
     /// Creates a new empty node.

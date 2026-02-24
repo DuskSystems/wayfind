@@ -1,4 +1,3 @@
-use memchr::memmem::FinderRev;
 use smallvec::SmallVec;
 
 use crate::node::{Node, NodeData};
@@ -19,8 +18,12 @@ impl<S> Node<S> {
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
-        if offset == path.len() {
-            return self.data.as_ref();
+        if offset >= path.len() {
+            return if offset == path.len() {
+                self.data.as_ref()
+            } else {
+                None
+            };
         }
 
         if path.len() - offset < self.shortest {
@@ -31,22 +34,18 @@ impl<S> Node<S> {
             return Some(search);
         }
 
-        if let Some(search) = {
-            if self.dynamic_segment_only {
-                self.search_dynamic_segment(path, offset, parameters)
-            } else {
-                self.search_dynamic_inline(path, offset, parameters)
-            }
+        if let Some(search) = if self.dynamic_segment_only {
+            self.search_dynamic_segment(path, offset, parameters)
+        } else {
+            self.search_dynamic_inline(path, offset, parameters)
         } {
             return Some(search);
         }
 
-        if let Some(search) = {
-            if self.wildcard_segment_only {
-                self.search_wildcard_segment(path, offset, parameters)
-            } else {
-                self.search_wildcard_inline(path, offset, parameters)
-            }
+        if let Some(search) = if self.wildcard_segment_only {
+            self.search_wildcard_segment(path, offset, parameters)
+        } else {
+            self.search_wildcard_inline(path, offset, parameters)
         } {
             return Some(search);
         }
@@ -69,9 +68,16 @@ impl<S> Node<S> {
                 continue;
             }
 
-            if remaining.starts_with(&child.state.prefix) {
-                let current = offset + child.state.prefix.len();
-                if let Some(data) = child.search_at(path, current, parameters) {
+            if remaining.len() >= child.state.prefix.len()
+                && child
+                    .state
+                    .prefix
+                    .iter()
+                    .zip(remaining)
+                    .all(|(a, b)| a == b)
+            {
+                let end = offset + child.state.prefix.len();
+                if let Some(data) = child.search_at(path, end, parameters) {
                     return Some(data);
                 }
             }
@@ -92,26 +98,34 @@ impl<S> Node<S> {
         }
 
         let remaining = &path.as_bytes()[offset..];
-        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
-        if segment_end == 0 {
+        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        if limit == 0 {
             return None;
         }
 
-        let segment = &path[offset..offset + segment_end];
+        let segment = &path[offset..offset + limit];
 
         for child in &self.dynamic_children {
-            if remaining.len() - segment_end < child.shortest {
+            if remaining.len() - limit < child.shortest {
                 continue;
             }
 
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && tail
+                            .iter()
+                            .rev()
+                            .zip(remaining.iter().rev())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
             parameters.push((&child.state.name, segment));
 
-            if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
+            if let Some(result) = child.search_at(path, offset + limit, parameters) {
                 return Some(result);
             }
 
@@ -129,24 +143,32 @@ impl<S> Node<S> {
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r NodeData> {
         let remaining = &path.as_bytes()[offset..];
-        let segment_end = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
+        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
         for child in &self.dynamic_children {
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if remaining.len() <= child.shortest {
+                continue;
+            }
+
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && tail
+                            .iter()
+                            .rev()
+                            .zip(remaining.iter().rev())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
-            let max = remaining.len().saturating_sub(child.shortest);
-            if max == 0 {
-                continue;
-            }
+            let max = remaining.len() - child.shortest;
 
             for suffix in &child.state.suffixes {
-                let finder = FinderRev::new(suffix);
+                let mut end = (limit.min(max) + suffix.needle().len()).min(remaining.len());
 
-                let mut end = (segment_end.min(max) + suffix.len()).min(remaining.len());
-                while let Some(position) = finder.rfind(&remaining[..end]) {
+                while let Some(position) = suffix.rfind(&remaining[..end]) {
                     if position == 0 {
                         break;
                     }
@@ -167,22 +189,29 @@ impl<S> Node<S> {
             }
         }
 
-        if segment_end > 0 {
+        if limit > 0 {
             for child in &self.dynamic_children {
-                if remaining.len() - segment_end < child.shortest {
+                if remaining.len() - limit < child.shortest {
                     continue;
                 }
 
                 if !child.tails.is_empty()
-                    && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+                    && !child.tails.iter().any(|tail| {
+                        remaining.len() >= tail.len()
+                            && tail
+                                .iter()
+                                .rev()
+                                .zip(remaining.iter().rev())
+                                .all(|(a, b)| a == b)
+                    })
                 {
                     continue;
                 }
 
-                let parameter = &path[offset..offset + segment_end];
+                let parameter = &path[offset..offset + limit];
                 parameters.push((&child.state.name, parameter));
 
-                if let Some(result) = child.search_at(path, offset + segment_end, parameters) {
+                if let Some(result) = child.search_at(path, offset + limit, parameters) {
                     return Some(result);
                 }
 
@@ -203,12 +232,24 @@ impl<S> Node<S> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if remaining.len() < child.shortest {
+                continue;
+            }
+
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && tail
+                            .iter()
+                            .rev()
+                            .zip(remaining.iter().rev())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
-            let max = remaining.len().saturating_sub(child.shortest);
+            let max = remaining.len() - child.shortest;
 
             let positions = core::iter::successors(Some(max), |&position| {
                 memchr::memrchr(b'/', &remaining[..position])
@@ -216,12 +257,10 @@ impl<S> Node<S> {
 
             for position in positions.take_while(|&position| position > 0) {
                 let after = &remaining[position..];
-                if !child
-                    .state
-                    .suffixes
-                    .iter()
-                    .any(|suffix| after.starts_with(suffix))
-                {
+                if !child.state.suffixes.iter().any(|finder| {
+                    let needle = finder.needle();
+                    after.len() >= needle.len() && needle.iter().zip(after).all(|(a, b)| a == b)
+                }) {
                     continue;
                 }
 
@@ -249,21 +288,29 @@ impl<S> Node<S> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if !child.tails.is_empty() && !child.tails.iter().any(|tail| remaining.ends_with(tail))
+            if remaining.len() <= child.shortest {
+                continue;
+            }
+
+            if !child.tails.is_empty()
+                && !child.tails.iter().any(|tail| {
+                    remaining.len() >= tail.len()
+                        && tail
+                            .iter()
+                            .rev()
+                            .zip(remaining.iter().rev())
+                            .all(|(a, b)| a == b)
+                })
             {
                 continue;
             }
 
-            let max = remaining.len().saturating_sub(child.shortest);
-            if max == 0 {
-                continue;
-            }
+            let max = remaining.len() - child.shortest;
 
             for suffix in &child.state.suffixes {
-                let finder = FinderRev::new(suffix);
+                let mut end = (max + suffix.needle().len()).min(remaining.len());
 
-                let mut end = (max + suffix.len()).min(remaining.len());
-                while let Some(position) = finder.rfind(&remaining[..end]) {
+                while let Some(position) = suffix.rfind(&remaining[..end]) {
                     if position == 0 {
                         break;
                     }

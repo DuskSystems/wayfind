@@ -78,19 +78,10 @@ impl Template {
     }
 
     fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
-        let mut prefix = vec![];
+        let end = memchr::memchr2(b'<', b'>', &input[cursor..])
+            .map_or(input.len(), |position| cursor + position);
 
-        let mut end = cursor;
-        while end < input.len() {
-            match input[end] {
-                b'<' | b'>' => break,
-                byte => {
-                    prefix.push(byte);
-                    end += 1;
-                }
-            }
-        }
-
+        let prefix = input[cursor..end].to_vec();
         (Part::Static { prefix }, end)
     }
 
