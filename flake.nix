@@ -93,6 +93,7 @@
             cargo-outdated
             cargo-semver-checks
             cargo-shear
+            cargo-show-asm
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
             # GitHub
@@ -117,6 +118,7 @@
             # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C target-cpu=native"
               "-C linker=clang"
               "-C link-arg=--ld-path=wild"
             ];
@@ -137,6 +139,7 @@
             wild
             sccache
             tombi
+            cargo-codspeed
             cargo-deny
 
             # GitHub
@@ -155,6 +158,7 @@
             # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C target-cpu=native"
               "-C linker=clang"
               "-C link-arg=--ld-path=wild"
               "-Z threads=0"
@@ -172,7 +176,6 @@
             })
             wild
             sccache
-            cargo-codspeed
             cargo-fuzz
             cargo-llvm-cov
           ];
@@ -186,6 +189,7 @@
             # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
+              "-C target-cpu=native"
               "-C linker=clang"
               "-C link-arg=--ld-path=wild"
             ];

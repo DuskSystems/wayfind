@@ -34,6 +34,20 @@ jobs:
         with:
           save-cache: true
 
+  setup-codspeed:
+    name: Setup (Codspeed)
+    runs-on: codspeed-macro
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          save-cache: true
+
   checks:
     name: Checks
     needs: setup
@@ -153,8 +167,33 @@ jobs:
           name: fuzz-artifacts
           path: fuzz/artifacts
 
-  benches:
-    name: Benchmarks
+  benches-cpu:
+    name: Benchmarks (CPU)
+    needs: setup-codspeed
+    runs-on: codspeed-macro
+    permissions:
+      actions: write # sccache
+      id-token: write # codspeed
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Build benchmarks
+        run: ./scripts/bench-build.sh
+
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@2ac572851726409c88c02a307f1ea2632a9ea59b # v4.11.0
+        with:
+          mode: walltime
+          run: ./scripts/bench-run.sh
+
+  benches-memory:
+    name: Benchmarks (Memory)
     needs: setup
     runs-on: ubuntu-24.04
     permissions:
@@ -172,14 +211,8 @@ jobs:
       - name: Build benchmarks
         run: ./scripts/bench-build.sh
 
-      - name: Run benchmarks (CPU)
-        uses: CodSpeedHQ/action@efce601fed058209a5b98d4681771cc176692038 # v4.10.0
-        with:
-          mode: simulation
-          run: ./scripts/bench-run.sh
-
-      - name: Run benchmarks (Memory)
-        uses: CodSpeedHQ/action@efce601fed058209a5b98d4681771cc176692038 # v4.10.0
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@2ac572851726409c88c02a307f1ea2632a9ea59b # v4.11.0
         with:
           mode: memory
           run: ./scripts/bench-run.sh
