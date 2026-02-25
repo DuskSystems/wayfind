@@ -65,6 +65,7 @@
           };
 
           buildInputs = with pkgs; [
+            # Rust
             (rust-bin.nightly.latest.minimal.override {
               targets = [
                 "thumbv6m-none-eabi"
@@ -79,8 +80,6 @@
                 "rustfmt"
               ];
             })
-
-            # Rust
             wild
             sccache
             tombi
@@ -95,6 +94,9 @@
             cargo-shear
             cargo-show-asm
             vscode-extensions.vadimcn.vscode-lldb.adapter
+
+            # Assembly
+            asm-lsp
 
             # GitHub
             zizmor

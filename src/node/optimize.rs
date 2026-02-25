@@ -80,6 +80,10 @@ impl<S> Node<S> {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
+        self.static_only = self.dynamic_children.is_empty()
+            && self.wildcard_children.is_empty()
+            && self.end_wildcard.is_none();
+
         self.dynamic_segment_only = self
             .dynamic_children
             .iter()

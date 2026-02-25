@@ -2,6 +2,7 @@
 
 [files]
 extend-exclude = [
+  "examples/*.s",
   "benches/fixtures/gitlab_routes.rs",
   "tests/gitlab.rs",
 ]

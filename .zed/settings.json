@@ -14,6 +14,10 @@
       "formatter": "language_server"
     },
 
+    "Assembly": {
+      "language_servers": ["asm-lsp"]
+    },
+
     "Nix": {
       "language_servers": ["nixd", "nil"],
       "format_on_save": "on",
@@ -50,6 +54,12 @@
             "group": "module"
           }
         }
+      }
+    },
+
+    "asm-lsp": {
+      "binary": {
+        "path": "asm-lsp"
       }
     },
 

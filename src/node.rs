@@ -35,6 +35,8 @@ pub struct Node<S> {
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub end_wildcard: Option<Box<EndWildcardState>>,
 
+    /// Whether this node has only static children (no dynamic, wildcard, or end wildcard).
+    pub static_only: bool,
     /// Whether all dynamic children are full segments.
     pub dynamic_segment_only: bool,
     /// Whether all wildcard children are full segments.
@@ -63,6 +65,7 @@ impl<S> Node<S> {
             wildcard_children: Vec::new(),
             end_wildcard: None,
 
+            static_only: false,
             dynamic_segment_only: false,
             wildcard_segment_only: false,
             shortest: usize::MAX,

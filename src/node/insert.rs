@@ -59,6 +59,7 @@ impl<S> Node<S> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
+                static_only: child.static_only,
                 dynamic_segment_only: child.dynamic_segment_only,
                 wildcard_segment_only: child.wildcard_segment_only,
                 shortest: child.shortest,
