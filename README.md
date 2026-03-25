@@ -2,7 +2,7 @@
 [![crates.io](https://img.shields.io/crates/v/wayfind)](https://crates.io/crates/wayfind)
 [![documentation](https://docs.rs/wayfind/badge.svg)](https://docs.rs/wayfind)
 
-![rust: 1.88+](https://img.shields.io/badge/rust-1.88+-orange.svg)
+![rust: 1.85+](https://img.shields.io/badge/rust-1.85+-orange.svg)
 ![`unsafe`: forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)
 ![`wasm`: compatible](https://img.shields.io/badge/wasm-compatible-success.svg)
 ![`no-std`: compatible](https://img.shields.io/badge/no--std-compatible-success.svg)

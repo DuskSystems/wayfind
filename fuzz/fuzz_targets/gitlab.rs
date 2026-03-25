@@ -1,3 +1,4 @@
+#![expect(missing_docs, clippy::unwrap_used, reason = "Fuzz")]
 #![no_main]
 
 use std::sync::LazyLock;

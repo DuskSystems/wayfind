@@ -5,7 +5,7 @@ use crate::state::StaticState;
 impl<S> Node<S> {
     /// Deletes a route from the node tree.
     /// Recursively traverses the tree to find and remove the specified template.
-    pub fn delete(&mut self, template: &mut Template) -> Option<NodeData> {
+    pub(crate) fn delete(&mut self, template: &mut Template) -> Option<NodeData> {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.delete_static(template, &prefix),
@@ -104,7 +104,7 @@ impl<S> Node<S> {
     }
 
     #[must_use]
-    const fn is_empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()
@@ -113,7 +113,7 @@ impl<S> Node<S> {
     }
 
     #[must_use]
-    const fn is_compressible(&self) -> bool {
+    fn is_compressible(&self) -> bool {
         self.data.is_none()
             && self.static_children.len() == 1
             && self.dynamic_children.is_empty()

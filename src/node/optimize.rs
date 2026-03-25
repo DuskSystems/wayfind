@@ -9,7 +9,7 @@ use crate::node::Node;
 use crate::state::StaticState;
 
 impl<S> Node<S> {
-    pub fn optimize(&mut self) {
+    pub(crate) fn optimize(&mut self) {
         if !self.needs_optimization {
             return;
         }

@@ -9,7 +9,7 @@ use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 impl<S> Node<S> {
     /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    pub fn insert(&mut self, template: &mut Template, data: NodeData) {
+    pub(crate) fn insert(&mut self, template: &mut Template, data: NodeData) {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(template, data, &prefix),

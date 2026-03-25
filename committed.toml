@@ -1,0 +1,17 @@
+# https://github.com/crate-ci/committed/blob/master/docs/reference.md
+
+style = "conventional"
+merge_commit = false
+
+allowed_types = [
+  "fix",
+  "feat",
+  "chore",
+  "docs",
+  "style",
+  "refactor",
+  "perf",
+  "test",
+]
+
+allowed_scopes = []

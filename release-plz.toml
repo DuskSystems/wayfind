@@ -1,0 +1,4 @@
+# https://release-plz.dev/docs/config
+
+[workspace]
+release_always = false

@@ -4,12 +4,11 @@ use crate::parser::Part;
 impl<S> Node<S> {
     /// Checks if a template conflicts with an existing template.
     /// Handles both direct and structural conflicts.
-    pub fn conflict(&self, parts: &[Part]) -> Option<&NodeData> {
-        let Some(part) = parts.last() else {
+    pub(crate) fn conflict(&self, parts: &[Part]) -> Option<&NodeData> {
+        let Some((part, remaining)) = parts.split_last() else {
             return self.data.as_ref();
         };
 
-        let remaining = &parts[..parts.len() - 1];
         match part {
             Part::Static { prefix } => self.conflict_static(remaining, prefix),
             Part::Dynamic { .. } => self.conflict_dynamic(remaining),

@@ -6,15 +6,15 @@ members = [".", "fuzz"]
 [workspace.package]
 version = "0.9.0"
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.85"
 repository = "https://github.com/DuskSystems/wayfind"
 license = "MIT OR Apache-2.0"
-keywords = ["router", "path"]
+keywords = ["router"]
 categories = ["network-programming", "web-programming"]
 
 # https://doc.rust-lang.org/rustc/lints/groups.html
 [workspace.lints.rust]
-unsafe_code = "deny"
+unsafe_code = "forbid"
 
 unused = { level = "deny", priority = -2 }
 future-incompatible = { level = "deny", priority = -1 }
@@ -27,6 +27,18 @@ rust-2018-idioms = { level = "deny", priority = -1 }
 rust-2021-compatibility = { level = "deny", priority = -1 }
 rust-2024-compatibility = { level = "deny", priority = -1 }
 
+missing_docs = "deny"
+trivial_numeric_casts = "deny"
+unnameable_types = "deny"
+unreachable_pub = "deny"
+unused_import_braces = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "deny"
+
+# https://doc.rust-lang.org/rustdoc/lints.html
+[workspace.lints.rustdoc]
+all = { level = "deny", priority = -1 }
+
 # https://rust-lang.github.io/rust-clippy/master/index.html
 [workspace.lints.clippy]
 cargo = { level = "deny", priority = -1 }
@@ -37,6 +49,90 @@ pedantic = { level = "deny", priority = -1 }
 perf = { level = "deny", priority = -1 }
 style = { level = "deny", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
+
+# Panics
+expect_used = "deny"
+get_unwrap = "deny"
+missing_asserts_for_indexing = "deny"
+panic = "deny"
+panic_in_result_fn = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+unwrap_in_result = "deny"
+unwrap_used = "deny"
+
+# Correctness
+create_dir = "deny"
+empty_drop = "deny"
+exit = "deny"
+fn_to_numeric_cast_any = "deny"
+iter_over_hash_type = "deny"
+lossy_float_literal = "deny"
+mem_forget = "deny"
+rc_mutex = "deny"
+
+# Errors
+error_impl_error = "deny"
+let_underscore_must_use = "deny"
+map_err_ignore = "deny"
+try_err = "deny"
+unused_result_ok = "deny"
+
+# API
+impl_trait_in_params = "deny"
+renamed_function_params = "deny"
+same_name_method = "deny"
+
+# Clarity
+clone_on_ref_ptr = "deny"
+empty_enum_variants_with_brackets = "deny"
+empty_structs_with_brackets = "deny"
+missing_assert_message = "deny"
+non_zero_suggestions = "deny"
+pub_without_shorthand = "deny"
+rest_pat_in_fully_bound_structs = "deny"
+unseparated_literal_suffix = "deny"
+unused_trait_names = "deny"
+wildcard_enum_match_arm = "deny"
+
+# Style
+deref_by_slicing = "deny"
+mod_module_files = "deny"
+new_without_default = "allow"
+option_if_let_else = "allow"
+redundant_type_annotations = "deny"
+ref_patterns = "deny"
+return_and_then = "deny"
+semicolon_outside_block = "deny"
+str_to_string = "deny"
+string_add = "deny"
+too_many_lines = "allow"
+
+# Performance
+inline_always = "allow"
+large_include_file = "deny"
+rc_buffer = "deny"
+string_lit_chars_any = "deny"
+
+# Hygiene
+alloc_instead_of_core = "deny"
+allow_attributes = "deny"
+allow_attributes_without_reason = "deny"
+cfg_not_test = "deny"
+dbg_macro = "deny"
+doc_include_without_cfg = "deny"
+doc_paragraphs_missing_punctuation = "deny"
+print_stderr = "deny"
+print_stdout = "deny"
+redundant_test_prefix = "deny"
+std_instead_of_alloc = "deny"
+std_instead_of_core = "deny"
+unnecessary_self_imports = "deny"
+
+# Relaxed
+multiple_crate_versions = "allow" # Prefer `cargo-shear`
+redundant_pub_crate = "allow" # Conflicts with `unreachable_pub`
 
 [workspace.dependencies]
 wayfind = { path = "." }
@@ -56,15 +152,15 @@ similar-asserts = { version = "1.7", default-features = false }
 libfuzzer-sys = { version = "0.4", default-features = false, features = ["link_libfuzzer"] }
 
 # Benchmarking
-divan = { package = "codspeed-divan-compat", version = "4.3", default-features = false }
+divan = { package = "codspeed-divan-compat", version = "4.4", default-features = false }
 
 # Routers
-actix-router = { version = "=0.5.3", default-features = false }
+actix-router = { version = "=0.5.4", default-features = false }
 matchit = { version = "=0.9.1", default-features = false }
 ntex-router = { version = "=1.0.0", default-features = false }
 path-tree = { version = "=0.8.3", default-features = false }
 route-recognizer = { version = "=0.3.1", default-features = false }
-xitca-router = { version = "=0.4.0", default-features = false }
+xitca-router = { version = "=0.4.1", default-features = false }
 
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 [package]
@@ -86,6 +182,9 @@ repository.workspace = true
 license.workspace = true
 keywords.workspace = true
 categories.workspace = true
+
+[package.metadata.cargo-shear]
+ignored-paths = ["benches/fixtures/*.rs"]
 
 [lints]
 workspace = true

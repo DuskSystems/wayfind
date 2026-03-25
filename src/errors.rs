@@ -1,3 +1,5 @@
+//! Error types.
+
 mod delete;
 pub use delete::DeleteError;
 

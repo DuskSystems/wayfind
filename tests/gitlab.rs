@@ -1,3 +1,5 @@
+#![expect(missing_docs, clippy::too_many_lines, reason = "Tests")]
+
 use core::error::Error;
 
 use wayfind::Router;
@@ -6,7 +8,6 @@ use wayfind::Router;
 mod gitlab_routes;
 
 #[test]
-#[allow(clippy::too_many_lines)]
 fn gitlab_insert() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
