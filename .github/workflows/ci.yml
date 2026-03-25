@@ -44,6 +44,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Setup
@@ -52,8 +54,8 @@ jobs:
       - name: Run checks
         run: ./scripts/checks.sh
 
-  msrv:
-    name: MSRV
+  compatibility:
+    name: Compatibility
     needs: setup
     runs-on: ubuntu-24.04
     permissions:
@@ -68,7 +70,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: ./scripts/msrv.sh
+        run: ./scripts/compatibility.sh
 
   coverage:
     name: Coverage
@@ -89,7 +91,7 @@ jobs:
         run: ./scripts/coverage.sh
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
         with:
           files: codecov.json
           fail_ci_if_error: true
@@ -126,7 +128,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
   fuzz:
     name: Fuzz
@@ -148,7 +150,7 @@ jobs:
 
       - name: Upload artifacts
         if: failure()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: fuzz-artifacts
           path: fuzz/artifacts
@@ -172,7 +174,7 @@ jobs:
         run: ./scripts/bench-build.sh
 
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@2ac572851726409c88c02a307f1ea2632a9ea59b # v4.11.0
+        uses: CodSpeedHQ/action@1c8ae4843586d3ba879736b7f6b7b0c990757fab # v4.12.1
         with:
           mode: walltime
           run: ./scripts/bench-run.sh
@@ -197,7 +199,7 @@ jobs:
         run: ./scripts/bench-build.sh
 
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@2ac572851726409c88c02a307f1ea2632a9ea59b # v4.11.0
+        uses: CodSpeedHQ/action@1c8ae4843586d3ba879736b7f6b7b0c990757fab # v4.12.1
         with:
           mode: memory
           run: ./scripts/bench-run.sh

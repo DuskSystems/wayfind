@@ -9,11 +9,11 @@ use crate::node::NodeData;
 
 /// Root node of the tree.
 #[derive(Clone, Debug)]
-pub struct RootState;
+pub(crate) struct RootState;
 
 impl RootState {
     #[must_use]
-    pub const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self
     }
 }
@@ -27,14 +27,14 @@ impl fmt::Display for RootState {
 /// Static path segment bytes.
 /// May not be valid UTF-8 due to multibyte splitting.
 #[derive(Clone, Debug)]
-pub struct StaticState {
+pub(crate) struct StaticState {
     pub first: u8,
     pub prefix: Box<[u8]>,
 }
 
 impl StaticState {
     #[must_use]
-    pub fn new(prefix: Vec<u8>) -> Self {
+    pub(crate) fn new(prefix: Vec<u8>) -> Self {
         Self {
             first: prefix.first().copied().unwrap_or(0),
             prefix: prefix.into_boxed_slice(),
@@ -50,14 +50,14 @@ impl fmt::Display for StaticState {
 
 /// Dynamic parameter with its name.
 #[derive(Clone, Debug)]
-pub struct DynamicState {
+pub(crate) struct DynamicState {
     pub name: String,
     pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl DynamicState {
     #[must_use]
-    pub fn new(name: String) -> Self {
+    pub(crate) fn new(name: String) -> Self {
         Self {
             name,
             suffixes: Box::default(),
@@ -73,14 +73,14 @@ impl fmt::Display for DynamicState {
 
 /// Wildcard parameter with its name.
 #[derive(Clone, Debug)]
-pub struct WildcardState {
+pub(crate) struct WildcardState {
     pub name: String,
     pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl WildcardState {
     #[must_use]
-    pub fn new(name: String) -> Self {
+    pub(crate) fn new(name: String) -> Self {
         Self {
             name,
             suffixes: Box::default(),
@@ -96,7 +96,7 @@ impl fmt::Display for WildcardState {
 
 /// End wildcard leaf node.
 #[derive(Clone, Debug)]
-pub struct EndWildcardState {
+pub(crate) struct EndWildcardState {
     pub name: String,
     pub data: NodeData,
 }

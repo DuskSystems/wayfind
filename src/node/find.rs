@@ -4,12 +4,10 @@ use crate::parser::Part;
 impl<S> Node<S> {
     /// Finds an exact template match in the node tree.
     /// Essentially the same as the `Node::insert` logic, without any tree modifications.
-    pub fn find(&self, parts: &[Part]) -> Option<&NodeData> {
-        let Some(part) = parts.last() else {
+    pub(crate) fn find(&self, parts: &[Part]) -> Option<&NodeData> {
+        let Some((part, remaining)) = parts.split_last() else {
             return self.data.as_ref();
         };
-
-        let remaining = &parts[..parts.len() - 1];
         match part {
             Part::Static { prefix } => self.find_static(remaining, prefix),
             Part::Dynamic { name } => self.find_dynamic(remaining, name),
@@ -55,10 +53,10 @@ impl<S> Node<S> {
     }
 
     fn find_end_wildcard(&self, name: &str) -> Option<&NodeData> {
-        if let Some(child) = &self.end_wildcard
-            && child.name == name
-        {
-            return Some(&child.data);
+        if let Some(child) = &self.end_wildcard {
+            if child.name == name {
+                return Some(&child.data);
+            }
         }
 
         None

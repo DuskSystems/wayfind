@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "Tests")]
+
 use core::error::Error;
 
 use wayfind::Router;

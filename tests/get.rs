@@ -1,3 +1,5 @@
+#![expect(missing_docs, clippy::panic_in_result_fn, reason = "Tests")]
+
 use core::error::Error;
 
 use wayfind::Router;

@@ -1,5 +1,12 @@
+#![expect(
+    missing_docs,
+    clippy::missing_asserts_for_indexing,
+    clippy::unwrap_used,
+    reason = "Bench"
+)]
+
+use core::fmt::Write as _;
 use core::hint::black_box;
-use std::fmt::Write;
 
 use divan::AllocProfiler;
 
@@ -15,7 +22,9 @@ fn segments(count: usize) -> String {
 }
 
 fn anchors(count: usize) -> String {
-    "/x/-".repeat(count) + "/x"
+    let mut path = "/x/-".repeat(count);
+    path.push_str("/x");
+    path
 }
 
 fn inline(count: usize) -> String {
@@ -50,7 +59,7 @@ fn dynamic_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
             template.push('.');
         }
 
-        let _ = write!(template, "<x{index}>");
+        let _unused = write!(template, "<x{index}>");
     }
 
     router.insert(&template, 1).unwrap();
@@ -94,7 +103,9 @@ fn wildcard_backtrack<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     router.insert("/<*x>/-/<*y>/x", 1).unwrap();
 
-    let path = "/x/-".repeat(N) + "/y";
+    let mut path = "/x/-".repeat(N);
+    path.push_str("/y");
+
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
@@ -106,7 +117,9 @@ fn wildcard_competing<const N: usize>(bencher: divan::Bencher<'_, '_>) {
         router.insert(&template, index).unwrap();
     }
 
-    let path = segments(20) + "/zz";
+    let mut path = segments(20);
+    path.push_str("/zz");
+
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
@@ -120,7 +133,7 @@ fn wildcard_chain<const N: usize>(bencher: divan::Bencher<'_, '_>) {
             template.push_str("/-");
         }
 
-        let _ = write!(template, "/<*x{index}>");
+        let _unused = write!(template, "/<*x{index}>");
     }
 
     template.push_str("/x");

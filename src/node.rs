@@ -13,7 +13,7 @@ mod optimize;
 mod search;
 
 #[derive(Clone, Debug)]
-pub struct NodeData {
+pub(crate) struct NodeData {
     /// The key to the stored data in the router's slab.
     pub key: usize,
 
@@ -23,8 +23,7 @@ pub struct NodeData {
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct Node<S> {
+pub(crate) struct Node<S> {
     /// The node's type-specific state.
     pub state: S,
     /// Optional data associated with this node.
@@ -53,7 +52,7 @@ pub struct Node<S> {
 impl<S> Node<S> {
     /// Creates a new empty node.
     #[must_use]
-    pub fn new(state: S) -> Self {
+    pub(crate) fn new(state: S) -> Self {
         Self {
             state,
             data: None,

@@ -26,13 +26,13 @@ allow = [
 allow-wildcard-paths = true
 multiple-versions = "deny"
 wildcards = "deny"
+deny = []
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html#the-workspace-dependencies-field-optional
 [bans.workspace-dependencies]
 include-path-dependencies = true
 duplicates = "deny"
-# Prefer `cargo-shear` instead
-unused = "allow"
+unused = "allow" # Prefer `cargo-shear`
 
 # https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html#the-build-field-optional
 [bans.build]
@@ -44,3 +44,4 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 unknown-registry = "deny"
 unknown-git = "deny"
 unused-allowed-source = "deny"
+allow-git = []

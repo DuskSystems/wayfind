@@ -1,3 +1,4 @@
+#![expect(missing_docs, clippy::missing_assert_message, reason = "Fuzz")]
 #![no_main]
 
 use core::fmt::Write as _;

@@ -10,19 +10,19 @@ use crate::errors::TemplateError;
 const INVALID_PARAM_CHARS: [u8; 4] = [b'*', b'<', b'>', b'/'];
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub enum Part {
+pub(crate) enum Part {
     Static { prefix: Vec<u8> },
     Dynamic { name: String },
     Wildcard { name: String },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct Template {
+pub(crate) struct Template {
     pub parts: Vec<Part>,
 }
 
 impl Template {
-    pub fn new(input: &[u8]) -> Result<Self, TemplateError> {
+    pub(crate) fn new(input: &[u8]) -> Result<Self, TemplateError> {
         if input.is_empty() {
             return Err(TemplateError::Empty);
         }
@@ -42,10 +42,10 @@ impl Template {
                     let (part, next) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, last)) = seen_parameters.last()
-                        && cursor == *last
-                    {
-                        return Err(TemplateError::TouchingParameters);
+                    if let Some((_, last)) = seen_parameters.last() {
+                        if cursor == *last {
+                            return Err(TemplateError::TouchingParameters);
+                        }
                     }
 
                     // Check for duplicate names.

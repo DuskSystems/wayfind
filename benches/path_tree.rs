@@ -1,3 +1,10 @@
+#![expect(
+    missing_docs,
+    clippy::let_underscore_must_use,
+    clippy::unwrap_used,
+    reason = "Bench"
+)]
+
 use core::hint::black_box;
 
 use divan::AllocProfiler;

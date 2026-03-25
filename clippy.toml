@@ -1,0 +1,16 @@
+# https://doc.rust-lang.org/clippy/configuration.html
+
+allow-renamed-params-for = []
+avoid-breaking-exported-api = false
+
+# Tests
+allow-dbg-in-tests = true
+allow-expect-in-tests = true
+allow-indexing-slicing-in-tests = true
+allow-panic-in-tests = true
+allow-print-in-tests = true
+allow-unwrap-in-tests = true
+
+disallowed-types = []
+disallowed-methods = []
+disallowed-macros = []

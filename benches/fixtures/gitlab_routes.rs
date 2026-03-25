@@ -5,8 +5,8 @@
 //! Rails disambiguates these with regex constraints, which we don't support.
 
 #[must_use]
-#[allow(clippy::too_many_lines)]
-pub fn routes() -> Vec<&'static str> {
+#[expect(clippy::too_many_lines, reason = "Test")]
+pub(crate) fn routes() -> Vec<&'static str> {
     vec![
         "/-/<model>/<model_id>/uploads/<secret>/<filename>",
         "/-/<model>/<model_id>/uploads/<secret>/<filename>/",

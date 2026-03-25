@@ -4,7 +4,7 @@ use crate::node::{Node, NodeData};
 
 impl<S> Node<S> {
     /// Searches for a matching template in the node tree.
-    pub fn search<'r, 'p>(
+    pub(crate) fn search<'r, 'p>(
         &'r self,
         path: &'p str,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
