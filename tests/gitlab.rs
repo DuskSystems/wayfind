@@ -8,7 +8,7 @@ use wayfind::Router;
 mod gitlab_routes;
 
 #[test]
-fn gitlab_insert() -> Result<(), Box<dyn Error>> {
+fn gitlab() -> Result<(), Box<dyn Error>> {
     let mut router = Router::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
         router.insert(route, index)?;
@@ -4378,6 +4378,12 @@ fn gitlab_insert() -> Result<(), Box<dyn Error>> {
     │                 ╰─ /
     ╰─ <*id>
     ");
+
+    for route in gitlab_routes::routes() {
+        router.delete(route)?;
+    }
+
+    insta::assert_snapshot!(router, @"");
 
     Ok(())
 }
