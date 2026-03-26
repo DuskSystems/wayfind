@@ -214,6 +214,10 @@ route-recognizer.workspace = true
 xitca-router.workspace = true
 
 [[bench]]
+name = "gitlab"
+harness = false
+
+[[bench]]
 name = "stress"
 harness = false
 
