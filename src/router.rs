@@ -2,9 +2,10 @@ use alloc::borrow::ToOwned as _;
 use core::fmt;
 
 use slab::Slab;
-use smallvec::{SmallVec, smallvec};
+use smallvec::SmallVec;
 
 use crate::errors::{DeleteError, InsertError};
+use crate::node::search::SearchContext;
 use crate::node::{Node, NodeData};
 use crate::parser::Template;
 use crate::state::RootState;
@@ -194,13 +195,13 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
-        let mut parameters = smallvec![];
-        let data = self.root.search(path, &mut parameters)?;
+        let mut ctx = SearchContext::new();
+        let data = self.root.search(&mut ctx, path)?;
 
         Some(Match {
             data: self.storage.get(data.key)?,
             template: data.template.as_ref(),
-            parameters,
+            parameters: ctx.parameters,
         })
     }
 }

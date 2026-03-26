@@ -10,7 +10,7 @@ mod display;
 mod find;
 mod insert;
 mod optimize;
-mod search;
+pub(crate) mod search;
 
 #[derive(Clone, Debug)]
 pub(crate) struct NodeData {
