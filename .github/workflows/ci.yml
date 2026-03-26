@@ -155,32 +155,8 @@ jobs:
           name: fuzz-artifacts
           path: fuzz/artifacts
 
-  benches-cpu:
-    name: Benchmarks (CPU)
-    runs-on: codspeed-macro
-    permissions:
-      actions: write # sccache
-      id-token: write # codspeed
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Setup
-        uses: ./.github/actions/setup
-
-      - name: Build benchmarks
-        run: ./scripts/bench-build.sh
-
-      - name: Run benchmarks
-        uses: CodSpeedHQ/action@1c8ae4843586d3ba879736b7f6b7b0c990757fab # v4.12.1
-        with:
-          mode: walltime
-          run: ./scripts/bench-run.sh
-
-  benches-memory:
-    name: Benchmarks (Memory)
+  benches:
+    name: Benchmarks
     needs: setup
     runs-on: ubuntu-24.04
     permissions:
@@ -201,5 +177,5 @@ jobs:
       - name: Run benchmarks
         uses: CodSpeedHQ/action@1c8ae4843586d3ba879736b7f6b7b0c990757fab # v4.12.1
         with:
-          mode: memory
+          mode: simulation,memory
           run: ./scripts/bench-run.sh
