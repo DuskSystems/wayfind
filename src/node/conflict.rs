@@ -63,6 +63,6 @@ impl<S> Node<S> {
     }
 
     fn conflict_end_wildcard(&self) -> Option<&NodeData> {
-        Some(&self.end_wildcard.as_ref()?.data)
+        self.end_wildcard.as_deref()?.data.as_ref()
     }
 }

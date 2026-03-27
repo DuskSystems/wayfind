@@ -17,12 +17,12 @@ fn main() {
 #[divan::bench]
 fn gitlab_insert(bencher: divan::Bencher<'_, '_>) {
     bencher.bench(|| {
-        let mut router = wayfind::Router::new();
+        let mut builder = wayfind::RouterBuilder::new();
         for (index, route) in gitlab_routes::routes().iter().enumerate() {
-            router.insert(black_box(route), index).unwrap();
+            builder.insert(black_box(route), index).unwrap();
         }
 
-        black_box(router)
+        black_box(builder.build())
     });
 }
 
@@ -30,28 +30,30 @@ fn gitlab_insert(bencher: divan::Bencher<'_, '_>) {
 fn gitlab_delete(bencher: divan::Bencher<'_, '_>) {
     bencher
         .with_inputs(|| {
-            let mut router = wayfind::Router::new();
+            let mut builder = wayfind::RouterBuilder::new();
             for (index, route) in gitlab_routes::routes().iter().enumerate() {
-                router.insert(route, index).unwrap();
+                builder.insert(route, index).unwrap();
             }
 
-            router
+            builder.build()
         })
-        .bench_values(|mut router| {
+        .bench_values(|router| {
+            let mut builder = router.into_builder();
             for route in gitlab_routes::routes() {
-                router.delete(black_box(route)).unwrap();
+                builder.delete(black_box(route)).unwrap();
             }
 
-            black_box(router)
+            black_box(builder)
         });
 }
 
 #[divan::bench]
 fn gitlab_display(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
-        router.insert(route, index).unwrap();
+        builder.insert(route, index).unwrap();
     }
 
+    let router = builder.build();
     bencher.bench(|| black_box(format!("{router}")));
 }

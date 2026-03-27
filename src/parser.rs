@@ -1,3 +1,4 @@
+use alloc::boxed::Box;
 use alloc::string::{String, ToString as _};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -11,9 +12,9 @@ const INVALID_PARAM_CHARS: [u8; 4] = [b'*', b'<', b'>', b'/'];
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) enum Part {
-    Static { prefix: Vec<u8> },
-    Dynamic { name: String },
-    Wildcard { name: String },
+    Static { prefix: Box<[u8]> },
+    Dynamic { name: Box<str> },
+    Wildcard { name: Box<str> },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -34,7 +35,7 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: SmallVec<[(String, usize); 4]> = smallvec![];
+        let mut seen_parameters: SmallVec<[(Box<str>, usize); 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -42,16 +43,18 @@ impl Template {
                     let (part, next) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, last)) = seen_parameters.last() {
-                        if cursor == *last {
-                            return Err(TemplateError::TouchingParameters);
-                        }
+                    if let Some((_, last)) = seen_parameters.last()
+                        && cursor == *last
+                    {
+                        return Err(TemplateError::TouchingParameters);
                     }
 
                     // Check for duplicate names.
                     if let Part::Dynamic { name } | Part::Wildcard { name } = &part {
                         if seen_parameters.iter().any(|(existing, _)| existing == name) {
-                            return Err(TemplateError::DuplicateParameter { name: name.clone() });
+                            return Err(TemplateError::DuplicateParameter {
+                                name: name.clone().into(),
+                            });
                         }
 
                         seen_parameters.push((name.clone(), next));
@@ -81,7 +84,7 @@ impl Template {
         let end = memchr::memchr2(b'<', b'>', &input[cursor..])
             .map_or(input.len(), |position| cursor + position);
 
-        let prefix = input[cursor..end].to_vec();
+        let prefix = input[cursor..end].into();
         (Part::Static { prefix }, end)
     }
 
@@ -109,10 +112,11 @@ impl Template {
             });
         }
 
-        let name =
-            String::from_utf8(name.to_vec()).map_err(|_err| TemplateError::InvalidParameter {
+        let name: Box<str> = String::from_utf8(name.to_vec())
+            .map_err(|_err| TemplateError::InvalidParameter {
                 name: String::from_utf8_lossy(name).to_string(),
-            })?;
+            })?
+            .into_boxed_str();
 
         let part = if is_wildcard {
             Part::Wildcard { name }
@@ -126,8 +130,6 @@ impl Template {
 
 #[cfg(test)]
 mod tests {
-    use alloc::borrow::ToOwned as _;
-
     use similar_asserts::assert_eq;
 
     use super::*;
@@ -138,7 +140,7 @@ mod tests {
             Template::new(b"/abcd"),
             Ok(Template {
                 parts: vec![Part::Static {
-                    prefix: b"/abcd".to_vec()
+                    prefix: b"/abcd".as_slice().into()
                 }],
             }),
         );
@@ -151,10 +153,10 @@ mod tests {
             Ok(Template {
                 parts: vec![
                     Part::Dynamic {
-                        name: "name".to_owned(),
+                        name: "name".into(),
                     },
                     Part::Static {
-                        prefix: b"/".to_vec()
+                        prefix: b"/".as_slice().into()
                     },
                 ],
             }),
@@ -168,10 +170,10 @@ mod tests {
             Ok(Template {
                 parts: vec![
                     Part::Wildcard {
-                        name: "wildcard".to_owned(),
+                        name: "wildcard".into(),
                     },
                     Part::Static {
-                        prefix: b"/".to_vec()
+                        prefix: b"/".as_slice().into()
                     },
                 ],
             }),
@@ -185,10 +187,10 @@ mod tests {
             Ok(Template {
                 parts: vec![
                     Part::Wildcard {
-                        name: "path".to_owned(),
+                        name: "path".into(),
                     },
                     Part::Static {
-                        prefix: b"/files/".to_vec()
+                        prefix: b"/files/".as_slice().into()
                     },
                 ],
             }),

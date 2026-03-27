@@ -3,10 +3,6 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
-use memchr::memmem::FinderRev;
-
-use crate::node::NodeData;
-
 /// Root node of the tree.
 #[derive(Clone, Debug)]
 pub(crate) struct RootState;
@@ -51,17 +47,13 @@ impl fmt::Display for StaticState {
 /// Dynamic parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct DynamicState {
-    pub name: String,
-    pub suffixes: Box<[FinderRev<'static>]>,
+    pub name: Box<str>,
 }
 
 impl DynamicState {
     #[must_use]
-    pub(crate) fn new(name: String) -> Self {
-        Self {
-            name,
-            suffixes: Box::default(),
-        }
+    pub(crate) const fn new(name: Box<str>) -> Self {
+        Self { name }
     }
 }
 
@@ -74,17 +66,13 @@ impl fmt::Display for DynamicState {
 /// Wildcard parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct WildcardState {
-    pub name: String,
-    pub suffixes: Box<[FinderRev<'static>]>,
+    pub name: Box<str>,
 }
 
 impl WildcardState {
     #[must_use]
-    pub(crate) fn new(name: String) -> Self {
-        Self {
-            name,
-            suffixes: Box::default(),
-        }
+    pub(crate) const fn new(name: Box<str>) -> Self {
+        Self { name }
     }
 }
 
@@ -94,11 +82,17 @@ impl fmt::Display for WildcardState {
     }
 }
 
-/// End wildcard leaf node.
+/// End wildcard parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct EndWildcardState {
-    pub name: String,
-    pub data: NodeData,
+    pub name: Box<str>,
+}
+
+impl EndWildcardState {
+    #[must_use]
+    pub(crate) const fn new(name: Box<str>) -> Self {
+        Self { name }
+    }
 }
 
 impl fmt::Display for EndWildcardState {

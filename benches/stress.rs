@@ -42,38 +42,41 @@ fn inline(count: usize) -> String {
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_competing<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for index in 0..N {
         let template = format!("/<a>.z{index}");
-        router.insert(&template, index).unwrap();
+        builder.insert(&template, index).unwrap();
     }
 
+    let router = builder.build();
     let path = String::from("/x.zz");
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_depth<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<a>/z", 1).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<a>/z", 1).unwrap();
 
+    let router = builder.build();
     let path = segments(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_nested<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<a>.<b>.z", 1).unwrap();
-    router.insert("/<a>.<b>.y.<*c>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<a>.<b>.z", 1).unwrap();
+    builder.insert("/<a>.<b>.y.<*c>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("/{}.MISS", "z.".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
 
     let mut template = String::from("/");
     for index in 0..N {
@@ -84,26 +87,29 @@ fn dynamic_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
         let _unused = write!(template, "<a{index}>");
     }
 
-    router.insert(&template, 1).unwrap();
+    builder.insert(&template, 1).unwrap();
 
+    let router = builder.build();
     let path = inline(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_anchored<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/-/<*b>/x", 1).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/-/<*b>/x", 1).unwrap();
 
+    let router = builder.build();
     let path = anchors(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_backtrack<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/-/<*b>/x", 1).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/-/<*b>/x", 1).unwrap();
 
+    let router = builder.build();
     let mut path = "/x/-".repeat(N);
     path.push_str("/y");
 
@@ -112,7 +118,7 @@ fn wildcard_backtrack<const N: usize>(bencher: divan::Bencher<'_, '_>) {
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_chain<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
 
     let mut template = String::new();
     for index in 0..N {
@@ -124,20 +130,22 @@ fn wildcard_chain<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     }
 
     template.push_str("/x");
-    router.insert(&template, 1).unwrap();
+    builder.insert(&template, 1).unwrap();
 
+    let router = builder.build();
     let path = anchors(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_competing<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for index in 0..N {
         let template = format!("/<*a>/z{index}");
-        router.insert(&template, index).unwrap();
+        builder.insert(&template, index).unwrap();
     }
 
+    let router = builder.build();
     let mut path = segments(20);
     path.push_str("/zz");
 
@@ -146,82 +154,88 @@ fn wildcard_competing<const N: usize>(bencher: divan::Bencher<'_, '_>) {
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_depth<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/z", 1).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/z", 1).unwrap();
 
+    let router = builder.build();
     let path = segments(N);
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_endings<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/x", 1).unwrap();
-    router.insert("/<*a>/y", 2).unwrap();
-    router.insert("/<*a>/z", 3).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x", 1).unwrap();
+    builder.insert("/<*a>/y", 2).unwrap();
+    builder.insert("/<*a>/z", 3).unwrap();
 
+    let router = builder.build();
     let path = format!("{}/miss", "/x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_nested<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/x/<*b>/x", 1).unwrap();
-    router.insert("/<*a>/x/<*b>/y/<*c>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/x", 1).unwrap();
+    builder.insert("/<*a>/x/<*b>/y/<*c>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("{}/z", "/x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_nested_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>.x.<*b>.x", 1).unwrap();
-    router.insert("/<*a>.x.<*b>.y.<*c>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>.x.<*b>.x", 1).unwrap();
+    builder.insert("/<*a>.x.<*b>.y.<*c>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("/{}.z", ".x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_nested_present<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/x/<*b>/x", 1).unwrap();
-    router.insert("/<*a>/x/<*b>/y/<*c>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/x", 1).unwrap();
+    builder.insert("/<*a>/x/<*b>/y/<*c>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("/y{}/z", "/x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
-// FIXME
-// #[divan::bench(consts = [1, 10, 100, 1000])]
-#[divan::bench(consts = [1, 10, 100])]
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_nested_triple<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/x/<*b>/x/<*c>/x", 1).unwrap();
-    router.insert("/<*a>/x/<*b>/x/<*c>/y/<*d>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/x/<*c>/x", 1).unwrap();
+    builder.insert("/<*a>/x/<*b>/x/<*c>/y/<*d>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("{}/z", "/x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_open<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>/x", 1).unwrap();
-    router.insert("/<*a>/y/<*b>", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x", 1).unwrap();
+    builder.insert("/<*a>/y/<*b>", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("{}/miss", "/x".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_suffixes<const N: usize>(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
-    router.insert("/<*a>.html", 1).unwrap();
-    router.insert("/<*a>.htm", 2).unwrap();
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>.html", 1).unwrap();
+    builder.insert("/<*a>.htm", 2).unwrap();
 
+    let router = builder.build();
     let path = format!("/{}.txt", ".htm".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }

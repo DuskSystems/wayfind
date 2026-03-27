@@ -18,12 +18,13 @@
 //! ```rust
 //! use core::error::Error;
 //!
-//! use wayfind::Router;
+//! use wayfind::RouterBuilder;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router = Router::new();
-//!     router.insert("/hello", 1)?;
-//!     router.insert("/hello/world", 2)?;
+//!     let mut builder = RouterBuilder::new();
+//!     builder.insert("/hello", 1)?;
+//!     builder.insert("/hello/world", 2)?;
+//!     let router = builder.build();
 //!
 //!     let search = router.search("/hello").unwrap();
 //!     assert_eq!(search.data, &1);
@@ -53,12 +54,13 @@
 //! ```rust
 //! use core::error::Error;
 //!
-//! use wayfind::Router;
+//! use wayfind::RouterBuilder;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router = Router::new();
-//!     router.insert("/users/<id>", 1)?;
-//!     router.insert("/users/<id>/files/<filename>.pdf", 2)?;
+//!     let mut builder = RouterBuilder::new();
+//!     builder.insert("/users/<id>", 1)?;
+//!     builder.insert("/users/<id>/files/<filename>.pdf", 2)?;
+//!     let router = builder.build();
 //!
 //!     let search = router.search("/users/123").unwrap();
 //!     assert_eq!(search.data, &1);
@@ -89,12 +91,13 @@
 //! ```rust
 //! use core::error::Error;
 //!
-//! use wayfind::Router;
+//! use wayfind::RouterBuilder;
 //!
 //! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut router = Router::new();
-//!     router.insert("/files/<*slug>/delete", 1)?;
-//!     router.insert("/<*catch_all>", 2)?;
+//!     let mut builder = RouterBuilder::new();
+//!     builder.insert("/files/<*slug>/delete", 1)?;
+//!     builder.insert("/<*catch_all>", 2)?;
+//!     let router = builder.build();
 //!
 //!     let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
 //!     assert_eq!(search.data, &1);
@@ -137,6 +140,6 @@ mod node;
 mod parser;
 
 mod router;
-pub use router::{Match, Router};
+pub use router::{Match, Router, RouterBuilder};
 
 mod state;

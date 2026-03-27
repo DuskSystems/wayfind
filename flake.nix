@@ -97,6 +97,9 @@
             cargo-shear
             cargo-show-asm
             release-plz
+            hyperfine
+            valgrind-light
+            llvmPackages_22.bintools-unwrapped
             vscode-extensions.vadimcn.vscode-lldb.adapter
 
             # Git
@@ -192,7 +195,9 @@
 
           buildInputs = with pkgs; [
             # Rust
-            (rust-bin.stable."1.85.0".minimal.override {
+            # FIXME
+            # (rust-bin.stable."1.95.0".minimal.override {
+            (rust-bin.nightly.latest.minimal.override {
               targets = [
                 "thumbv6m-none-eabi"
                 "wasm32-unknown-unknown"

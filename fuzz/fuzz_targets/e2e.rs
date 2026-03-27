@@ -4,17 +4,19 @@
 use core::fmt::Write as _;
 
 use libfuzzer_sys::fuzz_target;
-use wayfind::Router;
+use wayfind::RouterBuilder;
 
 fuzz_target!(|inputs: Vec<&str>| {
-    let mut router = Router::new();
+    let mut builder = RouterBuilder::new();
     let mut inserted = vec![];
 
     for (index, input) in inputs.iter().enumerate() {
-        if router.insert(input, index).is_ok() {
+        if builder.insert(input, index).is_ok() {
             inserted.push((index, *input));
         }
     }
+
+    let router = builder.build();
 
     for (index, input) in &inserted {
         assert_eq!(router.get(input), Some(index));
@@ -28,9 +30,13 @@ fuzz_target!(|inputs: Vec<&str>| {
     let mut display = String::new();
     let _display = write!(display, "{router}");
 
+    let mut builder = router.into_builder();
+
     for (_, input) in &inserted {
-        assert!(router.delete(input).is_ok());
+        assert!(builder.delete(input).is_ok());
     }
+
+    let router = builder.build();
 
     for (_, input) in &inserted {
         assert!(router.get(input).is_none());

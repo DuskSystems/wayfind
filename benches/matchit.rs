@@ -21,11 +21,12 @@ fn main() {
 
 #[divan::bench(name = "wayfind")]
 fn wayfind_default(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for (index, route) in routes!(arrows).iter().enumerate() {
-        router.insert(route, index).unwrap();
+        builder.insert(route, index).unwrap();
     }
 
+    let router = builder.build();
     bencher.bench(|| {
         for path in black_box(routes!(literal)) {
             let _output = black_box(router.search(black_box(path)).unwrap());
@@ -35,11 +36,12 @@ fn wayfind_default(bencher: divan::Bencher<'_, '_>) {
 
 #[divan::bench(name = "wayfind_parameters")]
 fn wayfind_parameters(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for (index, route) in routes!(arrows).iter().enumerate() {
-        router.insert(route, index).unwrap();
+        builder.insert(route, index).unwrap();
     }
 
+    let router = builder.build();
     bencher.bench(|| {
         for path in black_box(routes!(literal)) {
             let output = black_box(router.search(black_box(path)).unwrap());

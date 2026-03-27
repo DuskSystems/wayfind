@@ -2,18 +2,19 @@
 
 use core::error::Error;
 
-use wayfind::Router;
+use wayfind::RouterBuilder;
 
 #[path = "../benches/fixtures/gitlab_routes.rs"]
 mod gitlab_routes;
 
 #[test]
 fn gitlab() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut builder = RouterBuilder::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
-        router.insert(route, index)?;
+        builder.insert(route, index)?;
     }
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"
     /
     ├─ -/
@@ -4379,10 +4380,12 @@ fn gitlab() -> Result<(), Box<dyn Error>> {
     ╰─ <*id>
     ");
 
+    let mut builder = router.into_builder();
     for route in gitlab_routes::routes() {
-        router.delete(route)?;
+        builder.delete(route)?;
     }
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"");
 
     Ok(())

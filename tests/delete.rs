@@ -3,17 +3,19 @@
 use core::error::Error;
 
 use similar_asserts::assert_eq;
-use wayfind::Router;
+use wayfind::RouterBuilder;
 use wayfind::errors::DeleteError;
 
 #[test]
 fn delete_static() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/test", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/test", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"/test");
 
-    let error = router.delete("/tests").unwrap_err();
+    let mut builder = router.into_builder();
+    let error = builder.delete("/tests").unwrap_err();
     assert_eq!(
         error,
         DeleteError::NotFound {
@@ -22,11 +24,15 @@ fn delete_static() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"template `/tests` not found");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @"/test");
 
-    let delete = router.delete("/test")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/test")?;
     assert_eq!(delete, 1);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"");
 
     Ok(())
@@ -34,28 +40,33 @@ fn delete_static() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn delete_dynamic() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/users/<id>", 1)?;
-    router.insert("/users/<id>/posts", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/users/<id>", 1)?;
+    builder.insert("/users/<id>/posts", 2)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /users/
     ╰─ <id>
        ╰─ /posts
     ");
 
-    let delete = router.delete("/users/<id>")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/users/<id>")?;
     assert_eq!(delete, 1);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /users/
     ╰─ <id>
        ╰─ /posts
     ");
 
-    let delete = router.delete("/users/<id>/posts")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/users/<id>/posts")?;
     assert_eq!(delete, 2);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"");
 
     Ok(())
@@ -63,10 +74,11 @@ fn delete_dynamic() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn delete_wildcard() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/edit", 1)?;
-    router.insert("/<*path>/delete", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/edit", 1)?;
+    builder.insert("/<*path>/delete", 2)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -75,18 +87,22 @@ fn delete_wildcard() -> Result<(), Box<dyn Error>> {
           ╰─ edit
     ");
 
-    let delete = router.delete("/<*path>/edit")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/<*path>/edit")?;
     assert_eq!(delete, 1);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
        ╰─ /delete
     ");
 
-    let delete = router.delete("/<*path>/delete")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/<*path>/delete")?;
     assert_eq!(delete, 2);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"");
 
     Ok(())
@@ -94,10 +110,11 @@ fn delete_wildcard() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn delete_end_wildcard() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/files/<*path>", 1)?;
-    router.insert("/static", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/files/<*path>", 1)?;
+    builder.insert("/static", 2)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ├─ files/
@@ -105,9 +122,11 @@ fn delete_end_wildcard() -> Result<(), Box<dyn Error>> {
     ╰─ static
     ");
 
-    let delete = router.delete("/files/<*path>")?;
+    let mut builder = router.into_builder();
+    let delete = builder.delete("/files/<*path>")?;
     assert_eq!(delete, 1);
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @"/static");
 
     Ok(())

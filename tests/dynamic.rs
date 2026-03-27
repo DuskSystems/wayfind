@@ -4,13 +4,14 @@ use core::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
-use wayfind::{Match, Router};
+use wayfind::{Match, RouterBuilder};
 
 #[test]
 fn dynamic_simple() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<id>", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -34,11 +35,12 @@ fn dynamic_simple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_multiple() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<year>", 1)?;
-    router.insert("/<year>/<month>", 2)?;
-    router.insert("/<year>/<month>/<day>", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<year>", 1)?;
+    builder.insert("/<year>/<month>", 2)?;
+    builder.insert("/<year>/<month>/<day>", 3)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <year>
@@ -83,11 +85,12 @@ fn dynamic_multiple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_priority() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/robots.txt", 1)?;
-    router.insert("/<name>.txt", 2)?;
-    router.insert("/<name>", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/robots.txt", 1)?;
+    builder.insert("/<name>.txt", 2)?;
+    builder.insert("/<name>", 3)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ├─ robots.txt
@@ -140,9 +143,11 @@ fn dynamic_priority() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_suffix() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<aaa>", 1)?;
-    router.insert("/<zzz>.txt", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<aaa>", 1)?;
+    builder.insert("/<zzz>.txt", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/hello.txt");
     assert_eq!(
@@ -169,9 +174,11 @@ fn dynamic_suffix() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_suffix_reversed() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<zzz>", 1)?;
-    router.insert("/<aaa>.txt", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<zzz>", 1)?;
+    builder.insert("/<aaa>.txt", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/hello.txt");
     assert_eq!(
@@ -198,10 +205,12 @@ fn dynamic_suffix_reversed() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_mixed() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<a>/one", 1)?;
-    router.insert("/<b>/two", 2)?;
-    router.insert("/<c>.json", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>/one", 1)?;
+    builder.insert("/<b>/two", 2)?;
+    builder.insert("/<c>.json", 3)?;
+
+    let router = builder.build();
 
     let search = router.search("/hello/one");
     assert_eq!(
@@ -238,10 +247,12 @@ fn dynamic_mixed() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_sibling() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<a>.txt", 1)?;
-    router.insert("/<a>", 2)?;
-    router.insert("/<b>.json", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>.txt", 1)?;
+    builder.insert("/<a>", 2)?;
+    builder.insert("/<b>.json", 3)?;
+
+    let router = builder.build();
 
     let search = router.search("/hello.txt");
     assert_eq!(
@@ -278,9 +289,10 @@ fn dynamic_sibling() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_inline_params() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>.<format>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<id>.<format>", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -316,9 +328,10 @@ fn dynamic_inline_params() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_triple_params() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<a>.<b>.<c>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>.<b>.<c>", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <a>
@@ -356,9 +369,10 @@ fn dynamic_triple_params() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_multi_separator() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<from>...<to>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<from>...<to>", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <from>
@@ -394,9 +408,11 @@ fn dynamic_multi_separator() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_inline_coexistence() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>.<format>", 1)?;
-    router.insert("/<name>.txt", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<id>.<format>", 1)?;
+    builder.insert("/<name>.txt", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/report.txt");
     assert_eq!(
@@ -433,9 +449,11 @@ fn dynamic_inline_coexistence() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<name>.txt", 1)?;
-    router.insert("/<name>", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<name>.txt", 1)?;
+    builder.insert("/<name>", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/a.txt.txt.txt.txt");
     assert_eq!(
@@ -462,16 +480,18 @@ fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<name>.txt", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<name>.txt", 1)?;
 
-    let search = router.search("/café.txt");
+    let router = builder.build();
+
+    let search = router.search("/caf\u{e9}.txt");
     assert_eq!(
         search,
         Some(Match {
             data: &1,
             template: "/<name>.txt",
-            parameters: smallvec![("name", "café")],
+            parameters: smallvec![("name", "caf\u{e9}")],
         })
     );
 
@@ -490,8 +510,10 @@ fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_segment_slash() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<a>/<b>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>/<b>", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("//foo");
     assert_eq!(search, None);
@@ -501,8 +523,10 @@ fn dynamic_segment_slash() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_segment_tails() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<name>/edit", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<name>/edit", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/foo/view");
     assert_eq!(search, None);
@@ -512,9 +536,11 @@ fn dynamic_segment_tails() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn dynamic_inline_tails() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<a>.txt", 1)?;
-    router.insert("/<b>/edit", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>.txt", 1)?;
+    builder.insert("/<b>/edit", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/foo/view");
     assert_eq!(search, None);

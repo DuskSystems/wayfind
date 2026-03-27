@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::node::{Node, NodeData};
 use crate::parser::{Part, Template};
 use crate::state::StaticState;
@@ -17,7 +19,7 @@ impl<S> Node<S> {
             }
         } else {
             let data = self.data.take()?;
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
             Some(data)
         }
     }
@@ -29,9 +31,10 @@ impl<S> Node<S> {
         })?;
 
         let child = &mut self.static_children[index];
-        child.needs_optimization = true;
+        child.flags.set_needs_optimization(true);
 
-        let remaining_prefix = &prefix[child.state.prefix.len()..];
+        let child_prefix_len = child.state.prefix.len();
+        let remaining_prefix = &prefix[child_prefix_len..];
         let result = if remaining_prefix.is_empty() {
             child.delete(template)
         } else {
@@ -40,18 +43,31 @@ impl<S> Node<S> {
 
         if child.is_empty() {
             self.static_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         } else if child.is_compressible() {
+            let child = &mut self.static_children[index];
             let merge = child.static_children.remove(0);
 
-            let mut prefix = core::mem::take(&mut child.state.prefix).into_vec();
-            prefix.extend_from_slice(&merge.state.prefix);
+            let mut combined: Vec<u8> = core::mem::take(&mut child.state.prefix).into_vec();
+            combined.extend_from_slice(&merge.state.prefix);
 
-            *child = Node {
-                state: StaticState::new(prefix),
-                needs_optimization: true,
-                ..merge
-            };
+            let mut flags = merge.flags;
+            flags.set_needs_optimization(true);
+
+            let child = &mut self.static_children[index];
+            child.state = StaticState::new(combined);
+            child.flags = flags;
+            child.data = merge.data;
+            child.static_children = merge.static_children;
+            child.dynamic_children = merge.dynamic_children;
+            child.wildcard_children = merge.wildcard_children;
+            child.end_wildcard = merge.end_wildcard;
+            child.shortest = merge.shortest;
+            child.longest = merge.longest;
+            child.tails = merge.tails;
+            child.reachable = merge.reachable;
+            child.suffixes = merge.suffixes;
+            child.id = merge.id;
         }
 
         result
@@ -61,14 +77,14 @@ impl<S> Node<S> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.state.name == name)?;
+            .position(|child| *child.state.name == *name)?;
 
         let child = &mut self.dynamic_children[index];
         let result = child.delete(template);
 
         if child.is_empty() {
             self.dynamic_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
 
         result
@@ -78,33 +94,33 @@ impl<S> Node<S> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.state.name == name)?;
+            .position(|child| *child.state.name == *name)?;
 
         let child = &mut self.wildcard_children[index];
         let result = child.delete(template);
 
         if child.is_empty() {
             self.wildcard_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
 
         result
     }
 
     fn delete_end_wildcard(&mut self, name: &str) -> Option<NodeData> {
-        let child = self.end_wildcard.as_ref()?;
-        if child.name != name {
+        let child = self.end_wildcard.as_deref()?;
+        if *child.state.name != *name {
             return None;
         }
 
         let child = self.end_wildcard.take()?;
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
 
-        Some(child.data)
+        child.data
     }
 
     #[must_use]
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.data.is_none()
             && self.static_children.is_empty()
             && self.dynamic_children.is_empty()
@@ -113,7 +129,7 @@ impl<S> Node<S> {
     }
 
     #[must_use]
-    fn is_compressible(&self) -> bool {
+    const fn is_compressible(&self) -> bool {
         self.data.is_none()
             && self.static_children.len() == 1
             && self.dynamic_children.is_empty()

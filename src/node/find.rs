@@ -44,7 +44,7 @@ impl<S> Node<S> {
 
     fn find_dynamic(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
         for child in &self.dynamic_children {
-            if child.state.name == name {
+            if *child.state.name == *name {
                 return child.find(parts);
             }
         }
@@ -53,10 +53,10 @@ impl<S> Node<S> {
     }
 
     fn find_end_wildcard(&self, name: &str) -> Option<&NodeData> {
-        if let Some(child) = &self.end_wildcard {
-            if child.name == name {
-                return Some(&child.data);
-            }
+        if let Some(child) = self.end_wildcard.as_deref()
+            && *child.state.name == *name
+        {
+            return child.data.as_ref();
         }
 
         None
@@ -64,7 +64,7 @@ impl<S> Node<S> {
 
     fn find_wildcard(&self, parts: &[Part], name: &str) -> Option<&NodeData> {
         for child in &self.wildcard_children {
-            if child.state.name == name {
+            if *child.state.name == *name {
                 return child.find(parts);
             }
         }

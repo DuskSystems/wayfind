@@ -4,18 +4,18 @@
 use std::sync::LazyLock;
 
 use libfuzzer_sys::fuzz_target;
-use wayfind::Router;
+use wayfind::{Router, RouterBuilder};
 
 #[path = "../../benches/fixtures/gitlab_routes.rs"]
 mod gitlab_routes;
 
 static ROUTER: LazyLock<Router<usize>> = LazyLock::new(|| {
-    let mut router = Router::new();
+    let mut builder = RouterBuilder::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
-        router.insert(route, index).unwrap();
+        builder.insert(route, index).unwrap();
     }
 
-    router
+    builder.build()
 });
 
 fuzz_target!(|input: &str| {
