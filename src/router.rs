@@ -2,9 +2,10 @@ use alloc::borrow::ToOwned as _;
 use core::fmt;
 
 use slab::Slab;
-use smallvec::{SmallVec, smallvec};
+use smallvec::SmallVec;
 
 use crate::errors::{DeleteError, InsertError};
+use crate::node::search::SearchState;
 use crate::node::{Node, NodeData};
 use crate::parser::Template;
 use crate::state::RootState;
@@ -32,6 +33,9 @@ pub struct Router<T> {
     /// The root node of the tree.
     root: Node<RootState>,
 
+    /// The number of nodes in the tree.
+    count: usize,
+
     /// Keyed storage map containing the inserted data.
     storage: Slab<T>,
 }
@@ -42,6 +46,7 @@ impl<T> Router<T> {
     pub fn new() -> Self {
         Self {
             root: Node::new(RootState::new()),
+            count: 0,
             storage: Slab::new(),
         }
     }
@@ -72,7 +77,7 @@ impl<T> Router<T> {
         if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
                 new: template.to_owned(),
-                existing: found.template.clone(),
+                existing: found.template.clone().into(),
             });
         }
 
@@ -81,11 +86,14 @@ impl<T> Router<T> {
             &mut parsed,
             NodeData {
                 key,
-                template: template.to_owned(),
+                template: template.into(),
             },
         );
 
-        self.root.optimize();
+        let mut count = 0;
+        self.root.optimize(&mut count);
+        self.count = count;
+
         Ok(())
     }
 
@@ -123,7 +131,10 @@ impl<T> Router<T> {
 
         let entry = self.storage.remove(data.key);
 
-        self.root.optimize();
+        let mut count = 0;
+        self.root.optimize(&mut count);
+        self.count = count;
+
         Ok(entry)
     }
 
@@ -145,7 +156,7 @@ impl<T> Router<T> {
         };
 
         let found = self.root.find(&parsed.parts)?;
-        if found.template == template {
+        if *found.template == *template {
             self.storage.get(found.key)
         } else {
             None
@@ -174,7 +185,7 @@ impl<T> Router<T> {
         };
 
         let found = self.root.find(&parsed.parts)?;
-        if found.template == template {
+        if *found.template == *template {
             self.storage.get_mut(found.key)
         } else {
             None
@@ -194,13 +205,13 @@ impl<T> Router<T> {
     /// ```
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
-        let mut parameters = smallvec![];
-        let data = self.root.search(path, &mut parameters)?;
+        let mut state = SearchState::new(path, self.count);
+        let data = self.root.search(&mut state)?;
 
         Some(Match {
             data: self.storage.get(data.key)?,
-            template: data.template.as_ref(),
-            parameters,
+            template: &data.template,
+            parameters: state.parameters,
         })
     }
 }

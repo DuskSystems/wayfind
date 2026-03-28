@@ -1,16 +1,17 @@
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::node::flags::Flags;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;
 mod display;
 mod find;
+pub(crate) mod flags;
 mod insert;
 mod optimize;
-mod search;
+pub(crate) mod search;
 
 #[derive(Clone, Debug)]
 pub(crate) struct NodeData {
@@ -18,12 +19,15 @@ pub(crate) struct NodeData {
     pub key: usize,
 
     /// This node's template.
-    pub template: String,
+    pub template: Box<str>,
 }
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug)]
 pub(crate) struct Node<S> {
+    /// Node ID.
+    pub id: usize,
+
     /// The node's type-specific state.
     pub state: S,
     /// Optional data associated with this node.
@@ -34,19 +38,14 @@ pub(crate) struct Node<S> {
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub end_wildcard: Option<Box<EndWildcardState>>,
 
-    /// Whether all dynamic children are full segments.
-    pub dynamic_segment_only: bool,
-    /// Whether all wildcard children are full segments.
-    pub wildcard_segment_only: bool,
+    /// State flags.
+    pub flags: Flags,
     /// Minimum bytes of remaining path needed for any match through this node.
     pub shortest: usize,
     /// Maximum bytes of remaining path for any match through this node.
     pub longest: usize,
-    /// Possible fixed suffixes the path must end with for any match through this node.
+    /// Exact suffixes the remaining path must end with for any match through this node.
     pub tails: Box<[Box<[u8]>]>,
-
-    /// Whether this node needs optimization.
-    pub needs_optimization: bool,
 }
 
 impl<S> Node<S> {
@@ -54,6 +53,8 @@ impl<S> Node<S> {
     #[must_use]
     pub(crate) fn new(state: S) -> Self {
         Self {
+            id: 0,
+
             state,
             data: None,
 
@@ -62,13 +63,10 @@ impl<S> Node<S> {
             wildcard_children: Vec::new(),
             end_wildcard: None,
 
-            dynamic_segment_only: false,
-            wildcard_segment_only: false,
+            flags: Flags::default(),
             shortest: usize::MAX,
             longest: 0,
             tails: Box::default(),
-
-            needs_optimization: false,
         }
     }
 }

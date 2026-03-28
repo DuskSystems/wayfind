@@ -9,20 +9,24 @@ use crate::node::Node;
 use crate::state::StaticState;
 
 impl<S> Node<S> {
-    pub(crate) fn optimize(&mut self) {
-        if !self.needs_optimization {
+    pub(crate) fn optimize(&mut self, id_counter: &mut usize) {
+        self.id = *id_counter;
+        *id_counter += 1;
+
+        if !self.flags.is_needs_optimization() {
+            self.assign_child_ids(id_counter);
             return;
         }
 
         for child in &mut self.static_children {
-            child.optimize();
+            child.optimize(id_counter);
         }
 
         let mut seen = BTreeSet::new();
         let mut current = Vec::new();
 
         for child in &mut self.dynamic_children {
-            child.optimize();
+            child.optimize(id_counter);
             child.state.suffixes =
                 Self::collect_suffixes(&child.static_children, &mut current, &mut seen)
                     .into_iter()
@@ -32,7 +36,7 @@ impl<S> Node<S> {
         }
 
         for child in &mut self.wildcard_children {
-            child.optimize();
+            child.optimize(id_counter);
             child.state.suffixes =
                 Self::collect_suffixes(&child.static_children, &mut current, &mut seen)
                     .into_iter()
@@ -80,21 +84,43 @@ impl<S> Node<S> {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
-        self.dynamic_segment_only = self
-            .dynamic_children
-            .iter()
-            .all(|node| Self::is_segment_only(node));
+        self.flags.set_dynamic_segment_only(
+            self.dynamic_children
+                .iter()
+                .all(|node| Self::is_segment_only(node)),
+        );
 
-        self.wildcard_segment_only = self
-            .wildcard_children
-            .iter()
-            .all(|node| Self::is_segment_only(node));
+        self.flags.set_wildcard_segment_only(
+            self.wildcard_children
+                .iter()
+                .all(|node| Self::is_segment_only(node)),
+        );
 
         self.shortest = self.compute_shortest();
         self.longest = self.compute_longest();
         self.tails = self.compute_tails();
 
-        self.needs_optimization = false;
+        self.flags.set_needs_optimization(false);
+    }
+
+    fn assign_child_ids(&mut self, id_counter: &mut usize) {
+        for child in &mut self.static_children {
+            child.id = *id_counter;
+            *id_counter += 1;
+            child.assign_child_ids(id_counter);
+        }
+
+        for child in &mut self.dynamic_children {
+            child.id = *id_counter;
+            *id_counter += 1;
+            child.assign_child_ids(id_counter);
+        }
+
+        for child in &mut self.wildcard_children {
+            child.id = *id_counter;
+            *id_counter += 1;
+            child.assign_child_ids(id_counter);
+        }
     }
 
     /// Returns `true` if all static children start with `/`.

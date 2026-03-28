@@ -51,13 +51,13 @@ impl fmt::Display for StaticState {
 /// Dynamic parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct DynamicState {
-    pub name: String,
+    pub name: Box<str>,
     pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl DynamicState {
     #[must_use]
-    pub(crate) fn new(name: String) -> Self {
+    pub(crate) fn new(name: Box<str>) -> Self {
         Self {
             name,
             suffixes: Box::default(),
@@ -74,13 +74,13 @@ impl fmt::Display for DynamicState {
 /// Wildcard parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct WildcardState {
-    pub name: String,
+    pub name: Box<str>,
     pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl WildcardState {
     #[must_use]
-    pub(crate) fn new(name: String) -> Self {
+    pub(crate) fn new(name: Box<str>) -> Self {
         Self {
             name,
             suffixes: Box::default(),
@@ -97,7 +97,7 @@ impl fmt::Display for WildcardState {
 /// End wildcard leaf node.
 #[derive(Clone, Debug)]
 pub(crate) struct EndWildcardState {
-    pub name: String,
+    pub name: Box<str>,
     pub data: NodeData,
 }
 

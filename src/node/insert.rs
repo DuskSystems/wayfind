@@ -1,5 +1,4 @@
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec;
 
 use crate::node::{Node, NodeData};
@@ -21,7 +20,7 @@ impl<S> Node<S> {
             }
         } else {
             self.data = Some(data);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
     }
 
@@ -45,12 +44,14 @@ impl<S> Node<S> {
                     child.insert_static(template, data, &prefix[common_prefix..]);
                 }
 
-                self.needs_optimization = true;
+                self.flags.set_needs_optimization(true);
                 return;
             }
 
             // Not a clean insert, need to split the existing child node.
             let new_child_a = Node {
+                id: 0,
+
                 state: StaticState::new(child.state.prefix[common_prefix..].to_vec()),
                 data: child.data.take(),
 
@@ -59,19 +60,16 @@ impl<S> Node<S> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
-                dynamic_segment_only: child.dynamic_segment_only,
-                wildcard_segment_only: child.wildcard_segment_only,
+                flags: child.flags,
                 shortest: child.shortest,
                 longest: child.longest,
                 tails: core::mem::take(&mut child.tails),
-
-                needs_optimization: child.needs_optimization,
             };
 
             let new_child_b = Node::new(StaticState::new(prefix[common_prefix..].to_vec()));
 
             child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
-            child.needs_optimization = true;
+            child.flags.set_needs_optimization(true);
 
             if prefix[common_prefix..].is_empty() {
                 child.static_children = vec![new_child_a];
@@ -81,7 +79,7 @@ impl<S> Node<S> {
                 child.static_children[1].insert(template, data);
             }
 
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
             return;
         }
 
@@ -91,10 +89,10 @@ impl<S> Node<S> {
             new_child
         });
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: String) {
+    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -109,10 +107,10 @@ impl<S> Node<S> {
             });
         }
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: String) {
+    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
@@ -127,11 +125,11 @@ impl<S> Node<S> {
             });
         }
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
+    fn insert_end_wildcard(&mut self, data: NodeData, name: Box<str>) {
         self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 }
