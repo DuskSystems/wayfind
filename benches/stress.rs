@@ -185,11 +185,43 @@ fn wildcard_nested_inline<const N: usize>(bencher: divan::Bencher<'_, '_>) {
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_nested_present<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>/x/<*b>/x", 1).unwrap();
+    router.insert("/<*a>/x/<*b>/y/<*c>", 2).unwrap();
+
+    let path = format!("/y{}/z", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+// FIXME
+// #[divan::bench(consts = [1, 10, 100, 1000])]
+#[divan::bench(consts = [1, 10, 100])]
+fn wildcard_nested_triple<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>/x/<*b>/x/<*c>/x", 1).unwrap();
+    router.insert("/<*a>/x/<*b>/x/<*c>/y/<*d>", 2).unwrap();
+
+    let path = format!("{}/z", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_open<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     router.insert("/<*a>/x", 1).unwrap();
     router.insert("/<*a>/y/<*b>", 2).unwrap();
 
     let path = format!("{}/miss", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_suffixes<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut router = wayfind::Router::new();
+    router.insert("/<*a>.html", 1).unwrap();
+    router.insert("/<*a>.htm", 2).unwrap();
+
+    let path = format!("/{}.txt", ".htm".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
