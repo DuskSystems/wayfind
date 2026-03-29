@@ -30,91 +30,73 @@ wayfind = "0.9"
 ```rust
 use core::error::Error;
 
-use wayfind::Router;
+use wayfind::RouterBuilder;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
+    let mut builder = RouterBuilder::new();
+    builder.insert("/", 1)?;
+    builder.insert("/health", 2)?;
+    builder.insert("/users/<id>", 3)?;
+    builder.insert("/users/<id>/message", 4)?;
+    builder.insert("/images/<name>.png", 5)?;
+    builder.insert("/files/<*path>", 6)?;
+    builder.insert("/files/<*path>/delete", 7)?;
+    builder.insert("/backups/<*path>.tar.gz", 8)?;
 
-    // Static
-    router.insert("/", 1)?;
-    router.insert("/health", 2)?;
+    let router = builder.build();
 
-    {
-        let search = router.search("/").unwrap();
-        assert_eq!(search.data, &1);
-        assert_eq!(search.template, "/");
+    let search = router.search("/").unwrap();
+    assert_eq!(search.data, &1);
+    assert_eq!(search.template, "/");
 
-        let search = router.search("/health").unwrap();
-        assert_eq!(search.data, &2);
-        assert_eq!(search.template, "/health");
+    let search = router.search("/health").unwrap();
+    assert_eq!(search.data, &2);
+    assert_eq!(search.template, "/health");
 
-        let search = router.search("/heal");
-        assert_eq!(search, None);
-    }
+    let search = router.search("/heal");
+    assert_eq!(search, None);
 
-    // Dynamic
-    router.insert("/users/<id>", 3)?;
-    router.insert("/users/<id>/message", 4)?;
+    let search = router.search("/users/123").unwrap();
+    assert_eq!(search.data, &3);
+    assert_eq!(search.template, "/users/<id>");
+    assert_eq!(search.parameters[0], ("id", "123"));
 
-    {
-        let search = router.search("/users/123").unwrap();
-        assert_eq!(search.data, &3);
-        assert_eq!(search.template, "/users/<id>");
-        assert_eq!(search.parameters[0], ("id", "123"));
+    let search = router.search("/users/123/message").unwrap();
+    assert_eq!(search.data, &4);
+    assert_eq!(search.template, "/users/<id>/message");
+    assert_eq!(search.parameters[0], ("id", "123"));
 
-        let search = router.search("/users/123/message").unwrap();
-        assert_eq!(search.data, &4);
-        assert_eq!(search.template, "/users/<id>/message");
-        assert_eq!(search.parameters[0], ("id", "123"));
+    let search = router.search("/users/");
+    assert_eq!(search, None);
 
-        let search = router.search("/users/");
-        assert_eq!(search, None);
-    }
+    let search = router.search("/images/avatar.final.png").unwrap();
+    assert_eq!(search.data, &5);
+    assert_eq!(search.template, "/images/<name>.png");
+    assert_eq!(search.parameters[0], ("name", "avatar.final"));
 
-    // Dynamic Inline
-    router.insert("/images/<name>.png", 5)?;
+    let search = router.search("/images/.png");
+    assert_eq!(search, None);
 
-    {
-        let search = router.search("/images/avatar.final.png").unwrap();
-        assert_eq!(search.data, &5);
-        assert_eq!(search.template, "/images/<name>.png");
-        assert_eq!(search.parameters[0], ("name", "avatar.final"));
+    let search = router.search("/files/documents").unwrap();
+    assert_eq!(search.data, &6);
+    assert_eq!(search.template, "/files/<*path>");
+    assert_eq!(search.parameters[0], ("path", "documents"));
 
-        let search = router.search("/images/.png");
-        assert_eq!(search, None);
-    }
+    let search = router.search("/files/documents/my-project/delete").unwrap();
+    assert_eq!(search.data, &7);
+    assert_eq!(search.template, "/files/<*path>/delete");
+    assert_eq!(search.parameters[0], ("path", "documents/my-project"));
 
-    // Wildcard
-    router.insert("/files/<*path>", 6)?;
-    router.insert("/files/<*path>/delete", 7)?;
+    let search = router.search("/files");
+    assert_eq!(search, None);
 
-    {
-        let search = router.search("/files/documents").unwrap();
-        assert_eq!(search.data, &6);
-        assert_eq!(search.template, "/files/<*path>");
-        assert_eq!(search.parameters[0], ("path", "documents"));
+    let search = router.search("/backups/production/database.tar.gz").unwrap();
+    assert_eq!(search.data, &8);
+    assert_eq!(search.template, "/backups/<*path>.tar.gz");
+    assert_eq!(search.parameters[0], ("path", "production/database"));
 
-        let search = router.search("/files/documents/my-project/delete").unwrap();
-        assert_eq!(search.data, &7);
-        assert_eq!(search.template, "/files/<*path>/delete");
-        assert_eq!(search.parameters[0], ("path", "documents/my-project"));
-
-        let search = router.search("/files");
-        assert_eq!(search, None);
-    }
-
-    // Wildcard Inline
-    router.insert("/backups/<*path>.tar.gz", 8)?;
-
-    {
-        let search = router.search("/backups/production/database.tar.gz").unwrap();
-        assert_eq!(search.data, &8);
-        assert_eq!(search.template, "/backups/<*path>.tar.gz");
-        assert_eq!(search.parameters[0], ("path", "production/database"));
-
-        let search = router.search("/backups/.tar.gz");
-        assert_eq!(search, None);
-    }
+    let search = router.search("/backups/.tar.gz");
+    assert_eq!(search, None);
 
     println!("{router}");
     Ok(())

@@ -4,13 +4,14 @@ use core::error::Error;
 
 use similar_asserts::assert_eq;
 use smallvec::smallvec;
-use wayfind::{Match, Router};
+use wayfind::{Match, RouterBuilder};
 
 #[test]
 fn wildcard_simple() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/delete", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/delete", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -45,9 +46,10 @@ fn wildcard_simple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_multiple() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*prefix>/static/<*suffix>/file", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*prefix>/static/<*suffix>/file", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*prefix>
@@ -81,9 +83,10 @@ fn wildcard_multiple() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_inline() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>.html", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>.html", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -118,9 +121,10 @@ fn wildcard_inline() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_empty() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/end", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/end", 1)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -152,14 +156,15 @@ fn wildcard_empty() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_priority() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/static/path", 1)?;
-    router.insert("/static/<*rest>", 2)?;
-    router.insert("/<*path>/static", 3)?;
-    router.insert("/prefix.<*suffix>", 4)?;
-    router.insert("/<*prefix>.suffix", 5)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/static/path", 1)?;
+    builder.insert("/static/<*rest>", 2)?;
+    builder.insert("/<*path>/static", 3)?;
+    builder.insert("/prefix.<*suffix>", 4)?;
+    builder.insert("/<*prefix>.suffix", 5)?;
 
-    insta::assert_snapshot!(router, @r"
+    let router = builder.build();
+    insta::assert_snapshot!(router, @"
     /
     ├─ prefix.
     │  ╰─ <*suffix>
@@ -227,11 +232,12 @@ fn wildcard_priority() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/edit/<*rest>", 1)?;
-    router.insert("/<*path>/delete", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/edit/<*rest>", 1)?;
+    builder.insert("/<*path>/delete", 2)?;
 
-    insta::assert_snapshot!(router, @r"
+    let router = builder.build();
+    insta::assert_snapshot!(router, @"
     /
     ╰─ <*path>
        ╰─ /
@@ -275,10 +281,11 @@ fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_dynamic() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/api/<version>/<*rest>", 1)?;
-    router.insert("/api/<*path>/help", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/api/<version>/<*rest>", 1)?;
+    builder.insert("/api/<*path>/help", 2)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /api/
     ├─ <version>
@@ -304,9 +311,11 @@ fn wildcard_dynamic() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_suffix() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*aaa>", 1)?;
-    router.insert("/<*zzz>.txt", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*aaa>", 1)?;
+    builder.insert("/<*zzz>.txt", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/hello.txt");
     assert_eq!(
@@ -333,9 +342,11 @@ fn wildcard_suffix() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_fallthrough() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<username>", 1)?;
-    router.insert("/<*namespace_id>/<project_id>/-/issues", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<username>", 1)?;
+    builder.insert("/<*namespace_id>/<project_id>/-/issues", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/johndoe");
     assert_eq!(
@@ -362,8 +373,10 @@ fn wildcard_fallthrough() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_namespace() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*namespace_id>/<project_id>/-/merge_requests", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*namespace_id>/<project_id>/-/merge_requests", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/gitlab-org/frontend/gitlab-ui/-/merge_requests");
     assert_eq!(
@@ -383,11 +396,12 @@ fn wildcard_namespace() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_catchall() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<username>", 1)?;
-    router.insert("/<username>/<*rest>", 2)?;
-    router.insert("/<*namespace_id>/<project_id>/-/issues", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<username>", 1)?;
+    builder.insert("/<username>/<*rest>", 2)?;
+    builder.insert("/<*namespace_id>/<project_id>/-/issues", 3)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ├─ <username>
@@ -415,10 +429,12 @@ fn wildcard_catchall() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_miss_fallback() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/pipelines/<id>", 1)?;
-    router.insert("/pipelines/<id>/security", 2)?;
-    router.insert("/pipelines/<*ref>/latest", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/pipelines/<id>", 1)?;
+    builder.insert("/pipelines/<id>/security", 2)?;
+    builder.insert("/pipelines/<*ref>/latest", 3)?;
+
+    let router = builder.build();
 
     let search = router.search("/pipelines/main/latest");
     assert_eq!(
@@ -435,8 +451,10 @@ fn wildcard_miss_fallback() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_multi_segment() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/pipelines/<*ref>/latest", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/pipelines/<*ref>/latest", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/pipelines/feature/auth/latest");
     assert_eq!(
@@ -453,8 +471,10 @@ fn wildcard_multi_segment() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_nested() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/<b>/-/issues", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/<b>/-/issues", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/a/b/c/my-project/-/issues");
     assert_eq!(
@@ -471,9 +491,11 @@ fn wildcard_nested() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_branches() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/<b>/-/wikis/<c>", 1)?;
-    router.insert("/<*a>/-/settings", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/<b>/-/wikis/<c>", 1)?;
+    builder.insert("/<*a>/-/settings", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/gitlab-org/gitlab/-/wikis/home");
     assert_eq!(
@@ -500,8 +522,10 @@ fn wildcard_branches() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_ambiguous() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/<b>/-/issues", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/<b>/-/issues", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/a/-/issues/real-project/-/issues");
     assert_eq!(
@@ -518,8 +542,10 @@ fn wildcard_ambiguous() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_chain() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/middle/<*b>/end", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/middle/<*b>/end", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/x/y/middle/w/v/end");
     assert_eq!(
@@ -536,8 +562,10 @@ fn wildcard_chain() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_multibyte() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>.html", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>.html", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/docs/café.html");
     assert_eq!(
@@ -564,8 +592,10 @@ fn wildcard_multibyte() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_repeated_anchor() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*x>/-/<*y>/end", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*x>/-/<*y>/end", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/a/-/b/-/c/-/d/-/end");
     assert_eq!(
@@ -585,11 +615,12 @@ fn wildcard_repeated_anchor() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_endings() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/x", 1)?;
-    router.insert("/<*a>/y", 2)?;
-    router.insert("/<*a>/z", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/x", 1)?;
+    builder.insert("/<*a>/y", 2)?;
+    builder.insert("/<*a>/z", 3)?;
 
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*a>
@@ -637,10 +668,12 @@ fn wildcard_endings() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_anchored() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/-/<*b>/x", 1)?;
-    router.insert("/<*a>/-/<*b>/y", 2)?;
-    router.insert("/<*a>/-/<*b>/z", 3)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/-/<*b>/x", 1)?;
+    builder.insert("/<*a>/-/<*b>/y", 2)?;
+    builder.insert("/<*a>/-/<*b>/z", 3)?;
+
+    let router = builder.build();
 
     let search = router.search("/one/two/-/three/x");
     assert_eq!(
@@ -673,9 +706,11 @@ fn wildcard_anchored() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>.txt", 1)?;
-    router.insert("/<*path>", 2)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>.txt", 1)?;
+    builder.insert("/<*path>", 2)?;
+
+    let router = builder.build();
 
     let search = router.search("/a.txt.txt.txt.txt");
     assert_eq!(
@@ -702,8 +737,10 @@ fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_segment_empty() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*a>/<b>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/<b>", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("//foo");
     assert_eq!(search, None);
@@ -713,8 +750,10 @@ fn wildcard_segment_empty() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn wildcard_inline_empty() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>.x/<*rest>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>.x/<*rest>", 1)?;
+
+    let router = builder.build();
 
     let search = router.search("/.x/y");
     assert_eq!(search, None);

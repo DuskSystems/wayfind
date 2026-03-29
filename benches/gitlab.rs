@@ -17,21 +17,22 @@ fn main() {
 #[divan::bench]
 fn gitlab_insert(bencher: divan::Bencher<'_, '_>) {
     bencher.bench(|| {
-        let mut router = wayfind::Router::new();
+        let mut builder = wayfind::RouterBuilder::new();
         for (index, route) in gitlab_routes::routes().iter().enumerate() {
-            router.insert(black_box(route), index).unwrap();
+            builder.insert(black_box(route), index).unwrap();
         }
 
-        black_box(router)
+        black_box(builder.build())
     });
 }
 
 #[divan::bench]
 fn gitlab_display(bencher: divan::Bencher<'_, '_>) {
-    let mut router = wayfind::Router::new();
+    let mut builder = wayfind::RouterBuilder::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {
-        router.insert(route, index).unwrap();
+        builder.insert(route, index).unwrap();
     }
 
+    let router = builder.build();
     bencher.bench(|| black_box(format!("{router}")));
 }

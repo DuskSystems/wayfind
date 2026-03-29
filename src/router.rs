@@ -24,11 +24,21 @@ pub struct Match<'r, 'p, T> {
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
-/// The [`wayfind`](crate) router.
+/// A mutable router builder for inserting routes.
 ///
-/// See [the crate documentation](crate) for usage.
+/// Call [`build`](RouterBuilder::build) to produce an immutable [`Router`] for searching.
+///
+/// # Examples
+///
+/// ```rust
+/// use wayfind::RouterBuilder;
+///
+/// let mut builder = RouterBuilder::new();
+/// builder.insert("/hello", 1).unwrap();
+/// let router = builder.build();
+/// ```
 #[derive(Clone)]
-pub struct Router<T> {
+pub struct RouterBuilder<T> {
     /// The root node of the tree.
     root: Node<RootState>,
 
@@ -36,8 +46,8 @@ pub struct Router<T> {
     storage: Slab<T>,
 }
 
-impl<T> Router<T> {
-    /// Creates a new Router.
+impl<T> RouterBuilder<T> {
+    /// Creates a new router builder.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -55,10 +65,10 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::Router;
+    /// use wayfind::RouterBuilder;
     ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/hello", 1).unwrap();
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed =
@@ -67,8 +77,7 @@ impl<T> Router<T> {
                 error,
             })?;
 
-        // Check for conflicts up front.
-        // Prevent partial inserts.
+        // Check for conflicts up front to prevent partial inserts.
         if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
                 new: template.to_owned(),
@@ -85,8 +94,112 @@ impl<T> Router<T> {
             },
         );
 
-        self.root.optimize();
         Ok(())
+    }
+
+    /// Checks if a template exists in the builder and returns a reference to its data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::RouterBuilder;
+    ///
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/hello", 1).unwrap();
+    /// assert_eq!(builder.get("/hello").unwrap(), &1);
+    /// ```
+    #[must_use]
+    pub fn get(&self, template: &str) -> Option<&T> {
+        let Ok(parsed) = Template::new(template.as_bytes()) else {
+            return None;
+        };
+
+        let found = self.root.find(&parsed.parts)?;
+        if *found.template == *template {
+            self.storage.get(found.key)
+        } else {
+            None
+        }
+    }
+
+    /// Checks if a template exists in the builder and returns a mutable reference to its data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::RouterBuilder;
+    ///
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/hello", 1).unwrap();
+    /// if let Some(data) = builder.get_mut("/hello") {
+    ///     *data = 2;
+    /// }
+    ///
+    /// assert_eq!(builder.get("/hello").unwrap(), &2);
+    /// ```
+    #[must_use]
+    pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
+        let Ok(parsed) = Template::new(template.as_bytes()) else {
+            return None;
+        };
+
+        let found = self.root.find(&parsed.parts)?;
+        if *found.template == *template {
+            self.storage.get_mut(found.key)
+        } else {
+            None
+        }
+    }
+
+    /// Optimizes the tree and produces an immutable [`Router`] for searching.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::RouterBuilder;
+    ///
+    /// let mut builder = RouterBuilder::new();
+    /// builder.insert("/users/<id>", 1).unwrap();
+    /// builder.insert("/posts/<id>", 2).unwrap();
+    /// let router = builder.build();
+    /// router.search("/users/123").unwrap();
+    /// ```
+    #[must_use]
+    pub fn build(mut self) -> Router<T> {
+        self.root.optimize();
+
+        Router {
+            root: self.root,
+            storage: self.storage,
+        }
+    }
+}
+
+impl<T> Default for RouterBuilder<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// An immutable, optimized router for searching routes.
+///
+/// Produced by [`RouterBuilder::build`].
+///
+/// See [the crate documentation](crate) for usage.
+#[derive(Clone)]
+pub struct Router<T> {
+    /// The root node of the tree.
+    root: Node<RootState>,
+
+    /// Keyed storage map containing the inserted data.
+    storage: Slab<T>,
+}
+
+impl<T> Router<T> {
+    /// Creates a new [`RouterBuilder`].
+    #[must_use]
+    pub fn builder() -> RouterBuilder<T> {
+        RouterBuilder::new()
     }
 
     /// Checks if a template exists in the router and returns a reference to its data.
@@ -94,10 +207,11 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::Router;
+    /// use wayfind::RouterBuilder;
     ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/hello", 1).unwrap();
+    /// let router = builder.build();
     /// assert_eq!(router.get("/hello").unwrap(), &1);
     /// ```
     #[must_use]
@@ -119,10 +233,11 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::Router;
+    /// use wayfind::RouterBuilder;
     ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/hello", 1).unwrap();
+    /// let mut router = builder.build();
     /// if let Some(data) = router.get_mut("/hello") {
     ///     *data = 2;
     /// }
@@ -148,10 +263,11 @@ impl<T> Router<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use wayfind::Router;
+    /// use wayfind::RouterBuilder;
     ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/<user>", 1).unwrap();
+    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
+    /// builder.insert("/<user>", 1).unwrap();
+    /// let router = builder.build();
     /// router.search("/me").unwrap();
     /// ```
     #[must_use]
@@ -161,15 +277,9 @@ impl<T> Router<T> {
 
         Some(Match {
             data: self.storage.get(data.key)?,
-            template: data.template.as_ref(),
+            template: &data.template,
             parameters,
         })
-    }
-}
-
-impl<T> Default for Router<T> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
