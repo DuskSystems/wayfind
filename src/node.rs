@@ -11,10 +11,11 @@ mod insert;
 mod optimize;
 mod search;
 
+/// Data stored at a node that matches a template.
 #[derive(Clone, Debug)]
-pub(crate) struct NodeData {
-    /// The key to the stored data in the router's slab.
-    pub key: usize,
+pub(crate) struct NodeData<T> {
+    /// The associated data.
+    pub data: T,
 
     /// This node's template.
     pub template: Box<str>,
@@ -22,16 +23,16 @@ pub(crate) struct NodeData {
 
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug)]
-pub(crate) struct Node<S> {
+pub(crate) struct Node<S, T> {
     /// The node's type-specific state.
     pub state: S,
     /// Optional data associated with this node.
-    pub data: Option<NodeData>,
+    pub data: Option<NodeData<T>>,
 
-    pub static_children: Vec<Node<StaticState>>,
-    pub dynamic_children: Vec<Node<DynamicState>>,
-    pub wildcard_children: Vec<Node<WildcardState>>,
-    pub end_wildcard: Option<Box<EndWildcardState>>,
+    pub static_children: Vec<Node<StaticState, T>>,
+    pub dynamic_children: Vec<Node<DynamicState, T>>,
+    pub wildcard_children: Vec<Node<WildcardState, T>>,
+    pub end_wildcard: Option<Box<Node<EndWildcardState, T>>>,
 
     /// State flags.
     pub flags: Flags,
@@ -43,14 +44,7 @@ pub(crate) struct Node<S> {
     pub tails: Box<[Box<[u8]>]>,
 }
 
-#[cfg(target_pointer_width = "64")]
-const _: () = {
-    assert!(size_of::<NodeData>() == 24, "NodeData size");
-    assert!(size_of::<Option<NodeData>>() == 24, "Option<NodeData> size");
-    assert!(size_of::<Flags>() == 1, "Flags size");
-};
-
-impl<S> Node<S> {
+impl<S, T> Node<S, T> {
     /// Creates a new empty node.
     #[must_use]
     pub(crate) fn new(state: S) -> Self {

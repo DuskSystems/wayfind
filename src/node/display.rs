@@ -6,11 +6,11 @@ use core::fmt::Write as _;
 
 use crate::node::Node;
 
-impl<S: fmt::Display> fmt::Display for Node<S> {
+impl<S: fmt::Display, T> fmt::Display for Node<S, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fn display_node<S: fmt::Display>(
+        fn display_node<S: fmt::Display, T>(
             output: &mut String,
-            node: &Node<S>,
+            node: &Node<S, T>,
             padding: &str,
             is_root: bool,
             is_last: bool,
@@ -57,7 +57,7 @@ impl<S: fmt::Display> fmt::Display for Node<S> {
 
             if let Some(child) = &node.end_wildcard {
                 let branch = if key.is_empty() { "" } else { "╰─ " };
-                writeln!(output, "{padding}{branch}{child}")?;
+                writeln!(output, "{padding}{branch}{}", child.state)?;
             }
 
             Ok(())

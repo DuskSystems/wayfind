@@ -141,7 +141,6 @@ wayfind = { path = "." }
 memchr = { version = "2.7", default-features = false, features = ["alloc"] }
 
 # Collections
-slab = { version = "0.4", default-features = false }
 smallvec = { version = "1.15", default-features = false, features = ["const_new", "union"] }
 
 # Testing
@@ -191,7 +190,6 @@ workspace = true
 memchr.workspace = true
 
 # Collections
-slab.workspace = true
 smallvec.workspace = true
 
 [dev-dependencies]
