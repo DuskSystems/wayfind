@@ -4,7 +4,7 @@ use core::fmt;
 use slab::Slab;
 use smallvec::{SmallVec, smallvec};
 
-use crate::errors::{DeleteError, InsertError};
+use crate::errors::InsertError;
 use crate::node::{Node, NodeData};
 use crate::parser::Template;
 use crate::state::RootState;
@@ -87,44 +87,6 @@ impl<T> Router<T> {
 
         self.root.optimize();
         Ok(())
-    }
-
-    /// Deletes a template from the router.
-    ///
-    /// The template provided must exactly match the template inserted.
-    ///
-    /// Returns the associated data previously stored.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`DeleteError`] if the template is invalid, cannot be deleted, or cannot be found.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::Router;
-    ///
-    /// let mut router: Router<usize> = Router::new();
-    /// router.insert("/hello", 1).unwrap();
-    /// router.delete("/hello").unwrap();
-    /// ```
-    pub fn delete(&mut self, template: &str) -> Result<T, DeleteError> {
-        let mut parsed =
-            Template::new(template.as_bytes()).map_err(|error| DeleteError::Template {
-                template: template.to_owned(),
-                error,
-            })?;
-
-        let Some(data) = self.root.delete(&mut parsed) else {
-            return Err(DeleteError::NotFound {
-                template: template.to_owned(),
-            });
-        };
-
-        let entry = self.storage.remove(data.key);
-
-        self.root.optimize();
-        Ok(entry)
     }
 
     /// Checks if a template exists in the router and returns a reference to its data.

@@ -27,26 +27,6 @@ fn gitlab_insert(bencher: divan::Bencher<'_, '_>) {
 }
 
 #[divan::bench]
-fn gitlab_delete(bencher: divan::Bencher<'_, '_>) {
-    bencher
-        .with_inputs(|| {
-            let mut router = wayfind::Router::new();
-            for (index, route) in gitlab_routes::routes().iter().enumerate() {
-                router.insert(route, index).unwrap();
-            }
-
-            router
-        })
-        .bench_values(|mut router| {
-            for route in gitlab_routes::routes() {
-                router.delete(black_box(route)).unwrap();
-            }
-
-            black_box(router)
-        });
-}
-
-#[divan::bench]
 fn gitlab_display(bencher: divan::Bencher<'_, '_>) {
     let mut router = wayfind::Router::new();
     for (index, route) in gitlab_routes::routes().iter().enumerate() {

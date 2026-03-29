@@ -5,7 +5,6 @@ use crate::node::flags::Flags;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
-mod delete;
 mod display;
 mod find;
 pub(crate) mod flags;
