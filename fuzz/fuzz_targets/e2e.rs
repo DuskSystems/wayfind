@@ -27,13 +27,4 @@ fuzz_target!(|inputs: Vec<&str>| {
 
     let mut display = String::new();
     let _display = write!(display, "{router}");
-
-    for (_, input) in &inserted {
-        assert!(router.delete(input).is_ok());
-    }
-
-    for (_, input) in &inserted {
-        assert!(router.get(input).is_none());
-        assert!(router.search(input).is_none());
-    }
 });

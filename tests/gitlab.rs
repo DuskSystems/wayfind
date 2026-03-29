@@ -4379,11 +4379,5 @@ fn gitlab() -> Result<(), Box<dyn Error>> {
     ╰─ <*id>
     ");
 
-    for route in gitlab_routes::routes() {
-        router.delete(route)?;
-    }
-
-    insta::assert_snapshot!(router, @"");
-
     Ok(())
 }

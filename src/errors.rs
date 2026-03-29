@@ -1,8 +1,5 @@
 //! Error types.
 
-mod delete;
-pub use delete::DeleteError;
-
 mod insert;
 pub use insert::InsertError;
 
