@@ -97,60 +97,6 @@ impl<T> RouterBuilder<T> {
         Ok(())
     }
 
-    /// Checks if a template exists in the builder and returns a reference to its data.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::RouterBuilder;
-    ///
-    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/hello", 1).unwrap();
-    /// assert_eq!(builder.get("/hello").unwrap(), &1);
-    /// ```
-    #[must_use]
-    pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(parsed) = Template::new(template.as_bytes()) else {
-            return None;
-        };
-
-        let found = self.root.find(&parsed.parts)?;
-        if *found.template == *template {
-            self.storage.get(found.key)
-        } else {
-            None
-        }
-    }
-
-    /// Checks if a template exists in the builder and returns a mutable reference to its data.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::RouterBuilder;
-    ///
-    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/hello", 1).unwrap();
-    /// if let Some(data) = builder.get_mut("/hello") {
-    ///     *data = 2;
-    /// }
-    ///
-    /// assert_eq!(builder.get("/hello").unwrap(), &2);
-    /// ```
-    #[must_use]
-    pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(parsed) = Template::new(template.as_bytes()) else {
-            return None;
-        };
-
-        let found = self.root.find(&parsed.parts)?;
-        if *found.template == *template {
-            self.storage.get_mut(found.key)
-        } else {
-            None
-        }
-    }
-
     /// Optimizes the tree and produces an immutable [`Router`] for searching.
     ///
     /// # Examples
@@ -196,68 +142,6 @@ pub struct Router<T> {
 }
 
 impl<T> Router<T> {
-    /// Creates a new [`RouterBuilder`].
-    #[must_use]
-    pub fn builder() -> RouterBuilder<T> {
-        RouterBuilder::new()
-    }
-
-    /// Checks if a template exists in the router and returns a reference to its data.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::RouterBuilder;
-    ///
-    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/hello", 1).unwrap();
-    /// let router = builder.build();
-    /// assert_eq!(router.get("/hello").unwrap(), &1);
-    /// ```
-    #[must_use]
-    pub fn get(&self, template: &str) -> Option<&T> {
-        let Ok(parsed) = Template::new(template.as_bytes()) else {
-            return None;
-        };
-
-        let found = self.root.find(&parsed.parts)?;
-        if *found.template == *template {
-            self.storage.get(found.key)
-        } else {
-            None
-        }
-    }
-
-    /// Checks if a template exists in the router and returns a mutable reference to its data.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use wayfind::RouterBuilder;
-    ///
-    /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/hello", 1).unwrap();
-    /// let mut router = builder.build();
-    /// if let Some(data) = router.get_mut("/hello") {
-    ///     *data = 2;
-    /// }
-    ///
-    /// assert_eq!(router.get("/hello").unwrap(), &2);
-    /// ```
-    #[must_use]
-    pub fn get_mut(&mut self, template: &str) -> Option<&mut T> {
-        let Ok(parsed) = Template::new(template.as_bytes()) else {
-            return None;
-        };
-
-        let found = self.root.find(&parsed.parts)?;
-        if *found.template == *template {
-            self.storage.get_mut(found.key)
-        } else {
-            None
-        }
-    }
-
     /// Searches for a matching template in the router for a path.
     ///
     /// # Examples

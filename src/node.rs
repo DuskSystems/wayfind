@@ -6,7 +6,6 @@ use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod display;
-mod find;
 pub(crate) mod flags;
 mod insert;
 mod optimize;

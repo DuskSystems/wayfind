@@ -16,10 +16,6 @@ fuzz_target!(|inputs: Vec<&str>| {
         }
     }
 
-    for (index, input) in &inserted {
-        assert_eq!(builder.get(input), Some(index));
-    }
-
     let router = builder.build();
 
     for (_, input) in &inserted {
