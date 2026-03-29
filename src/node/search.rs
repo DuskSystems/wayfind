@@ -2,13 +2,13 @@ use smallvec::SmallVec;
 
 use crate::node::{Node, NodeData};
 
-impl<S> Node<S> {
+impl<S, T> Node<S, T> {
     /// Searches for a matching template in the node tree.
     pub(crate) fn search<'r, 'p>(
         &'r self,
         path: &'p str,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         self.search_at(path, 0, parameters)
     }
 
@@ -17,7 +17,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         if offset >= path.len() {
             return if offset == path.len() {
                 self.data.as_ref()
@@ -59,7 +59,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         let remaining = &path.as_bytes()[offset..];
         let first = *remaining.first()?;
 
@@ -92,7 +92,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         if self.dynamic_children.is_empty() {
             return None;
         }
@@ -141,7 +141,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         let remaining = &path.as_bytes()[offset..];
         let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
@@ -228,7 +228,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
@@ -284,7 +284,7 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
@@ -340,10 +340,10 @@ impl<S> Node<S> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData> {
+    ) -> Option<&'r NodeData<T>> {
         if let Some(child) = &self.end_wildcard {
-            parameters.push((&child.name, &path[offset..]));
-            return Some(&child.data);
+            parameters.push((&child.state.name, &path[offset..]));
+            return child.data.as_ref();
         }
 
         None

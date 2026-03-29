@@ -5,8 +5,6 @@ use core::fmt;
 
 use memchr::memmem::FinderRev;
 
-use crate::node::NodeData;
-
 /// Root node of the tree.
 #[derive(Clone, Debug)]
 pub(crate) struct RootState;
@@ -94,11 +92,17 @@ impl fmt::Display for WildcardState {
     }
 }
 
-/// End wildcard leaf node.
+/// End wildcard parameter with its name.
 #[derive(Clone, Debug)]
 pub(crate) struct EndWildcardState {
     pub name: Box<str>,
-    pub data: NodeData,
+}
+
+impl EndWildcardState {
+    #[must_use]
+    pub(crate) const fn new(name: Box<str>) -> Self {
+        Self { name }
+    }
 }
 
 impl fmt::Display for EndWildcardState {

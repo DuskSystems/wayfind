@@ -4,10 +4,10 @@ use crate::node::{Node, NodeData};
 use crate::parser::{Part, Template};
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
-impl<S> Node<S> {
+impl<S, T> Node<S, T> {
     /// Inserts a new route into the node tree with associated data.
     /// Recursively traverses the node tree, creating new nodes as necessary.
-    pub(crate) fn insert(&mut self, template: &mut Template, data: NodeData) {
+    pub(crate) fn insert(&mut self, template: &mut Template, data: NodeData<T>) {
         if let Some(part) = template.parts.pop() {
             match part {
                 Part::Static { prefix } => self.insert_static(template, data, &prefix),
@@ -23,7 +23,7 @@ impl<S> Node<S> {
         }
     }
 
-    fn insert_static(&mut self, template: &mut Template, data: NodeData, prefix: &[u8]) {
+    fn insert_static(&mut self, template: &mut Template, data: NodeData<T>, prefix: &[u8]) {
         if let Some(child) = self
             .static_children
             .iter_mut()
@@ -87,7 +87,7 @@ impl<S> Node<S> {
         self.flags.set_needs_optimization(true);
     }
 
-    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
+    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData<T>, name: Box<str>) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -103,7 +103,7 @@ impl<S> Node<S> {
         self.flags.set_needs_optimization(true);
     }
 
-    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
+    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData<T>, name: Box<str>) {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
@@ -119,8 +119,10 @@ impl<S> Node<S> {
         self.flags.set_needs_optimization(true);
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData, name: Box<str>) {
-        self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
+    fn insert_end_wildcard(&mut self, data: NodeData<T>, name: Box<str>) {
+        let mut node = Node::new(EndWildcardState::new(name));
+        node.data = Some(data);
+        self.end_wildcard = Some(Box::new(node));
         self.flags.set_needs_optimization(true);
     }
 }

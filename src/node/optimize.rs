@@ -8,7 +8,7 @@ use memchr::memmem::FinderRev;
 use crate::node::Node;
 use crate::state::StaticState;
 
-impl<S> Node<S> {
+impl<S, T> Node<S, T> {
     pub(crate) fn optimize(&mut self) {
         if !self.flags.is_needs_optimization() {
             return;
@@ -100,7 +100,7 @@ impl<S> Node<S> {
     }
 
     /// Returns `true` if all static children start with `/`.
-    fn is_segment_only<T>(node: &Node<T>) -> bool {
+    fn is_segment_only<U>(node: &Node<U, T>) -> bool {
         node.dynamic_children.is_empty()
             && node.wildcard_children.is_empty()
             && node.end_wildcard.is_none()
@@ -112,7 +112,7 @@ impl<S> Node<S> {
 
     /// Collects static suffixes from children for parameter matching.
     fn collect_suffixes(
-        children: &[Node<StaticState>],
+        children: &[Node<StaticState, T>],
         current: &mut Vec<u8>,
         seen: &mut BTreeSet<Vec<u8>>,
     ) -> Vec<Vec<u8>> {
@@ -216,7 +216,7 @@ impl<S> Node<S> {
     }
 
     fn collect_suffixes_recursive(
-        children: &[Node<StaticState>],
+        children: &[Node<StaticState, T>],
         current: &mut Vec<u8>,
         seen: &mut BTreeSet<Vec<u8>>,
     ) {

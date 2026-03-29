@@ -1,7 +1,6 @@
 use alloc::borrow::ToOwned as _;
 use core::fmt;
 
-use slab::Slab;
 use smallvec::{SmallVec, smallvec};
 
 use crate::errors::InsertError;
@@ -40,10 +39,7 @@ pub struct Match<'r, 'p, T> {
 #[derive(Clone)]
 pub struct RouterBuilder<T> {
     /// The root node of the tree.
-    root: Node<RootState>,
-
-    /// Keyed storage map containing the inserted data.
-    storage: Slab<T>,
+    root: Node<RootState, T>,
 }
 
 impl<T> RouterBuilder<T> {
@@ -52,7 +48,6 @@ impl<T> RouterBuilder<T> {
     pub fn new() -> Self {
         Self {
             root: Node::new(RootState::new()),
-            storage: Slab::new(),
         }
     }
 
@@ -85,11 +80,10 @@ impl<T> RouterBuilder<T> {
             });
         }
 
-        let key = self.storage.insert(data);
         self.root.insert(
             &mut parsed,
             NodeData {
-                key,
+                data,
                 template: template.into(),
             },
         );
@@ -113,11 +107,7 @@ impl<T> RouterBuilder<T> {
     #[must_use]
     pub fn build(mut self) -> Router<T> {
         self.root.optimize();
-
-        Router {
-            root: self.root,
-            storage: self.storage,
-        }
+        Router { root: self.root }
     }
 }
 
@@ -135,10 +125,7 @@ impl<T> Default for RouterBuilder<T> {
 #[derive(Clone)]
 pub struct Router<T> {
     /// The root node of the tree.
-    root: Node<RootState>,
-
-    /// Keyed storage map containing the inserted data.
-    storage: Slab<T>,
+    root: Node<RootState, T>,
 }
 
 impl<T> Router<T> {
@@ -157,11 +144,11 @@ impl<T> Router<T> {
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut parameters = smallvec![];
-        let data = self.root.search(path, &mut parameters)?;
+        let node = self.root.search(path, &mut parameters)?;
 
         Some(Match {
-            data: self.storage.get(data.key)?,
-            template: &data.template,
+            data: &node.data,
+            template: &node.template,
             parameters,
         })
     }
