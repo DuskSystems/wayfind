@@ -4,4 +4,5 @@
 extend-exclude = [
   "benches/fixtures/gitlab_routes.rs",
   "tests/gitlab.rs",
+  "tests/dynamic.rs",
 ]

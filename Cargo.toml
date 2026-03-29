@@ -145,7 +145,7 @@ slab = { version = "0.4", default-features = false }
 smallvec = { version = "1.15", default-features = false, features = ["const_new", "union"] }
 
 # Testing
-insta = { version = "1.46", default-features = false }
+insta = { version = "1.47", default-features = false }
 similar-asserts = { version = "1.7", default-features = false }
 
 # Fuzzing
@@ -182,9 +182,6 @@ repository.workspace = true
 license.workspace = true
 keywords.workspace = true
 categories.workspace = true
-
-[package.metadata.cargo-shear]
-ignored-paths = ["benches/fixtures/*.rs"]
 
 [lints]
 workspace = true
