@@ -10,7 +10,7 @@ use crate::state::StaticState;
 
 impl<S> Node<S> {
     pub(crate) fn optimize(&mut self) {
-        if !self.needs_optimization {
+        if !self.flags.is_needs_optimization() {
             return;
         }
 
@@ -80,21 +80,23 @@ impl<S> Node<S> {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
-        self.dynamic_segment_only = self
-            .dynamic_children
-            .iter()
-            .all(|node| Self::is_segment_only(node));
+        self.flags.set_dynamic_segment_only(
+            self.dynamic_children
+                .iter()
+                .all(|node| Self::is_segment_only(node)),
+        );
 
-        self.wildcard_segment_only = self
-            .wildcard_children
-            .iter()
-            .all(|node| Self::is_segment_only(node));
+        self.flags.set_wildcard_segment_only(
+            self.wildcard_children
+                .iter()
+                .all(|node| Self::is_segment_only(node)),
+        );
 
         self.shortest = self.compute_shortest();
         self.longest = self.compute_longest();
         self.tails = self.compute_tails();
 
-        self.needs_optimization = false;
+        self.flags.set_needs_optimization(false);
     }
 
     /// Returns `true` if all static children start with `/`.

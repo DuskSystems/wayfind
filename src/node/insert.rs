@@ -1,6 +1,4 @@
 use alloc::boxed::Box;
-use alloc::string::String;
-use alloc::vec;
 
 use crate::node::{Node, NodeData};
 use crate::parser::{Part, Template};
@@ -21,7 +19,7 @@ impl<S> Node<S> {
             }
         } else {
             self.data = Some(data);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
     }
 
@@ -37,7 +35,7 @@ impl<S> Node<S> {
                 .take_while(|&(a, b)| a == b)
                 .count();
 
-            // If the new prefix matches or extends the existing prefix, we can just insert it directly.
+            // If the new prefix matches or extends the existing prefix, insert directly.
             if common_prefix >= child.state.prefix.len() {
                 if common_prefix >= prefix.len() {
                     child.insert(template, data);
@@ -45,7 +43,7 @@ impl<S> Node<S> {
                     child.insert_static(template, data, &prefix[common_prefix..]);
                 }
 
-                self.needs_optimization = true;
+                self.flags.set_needs_optimization(true);
                 return;
             }
 
@@ -59,42 +57,37 @@ impl<S> Node<S> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
-                dynamic_segment_only: child.dynamic_segment_only,
-                wildcard_segment_only: child.wildcard_segment_only,
+                flags: child.flags,
                 shortest: child.shortest,
                 longest: child.longest,
                 tails: core::mem::take(&mut child.tails),
-
-                needs_optimization: child.needs_optimization,
             };
 
             let new_child_b = Node::new(StaticState::new(prefix[common_prefix..].to_vec()));
 
             child.state = StaticState::new(child.state.prefix[..common_prefix].to_vec());
-            child.needs_optimization = true;
+            child.flags.set_needs_optimization(true);
 
             if prefix[common_prefix..].is_empty() {
-                child.static_children = vec![new_child_a];
+                child.static_children = alloc::vec![new_child_a];
                 child.insert(template, data);
             } else {
-                child.static_children = vec![new_child_a, new_child_b];
+                child.static_children = alloc::vec![new_child_a, new_child_b];
                 child.static_children[1].insert(template, data);
             }
 
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
             return;
         }
 
-        self.static_children.push({
-            let mut new_child = Node::new(StaticState::new(prefix.to_vec()));
-            new_child.insert(template, data);
-            new_child
-        });
+        let mut child = Node::new(StaticState::new(prefix.to_vec()));
+        child.insert(template, data);
+        self.static_children.push(child);
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: String) {
+    fn insert_dynamic(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
         if let Some(child) = self
             .dynamic_children
             .iter_mut()
@@ -102,17 +95,15 @@ impl<S> Node<S> {
         {
             child.insert(template, data);
         } else {
-            self.dynamic_children.push({
-                let mut new_child = Node::new(DynamicState::new(name));
-                new_child.insert(template, data);
-                new_child
-            });
+            let mut child = Node::new(DynamicState::new(name));
+            child.insert(template, data);
+            self.dynamic_children.push(child);
         }
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: String) {
+    fn insert_wildcard(&mut self, template: &mut Template, data: NodeData, name: Box<str>) {
         if let Some(child) = self
             .wildcard_children
             .iter_mut()
@@ -120,18 +111,16 @@ impl<S> Node<S> {
         {
             child.insert(template, data);
         } else {
-            self.wildcard_children.push({
-                let mut new_child = Node::new(WildcardState::new(name));
-                new_child.insert(template, data);
-                new_child
-            });
+            let mut child = Node::new(WildcardState::new(name));
+            child.insert(template, data);
+            self.wildcard_children.push(child);
         }
 
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 
-    fn insert_end_wildcard(&mut self, data: NodeData, name: String) {
+    fn insert_end_wildcard(&mut self, data: NodeData, name: Box<str>) {
         self.end_wildcard = Some(Box::new(EndWildcardState { name, data }));
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
     }
 }

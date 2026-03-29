@@ -17,7 +17,7 @@ impl<S> Node<S> {
             }
         } else {
             let data = self.data.take()?;
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
             Some(data)
         }
     }
@@ -29,7 +29,7 @@ impl<S> Node<S> {
         })?;
 
         let child = &mut self.static_children[index];
-        child.needs_optimization = true;
+        child.flags.set_needs_optimization(true);
 
         let remaining_prefix = &prefix[child.state.prefix.len()..];
         let result = if remaining_prefix.is_empty() {
@@ -40,7 +40,7 @@ impl<S> Node<S> {
 
         if child.is_empty() {
             self.static_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         } else if child.is_compressible() {
             let merge = child.static_children.remove(0);
 
@@ -49,9 +49,11 @@ impl<S> Node<S> {
 
             *child = Node {
                 state: StaticState::new(prefix),
-                needs_optimization: true,
+                flags: merge.flags,
                 ..merge
             };
+
+            child.flags.set_needs_optimization(true);
         }
 
         result
@@ -61,14 +63,14 @@ impl<S> Node<S> {
         let index = self
             .dynamic_children
             .iter()
-            .position(|child| child.state.name == name)?;
+            .position(|child| *child.state.name == *name)?;
 
         let child = &mut self.dynamic_children[index];
         let result = child.delete(template);
 
         if child.is_empty() {
             self.dynamic_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
 
         result
@@ -78,14 +80,14 @@ impl<S> Node<S> {
         let index = self
             .wildcard_children
             .iter()
-            .position(|child| child.state.name == name)?;
+            .position(|child| *child.state.name == *name)?;
 
         let child = &mut self.wildcard_children[index];
         let result = child.delete(template);
 
         if child.is_empty() {
             self.wildcard_children.remove(index);
-            self.needs_optimization = true;
+            self.flags.set_needs_optimization(true);
         }
 
         result
@@ -93,12 +95,12 @@ impl<S> Node<S> {
 
     fn delete_end_wildcard(&mut self, name: &str) -> Option<NodeData> {
         let child = self.end_wildcard.as_ref()?;
-        if child.name != name {
+        if *child.name != *name {
             return None;
         }
 
         let child = self.end_wildcard.take()?;
-        self.needs_optimization = true;
+        self.flags.set_needs_optimization(true);
 
         Some(child.data)
     }
