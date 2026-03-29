@@ -34,7 +34,7 @@ impl<S> Node<S> {
             return Some(search);
         }
 
-        if let Some(search) = if self.dynamic_segment_only {
+        if let Some(search) = if self.flags.is_dynamic_segment_only() {
             self.search_dynamic_segment(path, offset, parameters)
         } else {
             self.search_dynamic_inline(path, offset, parameters)
@@ -42,7 +42,7 @@ impl<S> Node<S> {
             return Some(search);
         }
 
-        if let Some(search) = if self.wildcard_segment_only {
+        if let Some(search) = if self.flags.is_wildcard_segment_only() {
             self.search_wildcard_segment(path, offset, parameters)
         } else {
             self.search_wildcard_inline(path, offset, parameters)

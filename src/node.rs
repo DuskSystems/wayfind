@@ -1,13 +1,14 @@
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::node::flags::Flags;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod conflict;
 mod delete;
 mod display;
 mod find;
+pub(crate) mod flags;
 mod insert;
 mod optimize;
 mod search;
@@ -18,7 +19,7 @@ pub(crate) struct NodeData {
     pub key: usize,
 
     /// This node's template.
-    pub template: String,
+    pub template: Box<str>,
 }
 
 /// Represents a node in the tree structure.
@@ -34,20 +35,22 @@ pub(crate) struct Node<S> {
     pub wildcard_children: Vec<Node<WildcardState>>,
     pub end_wildcard: Option<Box<EndWildcardState>>,
 
-    /// Whether all dynamic children are full segments.
-    pub dynamic_segment_only: bool,
-    /// Whether all wildcard children are full segments.
-    pub wildcard_segment_only: bool,
+    /// State flags.
+    pub flags: Flags,
     /// Minimum bytes of remaining path needed for any match through this node.
     pub shortest: usize,
     /// Maximum bytes of remaining path for any match through this node.
     pub longest: usize,
     /// Possible fixed suffixes the path must end with for any match through this node.
     pub tails: Box<[Box<[u8]>]>,
-
-    /// Whether this node needs optimization.
-    pub needs_optimization: bool,
 }
+
+#[cfg(target_pointer_width = "64")]
+const _: () = {
+    assert!(size_of::<NodeData>() == 24, "NodeData size");
+    assert!(size_of::<Option<NodeData>>() == 24, "Option<NodeData> size");
+    assert!(size_of::<Flags>() == 1, "Flags size");
+};
 
 impl<S> Node<S> {
     /// Creates a new empty node.
@@ -62,13 +65,10 @@ impl<S> Node<S> {
             wildcard_children: Vec::new(),
             end_wildcard: None,
 
-            dynamic_segment_only: false,
-            wildcard_segment_only: false,
+            flags: Flags::default(),
             shortest: usize::MAX,
             longest: 0,
             tails: Box::default(),
-
-            needs_optimization: false,
         }
     }
 }

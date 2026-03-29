@@ -72,7 +72,7 @@ impl<T> Router<T> {
         if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
                 new: template.to_owned(),
-                existing: found.template.clone(),
+                existing: found.template.clone().into(),
             });
         }
 
@@ -81,7 +81,7 @@ impl<T> Router<T> {
             &mut parsed,
             NodeData {
                 key,
-                template: template.to_owned(),
+                template: template.into(),
             },
         );
 
@@ -145,7 +145,7 @@ impl<T> Router<T> {
         };
 
         let found = self.root.find(&parsed.parts)?;
-        if found.template == template {
+        if *found.template == *template {
             self.storage.get(found.key)
         } else {
             None
@@ -174,7 +174,7 @@ impl<T> Router<T> {
         };
 
         let found = self.root.find(&parsed.parts)?;
-        if found.template == template {
+        if *found.template == *template {
             self.storage.get_mut(found.key)
         } else {
             None
