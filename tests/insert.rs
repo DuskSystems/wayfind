@@ -3,15 +3,15 @@
 use core::error::Error;
 
 use similar_asserts::assert_eq;
-use wayfind::Router;
+use wayfind::RouterBuilder;
 use wayfind::errors::{InsertError, TemplateError};
 
 #[test]
 fn insert_conflict_static() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/test", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/test", 1)?;
 
-    let error = router.insert("/test", 2).unwrap_err();
+    let error = builder.insert("/test", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -21,6 +21,8 @@ fn insert_conflict_static() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/test` conflicts with `/test`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @"/test");
 
     Ok(())
@@ -28,10 +30,10 @@ fn insert_conflict_static() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_dynamic() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<id>", 1)?;
 
-    let error = router.insert("/<id>", 2).unwrap_err();
+    let error = builder.insert("/<id>", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -41,6 +43,8 @@ fn insert_conflict_dynamic() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<id>` conflicts with `/<id>`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -51,10 +55,10 @@ fn insert_conflict_dynamic() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<id>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<id>", 1)?;
 
-    let error = router.insert("/<user>", 2).unwrap_err();
+    let error = builder.insert("/<user>", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -64,6 +68,8 @@ fn insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<user>` conflicts with `/<id>`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <id>
@@ -74,10 +80,10 @@ fn insert_conflict_dynamic_structural() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/edit", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/edit", 1)?;
 
-    let error = router.insert("/<*path>/edit", 2).unwrap_err();
+    let error = builder.insert("/<*path>/edit", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -87,6 +93,8 @@ fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<*path>/edit` conflicts with `/<*path>/edit`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -98,10 +106,10 @@ fn insert_conflict_wildcard() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*path>/edit", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/edit", 1)?;
 
-    let error = router.insert("/<*slug>/edit", 2).unwrap_err();
+    let error = builder.insert("/<*slug>/edit", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -111,6 +119,8 @@ fn insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<*slug>/edit` conflicts with `/<*path>/edit`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*path>
@@ -122,10 +132,10 @@ fn insert_conflict_wildcard_structural() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*catch_all>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*catch_all>", 1)?;
 
-    let error = router.insert("/<*catch_all>", 2).unwrap_err();
+    let error = builder.insert("/<*catch_all>", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -135,6 +145,8 @@ fn insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<*catch_all>` conflicts with `/<*catch_all>`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -145,10 +157,10 @@ fn insert_conflict_end_wildcard() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_conflict_end_wildcard_structural() -> Result<(), Box<dyn Error>> {
-    let mut router = Router::new();
-    router.insert("/<*catch_all>", 1)?;
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*catch_all>", 1)?;
 
-    let error = router.insert("/<*files>", 2).unwrap_err();
+    let error = builder.insert("/<*files>", 2).unwrap_err();
     assert_eq!(
         error,
         InsertError::Conflict {
@@ -158,6 +170,8 @@ fn insert_conflict_end_wildcard_structural() -> Result<(), Box<dyn Error>> {
     );
 
     insta::assert_snapshot!(error, @"`/<*files>` conflicts with `/<*catch_all>`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @r"
     /
     ╰─ <*catch_all>
@@ -168,8 +182,8 @@ fn insert_conflict_end_wildcard_structural() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn insert_duplicate_parameter() {
-    let mut router = Router::new();
-    let error = router.insert("/<*id>/users/<id>", 3).unwrap_err();
+    let mut builder = RouterBuilder::new();
+    let error = builder.insert("/<*id>/users/<id>", 3).unwrap_err();
     assert_eq!(
         error,
         InsertError::Template {
@@ -181,5 +195,7 @@ fn insert_duplicate_parameter() {
     );
 
     insta::assert_snapshot!(error, @"invalid template `/<*id>/users/<id>`: duplicate parameter name `id`");
+
+    let router = builder.build();
     insta::assert_snapshot!(router, @"");
 }
