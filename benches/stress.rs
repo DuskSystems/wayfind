@@ -207,9 +207,7 @@ fn wildcard_nested_present<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 
-// FIXME
-// #[divan::bench(consts = [1, 10, 100, 1000])]
-#[divan::bench(consts = [1, 10, 100])]
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn wildcard_nested_triple<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut builder = wayfind::RouterBuilder::new();
     builder.insert("/<*a>/x/<*b>/x/<*c>/x", 1).unwrap();

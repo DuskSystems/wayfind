@@ -61,6 +61,7 @@ impl<S, T> Node<S, T> {
                 flags: child.flags.clone(),
                 bounds: child.bounds.clone(),
                 tails: core::mem::take(&mut child.tails),
+                suffixes: core::mem::take(&mut child.suffixes),
             };
 
             let new_child_b = Node::new(StaticState::new(&prefix[common_prefix..]));
