@@ -12,10 +12,10 @@ use crate::state::StaticState;
 #[derive(Clone, Debug)]
 pub(crate) struct Suffix {
     /// Raw byte pattern.
-    pub needle: Box<[u8]>,
+    needle: Box<[u8]>,
 
     /// Reverse finder for the needle.
-    pub finder: FinderRev<'static>,
+    finder: FinderRev<'static>,
 }
 
 /// Pre-computed suffix needles for parameter matching.

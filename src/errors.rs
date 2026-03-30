@@ -1,7 +1,93 @@
 //! Error types.
 
-mod insert;
-pub use insert::InsertError;
+use alloc::string::String;
+use core::error::Error;
+use core::fmt;
 
-mod template;
-pub use template::TemplateError;
+/// Errors relating to template insertion.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum InsertError {
+    /// A [`TemplateError`] that occurred during the insert.
+    Template {
+        /// The template that caused the error.
+        template: String,
+        /// The underlying template error.
+        error: TemplateError,
+    },
+
+    /// A conflicting template already exists in the router.
+    Conflict {
+        /// The new template being inserted.
+        new: String,
+        /// The existing template that conflicts.
+        existing: String,
+    },
+}
+
+impl Error for InsertError {}
+
+impl fmt::Display for InsertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Template { template, error } => {
+                write!(f, "invalid template `{template}`: {error}")
+            }
+            Self::Conflict { new, existing } => {
+                write!(f, "`{new}` conflicts with `{existing}`")
+            }
+        }
+    }
+}
+
+/// Errors relating to template parsing.
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum TemplateError {
+    /// The template is empty.
+    Empty,
+
+    /// The template must start with `/`.
+    MissingLeadingSlash,
+
+    /// An unbalanced angle bracket was found in the template.
+    UnbalancedAngle,
+
+    /// An empty parameter name was found in the template.
+    EmptyParameter,
+
+    /// An invalid parameter name was found in the template.
+    InvalidParameter {
+        /// The invalid parameter name.
+        name: String,
+    },
+
+    /// A duplicate parameter name was found in the template.
+    DuplicateParameter {
+        /// The duplicated parameter name.
+        name: String,
+    },
+
+    /// An empty wildcard name was found in the template.
+    EmptyWildcard,
+
+    /// Two parameters are directly adjacent without a separator.
+    TouchingParameters,
+}
+
+impl Error for TemplateError {}
+
+impl fmt::Display for TemplateError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Empty => write!(f, "empty template"),
+            Self::MissingLeadingSlash => write!(f, "missing leading slash"),
+            Self::UnbalancedAngle => write!(f, "unbalanced angle bracket"),
+            Self::EmptyParameter => write!(f, "empty parameter name"),
+            Self::InvalidParameter { name } => write!(f, "invalid parameter name `{name}`"),
+            Self::DuplicateParameter { name } => write!(f, "duplicate parameter name `{name}`"),
+            Self::EmptyWildcard => write!(f, "empty wildcard name"),
+            Self::TouchingParameters => {
+                write!(f, "parameters must be separated by a static segment")
+            }
+        }
+    }
+}
