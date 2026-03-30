@@ -1,31 +1,38 @@
-use alloc::collections::BTreeSet;
+use alloc::boxed::Box;
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
 
 use crate::node::Node;
 use crate::node::bounds::Bounds;
+use crate::node::reachable::Reachable;
 use crate::node::suffixes::Suffixes;
-use crate::node::tails::Tails;
 
 impl<S, T> Node<S, T> {
+    /// Optimizes the tree.
     pub(crate) fn optimize(&mut self) {
+        let mut needles = BTreeMap::new();
+        self.optimize_inner(&mut needles);
+    }
+
+    fn optimize_inner(&mut self, needles: &mut BTreeMap<Box<[u8]>, usize>) {
         if !self.flags.needs_optimization() {
             return;
         }
 
         for child in &mut self.static_children {
-            child.optimize();
+            child.optimize_inner(needles);
         }
 
         let mut seen = BTreeSet::new();
         let mut current = Vec::new();
 
         for child in &mut self.dynamic_children {
-            child.optimize();
+            child.optimize_inner(needles);
             Suffixes::update(child, &mut current, &mut seen);
         }
 
         for child in &mut self.wildcard_children {
-            child.optimize();
+            child.optimize_inner(needles);
             Suffixes::update(child, &mut current, &mut seen);
         }
 
@@ -53,7 +60,7 @@ impl<S, T> Node<S, T> {
             .set_wildcard_segment_only(self.wildcard_children.iter().all(is_segment_only));
 
         self.bounds = Bounds::compute(self);
-        self.tails = Tails::compute(self);
+        self.reachable = Reachable::compute(self, needles);
 
         self.flags.set_needs_optimization(false);
     }

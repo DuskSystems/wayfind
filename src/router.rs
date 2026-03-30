@@ -107,6 +107,7 @@ impl<T> RouterBuilder<T> {
     #[must_use]
     pub fn build(mut self) -> Router<T> {
         self.root.optimize();
+
         Router { root: self.root }
     }
 }

@@ -23,12 +23,6 @@ impl Bounds {
         self.shortest
     }
 
-    /// Returns `true` if the shortest and longest bounds are the same.
-    #[must_use]
-    pub(crate) const fn is_fixed(&self) -> bool {
-        self.shortest == self.longest
-    }
-
     /// Returns `true` if the remaining path length falls within the bounds.
     #[must_use]
     pub(crate) const fn matches(&self, remaining: usize) -> bool {

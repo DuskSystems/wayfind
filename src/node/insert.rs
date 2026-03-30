@@ -60,7 +60,7 @@ impl<S, T> Node<S, T> {
 
                 flags: child.flags.clone(),
                 bounds: child.bounds.clone(),
-                tails: core::mem::take(&mut child.tails),
+                reachable: core::mem::take(&mut child.reachable),
                 suffixes: core::mem::take(&mut child.suffixes),
             };
 
