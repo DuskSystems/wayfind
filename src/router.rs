@@ -53,8 +53,10 @@ impl<'r, 'p, T> Match<'r, 'p, T> {
 /// use wayfind::RouterBuilder;
 ///
 /// let mut builder = RouterBuilder::new();
-/// builder.insert("/hello", 1).unwrap();
+/// builder.insert("/hello", 1)?;
+///
 /// let router = builder.build();
+/// # Ok::<_, Box<dyn core::error::Error>>(())
 /// ```
 #[derive(Clone)]
 pub struct RouterBuilder<T> {
@@ -83,7 +85,8 @@ impl<T> RouterBuilder<T> {
     /// use wayfind::RouterBuilder;
     ///
     /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/hello", 1).unwrap();
+    /// builder.insert("/hello", 1)?;
+    /// # Ok::<_, Box<dyn core::error::Error>>(())
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
         let mut parsed =
@@ -119,11 +122,13 @@ impl<T> RouterBuilder<T> {
     /// use wayfind::RouterBuilder;
     ///
     /// let mut builder = RouterBuilder::new();
-    /// builder.insert("/users/<id>", 1).unwrap();
-    /// builder.insert("/posts/<id>", 2).unwrap();
+    /// builder.insert("/users/<id>", 1)?;
+    /// builder.insert("/posts/<id>", 2)?;
     ///
     /// let router = builder.build();
-    /// router.search("/users/123").unwrap();
+    ///
+    /// let search = router.search("/users/123").ok_or("no match")?;
+    /// # Ok::<_, Box<dyn core::error::Error>>(())
     /// ```
     #[must_use]
     pub fn build(mut self) -> Router<T> {
@@ -159,10 +164,12 @@ impl<T> Router<T> {
     /// use wayfind::RouterBuilder;
     ///
     /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
-    /// builder.insert("/<user>", 1).unwrap();
+    /// builder.insert("/<user>", 1)?;
     ///
     /// let router = builder.build();
-    /// router.search("/me").unwrap();
+    ///
+    /// let search = router.search("/me").ok_or("no match")?;
+    /// # Ok::<_, Box<dyn core::error::Error>>(())
     /// ```
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {

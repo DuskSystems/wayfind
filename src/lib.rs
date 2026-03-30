@@ -16,29 +16,24 @@
 //! #### Example
 //!
 //! ```rust
-//! use core::error::Error;
-//!
 //! use wayfind::RouterBuilder;
 //!
-//! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut builder = RouterBuilder::new();
-//!     builder.insert("/hello", 1)?;
-//!     builder.insert("/hello/world", 2)?;
-//!     let router = builder.build();
+//! let mut builder = RouterBuilder::new();
+//! builder.insert("/hello", 1)?;
+//! builder.insert("/hello/world", 2)?;
 //!
-//!     let search = router.search("/hello").unwrap();
-//!     assert_eq!(search.data(), &1);
-//!     assert_eq!(search.template(), "/hello");
+//! let router = builder.build();
 //!
-//!     let search = router.search("/hello/world").unwrap();
-//!     assert_eq!(search.data(), &2);
-//!     assert_eq!(search.template(), "/hello/world");
+//! let search = router.search("/hello").ok_or("no match")?;
+//! assert_eq!(search.data(), &1);
+//! assert_eq!(search.template(), "/hello");
 //!
-//!     let search = router.search("/world");
-//!     assert!(search.is_none());
+//! let search = router.search("/hello/world").ok_or("no match")?;
+//! assert_eq!(search.data(), &2);
+//! assert_eq!(search.template(), "/hello/world");
 //!
-//!     Ok(())
-//! }
+//! assert!(router.search("/world").is_none());
+//! # Ok::<_, Box<dyn core::error::Error>>(())
 //!```
 //!
 //! ### Dynamic
@@ -52,28 +47,24 @@
 //! #### Example
 //!
 //! ```rust
-//! use core::error::Error;
-//!
 //! use wayfind::RouterBuilder;
 //!
-//! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut builder = RouterBuilder::new();
-//!     builder.insert("/users/<id>", 1)?;
-//!     builder.insert("/users/<id>/files/<filename>.pdf", 2)?;
-//!     let router = builder.build();
+//! let mut builder = RouterBuilder::new();
+//! builder.insert("/users/<id>", 1)?;
+//! builder.insert("/users/<id>/files/<filename>.pdf", 2)?;
 //!
-//!     let search = router.search("/users/123").unwrap();
-//!     assert_eq!(search.data(), &1);
-//!     assert_eq!(search.template(), "/users/<id>");
-//!     assert_eq!(search.parameters(), &[("id", "123")]);
+//! let router = builder.build();
 //!
-//!     let search = router.search("/users/123/files/my.document.pdf").unwrap();
-//!     assert_eq!(search.data(), &2);
-//!     assert_eq!(search.template(), "/users/<id>/files/<filename>.pdf");
-//!     assert_eq!(search.parameters(), &[("id", "123"), ("filename", "my.document")]);
+//! let search = router.search("/users/123").ok_or("no match")?;
+//! assert_eq!(search.data(), &1);
+//! assert_eq!(search.template(), "/users/<id>");
+//! assert_eq!(search.parameters(), &[("id", "123")]);
 //!
-//!     Ok(())
-//! }
+//! let search = router.search("/users/123/files/my.document.pdf").ok_or("no match")?;
+//! assert_eq!(search.data(), &2);
+//! assert_eq!(search.template(), "/users/<id>/files/<filename>.pdf");
+//! assert_eq!(search.parameters(), &[("id", "123"), ("filename", "my.document")]);
+//! # Ok::<_, Box<dyn core::error::Error>>(())
 //!```
 //!
 //! ### Wildcard
@@ -88,28 +79,24 @@
 //! #### Example
 //!
 //! ```rust
-//! use core::error::Error;
-//!
 //! use wayfind::RouterBuilder;
 //!
-//! fn main() -> Result<(), Box<dyn Error>> {
-//!     let mut builder = RouterBuilder::new();
-//!     builder.insert("/files/<*slug>/delete", 1)?;
-//!     builder.insert("/<*catch_all>", 2)?;
-//!     let router = builder.build();
+//! let mut builder = RouterBuilder::new();
+//! builder.insert("/files/<*slug>/delete", 1)?;
+//! builder.insert("/<*catch_all>", 2)?;
 //!
-//!     let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
-//!     assert_eq!(search.data(), &1);
-//!     assert_eq!(search.template(), "/files/<*slug>/delete");
-//!     assert_eq!(search.parameters(), &[("slug", "documents/reports/annual.pdf")]);
+//! let router = builder.build();
 //!
-//!     let search = router.search("/any/other/path").unwrap();
-//!     assert_eq!(search.data(), &2);
-//!     assert_eq!(search.template(), "/<*catch_all>");
-//!     assert_eq!(search.parameters(), &[("catch_all", "any/other/path")]);
+//! let search = router.search("/files/documents/reports/annual.pdf/delete").ok_or("no match")?;
+//! assert_eq!(search.data(), &1);
+//! assert_eq!(search.template(), "/files/<*slug>/delete");
+//! assert_eq!(search.parameters(), &[("slug", "documents/reports/annual.pdf")]);
 //!
-//!     Ok(())
-//! }
+//! let search = router.search("/any/other/path").ok_or("no match")?;
+//! assert_eq!(search.data(), &2);
+//! assert_eq!(search.template(), "/<*catch_all>");
+//! assert_eq!(search.parameters(), &[("catch_all", "any/other/path")]);
+//! # Ok::<_, Box<dyn core::error::Error>>(())
 //! ```
 //!
 //! ## Priority
