@@ -1,4 +1,3 @@
-use alloc::boxed::Box;
 use alloc::string::{String, ToString as _};
 use alloc::vec;
 use alloc::vec::Vec;
@@ -11,19 +10,19 @@ use crate::errors::TemplateError;
 const INVALID_PARAM_CHARS: [u8; 4] = [b'*', b'<', b'>', b'/'];
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(crate) enum Part {
-    Static { prefix: Box<[u8]> },
-    Dynamic { name: Box<str> },
-    Wildcard { name: Box<str> },
+pub(crate) enum Part<'a> {
+    Static { prefix: &'a [u8] },
+    Dynamic { name: &'a str },
+    Wildcard { name: &'a str },
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(crate) struct Template {
-    pub parts: Vec<Part>,
+pub(crate) struct Template<'a> {
+    pub parts: Vec<Part<'a>>,
 }
 
-impl Template {
-    pub(crate) fn new(input: &[u8]) -> Result<Self, TemplateError> {
+impl<'a> Template<'a> {
+    pub(crate) fn new(input: &'a [u8]) -> Result<Self, TemplateError> {
         if input.is_empty() {
             return Err(TemplateError::Empty);
         }
@@ -35,7 +34,7 @@ impl Template {
         let mut parts = vec![];
         let mut cursor = 0;
 
-        let mut seen_parameters: SmallVec<[(Box<str>, usize); 4]> = smallvec![];
+        let mut seen_parameters: SmallVec<[(&str, usize); 4]> = smallvec![];
 
         while cursor < input.len() {
             match input[cursor] {
@@ -53,11 +52,11 @@ impl Template {
                     if let Part::Dynamic { name } | Part::Wildcard { name } = &part {
                         if seen_parameters.iter().any(|(existing, _)| existing == name) {
                             return Err(TemplateError::DuplicateParameter {
-                                name: name.clone().into(),
+                                name: String::from(*name),
                             });
                         }
 
-                        seen_parameters.push((name.clone(), next));
+                        seen_parameters.push((name, next));
                     }
 
                     parts.push(part);
@@ -80,15 +79,18 @@ impl Template {
         Ok(Self { parts })
     }
 
-    fn parse_static_part(input: &[u8], cursor: usize) -> (Part, usize) {
+    fn parse_static_part(input: &'a [u8], cursor: usize) -> (Part<'a>, usize) {
         let end = memchr::memchr2(b'<', b'>', &input[cursor..])
             .map_or(input.len(), |position| cursor + position);
 
-        let prefix = input[cursor..end].into();
+        let prefix = &input[cursor..end];
         (Part::Static { prefix }, end)
     }
 
-    fn parse_parameter_part(input: &[u8], cursor: usize) -> Result<(Part, usize), TemplateError> {
+    fn parse_parameter_part(
+        input: &'a [u8],
+        cursor: usize,
+    ) -> Result<(Part<'a>, usize), TemplateError> {
         let start = cursor + 1;
         let end = memchr::memchr(b'>', &input[start..])
             .map(|position| start + position)
@@ -100,23 +102,22 @@ impl Template {
         }
 
         let is_wildcard = content.starts_with(b"*");
-        let name = if is_wildcard { &content[1..] } else { content };
+        let name_bytes = if is_wildcard { &content[1..] } else { content };
 
-        if is_wildcard && name.is_empty() {
+        if is_wildcard && name_bytes.is_empty() {
             return Err(TemplateError::EmptyWildcard);
         }
 
-        if name.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
+        if name_bytes.iter().any(|&c| INVALID_PARAM_CHARS.contains(&c)) {
             return Err(TemplateError::InvalidParameter {
-                name: String::from_utf8_lossy(name).to_string(),
+                name: String::from_utf8_lossy(name_bytes).to_string(),
             });
         }
 
-        let name: Box<str> = String::from_utf8(name.to_vec())
-            .map_err(|_err| TemplateError::InvalidParameter {
-                name: String::from_utf8_lossy(name).to_string(),
-            })?
-            .into_boxed_str();
+        let name: &'a str =
+            core::str::from_utf8(name_bytes).map_err(|_err| TemplateError::InvalidParameter {
+                name: String::from_utf8_lossy(name_bytes).to_string(),
+            })?;
 
         let part = if is_wildcard {
             Part::Wildcard { name }
@@ -139,9 +140,7 @@ mod tests {
         assert_eq!(
             Template::new(b"/abcd"),
             Ok(Template {
-                parts: vec![Part::Static {
-                    prefix: b"/abcd".as_slice().into()
-                }],
+                parts: vec![Part::Static { prefix: b"/abcd" }],
             }),
         );
     }
@@ -152,12 +151,8 @@ mod tests {
             Template::new(b"/<name>"),
             Ok(Template {
                 parts: vec![
-                    Part::Dynamic {
-                        name: "name".into(),
-                    },
-                    Part::Static {
-                        prefix: b"/".as_slice().into()
-                    },
+                    Part::Dynamic { name: "name" },
+                    Part::Static { prefix: b"/" },
                 ],
             }),
         );
@@ -169,12 +164,8 @@ mod tests {
             Template::new(b"/<*wildcard>"),
             Ok(Template {
                 parts: vec![
-                    Part::Wildcard {
-                        name: "wildcard".into(),
-                    },
-                    Part::Static {
-                        prefix: b"/".as_slice().into()
-                    },
+                    Part::Wildcard { name: "wildcard" },
+                    Part::Static { prefix: b"/" },
                 ],
             }),
         );
@@ -186,12 +177,8 @@ mod tests {
             Template::new(b"/files/<*path>"),
             Ok(Template {
                 parts: vec![
-                    Part::Wildcard {
-                        name: "path".into(),
-                    },
-                    Part::Static {
-                        prefix: b"/files/".as_slice().into()
-                    },
+                    Part::Wildcard { name: "path" },
+                    Part::Static { prefix: b"/files/" },
                 ],
             }),
         );

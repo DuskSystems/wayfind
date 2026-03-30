@@ -1,19 +1,23 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+use crate::node::bounds::Bounds;
 use crate::node::flags::Flags;
+use crate::node::tails::Tails;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
+mod bounds;
 mod conflict;
 mod display;
 pub(crate) mod flags;
 mod insert;
 mod optimize;
 mod search;
+mod tails;
 
 /// Data stored at a node that matches a template.
 #[derive(Clone, Debug)]
-pub(crate) struct NodeData<T> {
+pub(crate) struct Data<T> {
     /// The associated data.
     pub data: T,
 
@@ -27,7 +31,7 @@ pub(crate) struct Node<S, T> {
     /// The node's type-specific state.
     pub state: S,
     /// Optional data associated with this node.
-    pub data: Option<NodeData<T>>,
+    pub data: Option<Data<T>>,
 
     pub static_children: Vec<Node<StaticState, T>>,
     pub dynamic_children: Vec<Node<DynamicState, T>>,
@@ -36,12 +40,10 @@ pub(crate) struct Node<S, T> {
 
     /// State flags.
     pub flags: Flags,
-    /// Minimum bytes of remaining path needed for any match through this node.
-    pub shortest: usize,
-    /// Maximum bytes of remaining path for any match through this node.
-    pub longest: usize,
+    /// Precomputed length bounds for pruning during search.
+    pub bounds: Bounds,
     /// Possible fixed suffixes the path must end with for any match through this node.
-    pub tails: Box<[Box<[u8]>]>,
+    pub tails: Tails,
 }
 
 impl<S, T> Node<S, T> {
@@ -58,9 +60,8 @@ impl<S, T> Node<S, T> {
             end_wildcard: None,
 
             flags: Flags::default(),
-            shortest: usize::MAX,
-            longest: 0,
-            tails: Box::default(),
+            bounds: Bounds::default(),
+            tails: Tails::default(),
         }
     }
 }

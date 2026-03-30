@@ -1,6 +1,6 @@
 use smallvec::SmallVec;
 
-use crate::node::{Node, NodeData};
+use crate::node::{Data, Node};
 
 impl<S, T> Node<S, T> {
     /// Searches for a matching template in the node tree.
@@ -8,7 +8,7 @@ impl<S, T> Node<S, T> {
         &'r self,
         path: &'p str,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         self.search_at(path, 0, parameters)
     }
 
@@ -17,7 +17,7 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         if offset >= path.len() {
             return if offset == path.len() {
                 self.data.as_ref()
@@ -26,7 +26,7 @@ impl<S, T> Node<S, T> {
             };
         }
 
-        if path.len() - offset < self.shortest {
+        if !self.bounds.matches(path.len() - offset) {
             return None;
         }
 
@@ -34,7 +34,7 @@ impl<S, T> Node<S, T> {
             return Some(search);
         }
 
-        if let Some(search) = if self.flags.is_dynamic_segment_only() {
+        if let Some(search) = if self.flags.dynamic_segment_only() {
             self.search_dynamic_segment(path, offset, parameters)
         } else {
             self.search_dynamic_inline(path, offset, parameters)
@@ -42,7 +42,7 @@ impl<S, T> Node<S, T> {
             return Some(search);
         }
 
-        if let Some(search) = if self.flags.is_wildcard_segment_only() {
+        if let Some(search) = if self.flags.wildcard_segment_only() {
             self.search_wildcard_segment(path, offset, parameters)
         } else {
             self.search_wildcard_inline(path, offset, parameters)
@@ -59,7 +59,7 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
         let first = *remaining.first()?;
 
@@ -92,7 +92,7 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         if self.dynamic_children.is_empty() {
             return None;
         }
@@ -106,20 +106,11 @@ impl<S, T> Node<S, T> {
         let segment = &path[offset..offset + limit];
 
         for child in &self.dynamic_children {
-            if remaining.len() - limit < child.shortest {
+            if remaining.len() - limit < child.bounds.shortest() {
                 continue;
             }
 
-            if !child.tails.is_empty()
-                && !child.tails.iter().any(|tail| {
-                    remaining.len() >= tail.len()
-                        && tail
-                            .iter()
-                            .rev()
-                            .zip(remaining.iter().rev())
-                            .all(|(a, b)| a == b)
-                })
-            {
+            if !child.tails.matches(remaining) {
                 continue;
             }
 
@@ -141,29 +132,20 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
         let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
         for child in &self.dynamic_children {
-            if remaining.len() <= child.shortest {
+            if remaining.len() <= child.bounds.shortest() {
                 continue;
             }
 
-            if !child.tails.is_empty()
-                && !child.tails.iter().any(|tail| {
-                    remaining.len() >= tail.len()
-                        && tail
-                            .iter()
-                            .rev()
-                            .zip(remaining.iter().rev())
-                            .all(|(a, b)| a == b)
-                })
-            {
+            if !child.tails.matches(remaining) {
                 continue;
             }
 
-            let max = remaining.len() - child.shortest;
+            let max = remaining.len() - child.bounds.shortest();
 
             for suffix in &child.state.suffixes {
                 let mut end = (limit.min(max) + suffix.needle().len()).min(remaining.len());
@@ -191,20 +173,11 @@ impl<S, T> Node<S, T> {
 
         if limit > 0 {
             for child in &self.dynamic_children {
-                if remaining.len() - limit < child.shortest {
+                if remaining.len() - limit < child.bounds.shortest() {
                     continue;
                 }
 
-                if !child.tails.is_empty()
-                    && !child.tails.iter().any(|tail| {
-                        remaining.len() >= tail.len()
-                            && tail
-                                .iter()
-                                .rev()
-                                .zip(remaining.iter().rev())
-                                .all(|(a, b)| a == b)
-                    })
-                {
+                if !child.tails.matches(remaining) {
                     continue;
                 }
 
@@ -228,28 +201,19 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if remaining.len() < child.shortest {
+            if remaining.len() < child.bounds.shortest() {
                 continue;
             }
 
-            if !child.tails.is_empty()
-                && !child.tails.iter().any(|tail| {
-                    remaining.len() >= tail.len()
-                        && tail
-                            .iter()
-                            .rev()
-                            .zip(remaining.iter().rev())
-                            .all(|(a, b)| a == b)
-                })
-            {
+            if !child.tails.matches(remaining) {
                 continue;
             }
 
-            let max = remaining.len() - child.shortest;
+            let max = remaining.len() - child.bounds.shortest();
 
             let positions = core::iter::successors(Some(max), |&position| {
                 memchr::memrchr(b'/', &remaining[..position])
@@ -284,28 +248,19 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if remaining.len() <= child.shortest {
+            if remaining.len() <= child.bounds.shortest() {
                 continue;
             }
 
-            if !child.tails.is_empty()
-                && !child.tails.iter().any(|tail| {
-                    remaining.len() >= tail.len()
-                        && tail
-                            .iter()
-                            .rev()
-                            .zip(remaining.iter().rev())
-                            .all(|(a, b)| a == b)
-                })
-            {
+            if !child.tails.matches(remaining) {
                 continue;
             }
 
-            let max = remaining.len() - child.shortest;
+            let max = remaining.len() - child.bounds.shortest();
 
             for suffix in &child.state.suffixes {
                 let mut end = (max + suffix.needle().len()).min(remaining.len());
@@ -340,7 +295,7 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
         parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
-    ) -> Option<&'r NodeData<T>> {
+    ) -> Option<&'r Data<T>> {
         if let Some(child) = &self.end_wildcard {
             parameters.push((&child.state.name, &path[offset..]));
             return child.data.as_ref();

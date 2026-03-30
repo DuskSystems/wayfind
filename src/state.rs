@@ -1,6 +1,5 @@
 use alloc::boxed::Box;
 use alloc::string::String;
-use alloc::vec::Vec;
 use core::fmt;
 
 use memchr::memmem::FinderRev;
@@ -32,10 +31,10 @@ pub(crate) struct StaticState {
 
 impl StaticState {
     #[must_use]
-    pub(crate) fn new(prefix: Vec<u8>) -> Self {
+    pub(crate) fn new(prefix: &[u8]) -> Self {
         Self {
             first: prefix.first().copied().unwrap_or(0),
-            prefix: prefix.into_boxed_slice(),
+            prefix: prefix.into(),
         }
     }
 }
@@ -55,9 +54,9 @@ pub(crate) struct DynamicState {
 
 impl DynamicState {
     #[must_use]
-    pub(crate) fn new(name: Box<str>) -> Self {
+    pub(crate) fn new(name: &str) -> Self {
         Self {
-            name,
+            name: name.into(),
             suffixes: Box::default(),
         }
     }
@@ -78,9 +77,9 @@ pub(crate) struct WildcardState {
 
 impl WildcardState {
     #[must_use]
-    pub(crate) fn new(name: Box<str>) -> Self {
+    pub(crate) fn new(name: &str) -> Self {
         Self {
-            name,
+            name: name.into(),
             suffixes: Box::default(),
         }
     }
@@ -100,8 +99,8 @@ pub(crate) struct EndWildcardState {
 
 impl EndWildcardState {
     #[must_use]
-    pub(crate) const fn new(name: Box<str>) -> Self {
-        Self { name }
+    pub(crate) fn new(name: &str) -> Self {
+        Self { name: name.into() }
     }
 }
 

@@ -1,4 +1,3 @@
-use alloc::boxed::Box;
 use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use core::cmp::Reverse;
@@ -6,11 +5,13 @@ use core::cmp::Reverse;
 use memchr::memmem::FinderRev;
 
 use crate::node::Node;
+use crate::node::bounds::Bounds;
+use crate::node::tails::Tails;
 use crate::state::StaticState;
 
 impl<S, T> Node<S, T> {
     pub(crate) fn optimize(&mut self) {
-        if !self.flags.is_needs_optimization() {
+        if !self.flags.needs_optimization() {
             return;
         }
 
@@ -92,9 +93,8 @@ impl<S, T> Node<S, T> {
                 .all(|node| Self::is_segment_only(node)),
         );
 
-        self.shortest = self.compute_shortest();
-        self.longest = self.compute_longest();
-        self.tails = self.compute_tails();
+        self.bounds = Bounds::compute(self);
+        self.tails = Tails::compute(self);
 
         self.flags.set_needs_optimization(false);
     }
@@ -122,97 +122,6 @@ impl<S, T> Node<S, T> {
         let mut suffixes: Vec<Vec<u8>> = seen.iter().cloned().collect();
         suffixes.sort_by_key(|suffix| Reverse(suffix.len()));
         suffixes
-    }
-
-    /// Minimum bytes of remaining path needed for any match through this node.
-    fn compute_shortest(&self) -> usize {
-        if self.data.is_some() || self.end_wildcard.is_some() {
-            return 0;
-        }
-
-        self.static_children
-            .iter()
-            .map(|child| child.state.prefix.len().saturating_add(child.shortest))
-            .chain(
-                self.dynamic_children
-                    .iter()
-                    .map(|child| 1_usize.saturating_add(child.shortest)),
-            )
-            .chain(
-                self.wildcard_children
-                    .iter()
-                    .map(|child| 1_usize.saturating_add(child.shortest)),
-            )
-            .min()
-            .unwrap_or(usize::MAX)
-    }
-
-    /// Maximum bytes of remaining path for any match through this node.
-    fn compute_longest(&self) -> usize {
-        if !self.dynamic_children.is_empty()
-            || !self.wildcard_children.is_empty()
-            || self.end_wildcard.is_some()
-        {
-            return usize::MAX;
-        }
-
-        self.static_children
-            .iter()
-            .map(|child| child.state.prefix.len().saturating_add(child.longest))
-            .fold(0, usize::max)
-    }
-
-    /// Computes all possible fixed suffixes the path must end with for any match through this node.
-    fn compute_tails(&self) -> Box<[Box<[u8]>]> {
-        if self.data.is_some() || self.end_wildcard.is_some() {
-            return Box::default();
-        }
-
-        let mut tails: Vec<Vec<u8>> = Vec::new();
-
-        for child in &self.static_children {
-            if child.shortest == child.longest {
-                if child.tails.is_empty() {
-                    tails.push(child.state.prefix.to_vec());
-                } else {
-                    for child_tail in &*child.tails {
-                        let mut tail = child.state.prefix.to_vec();
-                        tail.extend_from_slice(child_tail);
-                        tails.push(tail);
-                    }
-                }
-            } else if child.tails.is_empty() {
-                return Box::default();
-            } else {
-                tails.extend(child.tails.iter().map(|t| t.to_vec()));
-            }
-        }
-
-        for child_tails in self
-            .dynamic_children
-            .iter()
-            .map(|child| &child.tails)
-            .chain(self.wildcard_children.iter().map(|child| &child.tails))
-        {
-            if child_tails.is_empty() {
-                return Box::default();
-            }
-
-            tails.extend(child_tails.iter().map(|t| t.to_vec()));
-        }
-
-        if tails.is_empty() {
-            return Box::default();
-        }
-
-        tails.sort();
-        tails.dedup();
-
-        tails
-            .into_iter()
-            .map(Vec::into_boxed_slice)
-            .collect::<Vec<_>>()
-            .into_boxed_slice()
     }
 
     fn collect_suffixes_recursive(

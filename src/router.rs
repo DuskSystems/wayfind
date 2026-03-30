@@ -4,7 +4,7 @@ use core::fmt;
 use smallvec::{SmallVec, smallvec};
 
 use crate::errors::InsertError;
-use crate::node::{Node, NodeData};
+use crate::node::{Data, Node};
 use crate::parser::Template;
 use crate::state::RootState;
 
@@ -82,7 +82,7 @@ impl<T> RouterBuilder<T> {
 
         self.root.insert(
             &mut parsed,
-            NodeData {
+            Data {
                 data,
                 template: template.into(),
             },
