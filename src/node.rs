@@ -3,6 +3,7 @@ use alloc::vec::Vec;
 
 use crate::node::bounds::Bounds;
 use crate::node::flags::Flags;
+use crate::node::suffixes::Suffixes;
 use crate::node::tails::Tails;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
@@ -13,6 +14,8 @@ pub(crate) mod flags;
 mod insert;
 mod optimize;
 mod search;
+pub(crate) use search::Search;
+mod suffixes;
 mod tails;
 
 /// Data stored at a node that matches a template.
@@ -44,6 +47,8 @@ pub(crate) struct Node<S, T> {
     pub bounds: Bounds,
     /// Possible fixed suffixes the path must end with for any match through this node.
     pub tails: Tails,
+    /// Byte needles from static children.
+    pub suffixes: Suffixes,
 }
 
 impl<S, T> Node<S, T> {
@@ -62,6 +67,7 @@ impl<S, T> Node<S, T> {
             flags: Flags::default(),
             bounds: Bounds::default(),
             tails: Tails::default(),
+            suffixes: Suffixes::default(),
         }
     }
 }

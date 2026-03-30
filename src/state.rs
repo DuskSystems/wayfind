@@ -2,8 +2,6 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use core::fmt;
 
-use memchr::memmem::FinderRev;
-
 /// Root node of the tree.
 #[derive(Clone, Debug)]
 pub(crate) struct RootState;
@@ -49,16 +47,12 @@ impl fmt::Display for StaticState {
 #[derive(Clone, Debug)]
 pub(crate) struct DynamicState {
     pub name: Box<str>,
-    pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl DynamicState {
     #[must_use]
     pub(crate) fn new(name: &str) -> Self {
-        Self {
-            name: name.into(),
-            suffixes: Box::default(),
-        }
+        Self { name: name.into() }
     }
 }
 
@@ -72,16 +66,12 @@ impl fmt::Display for DynamicState {
 #[derive(Clone, Debug)]
 pub(crate) struct WildcardState {
     pub name: Box<str>,
-    pub suffixes: Box<[FinderRev<'static>]>,
 }
 
 impl WildcardState {
     #[must_use]
     pub(crate) fn new(name: &str) -> Self {
-        Self {
-            name: name.into(),
-            suffixes: Box::default(),
-        }
+        Self { name: name.into() }
     }
 }
 

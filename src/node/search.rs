@@ -1,64 +1,99 @@
+use alloc::collections::BTreeSet;
+
 use smallvec::SmallVec;
 
 use crate::node::{Data, Node};
+
+/// Memoizes failed searches.
+pub(crate) struct Visited(BTreeSet<(usize, usize)>);
+
+impl Visited {
+    const fn new() -> Self {
+        Self(BTreeSet::new())
+    }
+
+    fn contains<S, T>(&self, node: &Node<S, T>, offset: usize) -> bool {
+        let ptr = core::ptr::from_ref(node) as usize;
+        self.0.contains(&(ptr, offset))
+    }
+
+    fn mark<S, T>(&mut self, node: &Node<S, T>, offset: usize) {
+        let ptr = core::ptr::from_ref(node) as usize;
+        self.0.insert((ptr, offset));
+    }
+}
+
+/// Per-search state.
+pub(crate) struct Search<'r, 'p> {
+    /// Failed searches.
+    pub visited: Visited,
+
+    /// Key-value pairs of matched parameters.
+    pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
+}
+
+impl Search<'_, '_> {
+    pub(crate) fn new() -> Self {
+        Self {
+            visited: Visited::new(),
+            parameters: SmallVec::new(),
+        }
+    }
+}
 
 impl<S, T> Node<S, T> {
     /// Searches for a matching template in the node tree.
     pub(crate) fn search<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
-        self.search_at(path, 0, parameters)
+        self.search_at(search, path, 0)
     }
 
     fn search_at<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
-        if offset >= path.len() {
-            return if offset == path.len() {
-                self.data.as_ref()
-            } else {
-                None
-            };
+        if offset == path.len() {
+            return self.data.as_ref();
         }
 
         if !self.bounds.matches(path.len() - offset) {
             return None;
         }
 
-        if let Some(search) = self.search_static(path, offset, parameters) {
-            return Some(search);
+        if let Some(result) = self.search_static(search, path, offset) {
+            return Some(result);
         }
 
-        if let Some(search) = if self.flags.dynamic_segment_only() {
-            self.search_dynamic_segment(path, offset, parameters)
+        if let Some(result) = if self.flags.dynamic_segment_only() {
+            self.search_dynamic_segment(search, path, offset)
         } else {
-            self.search_dynamic_inline(path, offset, parameters)
+            self.search_dynamic_inline(search, path, offset)
         } {
-            return Some(search);
+            return Some(result);
         }
 
-        if let Some(search) = if self.flags.wildcard_segment_only() {
-            self.search_wildcard_segment(path, offset, parameters)
+        if let Some(result) = if self.flags.wildcard_segment_only() {
+            self.search_wildcard_segment(search, path, offset)
         } else {
-            self.search_wildcard_inline(path, offset, parameters)
+            self.search_wildcard_inline(search, path, offset)
         } {
-            return Some(search);
+            return Some(result);
         }
 
-        self.search_end_wildcard(path, offset, parameters)
+        self.search_end_wildcard(search, path, offset)
     }
 
     /// Matches static children by prefix byte comparison.
     fn search_static<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
         let first = *remaining.first()?;
@@ -77,7 +112,7 @@ impl<S, T> Node<S, T> {
                     .all(|(a, b)| a == b)
             {
                 let end = offset + child.state.prefix.len();
-                if let Some(data) = child.search_at(path, end, parameters) {
+                if let Some(data) = child.search_at(search, path, end) {
                     return Some(data);
                 }
             }
@@ -89,9 +124,9 @@ impl<S, T> Node<S, T> {
     /// Matches segment dynamic parameters like `/<name>/`.
     fn search_dynamic_segment<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         if self.dynamic_children.is_empty() {
             return None;
@@ -103,7 +138,8 @@ impl<S, T> Node<S, T> {
             return None;
         }
 
-        let segment = &path[offset..offset + limit];
+        let boundary = offset + limit;
+        let segment = &path[offset..boundary];
 
         for child in &self.dynamic_children {
             if remaining.len() - limit < child.bounds.shortest() {
@@ -114,13 +150,13 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            parameters.push((&child.state.name, segment));
+            search.parameters.push((&child.state.name, segment));
 
-            if let Some(result) = child.search_at(path, offset + limit, parameters) {
+            if let Some(result) = child.search_at(search, path, boundary) {
                 return Some(result);
             }
 
-            parameters.pop();
+            search.parameters.pop();
         }
 
         None
@@ -129,9 +165,9 @@ impl<S, T> Node<S, T> {
     /// Matches inline dynamic parameters like `/<name>.txt`.
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
         let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
@@ -146,32 +182,29 @@ impl<S, T> Node<S, T> {
             }
 
             let max = remaining.len() - child.bounds.shortest();
+            for position in child.suffixes.positions(path, offset, max, Some(limit)) {
+                let boundary = offset + position;
 
-            for suffix in &child.state.suffixes {
-                let mut end = (limit.min(max) + suffix.needle().len()).min(remaining.len());
-
-                while let Some(position) = suffix.rfind(&remaining[..end]) {
-                    if position == 0 {
-                        break;
-                    }
-
-                    if path.is_char_boundary(offset + position) {
-                        let parameter = &path[offset..offset + position];
-                        parameters.push((&child.state.name, parameter));
-
-                        if let Some(result) = child.search_at(path, offset + position, parameters) {
-                            return Some(result);
-                        }
-
-                        parameters.pop();
-                    }
-
-                    end = position;
+                if search.visited.contains(child, boundary) {
+                    continue;
                 }
+
+                search
+                    .parameters
+                    .push((&child.state.name, &path[offset..boundary]));
+
+                if let Some(result) = child.search_at(search, path, boundary) {
+                    return Some(result);
+                }
+
+                search.parameters.pop();
+                search.visited.mark(child, boundary);
             }
         }
 
         if limit > 0 {
+            let boundary = offset + limit;
+
             for child in &self.dynamic_children {
                 if remaining.len() - limit < child.bounds.shortest() {
                     continue;
@@ -181,14 +214,20 @@ impl<S, T> Node<S, T> {
                     continue;
                 }
 
-                let parameter = &path[offset..offset + limit];
-                parameters.push((&child.state.name, parameter));
+                if search.visited.contains(child, boundary) {
+                    continue;
+                }
 
-                if let Some(result) = child.search_at(path, offset + limit, parameters) {
+                search
+                    .parameters
+                    .push((&child.state.name, &path[offset..boundary]));
+
+                if let Some(result) = child.search_at(search, path, boundary) {
                     return Some(result);
                 }
 
-                parameters.pop();
+                search.parameters.pop();
+                search.visited.mark(child, boundary);
             }
         }
 
@@ -198,9 +237,9 @@ impl<S, T> Node<S, T> {
     /// Matches segment wildcard parameters like `/<*path>/help`.
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
 
@@ -214,28 +253,31 @@ impl<S, T> Node<S, T> {
             }
 
             let max = remaining.len() - child.bounds.shortest();
-
             let positions = core::iter::successors(Some(max), |&position| {
                 memchr::memrchr(b'/', &remaining[..position])
             });
 
             for position in positions.take_while(|&position| position > 0) {
                 let after = &remaining[position..];
-                if !child.state.suffixes.iter().any(|finder| {
-                    let needle = finder.needle();
-                    after.len() >= needle.len() && needle.iter().zip(after).all(|(a, b)| a == b)
-                }) {
+                if !child.suffixes.matches(after) {
                     continue;
                 }
 
-                let parameter = &path[offset..offset + position];
-                parameters.push((&child.state.name, parameter));
+                let boundary = offset + position;
+                if search.visited.contains(child, boundary) {
+                    continue;
+                }
 
-                if let Some(result) = child.search_at(path, offset + position, parameters) {
+                search
+                    .parameters
+                    .push((&child.state.name, &path[offset..boundary]));
+
+                if let Some(result) = child.search_at(search, path, boundary) {
                     return Some(result);
                 }
 
-                parameters.pop();
+                search.parameters.pop();
+                search.visited.mark(child, boundary);
             }
         }
 
@@ -245,9 +287,9 @@ impl<S, T> Node<S, T> {
     /// Matches inline wildcard parameters like `/<*path>.html`.
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
 
@@ -261,28 +303,23 @@ impl<S, T> Node<S, T> {
             }
 
             let max = remaining.len() - child.bounds.shortest();
+            for position in child.suffixes.positions(path, offset, max, None) {
+                let boundary = offset + position;
 
-            for suffix in &child.state.suffixes {
-                let mut end = (max + suffix.needle().len()).min(remaining.len());
-
-                while let Some(position) = suffix.rfind(&remaining[..end]) {
-                    if position == 0 {
-                        break;
-                    }
-
-                    if path.is_char_boundary(offset + position) {
-                        let parameter = &path[offset..offset + position];
-                        parameters.push((&child.state.name, parameter));
-
-                        if let Some(result) = child.search_at(path, offset + position, parameters) {
-                            return Some(result);
-                        }
-
-                        parameters.pop();
-                    }
-
-                    end = position;
+                if search.visited.contains(child, boundary) {
+                    continue;
                 }
+
+                search
+                    .parameters
+                    .push((&child.state.name, &path[offset..boundary]));
+
+                if let Some(result) = child.search_at(search, path, boundary) {
+                    return Some(result);
+                }
+
+                search.parameters.pop();
+                search.visited.mark(child, boundary);
             }
         }
 
@@ -292,12 +329,12 @@ impl<S, T> Node<S, T> {
     /// Matches end wildcard parameters like `/<*path>`.
     fn search_end_wildcard<'r, 'p>(
         &'r self,
+        search: &mut Search<'r, 'p>,
         path: &'p str,
         offset: usize,
-        parameters: &mut SmallVec<[(&'r str, &'p str); 4]>,
     ) -> Option<&'r Data<T>> {
         if let Some(child) = &self.end_wildcard {
-            parameters.push((&child.state.name, &path[offset..]));
+            search.parameters.push((&child.state.name, &path[offset..]));
             return child.data.as_ref();
         }
 
