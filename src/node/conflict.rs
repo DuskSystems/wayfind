@@ -1,10 +1,10 @@
-use crate::node::{Node, NodeData};
+use crate::node::{Data, Node};
 use crate::parser::Part;
 
 impl<S, T> Node<S, T> {
     /// Checks if a template conflicts with an existing template.
     /// Handles both direct and structural conflicts.
-    pub(crate) fn conflict(&self, parts: &[Part]) -> Option<&NodeData<T>> {
+    pub(crate) fn conflict(&self, parts: &[Part<'_>]) -> Option<&Data<T>> {
         let Some((part, remaining)) = parts.split_last() else {
             return self.data.as_ref();
         };
@@ -17,7 +17,7 @@ impl<S, T> Node<S, T> {
         }
     }
 
-    fn conflict_static(&self, parts: &[Part], prefix: &[u8]) -> Option<&NodeData<T>> {
+    fn conflict_static(&self, parts: &[Part<'_>], prefix: &[u8]) -> Option<&Data<T>> {
         let first = *prefix.first()?;
 
         for child in &self.static_children {
@@ -42,7 +42,7 @@ impl<S, T> Node<S, T> {
         None
     }
 
-    fn conflict_dynamic(&self, parts: &[Part]) -> Option<&NodeData<T>> {
+    fn conflict_dynamic(&self, parts: &[Part<'_>]) -> Option<&Data<T>> {
         for child in &self.dynamic_children {
             if let Some(data) = child.conflict(parts) {
                 return Some(data);
@@ -52,7 +52,7 @@ impl<S, T> Node<S, T> {
         None
     }
 
-    fn conflict_wildcard(&self, parts: &[Part]) -> Option<&NodeData<T>> {
+    fn conflict_wildcard(&self, parts: &[Part<'_>]) -> Option<&Data<T>> {
         for child in &self.wildcard_children {
             if let Some(data) = child.conflict(parts) {
                 return Some(data);
@@ -62,7 +62,7 @@ impl<S, T> Node<S, T> {
         None
     }
 
-    fn conflict_end_wildcard(&self) -> Option<&NodeData<T>> {
+    fn conflict_end_wildcard(&self) -> Option<&Data<T>> {
         self.end_wildcard.as_deref()?.data.as_ref()
     }
 }

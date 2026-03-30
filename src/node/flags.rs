@@ -8,12 +8,12 @@ const DYNAMIC_SEGMENT_ONLY: u8 = 1 << 1;
 const WILDCARD_SEGMENT_ONLY: u8 = 1 << 2;
 
 /// Bitflags for node state.
-#[derive(Clone, Copy, Default, Eq, PartialEq, Debug)]
+#[derive(Clone, Default, Eq, PartialEq, Debug)]
 pub(crate) struct Flags(u8);
 
 impl Flags {
     #[inline(always)]
-    pub(crate) const fn is_needs_optimization(self) -> bool {
+    pub(crate) const fn needs_optimization(&self) -> bool {
         self.0 & NEEDS_OPTIMIZATION != 0
     }
 
@@ -23,7 +23,7 @@ impl Flags {
     }
 
     #[inline(always)]
-    pub(crate) const fn is_dynamic_segment_only(self) -> bool {
+    pub(crate) const fn dynamic_segment_only(&self) -> bool {
         self.0 & DYNAMIC_SEGMENT_ONLY != 0
     }
 
@@ -33,7 +33,7 @@ impl Flags {
     }
 
     #[inline(always)]
-    pub(crate) const fn is_wildcard_segment_only(self) -> bool {
+    pub(crate) const fn wildcard_segment_only(&self) -> bool {
         self.0 & WILDCARD_SEGMENT_ONLY != 0
     }
 
