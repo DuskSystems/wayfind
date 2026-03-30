@@ -101,13 +101,8 @@ impl<S, T> Node<S, T> {
         offset: usize,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
-        let first = *remaining.first()?;
 
         for child in &self.static_children {
-            if child.state.first != first {
-                continue;
-            }
-
             if remaining.len() >= child.state.prefix.len()
                 && child
                     .state

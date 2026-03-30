@@ -18,13 +18,7 @@ impl<S, T> Node<S, T> {
     }
 
     fn conflict_static(&self, parts: &[Part<'_>], prefix: &[u8]) -> Option<&Data<T>> {
-        let first = *prefix.first()?;
-
         for child in &self.static_children {
-            if child.state.first != first {
-                continue;
-            }
-
             if prefix.len() >= child.state.prefix.len()
                 && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
             {
