@@ -1,9 +1,10 @@
 use alloc::boxed::Box;
-use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use core::cmp::Reverse;
 
+use hashbrown::HashSet;
 use memchr::memmem::FinderRev;
+use rustc_hash::FxBuildHasher;
 
 use crate::node::Node;
 use crate::state::StaticState;
@@ -70,7 +71,7 @@ impl Suffixes {
     pub(crate) fn update<S, T>(
         node: &mut Node<S, T>,
         current: &mut Vec<u8>,
-        seen: &mut BTreeSet<Vec<u8>>,
+        seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
     ) {
         let new = collect(&node.static_children, current, seen);
         let unchanged = node.suffixes.0.len() == new.len()
@@ -102,7 +103,7 @@ impl Suffixes {
 fn collect<T>(
     children: &[Node<StaticState, T>],
     current: &mut Vec<u8>,
-    seen: &mut BTreeSet<Vec<u8>>,
+    seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
 ) -> Vec<Vec<u8>> {
     seen.clear();
     collect_recursive(children, current, seen);
@@ -115,7 +116,7 @@ fn collect<T>(
 fn collect_recursive<T>(
     children: &[Node<StaticState, T>],
     current: &mut Vec<u8>,
-    seen: &mut BTreeSet<Vec<u8>>,
+    seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
 ) {
     for child in children {
         current.extend_from_slice(&child.state.prefix);

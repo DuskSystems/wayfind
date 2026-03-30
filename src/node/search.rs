@@ -1,16 +1,16 @@
-use alloc::collections::BTreeSet;
-
+use hashbrown::HashSet;
+use rustc_hash::FxBuildHasher;
 use smallvec::SmallVec;
 
 use crate::node::reachable::NeedleCache;
 use crate::node::{Data, Node};
 
 /// Memoizes failed searches.
-struct Visited(BTreeSet<(usize, usize)>);
+struct Visited(HashSet<(usize, usize), FxBuildHasher>);
 
 impl Visited {
     const fn new() -> Self {
-        Self(BTreeSet::new())
+        Self(HashSet::with_hasher(FxBuildHasher))
     }
 
     fn contains<S, T>(&self, node: &Node<S, T>, offset: usize) -> bool {
@@ -151,7 +151,9 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.reachable.check(path, offset, &mut search.needles) {
+            if !child.reachable.is_empty()
+                && !child.reachable.check(path, offset, &mut search.needles)
+            {
                 continue;
             }
 
@@ -182,7 +184,9 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.reachable.check(path, offset, &mut search.needles) {
+            if !child.reachable.is_empty()
+                && !child.reachable.check(path, offset, &mut search.needles)
+            {
                 continue;
             }
 
@@ -215,7 +219,9 @@ impl<S, T> Node<S, T> {
                     continue;
                 }
 
-                if !child.reachable.check(path, offset, &mut search.needles) {
+                if !child.reachable.is_empty()
+                    && !child.reachable.check(path, offset, &mut search.needles)
+                {
                     continue;
                 }
 
@@ -253,7 +259,9 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.reachable.check(path, offset, &mut search.needles) {
+            if !child.reachable.is_empty()
+                && !child.reachable.check(path, offset, &mut search.needles)
+            {
                 continue;
             }
 
@@ -303,7 +311,9 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.reachable.check(path, offset, &mut search.needles) {
+            if !child.reachable.is_empty()
+                && !child.reachable.check(path, offset, &mut search.needles)
+            {
                 continue;
             }
 

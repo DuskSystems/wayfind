@@ -1,6 +1,8 @@
 use alloc::boxed::Box;
-use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
+
+use hashbrown::{HashMap, HashSet};
+use rustc_hash::FxBuildHasher;
 
 use crate::node::Node;
 use crate::node::bounds::Bounds;
@@ -10,11 +12,11 @@ use crate::node::suffixes::Suffixes;
 impl<S, T> Node<S, T> {
     /// Optimizes the tree.
     pub(crate) fn optimize(&mut self) {
-        let mut needles = BTreeMap::new();
+        let mut needles = HashMap::with_hasher(FxBuildHasher);
         self.optimize_inner(&mut needles);
     }
 
-    fn optimize_inner(&mut self, needles: &mut BTreeMap<Box<[u8]>, usize>) {
+    fn optimize_inner(&mut self, needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>) {
         if !self.flags.needs_optimization() {
             return;
         }
@@ -23,7 +25,7 @@ impl<S, T> Node<S, T> {
             child.optimize_inner(needles);
         }
 
-        let mut seen = BTreeSet::new();
+        let mut seen = HashSet::with_hasher(FxBuildHasher);
         let mut current = Vec::new();
 
         for child in &mut self.dynamic_children {

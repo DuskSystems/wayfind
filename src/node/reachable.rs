@@ -1,16 +1,18 @@
 use alloc::boxed::Box;
-use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+
+use hashbrown::HashMap;
+use rustc_hash::FxBuildHasher;
 
 use crate::node::Node;
 use crate::state::StaticState;
 
 /// Cached rightmost positions for `Contains` checks.
-pub(crate) struct NeedleCache(BTreeMap<usize, Option<usize>>);
+pub(crate) struct NeedleCache(HashMap<usize, Option<usize>, FxBuildHasher>);
 
 impl NeedleCache {
     pub(crate) const fn new() -> Self {
-        Self(BTreeMap::new())
+        Self(HashMap::with_hasher(FxBuildHasher))
     }
 
     /// Returns the rightmost position of the needle, cached after first lookup.
@@ -41,7 +43,7 @@ pub(crate) struct Reachable(Box<[Group]>);
 
 impl Reachable {
     /// Returns `true` if no reachability constraints exist.
-    fn is_empty(&self) -> bool {
+    pub(crate) fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
@@ -74,7 +76,7 @@ impl Reachable {
     /// Computes reachability conditions for a node's subtree.
     pub(crate) fn compute<S, T>(
         node: &Node<S, T>,
-        needles: &mut BTreeMap<Box<[u8]>, usize>,
+        needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>,
     ) -> Self {
         // Nodes with data or end wildcards are always reachable (match here).
         if node.data.is_some() || node.end_wildcard.is_some() {
@@ -112,7 +114,7 @@ impl Reachable {
 }
 
 /// Returns the deduplicated needle ID for the given bytes.
-fn needle_id(needles: &mut BTreeMap<Box<[u8]>, usize>, bytes: &[u8]) -> usize {
+fn needle_id(needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>, bytes: &[u8]) -> usize {
     let len = needles.len();
     *needles.entry(bytes.into()).or_insert(len)
 }
@@ -123,7 +125,7 @@ fn collect_groups<T>(
     node: &Node<StaticState, T>,
     prefix: &mut Vec<u8>,
     groups: &mut Vec<Group>,
-    needles: &mut BTreeMap<Box<[u8]>, usize>,
+    needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>,
 ) -> bool {
     let has_data = node.data.is_some();
     let has_params = !node.dynamic_children.is_empty()
