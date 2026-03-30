@@ -175,7 +175,9 @@ fn collect_groups<T>(
             groups.push(Group(Box::new([contains])));
         } else {
             for mut deeper in deeper_groups {
-                if !deeper.iter().any(|condition| matches!(condition, Condition::Contains { needle: existing, .. } if **existing == *prefix))                 {
+                if !deeper.iter().any(|condition| {
+                    matches!(condition, Condition::Contains { needle: existing, .. } if **existing == *prefix)
+                }) {
                     deeper.insert(0, contains.clone());
                 }
 

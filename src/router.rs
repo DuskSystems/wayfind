@@ -77,7 +77,7 @@ impl<T> RouterBuilder<T> {
     ///
     /// # Errors
     ///
-    /// Returns an [`InsertError`] if the template is invalid or cannot be inserted.
+    /// Returns an [`InsertError`] if the template can't be inserted.
     ///
     /// # Examples
     ///
@@ -133,7 +133,6 @@ impl<T> RouterBuilder<T> {
     #[must_use]
     pub fn build(mut self) -> Router<T> {
         self.root.optimize();
-
         Router { root: self.root }
     }
 }

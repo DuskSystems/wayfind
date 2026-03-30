@@ -119,13 +119,13 @@ extern crate alloc;
 #[doc = include_str!("../README.md")]
 mod readme_doctests {}
 
+mod bounds;
 pub mod errors;
-
+mod flags;
 mod node;
-
 mod parser;
-
+mod reachable;
 mod router;
 pub use router::{Match, Router, RouterBuilder};
-
 mod state;
+mod suffixes;
