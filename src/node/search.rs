@@ -2,10 +2,11 @@ use alloc::collections::BTreeSet;
 
 use smallvec::SmallVec;
 
+use crate::node::reachable::NeedleCache;
 use crate::node::{Data, Node};
 
 /// Memoizes failed searches.
-pub(crate) struct Visited(BTreeSet<(usize, usize)>);
+struct Visited(BTreeSet<(usize, usize)>);
 
 impl Visited {
     const fn new() -> Self {
@@ -26,7 +27,10 @@ impl Visited {
 /// Per-search state.
 pub(crate) struct Search<'r, 'p> {
     /// Failed searches.
-    pub visited: Visited,
+    visited: Visited,
+
+    /// Cached needle positions.
+    needles: NeedleCache,
 
     /// Key-value pairs of matched parameters.
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
@@ -36,6 +40,7 @@ impl Search<'_, '_> {
     pub(crate) fn new() -> Self {
         Self {
             visited: Visited::new(),
+            needles: NeedleCache::new(),
             parameters: SmallVec::new(),
         }
     }
@@ -146,7 +151,7 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.tails.matches(remaining) {
+            if !child.reachable.check(path, offset, &mut search.needles) {
                 continue;
             }
 
@@ -177,7 +182,7 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.tails.matches(remaining) {
+            if !child.reachable.check(path, offset, &mut search.needles) {
                 continue;
             }
 
@@ -210,7 +215,7 @@ impl<S, T> Node<S, T> {
                     continue;
                 }
 
-                if !child.tails.matches(remaining) {
+                if !child.reachable.check(path, offset, &mut search.needles) {
                     continue;
                 }
 
@@ -248,7 +253,7 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.tails.matches(remaining) {
+            if !child.reachable.check(path, offset, &mut search.needles) {
                 continue;
             }
 
@@ -298,7 +303,7 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
-            if !child.tails.matches(remaining) {
+            if !child.reachable.check(path, offset, &mut search.needles) {
                 continue;
             }
 

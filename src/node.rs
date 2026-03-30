@@ -2,21 +2,21 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::node::bounds::Bounds;
-use crate::node::flags::Flags;
+use crate::node::reachable::Reachable;
 use crate::node::suffixes::Suffixes;
-use crate::node::tails::Tails;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 
 mod bounds;
 mod conflict;
 mod display;
-pub(crate) mod flags;
+mod flags;
+pub(crate) use flags::Flags;
 mod insert;
 mod optimize;
+mod reachable;
 mod search;
 pub(crate) use search::Search;
 mod suffixes;
-mod tails;
 
 /// Data stored at a node that matches a template.
 #[derive(Clone, Debug)]
@@ -45,8 +45,8 @@ pub(crate) struct Node<S, T> {
     pub flags: Flags,
     /// Precomputed length bounds for pruning during search.
     pub bounds: Bounds,
-    /// Possible fixed suffixes the path must end with for any match through this node.
-    pub tails: Tails,
+    /// Reachability conditions for pruning during search.
+    pub reachable: Reachable,
     /// Byte needles from static children.
     pub suffixes: Suffixes,
 }
@@ -66,7 +66,7 @@ impl<S, T> Node<S, T> {
 
             flags: Flags::default(),
             bounds: Bounds::default(),
-            tails: Tails::default(),
+            reachable: Reachable::default(),
             suffixes: Suffixes::default(),
         }
     }
