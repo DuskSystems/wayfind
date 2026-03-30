@@ -46,57 +46,57 @@ fn main() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("/").unwrap();
-    assert_eq!(search.data, &1);
-    assert_eq!(search.template, "/");
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/");
 
     let search = router.search("/health").unwrap();
-    assert_eq!(search.data, &2);
-    assert_eq!(search.template, "/health");
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/health");
 
     let search = router.search("/heal");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     let search = router.search("/users/123").unwrap();
-    assert_eq!(search.data, &3);
-    assert_eq!(search.template, "/users/<id>");
-    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/users/<id>");
+    assert_eq!(search.parameters(), &[("id", "123")]);
 
     let search = router.search("/users/123/message").unwrap();
-    assert_eq!(search.data, &4);
-    assert_eq!(search.template, "/users/<id>/message");
-    assert_eq!(search.parameters[0], ("id", "123"));
+    assert_eq!(search.data(), &4);
+    assert_eq!(search.template(), "/users/<id>/message");
+    assert_eq!(search.parameters(), &[("id", "123")]);
 
     let search = router.search("/users/");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     let search = router.search("/images/avatar.final.png").unwrap();
-    assert_eq!(search.data, &5);
-    assert_eq!(search.template, "/images/<name>.png");
-    assert_eq!(search.parameters[0], ("name", "avatar.final"));
+    assert_eq!(search.data(), &5);
+    assert_eq!(search.template(), "/images/<name>.png");
+    assert_eq!(search.parameters(), &[("name", "avatar.final")]);
 
     let search = router.search("/images/.png");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     let search = router.search("/files/documents").unwrap();
-    assert_eq!(search.data, &6);
-    assert_eq!(search.template, "/files/<*path>");
-    assert_eq!(search.parameters[0], ("path", "documents"));
+    assert_eq!(search.data(), &6);
+    assert_eq!(search.template(), "/files/<*path>");
+    assert_eq!(search.parameters(), &[("path", "documents")]);
 
     let search = router.search("/files/documents/my-project/delete").unwrap();
-    assert_eq!(search.data, &7);
-    assert_eq!(search.template, "/files/<*path>/delete");
-    assert_eq!(search.parameters[0], ("path", "documents/my-project"));
+    assert_eq!(search.data(), &7);
+    assert_eq!(search.template(), "/files/<*path>/delete");
+    assert_eq!(search.parameters(), &[("path", "documents/my-project")]);
 
     let search = router.search("/files");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     let search = router.search("/backups/production/database.tar.gz").unwrap();
-    assert_eq!(search.data, &8);
-    assert_eq!(search.template, "/backups/<*path>.tar.gz");
-    assert_eq!(search.parameters[0], ("path", "production/database"));
+    assert_eq!(search.data(), &8);
+    assert_eq!(search.template(), "/backups/<*path>.tar.gz");
+    assert_eq!(search.parameters(), &[("path", "production/database")]);
 
     let search = router.search("/backups/.tar.gz");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     println!("{router}");
     Ok(())

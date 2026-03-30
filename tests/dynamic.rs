@@ -1,10 +1,9 @@
-#![expect(missing_docs, reason = "Tests")]
+#![expect(missing_docs, clippy::panic_in_result_fn, reason = "Tests")]
 
 use core::error::Error;
 
 use similar_asserts::assert_eq;
-use smallvec::smallvec;
-use wayfind::{Match, RouterBuilder};
+use wayfind::RouterBuilder;
 
 #[test]
 fn dynamic_simple() -> Result<(), Box<dyn Error>> {
@@ -17,18 +16,13 @@ fn dynamic_simple() -> Result<(), Box<dyn Error>> {
     ╰─ <id>
     ");
 
-    let search = router.search("/123");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<id>",
-            parameters: smallvec![("id", "123")],
-        })
-    );
+    let search = router.search("/123").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<id>");
+    assert_eq!(search.parameters(), &[("id", "123")]);
 
     let search = router.search("/");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -50,34 +44,22 @@ fn dynamic_multiple() -> Result<(), Box<dyn Error>> {
                 ╰─ <day>
     ");
 
-    let search = router.search("/2024");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<year>",
-            parameters: smallvec![("year", "2024")],
-        })
-    );
+    let search = router.search("/2024").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<year>");
+    assert_eq!(search.parameters(), &[("year", "2024")]);
 
-    let search = router.search("/2024/12");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<year>/<month>",
-            parameters: smallvec![("year", "2024"), ("month", "12")],
-        })
-    );
+    let search = router.search("/2024/12").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<year>/<month>");
+    assert_eq!(search.parameters(), &[("year", "2024"), ("month", "12")]);
 
-    let search = router.search("/2024/12/01");
+    let search = router.search("/2024/12/01").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<year>/<month>/<day>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<year>/<month>/<day>",
-            parameters: smallvec![("year", "2024"), ("month", "12"), ("day", "01")],
-        })
+        search.parameters(),
+        &[("year", "2024"), ("month", "12"), ("day", "01")]
     );
 
     Ok(())
@@ -98,45 +80,25 @@ fn dynamic_priority() -> Result<(), Box<dyn Error>> {
        ╰─ .txt
     ");
 
-    let search = router.search("/robots.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/robots.txt",
-            parameters: smallvec![],
-        })
-    );
+    let search = router.search("/robots.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/robots.txt");
+    assert_eq!(search.parameters(), &[]);
 
-    let search = router.search("/config.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<name>.txt",
-            parameters: smallvec![("name", "config")],
-        })
-    );
+    let search = router.search("/config.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<name>.txt");
+    assert_eq!(search.parameters(), &[("name", "config")]);
 
-    let search = router.search("/config.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<name>",
-            parameters: smallvec![("name", "config.pdf")],
-        })
-    );
+    let search = router.search("/config.pdf").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<name>");
+    assert_eq!(search.parameters(), &[("name", "config.pdf")]);
 
-    let search = router.search("/.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<name>",
-            parameters: smallvec![("name", ".txt")],
-        })
-    );
+    let search = router.search("/.txt").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<name>");
+    assert_eq!(search.parameters(), &[("name", ".txt")]);
 
     Ok(())
 }
@@ -149,25 +111,15 @@ fn dynamic_suffix() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/hello.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<zzz>.txt",
-            parameters: smallvec![("zzz", "hello")],
-        })
-    );
+    let search = router.search("/hello.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<zzz>.txt");
+    assert_eq!(search.parameters(), &[("zzz", "hello")]);
 
-    let search = router.search("/hello.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<aaa>",
-            parameters: smallvec![("aaa", "hello.pdf")],
-        })
-    );
+    let search = router.search("/hello.pdf").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<aaa>");
+    assert_eq!(search.parameters(), &[("aaa", "hello.pdf")]);
 
     Ok(())
 }
@@ -180,25 +132,15 @@ fn dynamic_suffix_reversed() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/hello.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<aaa>.txt",
-            parameters: smallvec![("aaa", "hello")],
-        })
-    );
+    let search = router.search("/hello.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<aaa>.txt");
+    assert_eq!(search.parameters(), &[("aaa", "hello")]);
 
-    let search = router.search("/hello.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<zzz>",
-            parameters: smallvec![("zzz", "hello.pdf")],
-        })
-    );
+    let search = router.search("/hello.pdf").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<zzz>");
+    assert_eq!(search.parameters(), &[("zzz", "hello.pdf")]);
 
     Ok(())
 }
@@ -212,35 +154,20 @@ fn dynamic_mixed() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/hello/one");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<a>/one",
-            parameters: smallvec![("a", "hello")],
-        })
-    );
+    let search = router.search("/hello/one").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>/one");
+    assert_eq!(search.parameters(), &[("a", "hello")]);
 
-    let search = router.search("/hello/two");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<b>/two",
-            parameters: smallvec![("b", "hello")],
-        })
-    );
+    let search = router.search("/hello/two").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<b>/two");
+    assert_eq!(search.parameters(), &[("b", "hello")]);
 
-    let search = router.search("/hello.json");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<c>.json",
-            parameters: smallvec![("c", "hello")],
-        })
-    );
+    let search = router.search("/hello.json").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<c>.json");
+    assert_eq!(search.parameters(), &[("c", "hello")]);
 
     Ok(())
 }
@@ -254,35 +181,20 @@ fn dynamic_sibling() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/hello.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<a>.txt",
-            parameters: smallvec![("a", "hello")],
-        })
-    );
+    let search = router.search("/hello.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>.txt");
+    assert_eq!(search.parameters(), &[("a", "hello")]);
 
-    let search = router.search("/hello.json");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<b>.json",
-            parameters: smallvec![("b", "hello")],
-        })
-    );
+    let search = router.search("/hello.json").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<b>.json");
+    assert_eq!(search.parameters(), &[("b", "hello")]);
 
-    let search = router.search("/hello.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<a>",
-            parameters: smallvec![("a", "hello.pdf")],
-        })
-    );
+    let search = router.search("/hello.pdf").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<a>");
+    assert_eq!(search.parameters(), &[("a", "hello.pdf")]);
 
     Ok(())
 }
@@ -300,28 +212,21 @@ fn dynamic_inline_params() -> Result<(), Box<dyn Error>> {
           ╰─ <format>
     ");
 
-    let search = router.search("/archive.tar.gz");
+    let search = router.search("/archive.tar.gz").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<id>.<format>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<id>.<format>",
-            parameters: smallvec![("id", "archive.tar"), ("format", "gz")],
-        })
+        search.parameters(),
+        &[("id", "archive.tar"), ("format", "gz")]
     );
 
-    let search = router.search("/report.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<id>.<format>",
-            parameters: smallvec![("id", "report"), ("format", "pdf")],
-        })
-    );
+    let search = router.search("/report.pdf").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<id>.<format>");
+    assert_eq!(search.parameters(), &[("id", "report"), ("format", "pdf")]);
 
     let search = router.search("/nodots");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -341,28 +246,18 @@ fn dynamic_triple_params() -> Result<(), Box<dyn Error>> {
                 ╰─ <c>
     ");
 
-    let search = router.search("/x.y.z");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<a>.<b>.<c>",
-            parameters: smallvec![("a", "x"), ("b", "y"), ("c", "z")],
-        })
-    );
+    let search = router.search("/x.y.z").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>.<b>.<c>");
+    assert_eq!(search.parameters(), &[("a", "x"), ("b", "y"), ("c", "z")]);
 
-    let search = router.search("/a.b.c.d");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<a>.<b>.<c>",
-            parameters: smallvec![("a", "a.b"), ("b", "c"), ("c", "d")],
-        })
-    );
+    let search = router.search("/a.b.c.d").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>.<b>.<c>");
+    assert_eq!(search.parameters(), &[("a", "a.b"), ("b", "c"), ("c", "d")]);
 
     let search = router.search("/one.two.");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -380,28 +275,18 @@ fn dynamic_multi_separator() -> Result<(), Box<dyn Error>> {
           ╰─ <to>
     ");
 
-    let search = router.search("/10...100");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<from>...<to>",
-            parameters: smallvec![("from", "10"), ("to", "100")],
-        })
-    );
+    let search = router.search("/10...100").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<from>...<to>");
+    assert_eq!(search.parameters(), &[("from", "10"), ("to", "100")]);
 
-    let search = router.search("/abc...xyz");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<from>...<to>",
-            parameters: smallvec![("from", "abc"), ("to", "xyz")],
-        })
-    );
+    let search = router.search("/abc...xyz").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<from>...<to>");
+    assert_eq!(search.parameters(), &[("from", "abc"), ("to", "xyz")]);
 
     let search = router.search("/nodots");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -414,34 +299,22 @@ fn dynamic_inline_coexistence() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/report.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<name>.txt",
-            parameters: smallvec![("name", "report")],
-        })
-    );
+    let search = router.search("/report.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<name>.txt");
+    assert_eq!(search.parameters(), &[("name", "report")]);
 
-    let search = router.search("/report.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<id>.<format>",
-            parameters: smallvec![("id", "report"), ("format", "pdf")],
-        })
-    );
+    let search = router.search("/report.pdf").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<id>.<format>");
+    assert_eq!(search.parameters(), &[("id", "report"), ("format", "pdf")]);
 
-    let search = router.search("/archive.tar.gz");
+    let search = router.search("/archive.tar.gz").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<id>.<format>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<id>.<format>",
-            parameters: smallvec![("id", "archive.tar"), ("format", "gz")],
-        })
+        search.parameters(),
+        &[("id", "archive.tar"), ("format", "gz")]
     );
 
     Ok(())
@@ -455,25 +328,15 @@ fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/a.txt.txt.txt.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<name>.txt",
-            parameters: smallvec![("name", "a.txt.txt.txt")],
-        })
-    );
+    let search = router.search("/a.txt.txt.txt.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<name>.txt");
+    assert_eq!(search.parameters(), &[("name", "a.txt.txt.txt")]);
 
-    let search = router.search("/.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<name>",
-            parameters: smallvec![("name", ".txt")],
-        })
-    );
+    let search = router.search("/.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<name>");
+    assert_eq!(search.parameters(), &[("name", ".txt")]);
 
     Ok(())
 }
@@ -485,25 +348,15 @@ fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/café.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<name>.txt",
-            parameters: smallvec![("name", "café")],
-        })
-    );
+    let search = router.search("/café.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<name>.txt");
+    assert_eq!(search.parameters(), &[("name", "café")]);
 
-    let search = router.search("/日本語.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<name>.txt",
-            parameters: smallvec![("name", "日本語")],
-        })
-    );
+    let search = router.search("/日本語.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<name>.txt");
+    assert_eq!(search.parameters(), &[("name", "日本語")]);
 
     Ok(())
 }
@@ -516,7 +369,7 @@ fn dynamic_segment_slash() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("//foo");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -529,7 +382,7 @@ fn dynamic_segment_tails() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("/foo/view");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -543,7 +396,7 @@ fn dynamic_inline_tails() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("/foo/view");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }

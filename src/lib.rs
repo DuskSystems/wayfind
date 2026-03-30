@@ -27,12 +27,12 @@
 //!     let router = builder.build();
 //!
 //!     let search = router.search("/hello").unwrap();
-//!     assert_eq!(search.data, &1);
-//!     assert_eq!(search.template, "/hello");
+//!     assert_eq!(search.data(), &1);
+//!     assert_eq!(search.template(), "/hello");
 //!
 //!     let search = router.search("/hello/world").unwrap();
-//!     assert_eq!(search.data, &2);
-//!     assert_eq!(search.template, "/hello/world");
+//!     assert_eq!(search.data(), &2);
+//!     assert_eq!(search.template(), "/hello/world");
 //!
 //!     let search = router.search("/world");
 //!     assert!(search.is_none());
@@ -63,15 +63,14 @@
 //!     let router = builder.build();
 //!
 //!     let search = router.search("/users/123").unwrap();
-//!     assert_eq!(search.data, &1);
-//!     assert_eq!(search.template, "/users/<id>");
-//!     assert_eq!(search.parameters[0], ("id", "123"));
+//!     assert_eq!(search.data(), &1);
+//!     assert_eq!(search.template(), "/users/<id>");
+//!     assert_eq!(search.parameters(), &[("id", "123")]);
 //!
 //!     let search = router.search("/users/123/files/my.document.pdf").unwrap();
-//!     assert_eq!(search.data, &2);
-//!     assert_eq!(search.template, "/users/<id>/files/<filename>.pdf");
-//!     assert_eq!(search.parameters[0], ("id", "123"));
-//!     assert_eq!(search.parameters[1], ("filename", "my.document"));
+//!     assert_eq!(search.data(), &2);
+//!     assert_eq!(search.template(), "/users/<id>/files/<filename>.pdf");
+//!     assert_eq!(search.parameters(), &[("id", "123"), ("filename", "my.document")]);
 //!
 //!     Ok(())
 //! }
@@ -100,14 +99,14 @@
 //!     let router = builder.build();
 //!
 //!     let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
-//!     assert_eq!(search.data, &1);
-//!     assert_eq!(search.template, "/files/<*slug>/delete");
-//!     assert_eq!(search.parameters[0], ("slug", "documents/reports/annual.pdf"));
+//!     assert_eq!(search.data(), &1);
+//!     assert_eq!(search.template(), "/files/<*slug>/delete");
+//!     assert_eq!(search.parameters(), &[("slug", "documents/reports/annual.pdf")]);
 //!
 //!     let search = router.search("/any/other/path").unwrap();
-//!     assert_eq!(search.data, &2);
-//!     assert_eq!(search.template, "/<*catch_all>");
-//!     assert_eq!(search.parameters[0], ("catch_all", "any/other/path"));
+//!     assert_eq!(search.data(), &2);
+//!     assert_eq!(search.template(), "/<*catch_all>");
+//!     assert_eq!(search.parameters(), &[("catch_all", "any/other/path")]);
 //!
 //!     Ok(())
 //! }
