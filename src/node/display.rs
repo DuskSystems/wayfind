@@ -1,15 +1,14 @@
 use alloc::borrow::ToOwned as _;
 use alloc::format;
-use alloc::string::{String, ToString as _};
+use alloc::string::ToString as _;
 use core::fmt;
-use core::fmt::Write as _;
 
 use crate::node::Node;
 
 impl<S: fmt::Display, T> fmt::Display for Node<S, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn display_node<S: fmt::Display, T>(
-            output: &mut String,
+            f: &mut fmt::Formatter<'_>,
             node: &Node<S, T>,
             padding: &str,
             is_root: bool,
@@ -18,10 +17,10 @@ impl<S: fmt::Display, T> fmt::Display for Node<S, T> {
             let key = node.state.to_string();
             if !key.is_empty() {
                 if is_root {
-                    writeln!(output, "{key}")?;
+                    writeln!(f, "{key}")?;
                 } else {
                     let branch = if is_last { "╰─" } else { "├─" };
-                    writeln!(output, "{padding}{branch} {key}")?;
+                    writeln!(f, "{padding}{branch} {key}")?;
                 }
             }
 
@@ -42,29 +41,28 @@ impl<S: fmt::Display, T> fmt::Display for Node<S, T> {
 
             for child in &node.static_children {
                 count -= 1;
-                display_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(f, child, &padding, key.is_empty(), count == 0)?;
             }
 
             for child in &node.dynamic_children {
                 count -= 1;
-                display_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(f, child, &padding, key.is_empty(), count == 0)?;
             }
 
             for child in &node.wildcard_children {
                 count -= 1;
-                display_node(output, child, &padding, key.is_empty(), count == 0)?;
+                display_node(f, child, &padding, key.is_empty(), count == 0)?;
             }
 
             if let Some(child) = &node.end_wildcard {
                 let branch = if key.is_empty() { "" } else { "╰─ " };
-                writeln!(output, "{padding}{branch}{}", child.state)?;
+                let state = &child.state;
+                writeln!(f, "{padding}{branch}{state}")?;
             }
 
             Ok(())
         }
 
-        let mut output = String::new();
-        display_node(&mut output, self, "", true, true)?;
-        write!(f, "{}", output.trim_end())
+        display_node(f, self, "", true, true)
     }
 }
