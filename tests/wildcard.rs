@@ -1,10 +1,9 @@
-#![expect(missing_docs, reason = "Tests")]
+#![expect(missing_docs, clippy::panic_in_result_fn, reason = "Tests")]
 
 use core::error::Error;
 
 use similar_asserts::assert_eq;
-use smallvec::smallvec;
-use wayfind::{Match, RouterBuilder};
+use wayfind::RouterBuilder;
 
 #[test]
 fn wildcard_simple() -> Result<(), Box<dyn Error>> {
@@ -18,28 +17,18 @@ fn wildcard_simple() -> Result<(), Box<dyn Error>> {
        ╰─ /delete
     ");
 
-    let search = router.search("/docs/delete");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>/delete",
-            parameters: smallvec![("path", "docs")],
-        })
-    );
+    let search = router.search("/docs/delete").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/delete");
+    assert_eq!(search.parameters(), &[("path", "docs")]);
 
-    let search = router.search("/nested/docs/folder/delete");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>/delete",
-            parameters: smallvec![("path", "nested/docs/folder")],
-        })
-    );
+    let search = router.search("/nested/docs/folder/delete").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/delete");
+    assert_eq!(search.parameters(), &[("path", "nested/docs/folder")]);
 
     let search = router.search("/delete");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -58,24 +47,17 @@ fn wildcard_multiple() -> Result<(), Box<dyn Error>> {
              ╰─ /file
     ");
 
-    let search = router.search("/a/static/b/file");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*prefix>/static/<*suffix>/file",
-            parameters: smallvec![("prefix", "a"), ("suffix", "b")],
-        })
-    );
+    let search = router.search("/a/static/b/file").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*prefix>/static/<*suffix>/file");
+    assert_eq!(search.parameters(), &[("prefix", "a"), ("suffix", "b")]);
 
-    let search = router.search("/a/b/c/static/d/e/f/file");
+    let search = router.search("/a/b/c/static/d/e/f/file").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*prefix>/static/<*suffix>/file");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*prefix>/static/<*suffix>/file",
-            parameters: smallvec![("prefix", "a/b/c"), ("suffix", "d/e/f")],
-        })
+        search.parameters(),
+        &[("prefix", "a/b/c"), ("suffix", "d/e/f")]
     );
 
     Ok(())
@@ -93,28 +75,18 @@ fn wildcard_inline() -> Result<(), Box<dyn Error>> {
        ╰─ .html
     ");
 
-    let search = router.search("/page.html");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>.html",
-            parameters: smallvec![("path", "page")],
-        })
-    );
+    let search = router.search("/page.html").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>.html");
+    assert_eq!(search.parameters(), &[("path", "page")]);
 
-    let search = router.search("/nested/page.html");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>.html",
-            parameters: smallvec![("path", "nested/page")],
-        })
-    );
+    let search = router.search("/nested/page.html").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>.html");
+    assert_eq!(search.parameters(), &[("path", "nested/page")]);
 
     let search = router.search("/.html");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -131,25 +103,15 @@ fn wildcard_empty() -> Result<(), Box<dyn Error>> {
        ╰─ /end
     ");
 
-    let search = router.search("/start/middle/end");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>/end",
-            parameters: smallvec![("path", "start/middle")],
-        })
-    );
+    let search = router.search("/start/middle/end").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/end");
+    assert_eq!(search.parameters(), &[("path", "start/middle")]);
 
-    let search = router.search("/start//middle///end");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>/end",
-            parameters: smallvec![("path", "start//middle//")],
-        })
-    );
+    let search = router.search("/start//middle///end").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/end");
+    assert_eq!(search.parameters(), &[("path", "start//middle//")]);
 
     Ok(())
 }
@@ -177,55 +139,30 @@ fn wildcard_priority() -> Result<(), Box<dyn Error>> {
        ╰─ .suffix
     ");
 
-    let search = router.search("/static/path");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/static/path",
-            parameters: smallvec![],
-        })
-    );
+    let search = router.search("/static/path").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/static/path");
+    assert_eq!(search.parameters(), &[]);
 
-    let search = router.search("/static/some/nested/path");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/static/<*rest>",
-            parameters: smallvec![("rest", "some/nested/path")],
-        })
-    );
+    let search = router.search("/static/some/nested/path").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/static/<*rest>");
+    assert_eq!(search.parameters(), &[("rest", "some/nested/path")]);
 
-    let search = router.search("/some/nested/path/static");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<*path>/static",
-            parameters: smallvec![("path", "some/nested/path")],
-        })
-    );
+    let search = router.search("/some/nested/path/static").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<*path>/static");
+    assert_eq!(search.parameters(), &[("path", "some/nested/path")]);
 
-    let search = router.search("/prefix.some/nested/path");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &4,
-            template: "/prefix.<*suffix>",
-            parameters: smallvec![("suffix", "some/nested/path")],
-        })
-    );
+    let search = router.search("/prefix.some/nested/path").unwrap();
+    assert_eq!(search.data(), &4);
+    assert_eq!(search.template(), "/prefix.<*suffix>");
+    assert_eq!(search.parameters(), &[("suffix", "some/nested/path")]);
 
-    let search = router.search("/some/nested/path.suffix");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &5,
-            template: "/<*prefix>.suffix",
-            parameters: smallvec![("prefix", "some/nested/path")],
-        })
-    );
+    let search = router.search("/some/nested/path.suffix").unwrap();
+    assert_eq!(search.data(), &5);
+    assert_eq!(search.template(), "/<*prefix>.suffix");
+    assert_eq!(search.parameters(), &[("prefix", "some/nested/path")]);
 
     Ok(())
 }
@@ -246,35 +183,23 @@ fn wildcard_greedy() -> Result<(), Box<dyn Error>> {
              ╰─ <*rest>
     ");
 
-    let search = router.search("/documents/delete");
+    let search = router.search("/documents/delete").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*path>/delete");
+    assert_eq!(search.parameters(), &[("path", "documents")]);
+
+    let search = router.search("/documents/edit/summary").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/edit/<*rest>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*path>/delete",
-            parameters: smallvec![("path", "documents")],
-        })
+        search.parameters(),
+        &[("path", "documents"), ("rest", "summary")]
     );
 
-    let search = router.search("/documents/edit/summary");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>/edit/<*rest>",
-            parameters: smallvec![("path", "documents"), ("rest", "summary")],
-        })
-    );
-
-    let search = router.search("/docs/edit/readme/delete");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*path>/delete",
-            parameters: smallvec![("path", "docs/edit/readme")],
-        })
-    );
+    let search = router.search("/docs/edit/readme/delete").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*path>/delete");
+    assert_eq!(search.parameters(), &[("path", "docs/edit/readme")]);
 
     Ok(())
 }
@@ -296,14 +221,12 @@ fn wildcard_dynamic() -> Result<(), Box<dyn Error>> {
     ");
 
     // NOTE: Should arguably match `/<*path>/help`.
-    let search = router.search("/api/docs/reference/help");
+    let search = router.search("/api/docs/reference/help").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/api/<version>/<*rest>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/api/<version>/<*rest>",
-            parameters: smallvec![("version", "docs"), ("rest", "reference/help")],
-        })
+        search.parameters(),
+        &[("version", "docs"), ("rest", "reference/help")]
     );
 
     Ok(())
@@ -317,25 +240,15 @@ fn wildcard_suffix() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/hello.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*zzz>.txt",
-            parameters: smallvec![("zzz", "hello")],
-        })
-    );
+    let search = router.search("/hello.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*zzz>.txt");
+    assert_eq!(search.parameters(), &[("zzz", "hello")]);
 
-    let search = router.search("/hello.pdf");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*aaa>",
-            parameters: smallvec![("aaa", "hello.pdf")],
-        })
-    );
+    let search = router.search("/hello.pdf").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*aaa>");
+    assert_eq!(search.parameters(), &[("aaa", "hello.pdf")]);
 
     Ok(())
 }
@@ -348,24 +261,17 @@ fn wildcard_fallthrough() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/johndoe");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<username>",
-            parameters: smallvec![("username", "johndoe")],
-        })
-    );
+    let search = router.search("/johndoe").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<username>");
+    assert_eq!(search.parameters(), &[("username", "johndoe")]);
 
-    let search = router.search("/gitlab-org/gitlab/-/issues");
+    let search = router.search("/gitlab-org/gitlab/-/issues").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*namespace_id>/<project_id>/-/issues");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*namespace_id>/<project_id>/-/issues",
-            parameters: smallvec![("namespace_id", "gitlab-org"), ("project_id", "gitlab")],
-        })
+        search.parameters(),
+        &[("namespace_id", "gitlab-org"), ("project_id", "gitlab")]
     );
 
     Ok(())
@@ -378,17 +284,20 @@ fn wildcard_namespace() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/gitlab-org/frontend/gitlab-ui/-/merge_requests");
+    let search = router
+        .search("/gitlab-org/frontend/gitlab-ui/-/merge_requests")
+        .unwrap();
+    assert_eq!(search.data(), &1);
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*namespace_id>/<project_id>/-/merge_requests",
-            parameters: smallvec![
-                ("namespace_id", "gitlab-org/frontend"),
-                ("project_id", "gitlab-ui"),
-            ],
-        })
+        search.template(),
+        "/<*namespace_id>/<project_id>/-/merge_requests"
+    );
+    assert_eq!(
+        search.parameters(),
+        &[
+            ("namespace_id", "gitlab-org/frontend"),
+            ("project_id", "gitlab-ui")
+        ],
     );
 
     Ok(())
@@ -414,14 +323,12 @@ fn wildcard_catchall() -> Result<(), Box<dyn Error>> {
     ");
 
     // NOTE: Should arguably match `/<*namespace_id>/<project_id>/-/issues`.
-    let search = router.search("/gitlab-org/gitlab/-/issues");
+    let search = router.search("/gitlab-org/gitlab/-/issues").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<username>/<*rest>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<username>/<*rest>",
-            parameters: smallvec![("username", "gitlab-org"), ("rest", "gitlab/-/issues")],
-        })
+        search.parameters(),
+        &[("username", "gitlab-org"), ("rest", "gitlab/-/issues")]
     );
 
     Ok(())
@@ -436,15 +343,10 @@ fn wildcard_miss_fallback() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/pipelines/main/latest");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/pipelines/<*ref>/latest",
-            parameters: smallvec![("ref", "main")],
-        })
-    );
+    let search = router.search("/pipelines/main/latest").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/pipelines/<*ref>/latest");
+    assert_eq!(search.parameters(), &[("ref", "main")]);
 
     Ok(())
 }
@@ -456,15 +358,10 @@ fn wildcard_multi_segment() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/pipelines/feature/auth/latest");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/pipelines/<*ref>/latest",
-            parameters: smallvec![("ref", "feature/auth")],
-        })
-    );
+    let search = router.search("/pipelines/feature/auth/latest").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/pipelines/<*ref>/latest");
+    assert_eq!(search.parameters(), &[("ref", "feature/auth")]);
 
     Ok(())
 }
@@ -476,15 +373,10 @@ fn wildcard_nested() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/a/b/c/my-project/-/issues");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/<b>/-/issues",
-            parameters: smallvec![("a", "a/b/c"), ("b", "my-project")],
-        })
-    );
+    let search = router.search("/a/b/c/my-project/-/issues").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/<b>/-/issues");
+    assert_eq!(search.parameters(), &[("a", "a/b/c"), ("b", "my-project")]);
 
     Ok(())
 }
@@ -497,25 +389,18 @@ fn wildcard_branches() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/gitlab-org/gitlab/-/wikis/home");
+    let search = router.search("/gitlab-org/gitlab/-/wikis/home").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/<b>/-/wikis/<c>");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/<b>/-/wikis/<c>",
-            parameters: smallvec![("a", "gitlab-org"), ("b", "gitlab"), ("c", "home")],
-        })
+        search.parameters(),
+        &[("a", "gitlab-org"), ("b", "gitlab"), ("c", "home")]
     );
 
-    let search = router.search("/gitlab-org/-/settings");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*a>/-/settings",
-            parameters: smallvec![("a", "gitlab-org")],
-        })
-    );
+    let search = router.search("/gitlab-org/-/settings").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*a>/-/settings");
+    assert_eq!(search.parameters(), &[("a", "gitlab-org")]);
 
     Ok(())
 }
@@ -527,14 +412,12 @@ fn wildcard_ambiguous() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/a/-/issues/real-project/-/issues");
+    let search = router.search("/a/-/issues/real-project/-/issues").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/<b>/-/issues");
     assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/<b>/-/issues",
-            parameters: smallvec![("a", "a/-/issues"), ("b", "real-project")],
-        })
+        search.parameters(),
+        &[("a", "a/-/issues"), ("b", "real-project")]
     );
 
     Ok(())
@@ -547,15 +430,10 @@ fn wildcard_chain() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/x/y/middle/w/v/end");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/middle/<*b>/end",
-            parameters: smallvec![("a", "x/y"), ("b", "w/v")],
-        })
-    );
+    let search = router.search("/x/y/middle/w/v/end").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/middle/<*b>/end");
+    assert_eq!(search.parameters(), &[("a", "x/y"), ("b", "w/v")]);
 
     Ok(())
 }
@@ -567,25 +445,15 @@ fn wildcard_multibyte() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/docs/café.html");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>.html",
-            parameters: smallvec![("path", "docs/café")],
-        })
-    );
+    let search = router.search("/docs/café.html").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>.html");
+    assert_eq!(search.parameters(), &[("path", "docs/café")]);
 
-    let search = router.search("/日本語/ページ.html");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>.html",
-            parameters: smallvec![("path", "日本語/ページ")],
-        })
-    );
+    let search = router.search("/日本語/ページ.html").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>.html");
+    assert_eq!(search.parameters(), &[("path", "日本語/ページ")]);
 
     Ok(())
 }
@@ -597,18 +465,13 @@ fn wildcard_repeated_anchor() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/a/-/b/-/c/-/d/-/end");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*x>/-/<*y>/end",
-            parameters: smallvec![("x", "a/-/b/-/c"), ("y", "d/-")],
-        })
-    );
+    let search = router.search("/a/-/b/-/c/-/d/-/end").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*x>/-/<*y>/end");
+    assert_eq!(search.parameters(), &[("x", "a/-/b/-/c"), ("y", "d/-")]);
 
     let search = router.search("/a/-/b/-/c/-/d/-/miss");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -630,38 +493,23 @@ fn wildcard_endings() -> Result<(), Box<dyn Error>> {
           ╰─ z
     ");
 
-    let search = router.search("/one/x");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/x",
-            parameters: smallvec![("a", "one")],
-        })
-    );
+    let search = router.search("/one/x").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/x");
+    assert_eq!(search.parameters(), &[("a", "one")]);
 
-    let search = router.search("/one/two/three/y");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*a>/y",
-            parameters: smallvec![("a", "one/two/three")],
-        })
-    );
+    let search = router.search("/one/two/three/y").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*a>/y");
+    assert_eq!(search.parameters(), &[("a", "one/two/three")]);
 
-    let search = router.search("/one/z");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &3,
-            template: "/<*a>/z",
-            parameters: smallvec![("a", "one")],
-        })
-    );
+    let search = router.search("/one/z").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<*a>/z");
+    assert_eq!(search.parameters(), &[("a", "one")]);
 
     let search = router.search("/one/miss");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -675,31 +523,21 @@ fn wildcard_anchored() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/one/two/-/three/x");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*a>/-/<*b>/x",
-            parameters: smallvec![("a", "one/two"), ("b", "three")],
-        })
-    );
+    let search = router.search("/one/two/-/three/x").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/-/<*b>/x");
+    assert_eq!(search.parameters(), &[("a", "one/two"), ("b", "three")]);
 
-    let search = router.search("/one/-/two/y");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*a>/-/<*b>/y",
-            parameters: smallvec![("a", "one"), ("b", "two")],
-        })
-    );
+    let search = router.search("/one/-/two/y").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*a>/-/<*b>/y");
+    assert_eq!(search.parameters(), &[("a", "one"), ("b", "two")]);
 
     let search = router.search("/one/-/two/miss");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     let search = router.search("/-/x/-/x/-/x/miss");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -712,25 +550,15 @@ fn wildcard_repeated_suffix() -> Result<(), Box<dyn Error>> {
 
     let router = builder.build();
 
-    let search = router.search("/a.txt.txt.txt.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &1,
-            template: "/<*path>.txt",
-            parameters: smallvec![("path", "a.txt.txt.txt")],
-        })
-    );
+    let search = router.search("/a.txt.txt.txt.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>.txt");
+    assert_eq!(search.parameters(), &[("path", "a.txt.txt.txt")]);
 
-    let search = router.search("/.txt");
-    assert_eq!(
-        search,
-        Some(Match {
-            data: &2,
-            template: "/<*path>",
-            parameters: smallvec![("path", ".txt")],
-        })
-    );
+    let search = router.search("/.txt").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*path>");
+    assert_eq!(search.parameters(), &[("path", ".txt")]);
 
     Ok(())
 }
@@ -743,7 +571,7 @@ fn wildcard_segment_empty() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("//foo");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }
@@ -756,7 +584,7 @@ fn wildcard_inline_empty() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("/.x/y");
-    assert_eq!(search, None);
+    assert!(search.is_none());
 
     Ok(())
 }

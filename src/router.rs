@@ -9,18 +9,38 @@ use crate::parser::Template;
 use crate::state::RootState;
 
 /// Stores data from a successful router match.
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Match<'r, 'p, T> {
     /// A reference to the matching template data.
-    pub data: &'r T,
+    data: &'r T,
 
     /// The matching template.
-    pub template: &'r str,
+    template: &'r str,
 
     /// Key-value pairs of parameters.
     /// The key is tied to the lifetime of the router.
     /// The value is tied to the lifetime of the path.
-    pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
+    parameters: SmallVec<[(&'r str, &'p str); 4]>,
+}
+
+impl<'r, 'p, T> Match<'r, 'p, T> {
+    /// Returns a reference to the data associated with the matched template.
+    #[must_use]
+    pub const fn data(&self) -> &'r T {
+        self.data
+    }
+
+    /// Returns the matched template string.
+    #[must_use]
+    pub const fn template(&self) -> &'r str {
+        self.template
+    }
+
+    /// Returns the matched parameters as key-value pairs.
+    #[must_use]
+    pub fn parameters(&self) -> &[(&'r str, &'p str)] {
+        &self.parameters
+    }
 }
 
 /// A mutable router builder for inserting routes.
@@ -101,6 +121,7 @@ impl<T> RouterBuilder<T> {
     /// let mut builder = RouterBuilder::new();
     /// builder.insert("/users/<id>", 1).unwrap();
     /// builder.insert("/posts/<id>", 2).unwrap();
+    ///
     /// let router = builder.build();
     /// router.search("/users/123").unwrap();
     /// ```
@@ -139,6 +160,7 @@ impl<T> Router<T> {
     ///
     /// let mut builder: RouterBuilder<usize> = RouterBuilder::new();
     /// builder.insert("/<user>", 1).unwrap();
+    ///
     /// let router = builder.build();
     /// router.search("/me").unwrap();
     /// ```
