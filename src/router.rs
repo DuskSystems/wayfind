@@ -1,4 +1,3 @@
-use alloc::borrow::ToOwned as _;
 use core::fmt;
 
 use smallvec::SmallVec;
@@ -89,16 +88,11 @@ impl<T> RouterBuilder<T> {
     /// # Ok::<_, Box<dyn core::error::Error>>(())
     /// ```
     pub fn insert(&mut self, template: &str, data: T) -> Result<(), InsertError> {
-        let mut parsed =
-            Template::new(template.as_bytes()).map_err(|error| InsertError::Template {
-                template: template.to_owned(),
-                error,
-            })?;
+        let mut parsed = Template::new(template)?;
 
         // Check for conflicts up front to prevent partial inserts.
         if let Some(found) = self.root.conflict(&parsed.parts) {
             return Err(InsertError::Conflict {
-                new: template.to_owned(),
                 existing: found.template.clone().into(),
             });
         }
