@@ -120,7 +120,8 @@ extern crate alloc;
 mod readme_doctests {}
 
 mod bounds;
-pub mod errors;
+mod errors;
+pub use errors::InsertError;
 mod flags;
 mod node;
 mod parser;
