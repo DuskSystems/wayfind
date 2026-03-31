@@ -122,7 +122,6 @@ mod readme_doctests {}
 mod bounds;
 mod errors;
 pub use errors::InsertError;
-mod flags;
 mod node;
 mod parser;
 mod reachable;
