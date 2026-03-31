@@ -360,7 +360,7 @@ impl<S, T> Node<S, T> {
             WildcardSearch::Inline
         };
 
-        self.bounds = Bounds::compute(self);
+        self.bounds = Bounds::new(self);
         self.reachable = Reachable::compute(self, needles);
     }
 
@@ -383,7 +383,8 @@ impl<S, T> Node<S, T> {
             return self.data.as_ref();
         }
 
-        if !self.bounds.matches(path.len() - offset) {
+        let length = path.len() - offset;
+        if length < self.bounds.shortest() || length > self.bounds.longest() {
             return None;
         }
 
