@@ -90,7 +90,7 @@ pub(crate) struct Node<S, T> {
     pub static_children: Vec<Node<StaticState, T>>,
     pub dynamic_children: Vec<Node<DynamicState, T>>,
     pub wildcard_children: Vec<Node<WildcardState, T>>,
-    pub end_wildcard: Option<Box<Node<EndWildcardState, T>>>,
+    pub end_wildcard: Option<EndWildcardState<T>>,
 
     pub bounds: Bounds,
     pub reachable: Reachable,
@@ -228,9 +228,7 @@ impl<S, T> Node<S, T> {
     }
 
     fn insert_end_wildcard(&mut self, data: Data<T>, name: &str) {
-        let mut node = Node::new(EndWildcardState::new(name));
-        node.data = Some(data);
-        self.end_wildcard = Some(Box::new(node));
+        self.end_wildcard = Some(EndWildcardState::new(name, data));
     }
 
     /// Checks if a template conflicts with an existing template.
@@ -288,7 +286,8 @@ impl<S, T> Node<S, T> {
     }
 
     fn conflict_end_wildcard(&self) -> Option<&Data<T>> {
-        self.end_wildcard.as_deref()?.data.as_ref()
+        let child = self.end_wildcard.as_ref()?;
+        Some(&child.data)
     }
 
     /// Optimizes the tree.
@@ -654,8 +653,8 @@ impl<S, T> Node<S, T> {
         offset: usize,
     ) -> Option<&'r Data<T>> {
         if let Some(child) = &self.end_wildcard {
-            search.parameters.push((&child.state.name, &path[offset..]));
-            return child.data.as_ref();
+            search.parameters.push((&child.name, &path[offset..]));
+            return Some(&child.data);
         }
 
         None
@@ -711,10 +710,9 @@ impl<S: fmt::Display, T> fmt::Display for Node<S, T> {
                 display_node(f, child, &padding, key.is_empty(), count == 0)?;
             }
 
-            if let Some(child) = &node.end_wildcard {
+            if let Some(wildcard) = &node.end_wildcard {
                 let branch = if key.is_empty() { "" } else { "╰─ " };
-                let state = &child.state;
-                writeln!(f, "{padding}{branch}{state}")?;
+                writeln!(f, "{padding}{branch}{wildcard}")?;
             }
 
             Ok(())
