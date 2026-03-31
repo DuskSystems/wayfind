@@ -35,12 +35,12 @@ impl Bounds {
     }
 
     fn compute_shortest<S, T>(node: &Node<S, T>) -> usize {
-        // A node with data can match here with zero remaining bytes.
+        // A node with data can match here with 0 remaining bytes.
         if node.data.is_some() {
             return 0;
         }
 
-        // An end-wildcard needs at least 1 byte (parameters can't be empty).
+        // An end-wildcard needs at least 1 byte.
         if node.end_wildcard.is_some() {
             return 1;
         }

@@ -81,6 +81,7 @@ impl fmt::Display for WildcardState {
 #[derive(Clone, Debug)]
 pub(crate) struct EndWildcardState<T> {
     pub name: Box<str>,
+    /// Data is stored directly to avoid the need for the full `Node` machinery.
     pub data: Data<T>,
 }
 
