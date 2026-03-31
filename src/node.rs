@@ -9,7 +9,6 @@ use core::fmt;
 use smallvec::SmallVec;
 
 use crate::bounds::Bounds;
-use crate::flags::Flags;
 use crate::parser::{Part, Template};
 use crate::reachable::{NeedleCache, Reachable};
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
@@ -66,12 +65,26 @@ pub(crate) struct Data<T> {
     pub template: Box<str>,
 }
 
+#[derive(Clone, Debug)]
+pub(crate) enum DynamicSearch {
+    /// All children are whole segments.
+    Segment,
+    /// Children may have inline suffixes.
+    Inline,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) enum WildcardSearch {
+    /// All children are whole segments.
+    Segment,
+    /// Children may have inline suffixes.
+    Inline,
+}
+
 /// Represents a node in the tree structure.
 #[derive(Clone, Debug)]
 pub(crate) struct Node<S, T> {
-    /// The node's type-specific state.
     pub state: S,
-    /// Optional data associated with this node.
     pub data: Option<Data<T>>,
 
     pub static_children: Vec<Node<StaticState, T>>,
@@ -79,14 +92,12 @@ pub(crate) struct Node<S, T> {
     pub wildcard_children: Vec<Node<WildcardState, T>>,
     pub end_wildcard: Option<Box<Node<EndWildcardState, T>>>,
 
-    /// State flags.
-    pub flags: Flags,
-    /// Precomputed length bounds for pruning during search.
     pub bounds: Bounds,
-    /// Reachability conditions for pruning during search.
     pub reachable: Reachable,
-    /// Byte needles from static children.
     pub suffixes: Suffixes,
+
+    pub dynamic_search: DynamicSearch,
+    pub wildcard_search: WildcardSearch,
 }
 
 impl<S, T> Node<S, T> {
@@ -102,10 +113,12 @@ impl<S, T> Node<S, T> {
             wildcard_children: Vec::new(),
             end_wildcard: None,
 
-            flags: Flags::default(),
             bounds: Bounds::default(),
             reachable: Reachable::default(),
             suffixes: Suffixes::default(),
+
+            dynamic_search: DynamicSearch::Segment,
+            wildcard_search: WildcardSearch::Segment,
         }
     }
 
@@ -123,7 +136,6 @@ impl<S, T> Node<S, T> {
             }
         } else {
             self.data = Some(data);
-            self.flags.set_needs_optimization(true);
         }
     }
 
@@ -147,7 +159,6 @@ impl<S, T> Node<S, T> {
                     child.insert_static(template, data, &prefix[common_prefix..]);
                 }
 
-                self.flags.set_needs_optimization(true);
                 return;
             }
 
@@ -161,7 +172,8 @@ impl<S, T> Node<S, T> {
                 wildcard_children: core::mem::take(&mut child.wildcard_children),
                 end_wildcard: core::mem::take(&mut child.end_wildcard),
 
-                flags: child.flags.clone(),
+                dynamic_search: child.dynamic_search.clone(),
+                wildcard_search: child.wildcard_search.clone(),
                 bounds: child.bounds.clone(),
                 reachable: core::mem::take(&mut child.reachable),
                 suffixes: core::mem::take(&mut child.suffixes),
@@ -170,7 +182,6 @@ impl<S, T> Node<S, T> {
             let new_child_b = Node::new(StaticState::new(&prefix[common_prefix..]));
 
             child.state = StaticState::new(&child.state.prefix[..common_prefix]);
-            child.flags.set_needs_optimization(true);
 
             if prefix[common_prefix..].is_empty() {
                 child.static_children = vec![new_child_a];
@@ -180,15 +191,12 @@ impl<S, T> Node<S, T> {
                 child.static_children[1].insert(template, data);
             }
 
-            self.flags.set_needs_optimization(true);
             return;
         }
 
         let mut child = Node::new(StaticState::new(prefix));
         child.insert(template, data);
         self.static_children.push(child);
-
-        self.flags.set_needs_optimization(true);
     }
 
     fn insert_dynamic(&mut self, template: &mut Template<'_>, data: Data<T>, name: &str) {
@@ -203,8 +211,6 @@ impl<S, T> Node<S, T> {
             child.insert(template, data);
             self.dynamic_children.push(child);
         }
-
-        self.flags.set_needs_optimization(true);
     }
 
     fn insert_wildcard(&mut self, template: &mut Template<'_>, data: Data<T>, name: &str) {
@@ -219,15 +225,12 @@ impl<S, T> Node<S, T> {
             child.insert(template, data);
             self.wildcard_children.push(child);
         }
-
-        self.flags.set_needs_optimization(true);
     }
 
     fn insert_end_wildcard(&mut self, data: Data<T>, name: &str) {
         let mut node = Node::new(EndWildcardState::new(name));
         node.data = Some(data);
         self.end_wildcard = Some(Box::new(node));
-        self.flags.set_needs_optimization(true);
     }
 
     /// Checks if a template conflicts with an existing template.
@@ -295,10 +298,6 @@ impl<S, T> Node<S, T> {
     }
 
     fn optimize_inner(&mut self, needles: &mut BTreeMap<Box<[u8]>, usize>) {
-        if !self.flags.needs_optimization() {
-            return;
-        }
-
         for child in &mut self.static_children {
             child.optimize_inner(needles);
         }
@@ -333,32 +332,36 @@ impl<S, T> Node<S, T> {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
-        self.flags
-            .set_dynamic_segment_only(self.dynamic_children.iter().all(|node| {
-                node.dynamic_children.is_empty()
-                    && node.wildcard_children.is_empty()
-                    && node.end_wildcard.is_none()
-                    && node
-                        .static_children
-                        .iter()
-                        .all(|child| child.state.prefix.first() == Some(&b'/'))
-            }));
+        self.dynamic_search = if self.dynamic_children.iter().all(|node| {
+            node.dynamic_children.is_empty()
+                && node.wildcard_children.is_empty()
+                && node.end_wildcard.is_none()
+                && node
+                    .static_children
+                    .iter()
+                    .all(|child| child.state.prefix.first() == Some(&b'/'))
+        }) {
+            DynamicSearch::Segment
+        } else {
+            DynamicSearch::Inline
+        };
 
-        self.flags
-            .set_wildcard_segment_only(self.wildcard_children.iter().all(|node| {
-                node.dynamic_children.is_empty()
-                    && node.wildcard_children.is_empty()
-                    && node.end_wildcard.is_none()
-                    && node
-                        .static_children
-                        .iter()
-                        .all(|child| child.state.prefix.first() == Some(&b'/'))
-            }));
+        self.wildcard_search = if self.wildcard_children.iter().all(|node| {
+            node.dynamic_children.is_empty()
+                && node.wildcard_children.is_empty()
+                && node.end_wildcard.is_none()
+                && node
+                    .static_children
+                    .iter()
+                    .all(|child| child.state.prefix.first() == Some(&b'/'))
+        }) {
+            WildcardSearch::Segment
+        } else {
+            WildcardSearch::Inline
+        };
 
         self.bounds = Bounds::compute(self);
         self.reachable = Reachable::compute(self, needles);
-
-        self.flags.set_needs_optimization(false);
     }
 
     /// Searches for a matching template in the node tree.
@@ -388,19 +391,21 @@ impl<S, T> Node<S, T> {
             return Some(result);
         }
 
-        if let Some(result) = if self.flags.dynamic_segment_only() {
-            self.search_dynamic_segment(search, path, offset)
-        } else {
-            self.search_dynamic_inline(search, path, offset)
-        } {
+        let dynamic = match self.dynamic_search {
+            DynamicSearch::Segment => self.search_dynamic_segment(search, path, offset),
+            DynamicSearch::Inline => self.search_dynamic_inline(search, path, offset),
+        };
+
+        if let Some(result) = dynamic {
             return Some(result);
         }
 
-        if let Some(result) = if self.flags.wildcard_segment_only() {
-            self.search_wildcard_segment(search, path, offset)
-        } else {
-            self.search_wildcard_inline(search, path, offset)
-        } {
+        let wildcard = match self.wildcard_search {
+            WildcardSearch::Segment => self.search_wildcard_segment(search, path, offset),
+            WildcardSearch::Inline => self.search_wildcard_inline(search, path, offset),
+        };
+
+        if let Some(result) = wildcard {
             return Some(result);
         }
 
