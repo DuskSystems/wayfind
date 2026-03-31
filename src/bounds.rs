@@ -1,9 +1,11 @@
 use crate::node::Node;
 
-/// Precomputed length bounds for pruning during search.
+/// Precomputed path length bounds for pruning during search.
 #[derive(Clone, Debug)]
 pub(crate) struct Bounds {
+    /// Minimum remaining path bytes to reach any match.
     shortest: usize,
+    /// Maximum remaining path bytes that could still match.
     longest: usize,
 }
 
@@ -17,73 +19,78 @@ impl Default for Bounds {
 }
 
 impl Bounds {
-    /// Returns the minimum bytes of remaining path needed for any match through this node.
-    #[must_use]
+    pub(crate) fn new<S, T>(node: &Node<S, T>) -> Self {
+        Self {
+            shortest: Self::compute_shortest(node),
+            longest: Self::compute_longest(node),
+        }
+    }
+
     pub(crate) const fn shortest(&self) -> usize {
         self.shortest
     }
 
-    /// Returns `true` if the remaining path length falls within the bounds.
-    #[must_use]
-    pub(crate) const fn matches(&self, remaining: usize) -> bool {
-        remaining >= self.shortest && remaining <= self.longest
+    pub(crate) const fn longest(&self) -> usize {
+        self.longest
     }
 
-    /// Computes the bounds for a node based on its children.
-    pub(crate) fn compute<S, T>(node: &Node<S, T>) -> Self {
-        Self {
-            shortest: compute_shortest(node),
-            longest: compute_longest(node),
+    fn compute_shortest<S, T>(node: &Node<S, T>) -> usize {
+        // A node with data can match here with zero remaining bytes.
+        if node.data.is_some() {
+            return 0;
         }
-    }
-}
 
-/// Minimum bytes of remaining path needed for any match through this node.
-fn compute_shortest<S, T>(node: &Node<S, T>) -> usize {
-    if node.data.is_some() || node.end_wildcard.is_some() {
-        return 0;
-    }
+        // An end-wildcard needs at least 1 byte (parameters can't be empty).
+        if node.end_wildcard.is_some() {
+            return 1;
+        }
 
-    node.static_children
-        .iter()
-        .map(|child| {
-            child
+        let mut shortest = usize::MAX;
+
+        for child in &node.static_children {
+            let length = child
                 .state
                 .prefix
                 .len()
-                .saturating_add(child.bounds.shortest())
-        })
-        .chain(
-            node.dynamic_children
-                .iter()
-                .map(|child| 1_usize.saturating_add(child.bounds.shortest())),
-        )
-        .chain(
-            node.wildcard_children
-                .iter()
-                .map(|child| 1_usize.saturating_add(child.bounds.shortest())),
-        )
-        .min()
-        .unwrap_or(usize::MAX)
-}
+                .saturating_add(child.bounds.shortest);
 
-/// Maximum bytes of remaining path for any match through this node.
-fn compute_longest<S, T>(node: &Node<S, T>) -> usize {
-    if !node.dynamic_children.is_empty()
-        || !node.wildcard_children.is_empty()
-        || node.end_wildcard.is_some()
-    {
-        return usize::MAX;
+            shortest = shortest.min(length);
+        }
+
+        for child in &node.dynamic_children {
+            let length = child.bounds.shortest.saturating_add(1);
+            shortest = shortest.min(length);
+        }
+
+        for child in &node.wildcard_children {
+            let length = child.bounds.shortest.saturating_add(1);
+            shortest = shortest.min(length);
+        }
+
+        shortest
     }
 
-    node.static_children
-        .iter()
-        .map(|child| {
-            child
+    fn compute_longest<S, T>(node: &Node<S, T>) -> usize {
+        // Dynamic and wildcard parameters can consume any input.
+        if !node.dynamic_children.is_empty()
+            || !node.wildcard_children.is_empty()
+            || node.end_wildcard.is_some()
+        {
+            return usize::MAX;
+        }
+
+        let mut longest = 0;
+
+        for child in &node.static_children {
+            let length = child
                 .state
                 .prefix
                 .len()
-                .saturating_add(child.bounds.longest)
-        })
-        .fold(0, usize::max)
+                .saturating_add(child.bounds.longest);
+
+            longest = longest.max(length);
+        }
+
+        longest
+    }
 }
