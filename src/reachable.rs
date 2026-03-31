@@ -46,7 +46,7 @@ impl Reachable {
     }
 
     /// Returns `true` if the remaining path could reach a match through this node.
-    pub(crate) fn check(&self, path: &str, offset: usize, needles: &mut NeedleCache) -> bool {
+    pub(crate) fn check(&self, needles: &mut NeedleCache, path: &str, offset: usize) -> bool {
         if self.0.is_empty() {
             return true;
         }

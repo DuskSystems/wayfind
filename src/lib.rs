@@ -120,12 +120,15 @@ extern crate alloc;
 mod readme_doctests {}
 
 mod bounds;
+mod builder;
+pub use builder::RouterBuilder;
+mod compiler;
 mod errors;
 pub use errors::InsertError;
 mod node;
 mod parser;
 mod reachable;
 mod router;
-pub use router::{Match, Router, RouterBuilder};
+pub use router::{Match, Router};
 mod state;
 mod suffixes;
