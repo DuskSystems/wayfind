@@ -31,8 +31,6 @@ jobs:
 
       - name: Setup
         uses: ./.github/actions/setup
-        with:
-          save-cache: true
 
   checks:
     name: Checks
