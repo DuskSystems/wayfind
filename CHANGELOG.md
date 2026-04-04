@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1](https://github.com/DuskSystems/wayfind/compare/v0.9.0...v0.9.1) - 2026-04-04
+
+### Added
+
+- Introduce builder for router
+- Track visited nodes
+- Use path pruning and suffix matching during searches
+- Add GitLab benches
+
+### Fixed
+
+- Skip invalid chars early
+- Correct boundary check for wildcards
+- Avoid UTF-8 costs during search
+
+### Other
+
+- Split up builder, compiler and router
+- Flatten error type
+- Avoid exposing smallvec in API
+- Remove get functionality
+- Remove delete functionality
+- Tweak static search approach
+- Prune non reachable
+- Make use of `memchr` for string searching
+
 ## [0.9.0] - 2025-08-27
 
 ### Added
