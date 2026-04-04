@@ -251,7 +251,7 @@ impl<S, T> Node<S, T> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
-            if remaining.len() < child.bounds.shortest() {
+            if remaining.len() <= child.bounds.shortest() {
                 continue;
             }
 
