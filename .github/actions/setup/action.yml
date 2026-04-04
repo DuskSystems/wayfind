@@ -16,7 +16,7 @@ runs:
     - name: Cache Nix
       uses: DuskSystems/nix-cache-action@dfb0f60031b8762e2211da4c65f3da96e5a8727e # v1.4.1
       with:
-        key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', '**/*.nix') }}
+        key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/flake.lock', '**/*.nix') }}
         restore-keys: |
           nix-${{ runner.os }}-${{ runner.arch }}-
 

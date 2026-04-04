@@ -2,7 +2,8 @@
 
 [files]
 extend-exclude = [
+  "CHANGELOG.md",
   "benches/fixtures/gitlab_routes.rs",
-  "tests/gitlab.rs",
   "tests/dynamic.rs",
+  "tests/gitlab.rs",
 ]
