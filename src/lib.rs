@@ -24,11 +24,11 @@
 //!
 //! let router = builder.build();
 //!
-//! let search = router.search("/hello").ok_or("no match")?;
+//! let search = router.search("/hello").unwrap();
 //! assert_eq!(search.data(), &1);
 //! assert_eq!(search.template(), "/hello");
 //!
-//! let search = router.search("/hello/world").ok_or("no match")?;
+//! let search = router.search("/hello/world").unwrap();
 //! assert_eq!(search.data(), &2);
 //! assert_eq!(search.template(), "/hello/world");
 //!
@@ -55,12 +55,12 @@
 //!
 //! let router = builder.build();
 //!
-//! let search = router.search("/users/123").ok_or("no match")?;
+//! let search = router.search("/users/123").unwrap();
 //! assert_eq!(search.data(), &1);
 //! assert_eq!(search.template(), "/users/<id>");
 //! assert_eq!(search.parameters(), &[("id", "123")]);
 //!
-//! let search = router.search("/users/123/files/my.document.pdf").ok_or("no match")?;
+//! let search = router.search("/users/123/files/my.document.pdf").unwrap();
 //! assert_eq!(search.data(), &2);
 //! assert_eq!(search.template(), "/users/<id>/files/<filename>.pdf");
 //! assert_eq!(search.parameters(), &[("id", "123"), ("filename", "my.document")]);
@@ -87,12 +87,12 @@
 //!
 //! let router = builder.build();
 //!
-//! let search = router.search("/files/documents/reports/annual.pdf/delete").ok_or("no match")?;
+//! let search = router.search("/files/documents/reports/annual.pdf/delete").unwrap();
 //! assert_eq!(search.data(), &1);
 //! assert_eq!(search.template(), "/files/<*slug>/delete");
 //! assert_eq!(search.parameters(), &[("slug", "documents/reports/annual.pdf")]);
 //!
-//! let search = router.search("/any/other/path").ok_or("no match")?;
+//! let search = router.search("/any/other/path").unwrap();
 //! assert_eq!(search.data(), &2);
 //! assert_eq!(search.template(), "/<*catch_all>");
 //! assert_eq!(search.parameters(), &[("catch_all", "any/other/path")]);

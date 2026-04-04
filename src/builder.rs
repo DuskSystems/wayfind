@@ -71,7 +71,7 @@ impl<T> RouterBuilder<T> {
     /// builder.insert("/posts/<id>", 2)?;
     ///
     /// let router = builder.build();
-    /// let search = router.search("/users/123").ok_or("no match")?;
+    /// let search = router.search("/users/123").unwrap();
     /// # Ok::<_, Box<dyn core::error::Error>>(())
     /// ```
     #[must_use]

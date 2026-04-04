@@ -58,7 +58,7 @@ impl<T> Router<T> {
     ///
     /// let router = builder.build();
     ///
-    /// let search = router.search("/users/123").ok_or("no match")?;
+    /// let search = router.search("/users/123").unwrap();
     /// assert_eq!(search.data(), &1);
     /// assert_eq!(search.template(), "/users/<id>");
     /// assert_eq!(search.parameters(), &[("id", "123")]);
