@@ -158,6 +158,7 @@
             cargo-llvm-cov
             cargo-nextest
             cargo-shear
+            release-plz
 
             # Git
             committed
