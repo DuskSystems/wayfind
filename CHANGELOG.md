@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1](https://github.com/DuskSystems/wayfind/compare/wayfind-v0.9.0...wayfind-v0.9.1) - 2026-04-04
+
+### Added
+
+- Track visited nodes
+- Introduce builder for router
+
+### Fixed
+
+- Skip invalid chars early
+- Correct boundary check for wildcards
+
+### Other
+
+- Setup release pipeline
+- Don't mention version
+- Remove `ok_or` from examples
+- Use OCI example for README
+- Extract needle cache
+- Split up builder, compiler and router
+- Clean up states and simplify end wildcard
+- Clean up bounds
+- Replace flags with search enums
+- Flatten error type
+- Flatten module structure
+- Use formatter in display
+- Remove first byte check
+- Leave CHANGELOG to release-plz
+- Clean up code examples
+- Avoid exposing smallvec in API
+- Prune non reachable
+- Minor style changes
+- Inline data into nodes
+- Remove get functionality
+- Remove delete functionality
+- Use bitflag for node state
+- Update dependencies
+- Add GitLab benches
+- Sync from template
+- Final clean up before release
+- Tweak static search approach
+- Clean up documentation
+- Add back gitlab routes
+- Store all tails, rather than just the longest one
+- Additional benches/tests around wildcards
+- Use path pruning and suffix matching during searches
+- Benches for edge cases
+- Simplify errors
+- Merge pull request #259 from DuskSystems/annotate
+- Use unicode for error displaying
+- Add more coverage, tweak docs
+- Add first byte to static state
+- Point benchmark results at CodSpeed
+- Switch to Tombi
+- Add back CodSpeed
+- Avoid UTF8 costs during search
+- Only allow 1 parameter per segment
+- Set fuzzer timeout per input
+- Faster CI builds
+- Publish coverage to codecov
+- Simplify Nix CI setup
+- Update benchmark results
+- Make use of `memchr` for string searching
+- Add `gungraun` benches
+- Project refresh; fix clippy lints, switch to wild linker in CI, tweak import format
+
 ## [0.9.0] - 2025-08-27
 
 ### Added
