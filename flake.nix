@@ -82,7 +82,6 @@
             })
             sccache
             wild
-            tombi
             cargo-codspeed
             cargo-deny
             cargo-expand
@@ -109,6 +108,9 @@
             # Spellchecking
             typos
             typos-lsp
+
+            # TOML
+            tombi
 
             # Nix
             nixfmt
@@ -150,7 +152,6 @@
             })
             sccache
             wild
-            tombi
             cargo-codspeed
             cargo-deny
             cargo-fuzz
@@ -166,6 +167,9 @@
 
             # Spellchecking
             typos
+
+            # TOML
+            tombi
 
             # Nix
             nixfmt

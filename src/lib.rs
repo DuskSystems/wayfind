@@ -40,7 +40,7 @@
 //!
 //! Dynamic parameters can match any byte, **excluding** the path delimiter `/`.
 //!
-//! We support:
+//! Supported forms:
 //! - whole segment parameters: `/<name>/`
 //! - inline parameters: `/<name>.txt`
 //!
@@ -71,7 +71,7 @@
 //!
 //! Wildcard parameters can match any byte, **including** the path delimiter `/`.
 //!
-//! We support:
+//! Supported forms:
 //! - inline wildcards: `/<*path>.html`
 //! - mid-route wildcards: `/api/<*path>/help`
 //! - end-route catch-all: `/<*catch_all>`
@@ -125,6 +125,7 @@ pub use builder::RouterBuilder;
 mod compiler;
 mod errors;
 pub use errors::InsertError;
+mod needle;
 mod node;
 mod parser;
 mod reachable;

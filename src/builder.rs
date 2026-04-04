@@ -8,7 +8,7 @@ use crate::parser::{Part, Template};
 use crate::router::Router;
 use crate::state::{DynamicState, EndWildcardState, RootState, StaticState, WildcardState};
 
-/// A mutable builder for constructing a router.
+/// A mutable builder for constructing a [`Router`].
 #[derive(Clone)]
 pub struct RouterBuilder<T> {
     root: BuilderNode<RootState, T>,
@@ -23,13 +23,12 @@ impl<T> RouterBuilder<T> {
         }
     }
 
-    /// Inserts a new template with associated data into the router.
+    /// Inserts a template with associated data into the router.
     ///
     /// # Errors
     ///
     /// Returns [`InsertError`] if the template is malformed or conflicts with
-    /// an existing route. If your templates are string literals, `unwrap()` is
-    /// reasonable since syntax errors cannot occur.
+    /// an existing route.
     ///
     /// # Examples
     ///
@@ -60,11 +59,7 @@ impl<T> RouterBuilder<T> {
         Ok(())
     }
 
-    /// Optimizes the tree and produces an immutable [`Router`] for searching.
-    ///
-    /// Consumes the builder. This is where children are sorted, length bounds
-    /// are computed, reachability conditions are built, and suffix needles are
-    /// precomputed.
+    /// Consumes the builder and produces an immutable [`Router`].
     ///
     /// # Examples
     ///

@@ -8,11 +8,12 @@ use core::fmt;
 use smallvec::SmallVec;
 
 use crate::bounds::Bounds;
-use crate::reachable::{NeedleCache, Reachable};
+use crate::needle::NeedleCache;
+use crate::reachable::Reachable;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
 use crate::suffixes::Suffixes;
 
-/// Per search state.
+/// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
     pub attempts: BTreeSet<(usize, usize)>,
     pub needles: NeedleCache,
@@ -52,7 +53,7 @@ pub(crate) enum WildcardSearch {
     Inline,
 }
 
-/// An immutable, optimized router.
+/// An immutable node in the search tree.
 #[derive(Clone, Debug)]
 pub(crate) struct Node<S, T> {
     pub state: S,
