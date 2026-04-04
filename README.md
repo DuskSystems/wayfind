@@ -24,7 +24,7 @@ Real-world projects often need advanced routing: inline parameters, mid-route wi
 
 ```toml
 [dependencies]
-wayfind = "1.0"
+wayfind = "*"
 ```
 
 ```rust
