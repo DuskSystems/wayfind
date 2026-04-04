@@ -10,13 +10,13 @@
     "enabled": true
   },
 
-  // https://docs.renovatebot.com/modules/manager/nix
-  "nix": {
+  // https://docs.renovatebot.com/modules/manager/github-actions
+  "github-actions": {
     "enabled": true
   },
 
-  // https://docs.renovatebot.com/modules/manager/github-actions
-  "github-actions": {
+  // https://docs.renovatebot.com/modules/manager/nix
+  "nix": {
     "enabled": true
   },
 

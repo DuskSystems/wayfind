@@ -14,7 +14,7 @@ runs:
       uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
 
     - name: Cache Nix
-      uses: DuskSystems/nix-cache-action@fc37fcb8bcae0966d0bf24f1858e412aee89d7ab # v1.4.0
+      uses: DuskSystems/nix-cache-action@dfb0f60031b8762e2211da4c65f3da96e5a8727e # v1.4.1
       with:
         key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('flake.lock', '**/*.nix') }}
         restore-keys: |

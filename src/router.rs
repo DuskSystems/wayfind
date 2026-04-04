@@ -47,6 +47,25 @@ impl<T> Router<T> {
     /// Searches for a matching template in the router.
     ///
     /// Returns `None` if no template matches the path.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use wayfind::RouterBuilder;
+    ///
+    /// let mut builder = RouterBuilder::new();
+    /// builder.insert("/users/<id>", 1)?;
+    ///
+    /// let router = builder.build();
+    ///
+    /// let search = router.search("/users/123").ok_or("no match")?;
+    /// assert_eq!(search.data(), &1);
+    /// assert_eq!(search.template(), "/users/<id>");
+    /// assert_eq!(search.parameters(), &[("id", "123")]);
+    ///
+    /// assert!(router.search("/not/found").is_none());
+    /// # Ok::<_, Box<dyn core::error::Error>>(())
+    /// ```
     #[must_use]
     pub fn search<'r, 'p>(&'r self, path: &'p str) -> Option<Match<'r, 'p, T>> {
         let mut ctx = SearchContext::new();
