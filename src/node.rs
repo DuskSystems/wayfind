@@ -100,6 +100,10 @@ impl<S, T> Node<S, T> {
             return Some(result);
         }
 
+        if !path.is_char_boundary(offset) {
+            return None;
+        }
+
         let dynamic = match self.dynamic_search {
             DynamicSearch::Segment => self.search_dynamic_segment(ctx, path, offset),
             DynamicSearch::Inline => self.search_dynamic_inline(ctx, path, offset),
