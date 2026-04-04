@@ -24,92 +24,94 @@ Real-world projects often need advanced routing: inline parameters, mid-route wi
 
 ```toml
 [dependencies]
-wayfind = "0.9"
+wayfind = "1.0"
 ```
 
 ```rust
+use std::error::Error;
+
 use wayfind::RouterBuilder;
 
 let mut builder = RouterBuilder::new();
-builder.insert("/", 1)?;
-builder.insert("/health", 2)?;
-builder.insert("/users/<id>", 3)?;
-builder.insert("/users/<id>/message", 4)?;
-builder.insert("/images/<name>.png", 5)?;
-builder.insert("/files/<*path>", 6)?;
-builder.insert("/files/<*path>/delete", 7)?;
-builder.insert("/backups/<*path>.tar.gz", 8)?;
+builder.insert("/v2", "end-1")?;
+builder.insert("/v2/<*name>/blobs/<algorithm>:<hash>", "end-2")?;
+builder.insert("/v2/<*name>/manifests/<reference>", "end-3")?;
+builder.insert("/v2/<*name>/blobs/uploads", "end-4a")?;
+builder.insert("/v2/<*name>/blobs/uploads/<reference>", "end-5")?;
+builder.insert("/v2/<*name>/tags/list", "end-8a")?;
+builder.insert("/v2/<*name>/referrers/<algorithm>:<hash>", "end-12a")?;
 
 let router = builder.build();
 
-let search = router.search("/").ok_or("no match")?;
-assert_eq!(search.data(), &1);
-assert_eq!(search.template(), "/");
+let search = router.search("/v2").unwrap();
+assert_eq!(search.data(), &"end-1");
+assert_eq!(search.parameters(), &[]);
 
-let search = router.search("/health").ok_or("no match")?;
-assert_eq!(search.data(), &2);
-assert_eq!(search.template(), "/health");
+let search = router.search("/v2/myorg/myrepo/blobs/sha256:2c26b46b68ff").unwrap();
+assert_eq!(search.data(), &"end-2");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+    ("algorithm", "sha256"),
+    ("hash", "2c26b46b68ff"),
+]);
 
-assert!(router.search("/heal").is_none());
+let search = router.search("/v2/myorg/myrepo/manifests/latest").unwrap();
+assert_eq!(search.data(), &"end-3");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+    ("reference", "latest"),
+]);
 
-let search = router.search("/users/123").ok_or("no match")?;
-assert_eq!(search.data(), &3);
-assert_eq!(search.template(), "/users/<id>");
-assert_eq!(search.parameters(), &[("id", "123")]);
+let search = router.search("/v2/myorg/myrepo/blobs/uploads").unwrap();
+assert_eq!(search.data(), &"end-4a");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+]);
 
-let search = router.search("/users/123/message").ok_or("no match")?;
-assert_eq!(search.data(), &4);
-assert_eq!(search.template(), "/users/<id>/message");
-assert_eq!(search.parameters(), &[("id", "123")]);
+let search = router.search("/v2/myorg/myrepo/blobs/uploads/e361beb4-576f").unwrap();
+assert_eq!(search.data(), &"end-5");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+    ("reference", "e361beb4-576f"),
+]);
 
-assert!(router.search("/users/").is_none());
+let search = router.search("/v2/myorg/myrepo/tags/list").unwrap();
+assert_eq!(search.data(), &"end-8a");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+]);
 
-let search = router.search("/images/avatar.final.png").ok_or("no match")?;
-assert_eq!(search.data(), &5);
-assert_eq!(search.template(), "/images/<name>.png");
-assert_eq!(search.parameters(), &[("name", "avatar.final")]);
-
-assert!(router.search("/images/.png").is_none());
-
-let search = router.search("/files/documents").ok_or("no match")?;
-assert_eq!(search.data(), &6);
-assert_eq!(search.template(), "/files/<*path>");
-assert_eq!(search.parameters(), &[("path", "documents")]);
-
-let search = router.search("/files/documents/my-project/delete").ok_or("no match")?;
-assert_eq!(search.data(), &7);
-assert_eq!(search.template(), "/files/<*path>/delete");
-assert_eq!(search.parameters(), &[("path", "documents/my-project")]);
-
-assert!(router.search("/files").is_none());
-
-let search = router.search("/backups/production/database.tar.gz").ok_or("no match")?;
-assert_eq!(search.data(), &8);
-assert_eq!(search.template(), "/backups/<*path>.tar.gz");
-assert_eq!(search.parameters(), &[("path", "production/database")]);
-
-assert!(router.search("/backups/.tar.gz").is_none());
+let search = router.search("/v2/myorg/myrepo/referrers/sha256:2c26b46b68ff").unwrap();
+assert_eq!(search.data(), &"end-12a");
+assert_eq!(search.parameters(), &[
+    ("name", "myorg/myrepo"),
+    ("algorithm", "sha256"),
+    ("hash", "2c26b46b68ff"),
+]);
 
 println!("{router}");
-# Ok::<_, Box<dyn core::error::Error>>(())
+Ok::<_, Box<dyn Error>>(())
 ```
 
 ```text
-/
-├─ backups/
-│  ╰─ <*path>
-│     ╰─ .tar.gz
-├─ files/
-│  ├─ <*path>
-│  │  ╰─ /delete
-│  ╰─ <*path>
-├─ health
-├─ images/
-│  ╰─ <name>
-│     ╰─ .png
-╰─ users/
-   ╰─ <id>
-      ╰─ /message
+/v2
+╰─ /
+   ╰─ <*name>
+      ╰─ /
+         ├─ blobs/
+         │  ├─ uploads
+         │  │  ╰─ /
+         │  │     ╰─ <reference>
+         │  ╰─ <algorithm>
+         │     ╰─ :
+         │        ╰─ <hash>
+         ├─ manifests/
+         │  ╰─ <reference>
+         ├─ referrers/
+         │  ╰─ <algorithm>
+         │     ╰─ :
+         │        ╰─ <hash>
+         ╰─ tags/list
 ```
 
 ## Implementation Details
