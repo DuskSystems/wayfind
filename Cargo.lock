@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "actix-router",
  "codspeed-divan-compat",
@@ -884,7 +884,7 @@ dependencies = [
 
 [[package]]
 name = "wayfind-fuzz"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "libfuzzer-sys",
  "wayfind",
