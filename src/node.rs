@@ -15,16 +15,16 @@ use crate::suffixes::Suffixes;
 
 /// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
-    pub attempts: BTreeSet<(usize, usize)>,
     pub needles: NeedleCache,
+    pub attempts: BTreeSet<(usize, usize)>,
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
 impl SearchContext<'_, '_> {
     pub(crate) fn new() -> Self {
         Self {
-            attempts: BTreeSet::new(),
             needles: NeedleCache::new(),
+            attempts: BTreeSet::new(),
             parameters: SmallVec::new(),
         }
     }
@@ -265,8 +265,10 @@ impl<S, T> Node<S, T> {
 
             let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
+            let upper = (max + 1).min(remaining.len());
 
-            let positions = core::iter::successors(Some(max), |&position| {
+            let initial = memchr::memrchr(b'/', &remaining[..upper]);
+            let positions = core::iter::successors(initial, |&position| {
                 memchr::memrchr(b'/', &remaining[..position])
             });
 
