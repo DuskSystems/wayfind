@@ -89,7 +89,7 @@ jobs:
         run: ./scripts/coverage.sh
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@3f20e214133d0983f9a10f3d63b0faf9241a3daa # v6.0.0
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         with:
           files: codecov.json
           fail_ci_if_error: true
@@ -120,7 +120,7 @@ jobs:
         run: ./scripts/docs.sh
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: target/doc
 
@@ -148,7 +148,7 @@ jobs:
 
       - name: Upload artifacts
         if: failure()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: fuzz-artifacts
           path: fuzz/artifacts
@@ -173,7 +173,7 @@ jobs:
         run: ./scripts/bench-build.sh
 
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@aba8c9f29af4f11950ad5a85dc61651fdf411850 # v4.13.0
+        uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4.15.1
         with:
           mode: simulation,memory
           run: ./scripts/bench-run.sh
