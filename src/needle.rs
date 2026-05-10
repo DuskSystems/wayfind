@@ -10,7 +10,7 @@ impl CachedPosition {
 
     const fn get(self) -> Option<usize> {
         match self {
-            Self::NOT_FOUND => None,
+            Self::NOT_COMPUTED | Self::NOT_FOUND => None,
             Self(position) => Some(position),
         }
     }

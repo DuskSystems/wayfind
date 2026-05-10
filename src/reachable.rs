@@ -16,13 +16,9 @@ enum Condition {
 }
 
 impl Condition {
-    fn contains(needles: &mut BTreeMap<Box<[u8]>, usize>, prefix: &[u8]) -> Self {
+    fn intern(needles: &mut BTreeMap<Box<[u8]>, usize>, prefix: &[u8]) -> usize {
         let len = needles.len();
-        let id = *needles.entry(prefix.into()).or_insert(len);
-        Self::Contains {
-            needle: prefix.into(),
-            id,
-        }
+        *needles.entry(prefix.into()).or_insert(len)
     }
 }
 
@@ -82,7 +78,7 @@ impl Reachable {
         node: &Node<S, T>,
         needles: &mut BTreeMap<Box<[u8]>, usize>,
     ) -> Self {
-        // Nodes with data or end wildcards are always reachable (match here).
+        // Nodes with data or end wildcards are always reachable.
         if node.data.is_some() || node.end_wildcard.is_some() {
             return Self::default();
         }
@@ -143,7 +139,12 @@ impl Reachable {
         }
 
         if has_params {
-            let contains = Condition::contains(needles, prefix);
+            let id = Condition::intern(needles, prefix);
+            let contains = Condition::Contains {
+                needle: prefix.clone().into_boxed_slice(),
+                id,
+            };
+
             let mut deeper_groups = Vec::new();
             let mut has_unconstrained = node.end_wildcard.is_some();
 
@@ -166,9 +167,9 @@ impl Reachable {
                 groups.push(Group::single(contains));
             } else {
                 for mut deeper in deeper_groups {
-                    let already_contains = deeper.iter().any(|condition| {
-                        matches!(condition, Condition::Contains { needle, .. } if **needle == *prefix)
-                    });
+                    let already_contains = deeper.iter().any(
+                        |condition| matches!(condition, Condition::Contains { id: other, .. } if *other == id),
+                    );
 
                     if !already_contains {
                         deeper.insert(0, contains.clone());
@@ -182,7 +183,9 @@ impl Reachable {
         }
 
         if has_data && (has_params || !node.static_children.is_empty()) {
-            groups.push(Group::single(Condition::contains(needles, prefix)));
+            groups.push(Group::single(Condition::EndsWith(
+                prefix.clone().into_boxed_slice(),
+            )));
         }
 
         for child in &node.static_children {
