@@ -30,6 +30,6 @@ jobs:
           persist-credentials: false
 
       - name: Renovate
-        uses: renovatebot/github-action@3633cede7d4d4598438e654eac4a695e46004420 # v46.1.7
+        uses: renovatebot/github-action@79dc0ba74dc3de28db0a7aeb1d0b95d5bf5fde2a # v46.1.13
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

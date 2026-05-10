@@ -85,6 +85,7 @@ renamed_function_params = "deny"
 same_name_method = "deny"
 
 # Clarity
+byte_char_slices = "allow"
 clone_on_ref_ptr = "deny"
 empty_enum_variants_with_brackets = "deny"
 empty_structs_with_brackets = "deny"
