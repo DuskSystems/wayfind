@@ -16,9 +16,21 @@ enum Condition {
 }
 
 impl Condition {
-    fn intern(needles: &mut BTreeMap<Box<[u8]>, usize>, prefix: &[u8]) -> usize {
-        let len = needles.len();
-        *needles.entry(prefix.into()).or_insert(len)
+    fn check(&self, needles: &mut NeedleCache, path: &str, offset: usize) -> bool {
+        let remaining = &path.as_bytes()[offset..];
+        match self {
+            Self::EndsWith(suffix) => {
+                remaining.len() >= suffix.len()
+                    && suffix
+                        .iter()
+                        .rev()
+                        .zip(remaining.iter().rev())
+                        .all(|(a, b)| a == b)
+            }
+            Self::Contains { needle, id } => needles
+                .rightmost(*id, needle, path)
+                .is_some_and(|position| position >= offset),
+        }
     }
 }
 
@@ -34,6 +46,12 @@ impl Group {
             conditions: Box::new([condition]),
         }
     }
+
+    fn check(&self, needles: &mut NeedleCache, path: &str, offset: usize) -> bool {
+        self.conditions
+            .iter()
+            .all(|condition| condition.check(needles, path, offset))
+    }
 }
 
 /// Pre-computed reachability conditions for a node.
@@ -43,34 +61,13 @@ pub(crate) struct Reachable {
 }
 
 impl Reachable {
-    /// Returns `true` if no reachability constraints exist.
-    fn is_empty(&self) -> bool {
-        self.groups.is_empty()
-    }
-
-    /// Returns `true` if the remaining path could reach a match through this node.
+    /// Whether the remaining path could reach a match through this node.
     pub(crate) fn check(&self, needles: &mut NeedleCache, path: &str, offset: usize) -> bool {
-        if self.groups.is_empty() {
-            return true;
-        }
-
-        let remaining = &path.as_bytes()[offset..];
-
-        self.groups.iter().any(|group| {
-            group.conditions.iter().all(|condition| match condition {
-                Condition::EndsWith(suffix) => {
-                    remaining.len() >= suffix.len()
-                        && suffix
-                            .iter()
-                            .rev()
-                            .zip(remaining.iter().rev())
-                            .all(|(a, b)| a == b)
-                }
-                Condition::Contains { needle, id } => needles
-                    .rightmost(*id, needle, path.as_bytes())
-                    .is_some_and(|position| position >= offset),
-            })
-        })
+        self.groups.is_empty()
+            || self
+                .groups
+                .iter()
+                .any(|group| group.check(needles, path, offset))
     }
 
     /// Computes reachability conditions for a node's subtree.
@@ -84,25 +81,23 @@ impl Reachable {
         }
 
         let mut groups = Vec::new();
+        let mut prefix = Vec::new();
 
         for child in &node.static_children {
-            let mut prefix = child.state.prefix.to_vec();
-            if !Self::collect_static(child, &mut prefix, &mut groups, needles) {
+            let inner = Self::walk_static(child, &mut prefix, needles);
+            if inner.is_empty() {
                 return Self::default();
             }
+
+            groups.extend(inner);
         }
 
-        for child in node
-            .dynamic_children
-            .iter()
-            .map(|child| &child.reachable)
-            .chain(node.wildcard_children.iter().map(|child| &child.reachable))
-        {
-            if child.is_empty() {
+        for inner in Self::parameter_groups(node) {
+            if inner.is_empty() {
                 return Self::default();
             }
 
-            groups.extend(child.groups.iter().cloned());
+            groups.extend(inner.iter().cloned());
         }
 
         if groups.is_empty() {
@@ -114,91 +109,87 @@ impl Reachable {
         }
     }
 
-    /// Returns `false` if any branch is unconstrained.
-    fn collect_static<T>(
+    /// Walks a static subtree, returning the constraint groups it produces.
+    fn walk_static<T>(
         node: &Node<StaticState, T>,
         prefix: &mut Vec<u8>,
-        groups: &mut Vec<Group>,
         needles: &mut BTreeMap<Box<[u8]>, usize>,
-    ) -> bool {
+    ) -> Vec<Group> {
+        let mut groups = Vec::new();
+
+        let start = prefix.len();
+        prefix.extend_from_slice(&node.state.prefix);
+
         let has_data = node.data.is_some();
-        let has_params = !node.dynamic_children.is_empty()
-            || !node.wildcard_children.is_empty()
-            || node.end_wildcard.is_some();
+        let has_params = node.has_parameters();
 
+        // Top level parameters can't be pruned.
         if has_params && prefix.len() <= 1 {
-            return false;
-        }
-
-        if has_data && !has_params && node.static_children.is_empty() {
-            groups.push(Group::single(Condition::EndsWith(
-                prefix.clone().into_boxed_slice(),
-            )));
-
-            return true;
+            prefix.truncate(start);
+            return Vec::new();
         }
 
         if has_params {
-            let id = Condition::intern(needles, prefix);
+            let len = needles.len();
+            let id = *needles.entry(prefix.as_slice().into()).or_insert(len);
             let contains = Condition::Contains {
-                needle: prefix.clone().into_boxed_slice(),
+                needle: prefix.as_slice().into(),
                 id,
             };
 
-            let mut deeper_groups = Vec::new();
-            let mut has_unconstrained = node.end_wildcard.is_some();
-
-            for child_reachable in node
-                .dynamic_children
-                .iter()
-                .map(|child| &child.reachable)
-                .chain(node.wildcard_children.iter().map(|child| &child.reachable))
-            {
-                if child_reachable.is_empty() {
-                    has_unconstrained = true;
-                } else {
-                    for group in &*child_reachable.groups {
-                        deeper_groups.push(group.conditions.to_vec());
-                    }
-                }
-            }
-
-            if has_unconstrained || deeper_groups.is_empty() {
+            let any_unconstrained = Self::parameter_groups(node).any(<[Group]>::is_empty);
+            if any_unconstrained {
                 groups.push(Group::single(contains));
             } else {
-                for mut deeper in deeper_groups {
-                    let already_contains = deeper.iter().any(
-                        |condition| matches!(condition, Condition::Contains { id: other, .. } if *other == id),
-                    );
+                for inner in Self::parameter_groups(node) {
+                    for group in inner {
+                        let mut deeper = group.conditions.to_vec();
 
-                    if !already_contains {
-                        deeper.insert(0, contains.clone());
+                        let already_has = deeper.iter().any(
+                            |condition| matches!(condition, Condition::Contains { id: other, .. } if *other == id),
+                        );
+
+                        if !already_has {
+                            deeper.insert(0, contains.clone());
+                        }
+
+                        groups.push(Group {
+                            conditions: deeper.into_boxed_slice(),
+                        });
                     }
-
-                    groups.push(Group {
-                        conditions: deeper.into_boxed_slice(),
-                    });
                 }
             }
         }
 
-        if has_data && (has_params || !node.static_children.is_empty()) {
-            groups.push(Group::single(Condition::EndsWith(
-                prefix.clone().into_boxed_slice(),
-            )));
+        // Exact prefix match if this node has data.
+        if has_data {
+            groups.push(Group::single(Condition::EndsWith(prefix.as_slice().into())));
         }
 
         for child in &node.static_children {
-            let start = prefix.len();
-            prefix.extend_from_slice(&child.state.prefix);
-
-            if !Self::collect_static(child, prefix, groups, needles) {
-                return false;
+            let inner = Self::walk_static(child, prefix, needles);
+            if inner.is_empty() {
+                prefix.truncate(start);
+                return Vec::new();
             }
 
-            prefix.truncate(start);
+            groups.extend(inner);
         }
 
-        true
+        prefix.truncate(start);
+        groups
+    }
+
+    /// Yields the reachable constraint groups of parameter children.
+    fn parameter_groups<S, T>(node: &Node<S, T>) -> impl Iterator<Item = &[Group]> {
+        node.dynamic_children
+            .iter()
+            .map(|child| &*child.reachable.groups)
+            .chain(
+                node.wildcard_children
+                    .iter()
+                    .map(|child| &*child.reachable.groups),
+            )
+            .chain(node.end_wildcard.is_some().then_some(&[] as &[Group]))
     }
 }

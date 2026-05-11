@@ -14,19 +14,19 @@ pub struct Match<'r, 'p, T> {
 }
 
 impl<'r, 'p, T> Match<'r, 'p, T> {
-    /// Returns a reference to the data associated with the matched template.
+    /// A reference to the data associated with the matched template.
     #[must_use]
     pub const fn data(&self) -> &'r T {
         self.data
     }
 
-    /// Returns the matched template string.
+    /// The matched template string.
     #[must_use]
     pub const fn template(&self) -> &'r str {
         self.template
     }
 
-    /// Returns the matched parameters as key-value pairs.
+    /// The matched parameters as key-value pairs.
     #[must_use]
     pub fn parameters(&self) -> &[(&'r str, &'p str)] {
         &self.parameters
@@ -45,8 +45,6 @@ impl<T> Router<T> {
     }
 
     /// Searches for a matching template in the router.
-    ///
-    /// Returns `None` if no template matches the path.
     ///
     /// # Examples
     ///

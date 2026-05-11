@@ -28,15 +28,15 @@ impl NeedleCache {
         }
     }
 
-    /// Returns the rightmost position of the needle, cached after first lookup.
-    pub(crate) fn rightmost(&mut self, id: usize, needle: &[u8], path: &[u8]) -> Option<usize> {
+    /// The rightmost position of the needle, cached after first lookup.
+    pub(crate) fn rightmost(&mut self, id: usize, needle: &[u8], path: &str) -> Option<usize> {
         if id >= self.entries.len() {
             self.entries.resize(id + 1, CachedPosition::NOT_COMPUTED);
         }
 
         let entry = &mut self.entries[id];
         if *entry == CachedPosition::NOT_COMPUTED {
-            *entry = match memchr::memmem::rfind(path, needle) {
+            *entry = match memchr::memmem::rfind(path.as_bytes(), needle) {
                 Some(position) => CachedPosition(position),
                 None => CachedPosition::NOT_FOUND,
             };

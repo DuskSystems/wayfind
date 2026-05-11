@@ -1,10 +1,11 @@
 use crate::node::Node;
 
-/// Precomputed path length bounds for pruning during search.
+/// Pre-computed path length bounds for pruning during search.
 #[derive(Clone, Debug)]
 pub(crate) struct Bounds {
     /// Minimum remaining path bytes to reach any match.
     shortest: usize,
+
     /// Maximum remaining path bytes that could still match.
     longest: usize,
 }
@@ -19,7 +20,7 @@ impl Default for Bounds {
 }
 
 impl Bounds {
-    pub(crate) fn new<S, T>(node: &Node<S, T>) -> Self {
+    pub(crate) fn compute<S, T>(node: &Node<S, T>) -> Self {
         Self {
             shortest: Self::compute_shortest(node),
             longest: Self::compute_longest(node),
@@ -45,52 +46,47 @@ impl Bounds {
             return 1;
         }
 
-        let mut shortest = usize::MAX;
-
-        for child in &node.static_children {
-            let length = child
+        let static_lengths = node.static_children.iter().map(|child| {
+            child
                 .state
                 .prefix
                 .len()
-                .saturating_add(child.bounds.shortest);
+                .saturating_add(child.bounds.shortest)
+        });
 
-            shortest = shortest.min(length);
-        }
+        let dynamic_lengths = node
+            .dynamic_children
+            .iter()
+            .map(|child| child.bounds.shortest.saturating_add(1));
 
-        for child in &node.dynamic_children {
-            let length = child.bounds.shortest.saturating_add(1);
-            shortest = shortest.min(length);
-        }
+        let wildcard_lengths = node
+            .wildcard_children
+            .iter()
+            .map(|child| child.bounds.shortest.saturating_add(1));
 
-        for child in &node.wildcard_children {
-            let length = child.bounds.shortest.saturating_add(1);
-            shortest = shortest.min(length);
-        }
-
-        shortest
+        static_lengths
+            .chain(dynamic_lengths)
+            .chain(wildcard_lengths)
+            .min()
+            .unwrap_or(usize::MAX)
     }
 
     fn compute_longest<S, T>(node: &Node<S, T>) -> usize {
-        // Dynamic and wildcard parameters can consume any input.
-        if !node.dynamic_children.is_empty()
-            || !node.wildcard_children.is_empty()
-            || node.end_wildcard.is_some()
-        {
+        // Parameters can consume any input.
+        if node.has_parameters() {
             return usize::MAX;
         }
 
-        let mut longest = 0;
-
-        for child in &node.static_children {
-            let length = child
-                .state
-                .prefix
-                .len()
-                .saturating_add(child.bounds.longest);
-
-            longest = longest.max(length);
-        }
-
-        longest
+        node.static_children
+            .iter()
+            .map(|child| {
+                child
+                    .state
+                    .prefix
+                    .len()
+                    .saturating_add(child.bounds.longest)
+            })
+            .max()
+            .unwrap_or(0)
     }
 }

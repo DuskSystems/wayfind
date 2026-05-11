@@ -27,8 +27,7 @@ impl<T> RouterBuilder<T> {
     ///
     /// # Errors
     ///
-    /// Returns [`InsertError`] if the template is malformed or conflicts with
-    /// an existing route.
+    /// When the template is malformed or conflicts with an existing route.
     ///
     /// # Examples
     ///
@@ -106,71 +105,70 @@ impl<S, T> BuilderNode<S, T> {
     }
 
     pub(crate) fn insert(&mut self, template: &mut Template<'_>, data: Data<T>) {
-        if let Some(part) = template.parts.pop() {
-            match part {
-                Part::Static { prefix } => self.insert_static(template, data, prefix),
-                Part::Dynamic { name } => self.insert_dynamic(template, data, name),
-                Part::Wildcard { name } if template.parts.is_empty() => {
-                    self.insert_end_wildcard(data, name);
-                }
-                Part::Wildcard { name } => self.insert_wildcard(template, data, name),
-            }
-        } else {
+        let Some(part) = template.parts.pop() else {
             self.data = Some(data);
+            return;
+        };
+
+        match part {
+            Part::Static { prefix } => self.insert_static(template, data, prefix),
+            Part::Dynamic { name } => self.insert_dynamic(template, data, name),
+            Part::Wildcard { name } if template.parts.is_empty() => {
+                self.insert_end_wildcard(data, name);
+            }
+            Part::Wildcard { name } => self.insert_wildcard(template, data, name),
         }
     }
 
     fn insert_static(&mut self, template: &mut Template<'_>, data: Data<T>, prefix: &[u8]) {
-        if let Some(child) = self
+        let Some(child) = self
             .static_children
             .iter_mut()
             .find(|child| child.state.prefix[0] == prefix[0])
-        {
-            let common_prefix = prefix
-                .iter()
-                .zip(&child.state.prefix)
-                .take_while(|&(a, b)| a == b)
-                .count();
+        else {
+            let mut new_child = BuilderNode::new(StaticState::new(prefix));
+            new_child.insert(template, data);
+            self.static_children.push(new_child);
 
-            if common_prefix >= child.state.prefix.len() {
-                if common_prefix >= prefix.len() {
-                    child.insert(template, data);
-                } else {
-                    child.insert_static(template, data, &prefix[common_prefix..]);
-                }
+            return;
+        };
 
-                return;
-            }
+        let common_prefix = prefix
+            .iter()
+            .zip(&child.state.prefix)
+            .take_while(|&(a, b)| a == b)
+            .count();
 
-            // Split the existing child at the divergence point.
-            let new_child_a = BuilderNode {
-                state: StaticState::new(&child.state.prefix[common_prefix..]),
-                data: child.data.take(),
-
-                static_children: core::mem::take(&mut child.static_children),
-                dynamic_children: core::mem::take(&mut child.dynamic_children),
-                wildcard_children: core::mem::take(&mut child.wildcard_children),
-                end_wildcard: core::mem::take(&mut child.end_wildcard),
-            };
-
-            let new_child_b = BuilderNode::new(StaticState::new(&prefix[common_prefix..]));
-            child.state = StaticState::new(&child.state.prefix[..common_prefix]);
-
-            if prefix[common_prefix..].is_empty() {
-                child.static_children = vec![new_child_a];
+        if common_prefix >= child.state.prefix.len() {
+            if common_prefix >= prefix.len() {
                 child.insert(template, data);
             } else {
-                child.static_children = vec![new_child_a, new_child_b];
-                child.static_children[1].insert(template, data);
+                child.insert_static(template, data, &prefix[common_prefix..]);
             }
 
             return;
         }
 
-        let mut child = BuilderNode::new(StaticState::new(prefix));
-        child.insert(template, data);
+        let new_child_a = BuilderNode {
+            state: StaticState::new(&child.state.prefix[common_prefix..]),
+            data: child.data.take(),
 
-        self.static_children.push(child);
+            static_children: core::mem::take(&mut child.static_children),
+            dynamic_children: core::mem::take(&mut child.dynamic_children),
+            wildcard_children: core::mem::take(&mut child.wildcard_children),
+            end_wildcard: core::mem::take(&mut child.end_wildcard),
+        };
+
+        let new_child_b = BuilderNode::new(StaticState::new(&prefix[common_prefix..]));
+        child.state = StaticState::new(&child.state.prefix[..common_prefix]);
+
+        if prefix[common_prefix..].is_empty() {
+            child.static_children = vec![new_child_a];
+            child.insert(template, data);
+        } else {
+            child.static_children = vec![new_child_a, new_child_b];
+            child.static_children[1].insert(template, data);
+        }
     }
 
     fn insert_dynamic(&mut self, template: &mut Template<'_>, data: Data<T>, name: &str) {
@@ -221,46 +219,35 @@ impl<S, T> BuilderNode<S, T> {
     }
 
     fn conflict_static(&self, parts: &[Part<'_>], prefix: &[u8]) -> Option<&Data<T>> {
-        for child in &self.static_children {
-            if prefix.len() >= child.state.prefix.len()
-                && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
-            {
-                let remaining_prefix = &prefix[child.state.prefix.len()..];
-                if remaining_prefix.is_empty() {
-                    if let Some(data) = child.conflict(parts) {
-                        return Some(data);
-                    }
-                } else if let Some(data) = child.conflict_static(parts, remaining_prefix) {
-                    return Some(data);
+        self.static_children
+            .iter()
+            .filter(|child| {
+                prefix.len() >= child.state.prefix.len()
+                    && child.state.prefix.iter().zip(prefix).all(|(a, b)| a == b)
+            })
+            .find_map(|child| {
+                let rest = &prefix[child.state.prefix.len()..];
+                if rest.is_empty() {
+                    child.conflict(parts)
+                } else {
+                    child.conflict_static(parts, rest)
                 }
-            }
-        }
-
-        None
+            })
     }
 
     fn conflict_dynamic(&self, parts: &[Part<'_>]) -> Option<&Data<T>> {
-        for child in &self.dynamic_children {
-            if let Some(data) = child.conflict(parts) {
-                return Some(data);
-            }
-        }
-
-        None
+        self.dynamic_children
+            .iter()
+            .find_map(|child| child.conflict(parts))
     }
 
     fn conflict_wildcard(&self, parts: &[Part<'_>]) -> Option<&Data<T>> {
-        for child in &self.wildcard_children {
-            if let Some(data) = child.conflict(parts) {
-                return Some(data);
-            }
-        }
-
-        None
+        self.wildcard_children
+            .iter()
+            .find_map(|child| child.conflict(parts))
     }
 
     fn conflict_end_wildcard(&self) -> Option<&Data<T>> {
-        let child = self.end_wildcard.as_ref()?;
-        Some(&child.data)
+        self.end_wildcard.as_ref().map(|child| &child.data)
     }
 }
