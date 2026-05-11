@@ -4,14 +4,14 @@ style = "conventional"
 merge_commit = false
 
 allowed_types = [
-  "fix",
   "feat",
-  "chore",
-  "docs",
-  "style",
-  "refactor",
+  "fix",
   "perf",
+  "docs",
   "test",
+  "refactor",
+  "style",
+  "chore",
 ]
 
 allowed_scopes = []

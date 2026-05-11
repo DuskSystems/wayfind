@@ -5,3 +5,15 @@ release_always = false
 git_release_name = "v{{ version }}"
 git_tag_name = "v{{ version }}"
 pr_name = "chore: Release v{{ version }}"
+
+[changelog]
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^docs", group = "<!-- 3 -->Documentation" },
+  { message = "^test", group = "<!-- 4 -->Testing" },
+  { message = "^refactor", skip = true },
+  { message = "^style", skip = true },
+  { message = "^chore", skip = true },
+]
