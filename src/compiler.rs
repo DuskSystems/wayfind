@@ -21,7 +21,8 @@ impl Compiler {
             needles: BTreeMap::new(),
         };
 
-        Router::new(compiler.compile(builder))
+        let root = compiler.compile(builder);
+        Router::new(root)
     }
 
     fn compile<S, T>(&mut self, builder: BuilderNode<S, T>) -> Node<S, T> {
@@ -32,7 +33,7 @@ impl Compiler {
             .collect();
 
         let mut seen = BTreeSet::new();
-        let mut current = Vec::new();
+        let mut prefix = Vec::new();
 
         let mut dynamic_children: Vec<Node<DynamicState, T>> = builder
             .dynamic_children
@@ -41,7 +42,7 @@ impl Compiler {
             .collect();
 
         for child in &mut dynamic_children {
-            Suffixes::update(child, &mut current, &mut seen);
+            child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
         }
 
         let mut wildcard_children: Vec<Node<WildcardState, T>> = builder
@@ -51,10 +52,8 @@ impl Compiler {
             .collect();
 
         for child in &mut wildcard_children {
-            Suffixes::update(child, &mut current, &mut seen);
+            child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
         }
-
-        let end_wildcard = builder.end_wildcard;
 
         static_children.sort_by(|a, b| a.state.prefix.cmp(&b.state.prefix));
 
@@ -72,29 +71,13 @@ impl Compiler {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
-        let dynamic_search = if dynamic_children.iter().all(|node| {
-            node.dynamic_children.is_empty()
-                && node.wildcard_children.is_empty()
-                && node.end_wildcard.is_none()
-                && node
-                    .static_children
-                    .iter()
-                    .all(|child| child.state.prefix.first() == Some(&b'/'))
-        }) {
+        let dynamic_search = if dynamic_children.iter().all(Node::is_segment_only) {
             DynamicSearch::Segment
         } else {
             DynamicSearch::Inline
         };
 
-        let wildcard_search = if wildcard_children.iter().all(|node| {
-            node.dynamic_children.is_empty()
-                && node.wildcard_children.is_empty()
-                && node.end_wildcard.is_none()
-                && node
-                    .static_children
-                    .iter()
-                    .all(|child| child.state.prefix.first() == Some(&b'/'))
-        }) {
+        let wildcard_search = if wildcard_children.iter().all(Node::is_segment_only) {
             WildcardSearch::Segment
         } else {
             WildcardSearch::Inline
@@ -107,7 +90,7 @@ impl Compiler {
             static_children: static_children.into_boxed_slice(),
             dynamic_children: dynamic_children.into_boxed_slice(),
             wildcard_children: wildcard_children.into_boxed_slice(),
-            end_wildcard,
+            end_wildcard: builder.end_wildcard,
 
             bounds: Bounds::default(),
             reachable: Reachable::default(),
@@ -117,7 +100,7 @@ impl Compiler {
             wildcard_search,
         };
 
-        node.bounds = Bounds::new(&node);
+        node.bounds = Bounds::compute(&node);
         node.reachable = Reachable::compute(&node, &mut self.needles);
 
         node

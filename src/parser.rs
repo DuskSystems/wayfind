@@ -45,10 +45,11 @@ impl<'a> Template<'a> {
                     let (part, next) = Self::parse_parameter_part(input, cursor)?;
 
                     // Check for touching parameters.
-                    if let Some((_, last)) = seen_parameters.last() {
-                        if cursor == *last {
-                            return Err(InsertError::TouchingParameters);
-                        }
+                    if seen_parameters
+                        .last()
+                        .is_some_and(|&(_, last)| cursor == last)
+                    {
+                        return Err(InsertError::TouchingParameters);
                     }
 
                     // Check for duplicate names.

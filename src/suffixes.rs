@@ -8,128 +8,103 @@ use memchr::memmem::FinderRev;
 use crate::node::Node;
 use crate::state::StaticState;
 
-/// A single pre-computed suffix needle.
+/// A single pre-computed suffix pattern.
 #[derive(Clone, Debug)]
 pub(crate) struct Suffix {
-    /// Raw byte pattern.
-    needle: Box<[u8]>,
-
-    /// Reverse finder for the needle.
+    bytes: Box<[u8]>,
     finder: FinderRev<'static>,
 }
 
-/// Pre-computed suffix needles for parameter matching.
+impl Suffix {
+    fn new(bytes: Vec<u8>) -> Self {
+        let finder = FinderRev::new(&bytes).into_owned();
+        Self {
+            bytes: bytes.into_boxed_slice(),
+            finder,
+        }
+    }
+
+    /// Yields each match position, walking from right to left.
+    fn positions<'a>(
+        &'a self,
+        remaining: &'a [u8],
+        cap: usize,
+    ) -> impl Iterator<Item = usize> + 'a {
+        let initial = (cap + self.bytes.len()).min(remaining.len());
+        let first = self.finder.rfind(&remaining[..initial]);
+        core::iter::successors(first, move |&end| self.finder.rfind(&remaining[..end]))
+    }
+}
+
+/// Pre-computed suffix patterns for parameter matching, sorted longest first.
 #[derive(Clone, Default, Debug)]
 pub(crate) struct Suffixes(Box<[Suffix]>);
 
 impl Suffixes {
-    /// Returns the length of the longest suffix needle, or 0 if empty.
+    /// The length of the longest suffix.
+    ///
+    /// Zero when there are no suffixes.
     pub(crate) fn longest(&self) -> usize {
-        self.0.first().map_or(0, |suffix| suffix.needle.len())
+        self.0.first().map_or(0, |suffix| suffix.bytes.len())
     }
 
-    /// Returns `true` if `after` starts with any suffix needle.
-    pub(crate) fn matches(&self, after: &[u8]) -> bool {
-        self.0.iter().any(|entry| {
-            after.len() >= entry.needle.len() && entry.needle.iter().zip(after).all(|(a, b)| a == b)
+    /// Whether the input starts with any suffix.
+    pub(crate) fn accepts(&self, after: &[u8]) -> bool {
+        self.0.iter().any(|suffix| {
+            after.len() >= suffix.bytes.len() && suffix.bytes.iter().zip(after).all(|(a, b)| a == b)
         })
     }
 
-    /// Yields candidate boundary positions within `remaining`, searching backwards.
+    /// Yields candidate boundary positions, walking from right to left.
     pub(crate) fn positions<'a>(
         &'a self,
         path: &'a str,
         offset: usize,
-        max: usize,
-        limit: Option<usize>,
+        cap: usize,
     ) -> impl Iterator<Item = usize> + 'a {
         let remaining = &path.as_bytes()[offset..];
-        let cap = limit.map_or(max, |limit| limit.min(max));
-
-        self.0.iter().flat_map(move |suffix| {
-            let mut end = (cap + suffix.needle.len()).min(remaining.len());
-
-            core::iter::from_fn(move || {
-                loop {
-                    let position = suffix.finder.rfind(&remaining[..end])?;
-                    if position == 0 {
-                        return None;
-                    }
-
-                    end = position;
-
-                    if path.is_char_boundary(offset + position) {
-                        return Some(position);
-                    }
-                }
-            })
-        })
+        self.0
+            .iter()
+            .flat_map(move |suffix| suffix.positions(remaining, cap))
+            .filter(|&position| position > 0)
+            .filter(move |&position| path.is_char_boundary(offset + position))
     }
 
-    /// Updates the suffixes from the static children of a node.
-    pub(crate) fn update<S, T>(
-        node: &mut Node<S, T>,
-        current: &mut Vec<u8>,
+    /// Computes the suffix set from a node's static descendants.
+    pub(crate) fn compute<S, T>(
+        node: &Node<S, T>,
+        prefix: &mut Vec<u8>,
+        seen: &mut BTreeSet<Vec<u8>>,
+    ) -> Self {
+        seen.clear();
+
+        for child in &node.static_children {
+            Self::walk_static(child, prefix, seen);
+        }
+
+        let mut suffixes: Vec<Suffix> = seen.iter().cloned().map(Suffix::new).collect();
+        suffixes.sort_by_key(|suffix| Reverse(suffix.bytes.len()));
+        Self(suffixes.into_boxed_slice())
+    }
+
+    /// Walks a static subtree, recording the accumulated prefix at each node that can terminate a route.
+    fn walk_static<T>(
+        node: &Node<StaticState, T>,
+        prefix: &mut Vec<u8>,
         seen: &mut BTreeSet<Vec<u8>>,
     ) {
-        let new = collect(&node.static_children, current, seen);
-        let unchanged = node.suffixes.0.len() == new.len()
-            && node
-                .suffixes
-                .0
-                .iter()
-                .zip(&new)
-                .all(|(entry, bytes)| *entry.needle == *bytes.as_slice());
+        let start = prefix.len();
+        prefix.extend_from_slice(&node.state.prefix);
 
-        if !unchanged {
-            node.suffixes = Self(
-                new.into_iter()
-                    .map(|bytes| {
-                        let finder = FinderRev::new(&bytes).into_owned();
-                        Suffix {
-                            needle: bytes.into_boxed_slice(),
-                            finder,
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-            );
-        }
-    }
-}
-
-/// Collects static suffixes from children for parameter matching.
-fn collect<T>(
-    children: &[Node<StaticState, T>],
-    current: &mut Vec<u8>,
-    seen: &mut BTreeSet<Vec<u8>>,
-) -> Vec<Vec<u8>> {
-    seen.clear();
-    collect_recursive(children, current, seen);
-
-    let mut suffixes: Vec<Vec<u8>> = seen.iter().cloned().collect();
-    suffixes.sort_by_key(|suffix| Reverse(suffix.len()));
-    suffixes
-}
-
-fn collect_recursive<T>(
-    children: &[Node<StaticState, T>],
-    current: &mut Vec<u8>,
-    seen: &mut BTreeSet<Vec<u8>>,
-) {
-    for child in children {
-        current.extend_from_slice(&child.state.prefix);
-
-        let is_suffix = child.data.is_some()
-            || !child.dynamic_children.is_empty()
-            || !child.wildcard_children.is_empty()
-            || child.end_wildcard.is_some();
-
-        if is_suffix {
-            seen.insert(current.clone());
+        let is_terminal = node.data.is_some() || node.has_parameters();
+        if is_terminal {
+            seen.insert(prefix.clone());
         }
 
-        collect_recursive(&child.static_children, current, seen);
-        current.truncate(current.len() - child.state.prefix.len());
+        for child in &node.static_children {
+            Self::walk_static(child, prefix, seen);
+        }
+
+        prefix.truncate(start);
     }
 }

@@ -73,6 +73,20 @@ pub(crate) struct Node<S, T> {
 }
 
 impl<S, T> Node<S, T> {
+    pub(crate) fn has_parameters(&self) -> bool {
+        !self.dynamic_children.is_empty()
+            || !self.wildcard_children.is_empty()
+            || self.end_wildcard.is_some()
+    }
+
+    pub(crate) fn is_segment_only(&self) -> bool {
+        !self.has_parameters()
+            && self
+                .static_children
+                .iter()
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
+    }
+
     pub(crate) fn search<'r, 'p>(
         &'r self,
         ctx: &mut SearchContext<'r, 'p>,
@@ -210,7 +224,7 @@ impl<S, T> Node<S, T> {
             let max = remaining.len() - child.bounds.shortest();
 
             // Try boundaries with known suffix.
-            for position in child.suffixes.positions(path, offset, max, Some(limit)) {
+            for position in child.suffixes.positions(path, offset, limit.min(max)) {
                 let boundary = offset + position;
                 if ctx.attempts.contains(&(ptr, boundary)) {
                     continue;
@@ -274,7 +288,7 @@ impl<S, T> Node<S, T> {
 
             for position in positions.take_while(|&position| position > 0) {
                 let after = &remaining[position..];
-                if !child.suffixes.matches(after) {
+                if !child.suffixes.accepts(after) {
                     continue;
                 }
 
@@ -318,7 +332,7 @@ impl<S, T> Node<S, T> {
             let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
 
-            for position in child.suffixes.positions(path, offset, max, None) {
+            for position in child.suffixes.positions(path, offset, max) {
                 let boundary = offset + position;
                 if ctx.attempts.contains(&(ptr, boundary)) {
                     continue;
@@ -345,12 +359,9 @@ impl<S, T> Node<S, T> {
         path: &'p str,
         offset: usize,
     ) -> Option<&'r Data<T>> {
-        if let Some(child) = &self.end_wildcard {
-            ctx.parameters.push((&child.name, &path[offset..]));
-            return Some(&child.data);
-        }
-
-        None
+        let child = self.end_wildcard.as_ref()?;
+        ctx.parameters.push((&child.name, &path[offset..]));
+        Some(&child.data)
     }
 }
 
