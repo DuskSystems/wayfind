@@ -7,6 +7,15 @@ git_tag_name = "v{{ version }}"
 pr_name = "chore: Release v{{ version }}"
 
 [changelog]
+body = """\
+## [{{ version }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags }}
+{% for commit in commits -%}
+- {{ commit.message }} ([{{ commit.id }}]({{ remote.link }}/commit/{{ commit.id }}))
+{% endfor -%}
+{% endfor %}\
+"""
 commit_parsers = [
   { message = "^feat", group = "<!-- 0 -->Features" },
   { message = "^fix", group = "<!-- 1 -->Fixes" },
