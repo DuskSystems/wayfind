@@ -23,7 +23,11 @@ commit_parsers = [
   { message = "^perf", group = "<!-- 2 -->Performance" },
   { message = "^docs", group = "<!-- 3 -->Documentation" },
   { message = "^test", group = "<!-- 4 -->Testing" },
+  { message = "^fuzz", skip = true },
+  { message = "^bench", skip = true },
   { message = "^refactor", skip = true },
   { message = "^style", skip = true },
+  { message = "^ci", skip = true },
+  { message = "^dev", skip = true },
   { message = "^chore", skip = true },
 ]
