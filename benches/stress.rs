@@ -64,6 +64,16 @@ fn dynamic_depth<const N: usize>(bencher: divan::Bencher<'_, '_>) {
 }
 
 #[divan::bench(consts = [1, 10, 100, 1000])]
+fn dynamic_rescan<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<x>a<y>a<z>/-/<s>/end/<t>", 1).unwrap();
+
+    let router = builder.build();
+    let path = format!("/{}/-/{}/end/", "a".repeat(N), "b".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
 fn dynamic_nested<const N: usize>(bencher: divan::Bencher<'_, '_>) {
     let mut builder = wayfind::RouterBuilder::new();
     builder.insert("/<a>.<b>.z", 1).unwrap();
@@ -182,6 +192,16 @@ fn wildcard_nested<const N: usize>(bencher: divan::Bencher<'_, '_>) {
 
     let router = builder.build();
     let path = format!("{}/z", "/x".repeat(N));
+    bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
+}
+
+#[divan::bench(consts = [1, 10, 100, 1000])]
+fn wildcard_rescan<const N: usize>(bencher: divan::Bencher<'_, '_>) {
+    let mut builder = wayfind::RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/y/<c>", 1).unwrap();
+
+    let router = builder.build();
+    let path = format!("{}/", "/x/y".repeat(N));
     bencher.bench(|| black_box(router.search(black_box(path.as_str()))));
 }
 

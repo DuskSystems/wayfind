@@ -342,6 +342,39 @@ fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[ignore = "Bug!"]
+fn dynamic_overlapping_suffix() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<from>...<to>", 1)?;
+    builder.insert("/<from>", 2)?;
+
+    let router = builder.build();
+    insta::assert_snapshot!(router, @r"
+    /
+    ╰─ <from>
+       ╰─ ...
+          ╰─ <to>
+    ");
+
+    let search = router.search("/10...100").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<from>...<to>");
+    assert_eq!(search.parameters(), &[("from", "10"), ("to", "100")]);
+
+    let search = router.search("/10").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<from>");
+    assert_eq!(search.parameters(), &[("from", "10")]);
+
+    let search = router.search("/1....").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<from>...<to>");
+    assert_eq!(search.parameters(), &[("from", "1"), ("to", ".")]);
+
+    Ok(())
+}
+
+#[test]
 fn dynamic_multibyte() -> Result<(), Box<dyn Error>> {
     let mut builder = RouterBuilder::new();
     builder.insert("/<name>.txt", 1)?;
