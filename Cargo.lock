@@ -878,7 +878,6 @@ dependencies = [
  "path-tree",
  "route-recognizer",
  "similar-asserts",
- "smallvec",
  "xitca-router",
 ]
 

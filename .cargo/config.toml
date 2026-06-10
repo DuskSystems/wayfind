@@ -24,8 +24,11 @@ opt-level = 3
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html#release
 [profile.release]
+debug = "limited"
 hint-mostly-unused = true
-overflow-checks = true
+lto = "thin"
+split-debuginfo = "packed"
+strip = "debuginfo"
 
 # https://doc.rust-lang.org/cargo/reference/profiles.html#custom-profiles
 [profile.profiling]

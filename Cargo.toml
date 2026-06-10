@@ -141,9 +141,6 @@ wayfind = { path = "." }
 # SIMD
 memchr = { version = "2.8", default-features = false, features = ["alloc"] }
 
-# Collections
-smallvec = { version = "1.15", default-features = false, features = ["const_new", "union"] }
-
 # Testing
 insta = { version = "1.47", default-features = false }
 similar-asserts = { version = "2.0", default-features = false }
@@ -189,9 +186,6 @@ workspace = true
 [dependencies]
 # SIMD
 memchr.workspace = true
-
-# Collections
-smallvec.workspace = true
 
 [dev-dependencies]
 # Testing

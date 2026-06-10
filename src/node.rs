@@ -4,27 +4,26 @@ use alloc::format;
 use alloc::string::ToString as _;
 use core::fmt;
 
-use smallvec::SmallVec;
-
 use crate::bounds::Bounds;
 use crate::needle::NeedleCache;
 use crate::reachable::Reachable;
 use crate::state::{DynamicState, EndWildcardState, StaticState, WildcardState};
+use crate::storage::Storage;
 use crate::suffixes::Suffixes;
 
 /// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
     pub needles: NeedleCache,
-    pub caps: SmallVec<[usize; 8]>,
-    pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
+    pub caps: Storage<usize, 8>,
+    pub parameters: Storage<(&'r str, &'p str), 4>,
 }
 
 impl SearchContext<'_, '_> {
-    pub(crate) fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             needles: NeedleCache::new(),
-            caps: SmallVec::new(),
-            parameters: SmallVec::new(),
+            caps: Storage::new(),
+            parameters: Storage::new(),
         }
     }
 
@@ -38,11 +37,7 @@ impl SearchContext<'_, '_> {
 
     /// Lowers a node's cap after a visit fails.
     fn lower(&mut self, node: usize, offset: usize) {
-        if self.caps.len() <= node {
-            self.caps.resize(node + 1, usize::MAX);
-        }
-
-        if let Some(current) = self.caps.get_mut(node) {
+        if let Some(current) = self.caps.slot(node, usize::MAX) {
             *current = (*current).min(offset + 1);
         }
     }
