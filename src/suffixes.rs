@@ -1,9 +1,8 @@
 use alloc::boxed::Box;
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
-use hashbrown::HashSet;
 use memchr::memmem::FinderRev;
-use rustc_hash::FxBuildHasher;
 
 use crate::node::Node;
 use crate::state::StaticState;
@@ -77,7 +76,7 @@ impl Suffixes {
     pub(crate) fn compute<S, T>(
         node: &Node<S, T>,
         prefix: &mut Vec<u8>,
-        seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
+        seen: &mut BTreeSet<Vec<u8>>,
     ) -> Self {
         seen.clear();
 
@@ -100,7 +99,7 @@ impl Suffixes {
     fn walk_static<T>(
         node: &Node<StaticState, T>,
         prefix: &mut Vec<u8>,
-        seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
+        seen: &mut BTreeSet<Vec<u8>>,
     ) {
         let start = prefix.len();
         prefix.extend_from_slice(&node.state.prefix);
