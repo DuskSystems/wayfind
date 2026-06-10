@@ -2,10 +2,9 @@ use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString as _;
+use alloc::vec::Vec;
 use core::fmt;
 
-use hashbrown::{HashMap, HashSet};
-use rustc_hash::FxBuildHasher;
 use smallvec::SmallVec;
 
 use crate::bounds::Bounds;
@@ -16,14 +15,8 @@ use crate::suffixes::Suffixes;
 
 /// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
-    needles: NeedleCache,
-
-    /// Boundaries already tried and failed.
-    misses: HashSet<(usize, usize), FxBuildHasher>,
-
-    /// Boundaries where every higher boundary has already been tried.
-    caps: HashMap<usize, usize, FxBuildHasher>,
-
+    pub needles: NeedleCache,
+    pub caps: Vec<usize>,
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
@@ -31,15 +24,14 @@ impl SearchContext<'_, '_> {
     pub(crate) fn new() -> Self {
         Self {
             needles: NeedleCache::new(),
-            misses: HashSet::default(),
-            caps: HashMap::default(),
+            caps: Vec::new(),
             parameters: SmallVec::new(),
         }
     }
 
     /// Caps a boundary scan to exclude everything an earlier visit covered.
     fn cap(&self, node: usize, offset: usize, max: usize) -> usize {
-        match self.caps.get(&node) {
+        match self.caps.get(node) {
             Some(&current) => max.min(current.saturating_sub(offset + 1)),
             None => max,
         }
@@ -47,12 +39,13 @@ impl SearchContext<'_, '_> {
 
     /// Lowers a node's cap after a visit fails.
     fn lower(&mut self, node: usize, offset: usize) {
-        if self.misses.is_empty() {
-            return;
+        if self.caps.len() <= node {
+            self.caps.resize(node + 1, usize::MAX);
         }
 
-        let current = self.caps.entry(node).or_insert(usize::MAX);
-        *current = (*current).min(offset + 1);
+        if let Some(current) = self.caps.get_mut(node) {
+            *current = (*current).min(offset + 1);
+        }
     }
 }
 
@@ -192,36 +185,40 @@ impl<S, T> Node<S, T> {
         offset: usize,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
-        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
-        if limit == 0 {
-            return None;
-        }
-
-        let boundary = offset + limit;
-        let segment = &path[offset..boundary];
 
         for child in &self.dynamic_children {
-            if remaining.len() - limit < child.bounds.shortest() {
-                continue;
-            }
+            let id = child.state.id;
 
-            let ptr = core::ptr::from_ref(child) as usize;
-            if ctx.misses.contains(&(ptr, boundary)) {
+            let window = (ctx.cap(id, offset, remaining.len()) + 1).min(remaining.len());
+            let limit = match memchr::memchr(b'/', &remaining[..window]) {
+                Some(limit) if limit > 0 => limit,
+                None if window == remaining.len() => remaining.len(),
+                Some(_) | None => {
+                    ctx.lower(id, offset);
+                    continue;
+                }
+            };
+
+            if remaining.len() - limit < child.bounds.shortest() {
+                ctx.lower(id, offset);
                 continue;
             }
 
             if !child.reachable.check(&mut ctx.needles, path, offset) {
+                ctx.lower(id, offset);
                 continue;
             }
 
-            ctx.parameters.push((&child.state.name, segment));
+            let boundary = offset + limit;
+            ctx.parameters
+                .push((&child.state.name, &path[offset..boundary]));
 
             if let Some(result) = child.search_at(ctx, path, boundary) {
                 return Some(result);
             }
 
             ctx.parameters.pop();
-            ctx.misses.insert((ptr, boundary));
+            ctx.lower(id, offset);
         }
 
         None
@@ -235,27 +232,30 @@ impl<S, T> Node<S, T> {
         offset: usize,
     ) -> Option<&'r Data<T>> {
         let remaining = &path.as_bytes()[offset..];
-        let limit = memchr::memchr(b'/', remaining).unwrap_or(remaining.len());
 
         for child in &self.dynamic_children {
+            let id = child.state.id;
+
             if remaining.len() <= child.bounds.shortest() {
+                ctx.lower(id, offset);
                 continue;
             }
 
             if !child.reachable.check(&mut ctx.needles, path, offset) {
+                ctx.lower(id, offset);
                 continue;
             }
 
-            let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
-            let cap = ctx.cap(ptr, offset, limit.min(max));
+            let bound = ctx.cap(id, offset, max);
+
+            let window = (bound + 1).min(remaining.len());
+            let limit = memchr::memchr(b'/', &remaining[..window]);
+            let cap = limit.unwrap_or(bound);
 
             // Try boundaries with known suffix.
             for position in child.suffixes.positions(path, offset, cap) {
                 let boundary = offset + position;
-                if ctx.misses.contains(&(ptr, boundary)) {
-                    continue;
-                }
 
                 ctx.parameters
                     .push((&child.state.name, &path[offset..boundary]));
@@ -265,25 +265,33 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.misses.insert((ptr, boundary));
             }
 
-            ctx.lower(ptr, offset);
-
-            // Try full segment boundary.
-            if limit > 0 && remaining.len() - limit >= child.bounds.shortest() {
-                let boundary = offset + limit;
-                if ctx.misses.insert((ptr, boundary)) {
-                    ctx.parameters
-                        .push((&child.state.name, &path[offset..boundary]));
-
-                    if let Some(result) = child.search_at(ctx, path, boundary) {
-                        return Some(result);
-                    }
-
-                    ctx.parameters.pop();
+            // Try the segment end as a boundary.
+            let limit = match limit {
+                Some(limit) if limit > 0 => limit,
+                None if window == remaining.len() => remaining.len(),
+                Some(_) | None => {
+                    ctx.lower(id, offset);
+                    continue;
                 }
+            };
+
+            if remaining.len() - limit < child.bounds.shortest() {
+                ctx.lower(id, offset);
+                continue;
             }
+
+            let boundary = offset + limit;
+            ctx.parameters
+                .push((&child.state.name, &path[offset..boundary]));
+
+            if let Some(result) = child.search_at(ctx, path, boundary) {
+                return Some(result);
+            }
+
+            ctx.parameters.pop();
+            ctx.lower(id, offset);
         }
 
         None
@@ -299,17 +307,20 @@ impl<S, T> Node<S, T> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
+            let id = child.state.id;
+
             if remaining.len() <= child.bounds.shortest() {
+                ctx.lower(id, offset);
                 continue;
             }
 
             if !child.reachable.check(&mut ctx.needles, path, offset) {
+                ctx.lower(id, offset);
                 continue;
             }
 
-            let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
-            let cap = ctx.cap(ptr, offset, max);
+            let cap = ctx.cap(id, offset, max);
             let upper = (cap + 1).min(remaining.len());
 
             let initial = memchr::memrchr(b'/', &remaining[..upper]);
@@ -324,9 +335,6 @@ impl<S, T> Node<S, T> {
                 }
 
                 let boundary = offset + position;
-                if ctx.misses.contains(&(ptr, boundary)) {
-                    continue;
-                }
 
                 ctx.parameters
                     .push((&child.state.name, &path[offset..boundary]));
@@ -336,10 +344,9 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.misses.insert((ptr, boundary));
             }
 
-            ctx.lower(ptr, offset);
+            ctx.lower(id, offset);
         }
 
         None
@@ -355,23 +362,23 @@ impl<S, T> Node<S, T> {
         let remaining = &path.as_bytes()[offset..];
 
         for child in &self.wildcard_children {
+            let id = child.state.id;
+
             if remaining.len() <= child.bounds.shortest() {
+                ctx.lower(id, offset);
                 continue;
             }
 
             if !child.reachable.check(&mut ctx.needles, path, offset) {
+                ctx.lower(id, offset);
                 continue;
             }
 
-            let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
-            let cap = ctx.cap(ptr, offset, max);
+            let cap = ctx.cap(id, offset, max);
 
             for position in child.suffixes.positions(path, offset, cap) {
                 let boundary = offset + position;
-                if ctx.misses.contains(&(ptr, boundary)) {
-                    continue;
-                }
 
                 ctx.parameters
                     .push((&child.state.name, &path[offset..boundary]));
@@ -381,10 +388,9 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.misses.insert((ptr, boundary));
             }
 
-            ctx.lower(ptr, offset);
+            ctx.lower(id, offset);
         }
 
         None

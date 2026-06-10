@@ -44,12 +44,16 @@ impl fmt::Display for StaticState {
 /// A dynamic parameter.
 #[derive(Clone, Debug)]
 pub(crate) struct DynamicState {
+    pub id: usize,
     pub name: Box<str>,
 }
 
 impl DynamicState {
     pub(crate) fn new(name: &str) -> Self {
-        Self { name: name.into() }
+        Self {
+            id: 0,
+            name: name.into(),
+        }
     }
 }
 
@@ -62,12 +66,16 @@ impl fmt::Display for DynamicState {
 /// A mid-route wildcard parameter.
 #[derive(Clone, Debug)]
 pub(crate) struct WildcardState {
+    pub id: usize,
     pub name: Box<str>,
 }
 
 impl WildcardState {
     pub(crate) fn new(name: &str) -> Self {
-        Self { name: name.into() }
+        Self {
+            id: 0,
+            name: name.into(),
+        }
     }
 }
 

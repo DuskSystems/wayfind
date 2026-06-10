@@ -1,8 +1,6 @@
 use alloc::boxed::Box;
+use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
-
-use hashbrown::{HashMap, HashSet};
-use rustc_hash::FxBuildHasher;
 
 use crate::bounds::Bounds;
 use crate::builder::BuilderNode;
@@ -14,13 +12,15 @@ use crate::suffixes::Suffixes;
 
 /// Compiles a builder tree into an optimized tree.
 pub(crate) struct Compiler {
-    needles: HashMap<Box<[u8]>, usize, FxBuildHasher>,
+    needles: BTreeMap<Box<[u8]>, usize>,
+    parameters: usize,
 }
 
 impl Compiler {
     pub(crate) fn run<T>(builder: BuilderNode<RootState, T>) -> Router<T> {
         let mut compiler = Self {
-            needles: HashMap::default(),
+            needles: BTreeMap::new(),
+            parameters: 0,
         };
 
         let root = compiler.compile(builder);
@@ -34,7 +34,7 @@ impl Compiler {
             .map(|child| self.compile(child))
             .collect();
 
-        let mut seen = HashSet::default();
+        let mut seen = BTreeSet::new();
         let mut prefix = Vec::new();
 
         let mut dynamic_children: Vec<Node<DynamicState, T>> = builder
@@ -44,6 +44,9 @@ impl Compiler {
             .collect();
 
         for child in &mut dynamic_children {
+            child.state.id = self.parameters;
+            self.parameters += 1;
+
             child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
             child.reachable = Reachable::compute(child, &mut self.needles);
         }
@@ -55,6 +58,9 @@ impl Compiler {
             .collect();
 
         for child in &mut wildcard_children {
+            child.state.id = self.parameters;
+            self.parameters += 1;
+
             child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
             child.reachable = Reachable::compute(child, &mut self.needles);
         }

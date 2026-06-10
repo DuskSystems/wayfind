@@ -142,8 +142,6 @@ wayfind = { path = "." }
 memchr = { version = "2.8", default-features = false, features = ["alloc"] }
 
 # Collections
-hashbrown = { version = "0.17", default-features = false, features = ["inline-more"] }
-rustc-hash = { version = "2.1", default-features = false }
 smallvec = { version = "1.15", default-features = false, features = ["const_new", "union"] }
 
 # Testing
@@ -193,8 +191,6 @@ workspace = true
 memchr.workspace = true
 
 # Collections
-hashbrown.workspace = true
-rustc-hash.workspace = true
 smallvec.workspace = true
 
 [dev-dependencies]
