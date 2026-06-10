@@ -43,7 +43,7 @@
     {
       devShells = perSystemPkgs (pkgs: {
         # nix develop
-        default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
+        default = pkgs.mkShell.override { stdenv = pkgs.gcc16Stdenv; } {
           name = "wayfind-shell";
 
           env = {
@@ -54,8 +54,7 @@
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
               "-C target-cpu=native"
-              "-C linker=clang"
-              "-C link-arg=--ld-path=wild"
+              "-C link-arg=-fuse-ld=wild"
               "-Z threads=0"
             ];
 
@@ -120,7 +119,7 @@
         };
 
         # nix develop .#ci
-        ci = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
+        ci = pkgs.mkShell.override { stdenv = pkgs.gcc16Stdenv; } {
           name = "wayfind-ci-shell";
 
           env = {
@@ -129,8 +128,7 @@
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
               "-C target-cpu=native"
               "-C target-feature=-avx512f"
-              "-C linker=clang"
-              "-C link-arg=--ld-path=wild"
+              "-C link-arg=-fuse-ld=wild"
               "-Z threads=0"
             ];
 
@@ -145,7 +143,6 @@
               extensions = [
                 "clippy"
                 "llvm-tools"
-                "rust-src"
                 "rustc-codegen-cranelift"
                 "rustfmt"
               ];
@@ -178,7 +175,7 @@
         };
 
         # nix develop .#ci-compatibility
-        ci-compatibility = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
+        ci-compatibility = pkgs.mkShell.override { stdenv = pkgs.gcc16Stdenv; } {
           name = "wayfind-ci-compatibility-shell";
 
           env = {
@@ -187,8 +184,7 @@
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
               "-C target-cpu=native"
               "-C target-feature=-avx512f"
-              "-C linker=clang"
-              "-C link-arg=--ld-path=wild"
+              "-C link-arg=-fuse-ld=wild"
             ];
 
             # Cargo
