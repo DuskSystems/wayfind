@@ -2,7 +2,6 @@ use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString as _;
-use alloc::vec::Vec;
 use core::fmt;
 
 use smallvec::SmallVec;
@@ -16,7 +15,7 @@ use crate::suffixes::Suffixes;
 /// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
     pub needles: NeedleCache,
-    pub caps: Vec<usize>,
+    pub caps: SmallVec<[usize; 8]>,
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
@@ -24,7 +23,7 @@ impl SearchContext<'_, '_> {
     pub(crate) fn new() -> Self {
         Self {
             needles: NeedleCache::new(),
-            caps: Vec::new(),
+            caps: SmallVec::new(),
             parameters: SmallVec::new(),
         }
     }
