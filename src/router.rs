@@ -1,16 +1,15 @@
 use core::fmt;
 
-use smallvec::SmallVec;
-
 use crate::node::{Node, SearchContext};
 use crate::state::RootState;
+use crate::storage::Storage;
 
 /// Stores data from a successful router match.
 #[derive(Debug)]
 pub struct Match<'r, 'p, T> {
     data: &'r T,
     template: &'r str,
-    parameters: SmallVec<[(&'r str, &'p str); 4]>,
+    parameters: Storage<(&'r str, &'p str), 4>,
 }
 
 impl<'r, 'p, T> Match<'r, 'p, T> {
@@ -29,7 +28,7 @@ impl<'r, 'p, T> Match<'r, 'p, T> {
     /// The matched parameters as key-value pairs.
     #[must_use]
     pub fn parameters(&self) -> &[(&'r str, &'p str)] {
-        &self.parameters
+        self.parameters.as_slice()
     }
 }
 
