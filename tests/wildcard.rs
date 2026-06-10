@@ -588,3 +588,107 @@ fn wildcard_inline_empty() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn wildcard_backtrack() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/-/<*b>/x", 1)?;
+
+    let router = builder.build();
+
+    let search = router.search("/x/-/y/-/x").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/-/<*b>/x");
+    assert_eq!(search.parameters(), &[("a", "x"), ("b", "y/-")]);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_nested_backtrack() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/y/<c>", 1)?;
+
+    let router = builder.build();
+
+    let search = router.search("/x/y/x/y/x/y/q").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/x/<*b>/y/<c>");
+    assert_eq!(
+        search.parameters(),
+        &[("a", "x/y"), ("b", "y/x"), ("c", "q")]
+    );
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_revisit() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/x/<*b>/y/<c>", 1)?;
+
+    let router = builder.build();
+
+    let search = router.search("/x/n/x/q/x/m/x/y/");
+    assert!(search.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_inline_backtrack() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>.x/<b>", 1)?;
+
+    let router = builder.build();
+
+    let search = router.search("/b.x/c.x/d").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>.x/<b>");
+    assert_eq!(search.parameters(), &[("a", "b.x/c"), ("b", "d")]);
+
+    let search = router.search("/b.x/c.x/");
+    assert!(search.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_sibling() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>/x", 1)?;
+    builder.insert("/<*b>/forever", 2)?;
+
+    let router = builder.build();
+
+    let search = router.search("/q/x").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>/x");
+    assert_eq!(search.parameters(), &[("a", "q")]);
+
+    let search = router.search("/q/forever").unwrap();
+    assert_eq!(search.data(), &2);
+    assert_eq!(search.template(), "/<*b>/forever");
+    assert_eq!(search.parameters(), &[("b", "q")]);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_overlapping() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*a>ab", 1)?;
+    builder.insert("/<*a>a<b>", 2)?;
+
+    let router = builder.build();
+
+    let search = router.search("/xab").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*a>ab");
+    assert_eq!(search.parameters(), &[("a", "x")]);
+
+    let search = router.search("/xab/Q");
+    assert!(search.is_none());
+
+    Ok(())
+}

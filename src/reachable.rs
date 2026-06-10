@@ -1,6 +1,8 @@
 use alloc::boxed::Box;
-use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+
+use hashbrown::HashMap;
+use rustc_hash::FxBuildHasher;
 
 use crate::needle::NeedleCache;
 use crate::node::Node;
@@ -73,7 +75,7 @@ impl Reachable {
     /// Computes reachability conditions for a node's subtree.
     pub(crate) fn compute<S, T>(
         node: &Node<S, T>,
-        needles: &mut BTreeMap<Box<[u8]>, usize>,
+        needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>,
     ) -> Self {
         // Nodes with data or end wildcards are always reachable.
         if node.data.is_some() || node.end_wildcard.is_some() {
@@ -92,14 +94,6 @@ impl Reachable {
             groups.extend(inner);
         }
 
-        for inner in Self::parameter_groups(node) {
-            if inner.is_empty() {
-                return Self::default();
-            }
-
-            groups.extend(inner.iter().cloned());
-        }
-
         if groups.is_empty() {
             return Self::default();
         }
@@ -113,7 +107,7 @@ impl Reachable {
     fn walk_static<T>(
         node: &Node<StaticState, T>,
         prefix: &mut Vec<u8>,
-        needles: &mut BTreeMap<Box<[u8]>, usize>,
+        needles: &mut HashMap<Box<[u8]>, usize, FxBuildHasher>,
     ) -> Vec<Group> {
         let mut groups = Vec::new();
 

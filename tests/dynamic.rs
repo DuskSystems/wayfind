@@ -196,6 +196,11 @@ fn dynamic_sibling() -> Result<(), Box<dyn Error>> {
     assert_eq!(search.template(), "/<a>");
     assert_eq!(search.parameters(), &[("a", "hello.pdf")]);
 
+    let search = router.search("/a.txt").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>.txt");
+    assert_eq!(search.parameters(), &[("a", "a")]);
+
     Ok(())
 }
 
@@ -342,7 +347,6 @@ fn dynamic_repeated_suffix() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "Bug!"]
 fn dynamic_overlapping_suffix() -> Result<(), Box<dyn Error>> {
     let mut builder = RouterBuilder::new();
     builder.insert("/<from>...<to>", 1)?;
@@ -429,6 +433,38 @@ fn dynamic_inline_tails() -> Result<(), Box<dyn Error>> {
     let router = builder.build();
 
     let search = router.search("/foo/view");
+    assert!(search.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn dynamic_segment_revisit() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>x<b>x<c>/-/<d>/end/<e>", 1)?;
+
+    let router = builder.build();
+
+    let search = router.search("/xxxxxx/-/yyyyyy/end/");
+    assert!(search.is_none());
+
+    Ok(())
+}
+
+#[test]
+fn dynamic_overlapping_boundaries() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<a>ab", 1)?;
+    builder.insert("/<a>a<b>", 2)?;
+
+    let router = builder.build();
+
+    let search = router.search("/xab").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<a>ab");
+    assert_eq!(search.parameters(), &[("a", "x")]);
+
+    let search = router.search("/xab/Q");
     assert!(search.is_none());
 
     Ok(())

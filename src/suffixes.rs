@@ -1,9 +1,9 @@
 use alloc::boxed::Box;
-use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
-use core::cmp::Reverse;
 
+use hashbrown::HashSet;
 use memchr::memmem::FinderRev;
+use rustc_hash::FxBuildHasher;
 
 use crate::node::Node;
 use crate::state::StaticState;
@@ -32,7 +32,10 @@ impl Suffix {
     ) -> impl Iterator<Item = usize> + 'a {
         let initial = (cap + self.bytes.len()).min(remaining.len());
         let first = self.finder.rfind(&remaining[..initial]);
-        core::iter::successors(first, move |&end| self.finder.rfind(&remaining[..end]))
+        core::iter::successors(first, move |&start| {
+            self.finder
+                .rfind(&remaining[..start + self.bytes.len() - 1])
+        })
     }
 }
 
@@ -74,7 +77,7 @@ impl Suffixes {
     pub(crate) fn compute<S, T>(
         node: &Node<S, T>,
         prefix: &mut Vec<u8>,
-        seen: &mut BTreeSet<Vec<u8>>,
+        seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
     ) -> Self {
         seen.clear();
 
@@ -83,7 +86,13 @@ impl Suffixes {
         }
 
         let mut suffixes: Vec<Suffix> = seen.iter().cloned().map(Suffix::new).collect();
-        suffixes.sort_by_key(|suffix| Reverse(suffix.bytes.len()));
+        suffixes.sort_unstable_by(|a, b| {
+            b.bytes
+                .len()
+                .cmp(&a.bytes.len())
+                .then_with(|| a.bytes.cmp(&b.bytes))
+        });
+
         Self(suffixes.into_boxed_slice())
     }
 
@@ -91,7 +100,7 @@ impl Suffixes {
     fn walk_static<T>(
         node: &Node<StaticState, T>,
         prefix: &mut Vec<u8>,
-        seen: &mut BTreeSet<Vec<u8>>,
+        seen: &mut HashSet<Vec<u8>, FxBuildHasher>,
     ) {
         let start = prefix.len();
         prefix.extend_from_slice(&node.state.prefix);
