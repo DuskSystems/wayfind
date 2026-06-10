@@ -1,10 +1,11 @@
 use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
-use alloc::collections::BTreeSet;
 use alloc::format;
 use alloc::string::ToString as _;
 use core::fmt;
 
+use hashbrown::{HashMap, HashSet};
+use rustc_hash::FxBuildHasher;
 use smallvec::SmallVec;
 
 use crate::bounds::Bounds;
@@ -15,8 +16,14 @@ use crate::suffixes::Suffixes;
 
 /// Per-search state.
 pub(crate) struct SearchContext<'r, 'p> {
-    pub needles: NeedleCache,
-    pub attempts: BTreeSet<(usize, usize)>,
+    needles: NeedleCache,
+
+    /// Boundaries already tried and failed.
+    misses: HashSet<(usize, usize), FxBuildHasher>,
+
+    /// Boundaries where every higher boundary has already been tried.
+    caps: HashMap<usize, usize, FxBuildHasher>,
+
     pub parameters: SmallVec<[(&'r str, &'p str); 4]>,
 }
 
@@ -24,9 +31,28 @@ impl SearchContext<'_, '_> {
     pub(crate) fn new() -> Self {
         Self {
             needles: NeedleCache::new(),
-            attempts: BTreeSet::new(),
+            misses: HashSet::default(),
+            caps: HashMap::default(),
             parameters: SmallVec::new(),
         }
+    }
+
+    /// Caps a boundary scan to exclude everything an earlier visit covered.
+    fn cap(&self, node: usize, offset: usize, max: usize) -> usize {
+        match self.caps.get(&node) {
+            Some(&current) => max.min(current.saturating_sub(offset + 1)),
+            None => max,
+        }
+    }
+
+    /// Lowers a node's cap after a visit fails.
+    fn lower(&mut self, node: usize, offset: usize) {
+        if self.misses.is_empty() {
+            return;
+        }
+
+        let current = self.caps.entry(node).or_insert(usize::MAX);
+        *current = (*current).min(offset + 1);
     }
 }
 
@@ -37,16 +63,9 @@ pub(crate) struct Data<T> {
     pub template: Box<str>,
 }
 
+/// Node children search approach.
 #[derive(Clone, Debug)]
-pub(crate) enum DynamicSearch {
-    /// All children are whole segments.
-    Segment,
-    /// Children may have inline suffixes.
-    Inline,
-}
-
-#[derive(Clone, Debug)]
-pub(crate) enum WildcardSearch {
+pub(crate) enum SearchMode {
     /// All children are whole segments.
     Segment,
     /// Children may have inline suffixes.
@@ -68,8 +87,8 @@ pub(crate) struct Node<S, T> {
     pub reachable: Reachable,
     pub suffixes: Suffixes,
 
-    pub dynamic_search: DynamicSearch,
-    pub wildcard_search: WildcardSearch,
+    pub dynamic_search: SearchMode,
+    pub wildcard_search: SearchMode,
 }
 
 impl<S, T> Node<S, T> {
@@ -114,13 +133,13 @@ impl<S, T> Node<S, T> {
             return Some(result);
         }
 
-        if !path.is_char_boundary(offset) {
+        if !self.has_parameters() || !path.is_char_boundary(offset) {
             return None;
         }
 
         let dynamic = match self.dynamic_search {
-            DynamicSearch::Segment => self.search_dynamic_segment(ctx, path, offset),
-            DynamicSearch::Inline => self.search_dynamic_inline(ctx, path, offset),
+            SearchMode::Segment => self.search_dynamic_segment(ctx, path, offset),
+            SearchMode::Inline => self.search_dynamic_inline(ctx, path, offset),
         };
 
         if let Some(result) = dynamic {
@@ -128,8 +147,8 @@ impl<S, T> Node<S, T> {
         }
 
         let wildcard = match self.wildcard_search {
-            WildcardSearch::Segment => self.search_wildcard_segment(ctx, path, offset),
-            WildcardSearch::Inline => self.search_wildcard_inline(ctx, path, offset),
+            SearchMode::Segment => self.search_wildcard_segment(ctx, path, offset),
+            SearchMode::Inline => self.search_wildcard_inline(ctx, path, offset),
         };
 
         if let Some(result) = wildcard {
@@ -186,6 +205,11 @@ impl<S, T> Node<S, T> {
                 continue;
             }
 
+            let ptr = core::ptr::from_ref(child) as usize;
+            if ctx.misses.contains(&(ptr, boundary)) {
+                continue;
+            }
+
             if !child.reachable.check(&mut ctx.needles, path, offset) {
                 continue;
             }
@@ -197,11 +221,13 @@ impl<S, T> Node<S, T> {
             }
 
             ctx.parameters.pop();
+            ctx.misses.insert((ptr, boundary));
         }
 
         None
     }
 
+    #[inline(never)]
     fn search_dynamic_inline<'r, 'p>(
         &'r self,
         ctx: &mut SearchContext<'r, 'p>,
@@ -222,11 +248,12 @@ impl<S, T> Node<S, T> {
 
             let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
+            let cap = ctx.cap(ptr, offset, limit.min(max));
 
             // Try boundaries with known suffix.
-            for position in child.suffixes.positions(path, offset, limit.min(max)) {
+            for position in child.suffixes.positions(path, offset, cap) {
                 let boundary = offset + position;
-                if ctx.attempts.contains(&(ptr, boundary)) {
+                if ctx.misses.contains(&(ptr, boundary)) {
                     continue;
                 }
 
@@ -238,13 +265,15 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.attempts.insert((ptr, boundary));
+                ctx.misses.insert((ptr, boundary));
             }
+
+            ctx.lower(ptr, offset);
 
             // Try full segment boundary.
             if limit > 0 && remaining.len() - limit >= child.bounds.shortest() {
                 let boundary = offset + limit;
-                if ctx.attempts.insert((ptr, boundary)) {
+                if ctx.misses.insert((ptr, boundary)) {
                     ctx.parameters
                         .push((&child.state.name, &path[offset..boundary]));
 
@@ -260,6 +289,7 @@ impl<S, T> Node<S, T> {
         None
     }
 
+    #[inline(never)]
     fn search_wildcard_segment<'r, 'p>(
         &'r self,
         ctx: &mut SearchContext<'r, 'p>,
@@ -279,7 +309,8 @@ impl<S, T> Node<S, T> {
 
             let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
-            let upper = (max + 1).min(remaining.len());
+            let cap = ctx.cap(ptr, offset, max);
+            let upper = (cap + 1).min(remaining.len());
 
             let initial = memchr::memrchr(b'/', &remaining[..upper]);
             let positions = core::iter::successors(initial, |&position| {
@@ -293,7 +324,7 @@ impl<S, T> Node<S, T> {
                 }
 
                 let boundary = offset + position;
-                if ctx.attempts.contains(&(ptr, boundary)) {
+                if ctx.misses.contains(&(ptr, boundary)) {
                     continue;
                 }
 
@@ -305,13 +336,16 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.attempts.insert((ptr, boundary));
+                ctx.misses.insert((ptr, boundary));
             }
+
+            ctx.lower(ptr, offset);
         }
 
         None
     }
 
+    #[inline(never)]
     fn search_wildcard_inline<'r, 'p>(
         &'r self,
         ctx: &mut SearchContext<'r, 'p>,
@@ -331,10 +365,11 @@ impl<S, T> Node<S, T> {
 
             let ptr = core::ptr::from_ref(child) as usize;
             let max = remaining.len() - child.bounds.shortest();
+            let cap = ctx.cap(ptr, offset, max);
 
-            for position in child.suffixes.positions(path, offset, max) {
+            for position in child.suffixes.positions(path, offset, cap) {
                 let boundary = offset + position;
-                if ctx.attempts.contains(&(ptr, boundary)) {
+                if ctx.misses.contains(&(ptr, boundary)) {
                     continue;
                 }
 
@@ -346,8 +381,10 @@ impl<S, T> Node<S, T> {
                 }
 
                 ctx.parameters.pop();
-                ctx.attempts.insert((ptr, boundary));
+                ctx.misses.insert((ptr, boundary));
             }
+
+            ctx.lower(ptr, offset);
         }
 
         None
