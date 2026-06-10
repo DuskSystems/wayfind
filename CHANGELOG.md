@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2](https://github.com/DuskSystems/wayfind/compare/v1.0.1...v1.0.2) - 2026-06-10
+
+### Fixes
+- Correct handling of overlapping suffixes ([91030c7](https://github.com/DuskSystems/wayfind/commit/91030c774dfe1b3c544c6d83a599c00266991df8))
+
+### Performance
+- Replace SmallVec with custom storage ([3680375](https://github.com/DuskSystems/wayfind/commit/368037517939c282ef4f106026089b939c1c49db))
+- Use smallvec for caps ([2e926f7](https://github.com/DuskSystems/wayfind/commit/2e926f7b878f7e909135c8b8a52359ef24e74228))
+- Index search memos by ID ([0820f14](https://github.com/DuskSystems/wayfind/commit/0820f146e6fd1c53640369031baabc7a3cb66ee3))
+
+### Testing
+- Add overlapping suffix edge case ([3e51a65](https://github.com/DuskSystems/wayfind/commit/3e51a6556291fa295998ebcdbb461092f371b800))
+
 ## [1.0.1](https://github.com/DuskSystems/wayfind/compare/v1.0.0...v1.0.1) - 2026-05-11
 
 ### Performance
