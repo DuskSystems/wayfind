@@ -262,22 +262,13 @@ impl<S, T> Node<S, T> {
                 ctx.parameters.pop();
             }
 
-            // Try the segment end as a boundary.
-            let limit = match limit {
-                Some(limit) if limit > 0 => limit,
-                None if window == remaining.len() => remaining.len(),
-                Some(_) | None => {
-                    ctx.lower(id, offset);
-                    continue;
-                }
-            };
-
-            if remaining.len() - limit < child.bounds.shortest() {
+            // Consume the segment to the end.
+            if limit.is_some() || window != remaining.len() || child.bounds.shortest() != 0 {
                 ctx.lower(id, offset);
                 continue;
             }
 
-            let boundary = offset + limit;
+            let boundary = offset + remaining.len();
             ctx.parameters
                 .push((&child.state.name, &path[offset..boundary]));
 
