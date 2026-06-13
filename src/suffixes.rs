@@ -23,18 +23,10 @@ impl Suffix {
         }
     }
 
-    /// Yields each match position, walking from right to left.
-    fn positions<'a>(
-        &'a self,
-        remaining: &'a [u8],
-        cap: usize,
-    ) -> impl Iterator<Item = usize> + 'a {
-        let initial = (cap + self.bytes.len()).min(remaining.len());
-        let first = self.finder.rfind(&remaining[..initial]);
-        core::iter::successors(first, move |&start| {
-            self.finder
-                .rfind(&remaining[..start + self.bytes.len() - 1])
-        })
+    /// The greatest starting position not exceeding the bound.
+    fn rfind(&self, remaining: &[u8], bound: usize) -> Option<usize> {
+        let upper = (bound + self.bytes.len()).min(remaining.len());
+        self.finder.rfind(&remaining[..upper])
     }
 }
 
@@ -65,11 +57,19 @@ impl Suffixes {
         cap: usize,
     ) -> impl Iterator<Item = usize> + 'a {
         let remaining = &path.as_bytes()[offset..];
-        self.0
-            .iter()
-            .flat_map(move |suffix| suffix.positions(remaining, cap))
-            .filter(|&position| position > 0)
-            .filter(move |&position| path.is_char_boundary(offset + position))
+        let mut limit = cap;
+
+        core::iter::from_fn(move || {
+            let position = self
+                .0
+                .iter()
+                .filter_map(|suffix| suffix.rfind(remaining, limit))
+                .max()?;
+
+            limit = position.checked_sub(1)?;
+            Some(position)
+        })
+        .filter(move |&position| path.is_char_boundary(offset + position))
     }
 
     /// Computes the suffix set from a node's static descendants.
