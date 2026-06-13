@@ -127,10 +127,13 @@
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
               "-C target-cpu=native"
-              "-C target-feature=-avx512f"
+              "-C target-feature=-avx512f,-avx512vl,-avx512bw,-avx512dq"
               "-C link-arg=-fuse-ld=wild"
               "-Z threads=0"
             ];
+
+            # C
+            GLIBC_TUNABLES = "glibc.cpu.hwcaps=-AVX512F,-AVX512VL,-AVX512BW,-AVX512DQ";
 
             # Cargo
             CARGO_INCREMENTAL = "0";
@@ -182,8 +185,6 @@
             # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
-              "-C target-cpu=native"
-              "-C target-feature=-avx512f"
               "-C link-arg=-fuse-ld=wild"
             ];
 
