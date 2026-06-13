@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3](https://github.com/DuskSystems/wayfind/compare/v1.0.2...v1.0.3) - 2026-06-13
+
+### Fixes
+- Correct suffix boundaries order ([d338916](https://github.com/DuskSystems/wayfind/commit/d338916b0ea3d67dc84ad6790e4d4bb0458dcfbb))
+
+### Performance
+- Only memoize revisitable parameters ([4579fda](https://github.com/DuskSystems/wayfind/commit/4579fdaeead2b62b510a156328ea5468acc483a8))
+
+### Testing
+- Add inline wildcard coverage ([0536003](https://github.com/DuskSystems/wayfind/commit/0536003f9bb38b9d3b4bf6f0d3509b1e91ea099c))
+
 ## [1.0.2](https://github.com/DuskSystems/wayfind/compare/v1.0.1...v1.0.2) - 2026-06-10
 
 ### Fixes

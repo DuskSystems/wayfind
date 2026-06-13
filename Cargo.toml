@@ -4,7 +4,7 @@ resolver = "3"
 members = [".", "fuzz"]
 
 [workspace.package]
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 rust-version = "1.85"
 repository = "https://github.com/DuskSystems/wayfind"
