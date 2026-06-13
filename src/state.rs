@@ -1,6 +1,7 @@
 use alloc::boxed::Box;
 use alloc::string::String;
 use core::fmt;
+use core::num::NonZeroUsize;
 
 use crate::node::Data;
 
@@ -44,14 +45,14 @@ impl fmt::Display for StaticState {
 /// A dynamic parameter.
 #[derive(Clone, Debug)]
 pub(crate) struct DynamicState {
-    pub id: usize,
+    pub id: Option<NonZeroUsize>,
     pub name: Box<str>,
 }
 
 impl DynamicState {
     pub(crate) fn new(name: &str) -> Self {
         Self {
-            id: 0,
+            id: None,
             name: name.into(),
         }
     }
@@ -66,14 +67,14 @@ impl fmt::Display for DynamicState {
 /// A mid-route wildcard parameter.
 #[derive(Clone, Debug)]
 pub(crate) struct WildcardState {
-    pub id: usize,
+    pub id: Option<NonZeroUsize>,
     pub name: Box<str>,
 }
 
 impl WildcardState {
     pub(crate) fn new(name: &str) -> Self {
         Self {
-            id: 0,
+            id: None,
             name: name.into(),
         }
     }

@@ -104,6 +104,20 @@ impl<S, T> BuilderNode<S, T> {
         }
     }
 
+    pub(crate) fn has_parameters(&self) -> bool {
+        !self.dynamic_children.is_empty()
+            || !self.wildcard_children.is_empty()
+            || self.end_wildcard.is_some()
+    }
+
+    pub(crate) fn is_segment_only(&self) -> bool {
+        !self.has_parameters()
+            && self
+                .static_children
+                .iter()
+                .all(|child| child.state.prefix.first() == Some(&b'/'))
+    }
+
     pub(crate) fn insert(&mut self, template: &mut Template<'_>, data: Data<T>) {
         let Some(part) = template.parts.pop() else {
             self.data = Some(data);

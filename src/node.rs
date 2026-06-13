@@ -3,6 +3,7 @@ use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::ToString as _;
 use core::fmt;
+use core::num::NonZeroUsize;
 
 use crate::bounds::Bounds;
 use crate::needle::NeedleCache;
@@ -28,16 +29,24 @@ impl SearchContext<'_, '_> {
     }
 
     /// Caps a boundary scan to exclude everything an earlier visit covered.
-    fn cap(&self, node: usize, offset: usize, max: usize) -> usize {
-        match self.caps.get(node) {
+    fn cap(&self, node: Option<NonZeroUsize>, offset: usize, max: usize) -> usize {
+        let Some(node) = node else {
+            return max;
+        };
+
+        match self.caps.get(node.get() - 1) {
             Some(&current) => max.min(current.saturating_sub(offset + 1)),
             None => max,
         }
     }
 
     /// Lowers a node's cap after a visit fails.
-    fn lower(&mut self, node: usize, offset: usize) {
-        if let Some(current) = self.caps.slot(node, usize::MAX) {
+    fn lower(&mut self, node: Option<NonZeroUsize>, offset: usize) {
+        let Some(node) = node else {
+            return;
+        };
+
+        if let Some(current) = self.caps.slot(node.get() - 1, usize::MAX) {
             *current = (*current).min(offset + 1);
         }
     }
@@ -83,14 +92,6 @@ impl<S, T> Node<S, T> {
         !self.dynamic_children.is_empty()
             || !self.wildcard_children.is_empty()
             || self.end_wildcard.is_some()
-    }
-
-    pub(crate) fn is_segment_only(&self) -> bool {
-        !self.has_parameters()
-            && self
-                .static_children
-                .iter()
-                .all(|child| child.state.prefix.first() == Some(&b'/'))
     }
 
     pub(crate) fn search<'r, 'p>(

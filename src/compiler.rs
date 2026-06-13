@@ -1,6 +1,7 @@
 use alloc::boxed::Box;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::vec::Vec;
+use core::num::NonZeroUsize;
 
 use crate::bounds::Bounds;
 use crate::builder::BuilderNode;
@@ -23,16 +24,29 @@ impl Compiler {
             parameters: 0,
         };
 
-        let root = compiler.compile(builder);
+        let root = compiler.compile(builder, false);
         Router::new(root)
     }
 
-    fn compile<S, T>(&mut self, builder: BuilderNode<S, T>) -> Node<S, T> {
+    fn compile<S, T>(&mut self, builder: BuilderNode<S, T>, revisitable: bool) -> Node<S, T> {
         let mut static_children: Vec<Node<StaticState, T>> = builder
             .static_children
             .into_iter()
-            .map(|child| self.compile(child))
+            .map(|child| self.compile(child, revisitable))
             .collect();
+
+        let dynamic_inline = !builder
+            .dynamic_children
+            .iter()
+            .all(BuilderNode::is_segment_only);
+
+        let wildcard_inline = !builder
+            .wildcard_children
+            .iter()
+            .all(BuilderNode::is_segment_only);
+
+        let dynamic_revisitable = revisitable || dynamic_inline;
+        let wildcard_revisitable = true;
 
         let mut seen = BTreeSet::new();
         let mut prefix = Vec::new();
@@ -40,12 +54,14 @@ impl Compiler {
         let mut dynamic_children: Vec<Node<DynamicState, T>> = builder
             .dynamic_children
             .into_iter()
-            .map(|child| self.compile(child))
+            .map(|child| self.compile(child, dynamic_revisitable))
             .collect();
 
         for child in &mut dynamic_children {
-            child.state.id = self.parameters;
-            self.parameters += 1;
+            if revisitable {
+                self.parameters += 1;
+                child.state.id = NonZeroUsize::new(self.parameters);
+            }
 
             child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
             child.reachable = Reachable::compute(child, &mut self.needles);
@@ -54,12 +70,14 @@ impl Compiler {
         let mut wildcard_children: Vec<Node<WildcardState, T>> = builder
             .wildcard_children
             .into_iter()
-            .map(|child| self.compile(child))
+            .map(|child| self.compile(child, wildcard_revisitable))
             .collect();
 
         for child in &mut wildcard_children {
-            child.state.id = self.parameters;
-            self.parameters += 1;
+            if revisitable {
+                self.parameters += 1;
+                child.state.id = NonZeroUsize::new(self.parameters);
+            }
 
             child.suffixes = Suffixes::compute(child, &mut prefix, &mut seen);
             child.reachable = Reachable::compute(child, &mut self.needles);
@@ -81,16 +99,16 @@ impl Compiler {
                 .then_with(|| a.state.name.cmp(&b.state.name))
         });
 
-        let dynamic_search = if dynamic_children.iter().all(Node::is_segment_only) {
-            SearchMode::Segment
-        } else {
+        let dynamic_search = if dynamic_inline {
             SearchMode::Inline
+        } else {
+            SearchMode::Segment
         };
 
-        let wildcard_search = if wildcard_children.iter().all(Node::is_segment_only) {
-            SearchMode::Segment
-        } else {
+        let wildcard_search = if wildcard_inline {
             SearchMode::Inline
+        } else {
+            SearchMode::Segment
         };
 
         let mut node = Node {
