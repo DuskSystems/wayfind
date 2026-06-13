@@ -126,9 +126,6 @@
             # Rust
             RUSTC_WRAPPER = "sccache";
             RUSTFLAGS = pkgs.lib.concatStringsSep " " [
-              "-C target-cpu=native"
-              # https://bugs.kde.org/show_bug.cgi?id=383010
-              "-C target-feature=-avx512f,-avx512vl,-avx512bw,-avx512dq"
               "-C link-arg=-fuse-ld=wild"
               "-Z threads=0"
             ];

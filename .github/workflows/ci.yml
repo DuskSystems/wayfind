@@ -18,8 +18,6 @@ env:
   ACTIONS_CACHE_SERVICE_V2: "on"
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_GHA_VERSION: "1"
-  # https://bugs.kde.org/show_bug.cgi?id=383010
-  GLIBC_TUNABLES: "glibc.cpu.hwcaps=-AVX512F,-AVX512VL,-AVX512BW,-AVX512DQ"
 
 jobs:
   setup:
