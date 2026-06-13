@@ -1,24 +1,10 @@
+use core::num::NonZeroUsize;
+
 use crate::storage::Storage;
-
-/// A cached needle position packed into a `usize`.
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
-struct CachedPosition(usize);
-
-impl CachedPosition {
-    const NOT_COMPUTED: Self = Self(usize::MAX);
-    const NOT_FOUND: Self = Self(usize::MAX - 1);
-
-    const fn get(self) -> Option<usize> {
-        match self {
-            Self::NOT_COMPUTED | Self::NOT_FOUND => None,
-            Self(position) => Some(position),
-        }
-    }
-}
 
 /// Cached rightmost positions for `Contains` checks.
 pub(crate) struct NeedleCache {
-    entries: Storage<CachedPosition, 8>,
+    entries: Storage<(usize, Option<NonZeroUsize>), 8>,
 }
 
 impl NeedleCache {
@@ -30,15 +16,21 @@ impl NeedleCache {
 
     /// The rightmost position of the needle, cached after first lookup.
     pub(crate) fn rightmost(&mut self, id: usize, needle: &[u8], path: &str) -> Option<usize> {
-        let entry = self.entries.slot(id, CachedPosition::NOT_COMPUTED)?;
-        if *entry == CachedPosition::NOT_COMPUTED {
-            *entry = match memchr::memmem::rfind(path.as_bytes(), needle) {
-                Some(position) => CachedPosition(position),
-                None => CachedPosition::NOT_FOUND,
-            };
+        if let Some((_, cached)) = self
+            .entries
+            .as_slice()
+            .iter()
+            .copied()
+            .find(|&(entry, _)| entry == id)
+        {
+            return cached.map(|position| position.get() - 1);
         }
 
-        entry.get()
+        let position = memchr::memmem::rfind(path.as_bytes(), needle);
+        self.entries
+            .push((id, position.and_then(|found| NonZeroUsize::new(found + 1))));
+
+        position
     }
 }
 
