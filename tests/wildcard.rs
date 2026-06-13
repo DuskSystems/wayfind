@@ -692,3 +692,53 @@ fn wildcard_overlapping() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn wildcard_inline_sibling() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/<file>", 1)?;
+    builder.insert("/<*path>.zip", 2)?;
+    builder.insert("/<*path>/raw", 3)?;
+
+    let router = builder.build();
+
+    let search = router.search("/docs/raw/page").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/<file>");
+    assert_eq!(
+        search.parameters(),
+        &[("path", "docs/raw"), ("file", "page")]
+    );
+
+    let search = router.search("/docs/raw").unwrap();
+    assert_eq!(search.data(), &3);
+    assert_eq!(search.template(), "/<*path>/raw");
+    assert_eq!(search.parameters(), &[("path", "docs")]);
+
+    Ok(())
+}
+
+#[test]
+fn wildcard_inline_segment() -> Result<(), Box<dyn Error>> {
+    let mut builder = RouterBuilder::new();
+    builder.insert("/<*path>/<file>", 1)?;
+    builder.insert("/<*path>.tar", 2)?;
+    builder.insert("/<*path>/log", 3)?;
+
+    let router = builder.build();
+
+    let search = router.search("/var/log/app").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/<file>");
+    assert_eq!(search.parameters(), &[("path", "var/log"), ("file", "app")]);
+
+    let search = router.search("/var//log/app").unwrap();
+    assert_eq!(search.data(), &1);
+    assert_eq!(search.template(), "/<*path>/<file>");
+    assert_eq!(
+        search.parameters(),
+        &[("path", "var//log"), ("file", "app")]
+    );
+
+    Ok(())
+}
